@@ -1,5 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using MinorShift.Emuera.GameData.Function;
+using MinorShift.Emuera.GameProc.PluginSystem;
 
 namespace MinorShift.Emuera.GameProc.Function;
 
@@ -48,7 +54,7 @@ internal sealed partial class FunctionIdentifier
 	{
 		string key = code.ToString();
 		if (Config.ICFunction)
-			key = key.ToUpper();
+			key = key.ToUpper(CultureInfo.InvariantCulture);
 		funcDic.Add(key, new FunctionIdentifier(key, code, inst, additionalFlag));
 	}
 
@@ -59,7 +65,7 @@ internal sealed partial class FunctionIdentifier
 	{
 		string key = code.ToString();
 		if (Config.ICFunction)
-			key = key.ToUpper();
+			key = key.ToUpper(CultureInfo.InvariantCulture);
 		funcDic.Add(key, new FunctionIdentifier(key, code, arg, flag));
 	}
 
@@ -268,8 +274,11 @@ internal sealed partial class FunctionIdentifier
 		addFunction(FunctionCode.SETCOLORBYNAME, argb[FunctionArgType.STR], METHOD_SAFE | EXTENDED);
 		addFunction(FunctionCode.RESETCOLOR, new RESETCOLOR_Instruction());
 		addFunction(FunctionCode.SETBGCOLOR, argb[FunctionArgType.SP_COLOR], METHOD_SAFE | EXTENDED);
+		addFunction(FunctionCode.SETBGIMAGE, new SETBGIMAGE_Instruction());
 		addFunction(FunctionCode.SETBGCOLORBYNAME, argb[FunctionArgType.STR], METHOD_SAFE | EXTENDED);
 		addFunction(FunctionCode.RESETBGCOLOR, new RESETBGCOLOR_Instruction());
+		addFunction(FunctionCode.CLEARBGIMAGE, new CLEARBGIMAGE_Instruction());
+		addFunction(FunctionCode.REMOVEBGIMAGE, new REMOVEBGIMAGE_Instruction());
 		addFunction(FunctionCode.FONTBOLD, new FONTBOLD_Instruction());
 		addFunction(FunctionCode.FONTITALIC, new FONTITALIC_Instruction());
 		addFunction(FunctionCode.FONTREGULAR, new FONTREGULAR_Instruction());
@@ -324,6 +333,9 @@ internal sealed partial class FunctionIdentifier
 		addFunction(FunctionCode.ARRAYSORT, argb[FunctionArgType.SP_SORTARRAY], METHOD_SAFE | EXTENDED);
 		addFunction(FunctionCode.ARRAYCOPY, argb[FunctionArgType.SP_COPY_ARRAY], METHOD_SAFE | EXTENDED);
 
+		#region EE_SystemInput拡張
+		addFunction(FunctionCode.FLOWINPUT, argb[FunctionArgType.SP_INPUT], METHOD_SAFE | EXTENDED);
+		#endregion
 		#region EE_SKIPLOG
 		addFunction(FunctionCode.SKIPLOG, argb[FunctionArgType.INT_EXPRESSION], METHOD_SAFE | EXTENDED);
 		#endregion
@@ -344,6 +356,7 @@ internal sealed partial class FunctionIdentifier
 		addFunction(FunctionCode.CALLEVENT, new CALLEVENT_Instruction());
 		addFunction(FunctionCode.CALLF, new CALLF_Instruction(false));
 		addFunction(FunctionCode.CALLFORMF, new CALLF_Instruction(true));
+		addFunction(FunctionCode.CALLSHARP, new CALLSHARP_Instruction());
 		addFunction(FunctionCode.RESTART, new RESTART_Instruction());//関数の再開。関数の最初に戻る。
 		addFunction(FunctionCode.GOTO, new GOTO_Instruction(false, false, false));//$ラベルへジャンプ
 		addFunction(FunctionCode.TRYGOTO, new GOTO_Instruction(false, true, false), EXTENDED);

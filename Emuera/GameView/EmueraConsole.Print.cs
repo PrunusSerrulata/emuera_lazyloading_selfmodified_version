@@ -49,6 +49,7 @@ internal sealed partial class EmueraConsole : IDisposable
 		#endregion
 		logicalLineCount = 0;
 		#region GETDISPLAYLINE修正
+		//issue:修正できてない 未だにどこかでずれてる
 		deletedLines = 0;
 		#endregion
 		lineNo = 0;

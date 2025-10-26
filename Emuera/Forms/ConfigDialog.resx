@@ -18,7 +18,7 @@
     <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
     <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
     <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing"">Blue</data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
     <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
         <value>[base64 mime encoded serialized .NET Framework object]</value>
     </data>
@@ -133,7 +133,7 @@
     <value>3, 3</value>
   </data>
   <data name="buttonSave.Size" type="System.Drawing.Size, System.Drawing">
-    <value>51, 30</value>
+    <value>43, 25</value>
   </data>
   <data name="buttonSave.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -163,10 +163,10 @@
     <value>NoControl</value>
   </data>
   <data name="buttonCancel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>190, 3</value>
+    <value>159, 3</value>
   </data>
   <data name="buttonCancel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>81, 30</value>
+    <value>69, 25</value>
   </data>
   <data name="buttonCancel.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -196,10 +196,10 @@
     <value>NoControl</value>
   </data>
   <data name="buttonReboot.Location" type="System.Drawing.Point, System.Drawing">
-    <value>60, 3</value>
+    <value>52, 3</value>
   </data>
   <data name="buttonReboot.Size" type="System.Drawing.Size, System.Drawing">
-    <value>124, 30</value>
+    <value>101, 25</value>
   </data>
   <data name="buttonReboot.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -247,7 +247,7 @@
     <value>3, 3</value>
   </data>
   <data name="checkBox18.Size" type="System.Drawing.Size, System.Drawing">
-    <value>199, 24</value>
+    <value>164, 19</value>
   </data>
   <data name="checkBox18.TabIndex" type="System.Int32, mscorlib">
     <value>65</value>
@@ -274,10 +274,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 33</value>
+    <value>3, 28</value>
   </data>
   <data name="checkBox3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>137, 24</value>
+    <value>113, 19</value>
   </data>
   <data name="checkBox3.TabIndex" type="System.Int32, mscorlib">
     <value>58</value>
@@ -304,10 +304,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 63</value>
+    <value>3, 53</value>
   </data>
   <data name="checkBox5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>195, 24</value>
+    <value>161, 19</value>
   </data>
   <data name="checkBox5.TabIndex" type="System.Int32, mscorlib">
     <value>60</value>
@@ -338,7 +338,7 @@
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>205, 90</value>
+    <value>170, 75</value>
   </data>
   <data name="flowLayoutPanel4.TabIndex" type="System.Int32, mscorlib">
     <value>79</value>
@@ -371,7 +371,7 @@
     <value>3, 3</value>
   </data>
   <data name="checkBox6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>165, 24</value>
+    <value>135, 19</value>
   </data>
   <data name="checkBox6.TabIndex" type="System.Int32, mscorlib">
     <value>61</value>
@@ -398,10 +398,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox4.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 33</value>
+    <value>3, 28</value>
   </data>
   <data name="checkBox4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>148, 24</value>
+    <value>122, 19</value>
   </data>
   <data name="checkBox4.TabIndex" type="System.Int32, mscorlib">
     <value>59</value>
@@ -428,10 +428,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox7.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 63</value>
+    <value>3, 53</value>
   </data>
   <data name="checkBox7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>157, 24</value>
+    <value>130, 19</value>
   </data>
   <data name="checkBox7.TabIndex" type="System.Int32, mscorlib">
     <value>62</value>
@@ -455,13 +455,13 @@
     <value>TopDown</value>
   </data>
   <data name="flowLayoutPanel5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>205, 0</value>
+    <value>170, 0</value>
   </data>
   <data name="flowLayoutPanel5.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>171, 90</value>
+    <value>141, 75</value>
   </data>
   <data name="flowLayoutPanel5.TabIndex" type="System.Int32, mscorlib">
     <value>80</value>
@@ -485,7 +485,7 @@
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>376, 90</value>
+    <value>311, 75</value>
   </data>
   <data name="flowLayoutPanel6.TabIndex" type="System.Int32, mscorlib">
     <value>81</value>
@@ -509,10 +509,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox24.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 93</value>
+    <value>3, 78</value>
   </data>
   <data name="checkBox24.Size" type="System.Drawing.Size, System.Drawing">
-    <value>273, 24</value>
+    <value>224, 19</value>
   </data>
   <data name="checkBox24.TabIndex" type="System.Int32, mscorlib">
     <value>77</value>
@@ -539,10 +539,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox33.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 123</value>
+    <value>3, 103</value>
   </data>
   <data name="checkBox33.Size" type="System.Drawing.Size, System.Drawing">
-    <value>288, 24</value>
+    <value>237, 19</value>
   </data>
   <data name="checkBox33.TabIndex" type="System.Int32, mscorlib">
     <value>77</value>
@@ -572,7 +572,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown4.TabIndex" type="System.Int32, mscorlib">
     <value>63</value>
@@ -599,10 +599,10 @@
     <value>NoControl</value>
   </data>
   <data name="label6.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>110, 20</value>
+    <value>89, 15</value>
   </data>
   <data name="label6.TabIndex" type="System.Int32, mscorlib">
     <value>69</value>
@@ -623,13 +623,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel7.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 150</value>
+    <value>0, 125</value>
   </data>
   <data name="flowLayoutPanel7.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>242, 33</value>
+    <value>221, 29</value>
   </data>
   <data name="flowLayoutPanel7.TabIndex" type="System.Int32, mscorlib">
     <value>82</value>
@@ -656,7 +656,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown10.TabIndex" type="System.Int32, mscorlib">
     <value>64</value>
@@ -683,10 +683,10 @@
     <value>NoControl</value>
   </data>
   <data name="label17.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label17.Size" type="System.Drawing.Size, System.Drawing">
-    <value>184, 20</value>
+    <value>152, 15</value>
   </data>
   <data name="label17.TabIndex" type="System.Int32, mscorlib">
     <value>70</value>
@@ -707,13 +707,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel9.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 183</value>
+    <value>0, 154</value>
   </data>
   <data name="flowLayoutPanel9.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>316, 33</value>
+    <value>284, 29</value>
   </data>
   <data name="flowLayoutPanel9.TabIndex" type="System.Int32, mscorlib">
     <value>82</value>
@@ -740,7 +740,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown11.TabIndex" type="System.Int32, mscorlib">
     <value>66</value>
@@ -767,10 +767,10 @@
     <value>NoControl</value>
   </data>
   <data name="label20.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label20.Size" type="System.Drawing.Size, System.Drawing">
-    <value>158, 20</value>
+    <value>130, 15</value>
   </data>
   <data name="label20.TabIndex" type="System.Int32, mscorlib">
     <value>71</value>
@@ -791,13 +791,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel8.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 216</value>
+    <value>0, 183</value>
   </data>
   <data name="flowLayoutPanel8.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>290, 33</value>
+    <value>262, 29</value>
   </data>
   <data name="flowLayoutPanel8.TabIndex" type="System.Int32, mscorlib">
     <value>82</value>
@@ -821,13 +821,13 @@
     <value>NoControl</value>
   </data>
   <data name="label22.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 269</value>
+    <value>3, 232</value>
   </data>
   <data name="label22.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 20, 3, 3</value>
   </data>
   <data name="label22.Size" type="System.Drawing.Size, System.Drawing">
-    <value>172, 20</value>
+    <value>142, 15</value>
   </data>
   <data name="label22.TabIndex" type="System.Int32, mscorlib">
     <value>72</value>
@@ -857,10 +857,10 @@
     <value>Left</value>
   </data>
   <data name="textBox1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 4</value>
+    <value>3, 6</value>
   </data>
   <data name="textBox1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>230, 27</value>
+    <value>230, 23</value>
   </data>
   <data name="textBox1.TabIndex" type="System.Int32, mscorlib">
     <value>73</value>
@@ -911,7 +911,7 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel10.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 292</value>
+    <value>20, 250</value>
   </data>
   <data name="flowLayoutPanel10.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 0, 0, 0</value>
@@ -959,7 +959,7 @@
     <value>3, 7</value>
   </data>
   <data name="label23.Size" type="System.Drawing.Size, System.Drawing">
-    <value>122, 20</value>
+    <value>99, 15</value>
   </data>
   <data name="label23.TabIndex" type="System.Int32, mscorlib">
     <value>75</value>
@@ -995,10 +995,10 @@
     <value>ユーザー設定</value>
   </data>
   <data name="comboBox6.Location" type="System.Drawing.Point, System.Drawing">
-    <value>131, 3</value>
+    <value>108, 3</value>
   </data>
   <data name="comboBox6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>178, 28</value>
+    <value>178, 23</value>
   </data>
   <data name="comboBox6.TabIndex" type="System.Int32, mscorlib">
     <value>78</value>
@@ -1022,7 +1022,7 @@
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel12.Size" type="System.Drawing.Size, System.Drawing">
-    <value>312, 34</value>
+    <value>289, 29</value>
   </data>
   <data name="flowLayoutPanel12.TabIndex" type="System.Int32, mscorlib">
     <value>85</value>
@@ -1043,10 +1043,10 @@
     <value>Right</value>
   </data>
   <data name="textBox2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>130, 37</value>
+    <value>107, 32</value>
   </data>
   <data name="textBox2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>179, 27</value>
+    <value>179, 23</value>
   </data>
   <data name="textBox2.TabIndex" type="System.Int32, mscorlib">
     <value>76</value>
@@ -1067,13 +1067,13 @@
     <value>TopDown</value>
   </data>
   <data name="flowLayoutPanel11.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 328</value>
+    <value>0, 286</value>
   </data>
   <data name="flowLayoutPanel11.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>312, 67</value>
+    <value>289, 58</value>
   </data>
   <data name="flowLayoutPanel11.TabIndex" type="System.Int32, mscorlib">
     <value>84</value>
@@ -1097,7 +1097,7 @@
     <value>35, 27</value>
   </data>
   <data name="flowLayoutPanel13.Size" type="System.Drawing.Size, System.Drawing">
-    <value>376, 395</value>
+    <value>313, 344</value>
   </data>
   <data name="flowLayoutPanel13.TabIndex" type="System.Int32, mscorlib">
     <value>86</value>
@@ -1115,10 +1115,10 @@
     <value>0</value>
   </data>
   <data name="tabEnvironment.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabEnvironment.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabEnvironment.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -1157,7 +1157,7 @@
     <value>3, 3, 3, 3</value>
   </data>
   <data name="label18.Size" type="System.Drawing.Size, System.Drawing">
-    <value>135, 20</value>
+    <value>110, 15</value>
   </data>
   <data name="label18.TabIndex" type="System.Int32, mscorlib">
     <value>65</value>
@@ -1187,13 +1187,13 @@
     <value>Graphics (GDI+)</value>
   </data>
   <data name="comboBoxTextDrawingMode.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 29</value>
+    <value>20, 24</value>
   </data>
   <data name="comboBoxTextDrawingMode.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="comboBoxTextDrawingMode.Size" type="System.Drawing.Size, System.Drawing">
-    <value>190, 28</value>
+    <value>190, 23</value>
   </data>
   <data name="comboBoxTextDrawingMode.TabIndex" type="System.Int32, mscorlib">
     <value>64</value>
@@ -1220,7 +1220,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown7.TabIndex" type="System.Int32, mscorlib">
     <value>55</value>
@@ -1247,10 +1247,10 @@
     <value>NoControl</value>
   </data>
   <data name="label9.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>90, 20</value>
+    <value>74, 15</value>
   </data>
   <data name="label9.TabIndex" type="System.Int32, mscorlib">
     <value>56</value>
@@ -1271,13 +1271,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel14.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 80</value>
+    <value>0, 70</value>
   </data>
   <data name="flowLayoutPanel14.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 20, 0, 0</value>
   </data>
   <data name="flowLayoutPanel14.Size" type="System.Drawing.Size, System.Drawing">
-    <value>222, 33</value>
+    <value>206, 29</value>
   </data>
   <data name="flowLayoutPanel14.TabIndex" type="System.Int32, mscorlib">
     <value>68</value>
@@ -1304,7 +1304,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown1.TabIndex" type="System.Int32, mscorlib">
     <value>60</value>
@@ -1331,10 +1331,10 @@
     <value>NoControl</value>
   </data>
   <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>126, 20</value>
+    <value>103, 15</value>
   </data>
   <data name="label5.TabIndex" type="System.Int32, mscorlib">
     <value>61</value>
@@ -1355,13 +1355,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel15.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 113</value>
+    <value>0, 99</value>
   </data>
   <data name="flowLayoutPanel15.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel15.Size" type="System.Drawing.Size, System.Drawing">
-    <value>258, 33</value>
+    <value>235, 29</value>
   </data>
   <data name="flowLayoutPanel15.TabIndex" type="System.Int32, mscorlib">
     <value>68</value>
@@ -1388,7 +1388,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown9.TabIndex" type="System.Int32, mscorlib">
     <value>62</value>
@@ -1415,10 +1415,10 @@
     <value>NoControl</value>
   </data>
   <data name="label1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>118, 20</value>
+    <value>96, 15</value>
   </data>
   <data name="label1.TabIndex" type="System.Int32, mscorlib">
     <value>63</value>
@@ -1439,13 +1439,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel16.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 146</value>
+    <value>0, 128</value>
   </data>
   <data name="flowLayoutPanel16.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel16.Size" type="System.Drawing.Size, System.Drawing">
-    <value>250, 33</value>
+    <value>228, 29</value>
   </data>
   <data name="flowLayoutPanel16.TabIndex" type="System.Int32, mscorlib">
     <value>68</value>
@@ -1469,10 +1469,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox14.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 182</value>
+    <value>3, 160</value>
   </data>
   <data name="checkBox14.Size" type="System.Drawing.Size, System.Drawing">
-    <value>243, 24</value>
+    <value>200, 19</value>
   </data>
   <data name="checkBox14.TabIndex" type="System.Int32, mscorlib">
     <value>67</value>
@@ -1499,13 +1499,13 @@
     <value>NoControl</value>
   </data>
   <data name="label26.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 229</value>
+    <value>3, 202</value>
   </data>
   <data name="label26.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 20, 3, 3</value>
   </data>
   <data name="label26.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 20</value>
+    <value>99, 15</value>
   </data>
   <data name="label26.TabIndex" type="System.Int32, mscorlib">
     <value>65</value>
@@ -1529,13 +1529,13 @@
     <value>日本語(Default)</value>
   </data>
   <data name="comboBox7.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 255</value>
+    <value>20, 223</value>
   </data>
   <data name="comboBox7.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="comboBox7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>190, 28</value>
+    <value>190, 23</value>
   </data>
   <data name="comboBox7.TabIndex" type="System.Int32, mscorlib">
     <value>64</value>
@@ -1559,7 +1559,7 @@
     <value>106, 71</value>
   </data>
   <data name="flowLayoutPanel17.Size" type="System.Drawing.Size, System.Drawing">
-    <value>258, 286</value>
+    <value>235, 249</value>
   </data>
   <data name="flowLayoutPanel17.TabIndex" type="System.Int32, mscorlib">
     <value>69</value>
@@ -1577,13 +1577,13 @@
     <value>0</value>
   </data>
   <data name="tabPageView.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageView.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageView.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageView.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -1619,7 +1619,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown2.TabIndex" type="System.Int32, mscorlib">
     <value>70</value>
@@ -1646,10 +1646,10 @@
     <value>NoControl</value>
   </data>
   <data name="label2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>81, 20</value>
+    <value>66, 15</value>
   </data>
   <data name="label2.TabIndex" type="System.Int32, mscorlib">
     <value>72</value>
@@ -1676,7 +1676,7 @@
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel18.Size" type="System.Drawing.Size, System.Drawing">
-    <value>213, 33</value>
+    <value>198, 29</value>
   </data>
   <data name="flowLayoutPanel18.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -1703,7 +1703,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown3.TabIndex" type="System.Int32, mscorlib">
     <value>71</value>
@@ -1730,10 +1730,10 @@
     <value>NoControl</value>
   </data>
   <data name="label3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>92, 20</value>
+    <value>75, 15</value>
   </data>
   <data name="label3.TabIndex" type="System.Int32, mscorlib">
     <value>73</value>
@@ -1754,13 +1754,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel19.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 33</value>
+    <value>0, 29</value>
   </data>
   <data name="flowLayoutPanel19.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel19.Size" type="System.Drawing.Size, System.Drawing">
-    <value>224, 33</value>
+    <value>207, 29</value>
   </data>
   <data name="flowLayoutPanel19.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -1787,7 +1787,7 @@
     <value>NoControl</value>
   </data>
   <data name="button1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>64, 69</value>
+    <value>21, 61</value>
   </data>
   <data name="button1.Size" type="System.Drawing.Size, System.Drawing">
     <value>202, 30</value>
@@ -1817,13 +1817,13 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox8.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 122</value>
+    <value>3, 114</value>
   </data>
   <data name="checkBox8.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 20, 3, 3</value>
   </data>
   <data name="checkBox8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>210, 24</value>
+    <value>172, 19</value>
   </data>
   <data name="checkBox8.TabIndex" type="System.Int32, mscorlib">
     <value>69</value>
@@ -1850,10 +1850,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox21.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 152</value>
+    <value>3, 139</value>
   </data>
   <data name="checkBox21.Size" type="System.Drawing.Size, System.Drawing">
-    <value>234, 24</value>
+    <value>191, 19</value>
   </data>
   <data name="checkBox21.TabIndex" type="System.Int32, mscorlib">
     <value>83</value>
@@ -1880,10 +1880,10 @@
     <value>NoControl</value>
   </data>
   <data name="checkBox17.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 182</value>
+    <value>3, 164</value>
   </data>
   <data name="checkBox17.Size" type="System.Drawing.Size, System.Drawing">
-    <value>263, 24</value>
+    <value>216, 19</value>
   </data>
   <data name="checkBox17.TabIndex" type="System.Int32, mscorlib">
     <value>80</value>
@@ -1913,7 +1913,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDownPosX.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDownPosX.TabIndex" type="System.Int32, mscorlib">
     <value>75</value>
@@ -1940,10 +1940,10 @@
     <value>NoControl</value>
   </data>
   <data name="label19.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label19.Size" type="System.Drawing.Size, System.Drawing">
-    <value>106, 20</value>
+    <value>86, 15</value>
   </data>
   <data name="label19.TabIndex" type="System.Int32, mscorlib">
     <value>77</value>
@@ -1964,13 +1964,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel20.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 209</value>
+    <value>0, 186</value>
   </data>
   <data name="flowLayoutPanel20.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel20.Size" type="System.Drawing.Size, System.Drawing">
-    <value>238, 33</value>
+    <value>218, 29</value>
   </data>
   <data name="flowLayoutPanel20.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -1997,7 +1997,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDownPosY.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDownPosY.TabIndex" type="System.Int32, mscorlib">
     <value>76</value>
@@ -2024,10 +2024,10 @@
     <value>NoControl</value>
   </data>
   <data name="label10.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>105, 20</value>
+    <value>86, 15</value>
   </data>
   <data name="label10.TabIndex" type="System.Int32, mscorlib">
     <value>78</value>
@@ -2048,13 +2048,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel21.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 242</value>
+    <value>0, 215</value>
   </data>
   <data name="flowLayoutPanel21.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel21.Size" type="System.Drawing.Size, System.Drawing">
-    <value>237, 33</value>
+    <value>218, 29</value>
   </data>
   <data name="flowLayoutPanel21.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2081,7 +2081,7 @@
     <value>NoControl</value>
   </data>
   <data name="button3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>70, 278</value>
+    <value>27, 247</value>
   </data>
   <data name="button3.Size" type="System.Drawing.Size, System.Drawing">
     <value>196, 30</value>
@@ -2114,7 +2114,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown8.TabIndex" type="System.Int32, mscorlib">
     <value>81</value>
@@ -2141,10 +2141,10 @@
     <value>NoControl</value>
   </data>
   <data name="ScrollRange.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="ScrollRange.Size" type="System.Drawing.Size, System.Drawing">
-    <value>115, 20</value>
+    <value>94, 15</value>
   </data>
   <data name="ScrollRange.TabIndex" type="System.Int32, mscorlib">
     <value>82</value>
@@ -2165,13 +2165,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel22.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 331</value>
+    <value>0, 300</value>
   </data>
   <data name="flowLayoutPanel22.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 20, 0, 0</value>
   </data>
   <data name="flowLayoutPanel22.Size" type="System.Drawing.Size, System.Drawing">
-    <value>247, 33</value>
+    <value>226, 29</value>
   </data>
   <data name="flowLayoutPanel22.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2195,7 +2195,7 @@
     <value>134, 54</value>
   </data>
   <data name="flowLayoutPanel23.Size" type="System.Drawing.Size, System.Drawing">
-    <value>269, 364</value>
+    <value>226, 329</value>
   </data>
   <data name="flowLayoutPanel23.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2213,10 +2213,10 @@
     <value>0</value>
   </data>
   <data name="tabPageWindow.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageWindow.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageWindow.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
@@ -2242,114 +2242,6 @@
   <data name="flowLayoutPanel27.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
-  <data name="colorBoxBG.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="colorBoxBG.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="colorBoxBG.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 3</value>
-  </data>
-  <data name="colorBoxBG.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 39</value>
-  </data>
-  <data name="colorBoxBG.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBG.Name" xml:space="preserve">
-    <value>colorBoxBG</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBG.Type" xml:space="preserve">
-    <value>MinorShift.Emuera.Forms.ColorBox, Emuera, Culture=neutral, PublicKeyToken=null</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBG.Parent" xml:space="preserve">
-    <value>flowLayoutPanel27</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBG.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
-  <data name="colorBoxFG.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="colorBoxFG.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="colorBoxFG.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 48</value>
-  </data>
-  <data name="colorBoxFG.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 39</value>
-  </data>
-  <data name="colorBoxFG.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
-  </data>
-  <data name="&gt;&gt;colorBoxFG.Name" xml:space="preserve">
-    <value>colorBoxFG</value>
-  </data>
-  <data name="&gt;&gt;colorBoxFG.Type" xml:space="preserve">
-    <value>MinorShift.Emuera.Forms.ColorBox, Emuera, Culture=neutral, PublicKeyToken=null</value>
-  </data>
-  <data name="&gt;&gt;colorBoxFG.Parent" xml:space="preserve">
-    <value>flowLayoutPanel27</value>
-  </data>
-  <data name="&gt;&gt;colorBoxFG.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="colorBoxSelecting.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="colorBoxSelecting.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="colorBoxSelecting.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 93</value>
-  </data>
-  <data name="colorBoxSelecting.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 39</value>
-  </data>
-  <data name="colorBoxSelecting.TabIndex" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
-  <data name="&gt;&gt;colorBoxSelecting.Name" xml:space="preserve">
-    <value>colorBoxSelecting</value>
-  </data>
-  <data name="&gt;&gt;colorBoxSelecting.Type" xml:space="preserve">
-    <value>MinorShift.Emuera.Forms.ColorBox, Emuera, Culture=neutral, PublicKeyToken=null</value>
-  </data>
-  <data name="&gt;&gt;colorBoxSelecting.Parent" xml:space="preserve">
-    <value>flowLayoutPanel27</value>
-  </data>
-  <data name="&gt;&gt;colorBoxSelecting.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
-  <data name="colorBoxBacklog.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="colorBoxBacklog.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="colorBoxBacklog.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 138</value>
-  </data>
-  <data name="colorBoxBacklog.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 39</value>
-  </data>
-  <data name="colorBoxBacklog.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBacklog.Name" xml:space="preserve">
-    <value>colorBoxBacklog</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBacklog.Type" xml:space="preserve">
-    <value>MinorShift.Emuera.Forms.ColorBox, Emuera, Culture=neutral, PublicKeyToken=null</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBacklog.Parent" xml:space="preserve">
-    <value>flowLayoutPanel27</value>
-  </data>
-  <data name="&gt;&gt;colorBoxBacklog.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
   <data name="flowLayoutPanel24.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -2360,7 +2252,7 @@
     <value>3, 3</value>
   </data>
   <data name="comboBox2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>121, 28</value>
+    <value>121, 23</value>
   </data>
   <data name="comboBox2.TabIndex" type="System.Int32, mscorlib">
     <value>48</value>
@@ -2390,7 +2282,7 @@
     <value>130, 7</value>
   </data>
   <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>70, 20</value>
+    <value>57, 15</value>
   </data>
   <data name="label4.TabIndex" type="System.Int32, mscorlib">
     <value>49</value>
@@ -2411,13 +2303,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel24.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 200</value>
+    <value>0, 20</value>
   </data>
   <data name="flowLayoutPanel24.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 20, 0, 0</value>
   </data>
   <data name="flowLayoutPanel24.Size" type="System.Drawing.Size, System.Drawing">
-    <value>203, 34</value>
+    <value>190, 29</value>
   </data>
   <data name="flowLayoutPanel24.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2432,7 +2324,7 @@
     <value>flowLayoutPanel27</value>
   </data>
   <data name="&gt;&gt;flowLayoutPanel24.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>0</value>
   </data>
   <data name="button2.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Right</value>
@@ -2444,7 +2336,7 @@
     <value>NoControl</value>
   </data>
   <data name="button2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>52, 237</value>
+    <value>26, 52</value>
   </data>
   <data name="button2.Size" type="System.Drawing.Size, System.Drawing">
     <value>178, 30</value>
@@ -2465,7 +2357,7 @@
     <value>flowLayoutPanel27</value>
   </data>
   <data name="&gt;&gt;button2.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>1</value>
   </data>
   <data name="flowLayoutPanel25.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2477,7 +2369,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown5.TabIndex" type="System.Int32, mscorlib">
     <value>50</value>
@@ -2504,10 +2396,10 @@
     <value>NoControl</value>
   </data>
   <data name="label8.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>92, 20</value>
+    <value>75, 15</value>
   </data>
   <data name="label8.TabIndex" type="System.Int32, mscorlib">
     <value>52</value>
@@ -2528,13 +2420,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel25.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 270</value>
+    <value>0, 85</value>
   </data>
   <data name="flowLayoutPanel25.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel25.Size" type="System.Drawing.Size, System.Drawing">
-    <value>224, 33</value>
+    <value>207, 29</value>
   </data>
   <data name="flowLayoutPanel25.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2549,7 +2441,7 @@
     <value>flowLayoutPanel27</value>
   </data>
   <data name="&gt;&gt;flowLayoutPanel25.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>2</value>
   </data>
   <data name="flowLayoutPanel26.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2561,7 +2453,7 @@
     <value>3, 3</value>
   </data>
   <data name="numericUpDown6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>120, 27</value>
+    <value>120, 23</value>
   </data>
   <data name="numericUpDown6.TabIndex" type="System.Int32, mscorlib">
     <value>51</value>
@@ -2588,10 +2480,10 @@
     <value>NoControl</value>
   </data>
   <data name="label7.Location" type="System.Drawing.Point, System.Drawing">
-    <value>129, 6</value>
+    <value>129, 7</value>
   </data>
   <data name="label7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>81, 20</value>
+    <value>66, 15</value>
   </data>
   <data name="label7.TabIndex" type="System.Int32, mscorlib">
     <value>53</value>
@@ -2612,13 +2504,13 @@
     <value>1</value>
   </data>
   <data name="flowLayoutPanel26.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 303</value>
+    <value>0, 114</value>
   </data>
   <data name="flowLayoutPanel26.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel26.Size" type="System.Drawing.Size, System.Drawing">
-    <value>213, 33</value>
+    <value>198, 29</value>
   </data>
   <data name="flowLayoutPanel26.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2633,7 +2525,7 @@
     <value>flowLayoutPanel27</value>
   </data>
   <data name="&gt;&gt;flowLayoutPanel26.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>3</value>
   </data>
   <data name="flowLayoutPanel27.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
     <value>TopDown</value>
@@ -2642,7 +2534,7 @@
     <value>126, 53</value>
   </data>
   <data name="flowLayoutPanel27.Size" type="System.Drawing.Size, System.Drawing">
-    <value>233, 336</value>
+    <value>207, 143</value>
   </data>
   <data name="flowLayoutPanel27.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2660,13 +2552,13 @@
     <value>0</value>
   </data>
   <data name="tabPageFont.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageFont.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageFont.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageFont.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -2708,7 +2600,7 @@
     <value>3, 3, 3, 3</value>
   </data>
   <data name="label21.Size" type="System.Drawing.Size, System.Drawing">
-    <value>302, 40</value>
+    <value>245, 30</value>
   </data>
   <data name="label21.TabIndex" type="System.Int32, mscorlib">
     <value>71</value>
@@ -2736,10 +2628,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 49</value>
+    <value>3, 39</value>
   </data>
   <data name="checkBox1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>239, 24</value>
+    <value>196, 19</value>
   </data>
   <data name="checkBox1.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -2766,10 +2658,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 79</value>
+    <value>3, 64</value>
   </data>
   <data name="checkBox2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>184, 24</value>
+    <value>151, 19</value>
   </data>
   <data name="checkBox2.TabIndex" type="System.Int32, mscorlib">
     <value>12</value>
@@ -2796,10 +2688,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox10.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 109</value>
+    <value>3, 89</value>
   </data>
   <data name="checkBox10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>183, 24</value>
+    <value>149, 19</value>
   </data>
   <data name="checkBox10.TabIndex" type="System.Int32, mscorlib">
     <value>53</value>
@@ -2826,10 +2718,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox15.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 139</value>
+    <value>3, 114</value>
   </data>
   <data name="checkBox15.Size" type="System.Drawing.Size, System.Drawing">
-    <value>191, 24</value>
+    <value>158, 19</value>
   </data>
   <data name="checkBox15.TabIndex" type="System.Int32, mscorlib">
     <value>54</value>
@@ -2856,10 +2748,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox16.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 169</value>
+    <value>3, 139</value>
   </data>
   <data name="checkBox16.Size" type="System.Drawing.Size, System.Drawing">
-    <value>271, 24</value>
+    <value>223, 19</value>
   </data>
   <data name="checkBox16.TabIndex" type="System.Int32, mscorlib">
     <value>55</value>
@@ -2886,10 +2778,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox20.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 199</value>
+    <value>3, 164</value>
   </data>
   <data name="checkBox20.Size" type="System.Drawing.Size, System.Drawing">
-    <value>240, 24</value>
+    <value>198, 19</value>
   </data>
   <data name="checkBox20.TabIndex" type="System.Int32, mscorlib">
     <value>70</value>
@@ -2916,13 +2808,13 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox19.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 229</value>
+    <value>20, 189</value>
   </data>
   <data name="checkBox19.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="checkBox19.Size" type="System.Drawing.Size, System.Drawing">
-    <value>332, 24</value>
+    <value>273, 19</value>
   </data>
   <data name="checkBox19.TabIndex" type="System.Int32, mscorlib">
     <value>69</value>
@@ -2949,10 +2841,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox22.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 259</value>
+    <value>3, 214</value>
   </data>
   <data name="checkBox22.Size" type="System.Drawing.Size, System.Drawing">
-    <value>367, 24</value>
+    <value>300, 19</value>
   </data>
   <data name="checkBox22.TabIndex" type="System.Int32, mscorlib">
     <value>73</value>
@@ -2979,10 +2871,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBoxSystemFullSpace.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 289</value>
+    <value>3, 239</value>
   </data>
   <data name="checkBoxSystemFullSpace.Size" type="System.Drawing.Size, System.Drawing">
-    <value>277, 24</value>
+    <value>229, 19</value>
   </data>
   <data name="checkBoxSystemFullSpace.TabIndex" type="System.Int32, mscorlib">
     <value>74</value>
@@ -3001,6 +2893,33 @@ ERBスクリプトが正常に動作しないことがあります</value>
   </data>
   <data name="&gt;&gt;checkBoxSystemFullSpace.ZOrder" xml:space="preserve">
     <value>9</value>
+  </data>
+  <data name="checkBoxUseLazyLoading.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="checkBoxUseLazyLoading.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="checkBoxUseLazyLoading.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 264</value>
+  </data>
+  <data name="checkBoxUseLazyLoading.Size" type="System.Drawing.Size, System.Drawing">
+    <value>136, 19</value>
+  </data>
+  <data name="checkBoxUseLazyLoading.TabIndex" type="System.Int32, mscorlib">
+    <value>75</value>
+  </data>
+  <data name="&gt;&gt;checkBoxUseLazyLoading.Name" xml:space="preserve">
+    <value>checkBoxUseLazyLoading</value>
+  </data>
+  <data name="&gt;&gt;checkBoxUseLazyLoading.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBoxUseLazyLoading.Parent" xml:space="preserve">
+    <value>flowLayoutPanel29</value>
+  </data>
+  <data name="&gt;&gt;checkBoxUseLazyLoading.ZOrder" xml:space="preserve">
+    <value>10</value>
   </data>
   <data name="flowLayoutPanel28.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -3021,7 +2940,7 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>3, 7</value>
   </data>
   <data name="label11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>197, 20</value>
+    <value>161, 15</value>
   </data>
   <data name="label11.TabIndex" type="System.Int32, mscorlib">
     <value>77</value>
@@ -3054,10 +2973,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>繁體中文(zh-TW)</value>
   </data>
   <data name="comboBox1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>206, 3</value>
+    <value>170, 3</value>
   </data>
   <data name="comboBox1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>121, 28</value>
+    <value>121, 23</value>
   </data>
   <data name="comboBox1.TabIndex" type="System.Int32, mscorlib">
     <value>78</value>
@@ -3075,13 +2994,13 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>1</value>
   </data>
   <data name="flowLayoutPanel28.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 336</value>
+    <value>0, 306</value>
   </data>
   <data name="flowLayoutPanel28.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 20, 0, 0</value>
   </data>
   <data name="flowLayoutPanel28.Size" type="System.Drawing.Size, System.Drawing">
-    <value>330, 34</value>
+    <value>294, 29</value>
   </data>
   <data name="flowLayoutPanel28.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -3096,7 +3015,7 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>flowLayoutPanel29</value>
   </data>
   <data name="&gt;&gt;flowLayoutPanel28.ZOrder" xml:space="preserve">
-    <value>10</value>
+    <value>11</value>
   </data>
   <data name="flowLayoutPanel29.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
     <value>TopDown</value>
@@ -3105,7 +3024,7 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>102, 64</value>
   </data>
   <data name="flowLayoutPanel29.Size" type="System.Drawing.Size, System.Drawing">
-    <value>373, 370</value>
+    <value>306, 335</value>
   </data>
   <data name="flowLayoutPanel29.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -3123,13 +3042,13 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>0</value>
   </data>
   <data name="tabPageSystem.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageSystem.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageSystem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageSystem.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -3171,7 +3090,7 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>3, 3, 3, 3</value>
   </data>
   <data name="label24.Size" type="System.Drawing.Size, System.Drawing">
-    <value>302, 40</value>
+    <value>245, 30</value>
   </data>
   <data name="label24.TabIndex" type="System.Int32, mscorlib">
     <value>72</value>
@@ -3199,10 +3118,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBoxSystemTripleSymbol.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 49</value>
+    <value>3, 39</value>
   </data>
   <data name="checkBoxSystemTripleSymbol.Size" type="System.Drawing.Size, System.Drawing">
-    <value>247, 24</value>
+    <value>202, 19</value>
   </data>
   <data name="checkBoxSystemTripleSymbol.TabIndex" type="System.Int32, mscorlib">
     <value>73</value>
@@ -3229,10 +3148,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox26.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 79</value>
+    <value>3, 64</value>
   </data>
   <data name="checkBox26.Size" type="System.Drawing.Size, System.Drawing">
-    <value>269, 24</value>
+    <value>221, 19</value>
   </data>
   <data name="checkBox26.TabIndex" type="System.Int32, mscorlib">
     <value>82</value>
@@ -3259,13 +3178,13 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox32.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 109</value>
+    <value>20, 89</value>
   </data>
   <data name="checkBox32.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="checkBox32.Size" type="System.Drawing.Size, System.Drawing">
-    <value>334, 24</value>
+    <value>273, 19</value>
   </data>
   <data name="checkBox32.TabIndex" type="System.Int32, mscorlib">
     <value>81</value>
@@ -3292,10 +3211,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox29.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 139</value>
+    <value>3, 114</value>
   </data>
   <data name="checkBox29.Size" type="System.Drawing.Size, System.Drawing">
-    <value>248, 24</value>
+    <value>203, 19</value>
   </data>
   <data name="checkBox29.TabIndex" type="System.Int32, mscorlib">
     <value>83</value>
@@ -3322,10 +3241,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox30.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 169</value>
+    <value>3, 139</value>
   </data>
   <data name="checkBox30.Size" type="System.Drawing.Size, System.Drawing">
-    <value>214, 24</value>
+    <value>173, 19</value>
   </data>
   <data name="checkBox30.TabIndex" type="System.Int32, mscorlib">
     <value>84</value>
@@ -3352,10 +3271,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox31.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 199</value>
+    <value>3, 164</value>
   </data>
   <data name="checkBox31.Size" type="System.Drawing.Size, System.Drawing">
-    <value>161, 24</value>
+    <value>130, 19</value>
   </data>
   <data name="checkBox31.TabIndex" type="System.Int32, mscorlib">
     <value>85</value>
@@ -3382,10 +3301,10 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox34.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 229</value>
+    <value>3, 189</value>
   </data>
   <data name="checkBox34.Size" type="System.Drawing.Size, System.Drawing">
-    <value>300, 24</value>
+    <value>240, 19</value>
   </data>
   <data name="checkBox34.TabIndex" type="System.Int32, mscorlib">
     <value>86</value>
@@ -3412,13 +3331,13 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>NoControl</value>
   </data>
   <data name="label25.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 276</value>
+    <value>3, 231</value>
   </data>
   <data name="label25.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 20, 3, 3</value>
   </data>
   <data name="label25.Size" type="System.Drawing.Size, System.Drawing">
-    <value>258, 20</value>
+    <value>204, 15</value>
   </data>
   <data name="label25.TabIndex" type="System.Int32, mscorlib">
     <value>86</value>
@@ -3439,13 +3358,13 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>8</value>
   </data>
   <data name="textBox3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 302</value>
+    <value>20, 252</value>
   </data>
   <data name="textBox3.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="textBox3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>286, 27</value>
+    <value>286, 23</value>
   </data>
   <data name="textBox3.TabIndex" type="System.Int32, mscorlib">
     <value>87</value>
@@ -3469,7 +3388,7 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>60, 35</value>
   </data>
   <data name="flowLayoutPanel30.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 332</value>
+    <value>309, 278</value>
   </data>
   <data name="flowLayoutPanel30.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -3487,13 +3406,13 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>0</value>
   </data>
   <data name="tabPageSystem2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageSystem2.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageSystem2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageSystem2.TabIndex" type="System.Int32, mscorlib">
     <value>9</value>
@@ -3532,7 +3451,7 @@ ERBスクリプトが正常に動作しないことがあります</value>
     <value>3, 3, 3, 3</value>
   </data>
   <data name="label30.Size" type="System.Drawing.Size, System.Drawing">
-    <value>367, 80</value>
+    <value>299, 60</value>
   </data>
   <data name="label30.TabIndex" type="System.Int32, mscorlib">
     <value>72</value>
@@ -3562,10 +3481,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBoxCompatiErrorLine.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 89</value>
+    <value>3, 69</value>
   </data>
   <data name="checkBoxCompatiErrorLine.Size" type="System.Drawing.Size, System.Drawing">
-    <value>260, 24</value>
+    <value>212, 19</value>
   </data>
   <data name="checkBoxCompatiErrorLine.TabIndex" type="System.Int32, mscorlib">
     <value>54</value>
@@ -3598,10 +3517,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBoxCompatiCALLNAME.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 119</value>
+    <value>3, 94</value>
   </data>
   <data name="checkBoxCompatiCALLNAME.Size" type="System.Drawing.Size, System.Drawing">
-    <value>337, 24</value>
+    <value>276, 19</value>
   </data>
   <data name="checkBoxCompatiCALLNAME.TabIndex" type="System.Int32, mscorlib">
     <value>56</value>
@@ -3631,10 +3550,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBoxCompatiRAND.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 149</value>
+    <value>3, 119</value>
   </data>
   <data name="checkBoxCompatiRAND.Size" type="System.Drawing.Size, System.Drawing">
-    <value>324, 24</value>
+    <value>261, 19</value>
   </data>
   <data name="checkBoxCompatiRAND.TabIndex" type="System.Int32, mscorlib">
     <value>73</value>
@@ -3664,10 +3583,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBox9.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 179</value>
+    <value>3, 144</value>
   </data>
   <data name="checkBox9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 24</value>
+    <value>207, 19</value>
   </data>
   <data name="checkBox9.TabIndex" type="System.Int32, mscorlib">
     <value>82</value>
@@ -3694,10 +3613,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBoxFuncNoIgnoreCase.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 209</value>
+    <value>3, 169</value>
   </data>
   <data name="checkBoxFuncNoIgnoreCase.Size" type="System.Drawing.Size, System.Drawing">
-    <value>348, 24</value>
+    <value>282, 19</value>
   </data>
   <data name="checkBoxFuncNoIgnoreCase.TabIndex" type="System.Int32, mscorlib">
     <value>77</value>
@@ -3727,10 +3646,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBox28.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 239</value>
+    <value>3, 194</value>
   </data>
   <data name="checkBox28.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 24</value>
+    <value>187, 19</value>
   </data>
   <data name="checkBox28.TabIndex" type="System.Int32, mscorlib">
     <value>80</value>
@@ -3760,10 +3679,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBoxCompatiSP.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 269</value>
+    <value>3, 219</value>
   </data>
   <data name="checkBoxCompatiSP.Size" type="System.Drawing.Size, System.Drawing">
-    <value>152, 24</value>
+    <value>125, 19</value>
   </data>
   <data name="checkBoxCompatiSP.TabIndex" type="System.Int32, mscorlib">
     <value>81</value>
@@ -3793,13 +3712,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBoxCompatiLinefeedAs1739.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 316</value>
+    <value>3, 261</value>
   </data>
   <data name="checkBoxCompatiLinefeedAs1739.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 20, 3, 3</value>
   </data>
   <data name="checkBoxCompatiLinefeedAs1739.Size" type="System.Drawing.Size, System.Drawing">
-    <value>304, 24</value>
+    <value>246, 19</value>
   </data>
   <data name="checkBoxCompatiLinefeedAs1739.TabIndex" type="System.Int32, mscorlib">
     <value>74</value>
@@ -3829,10 +3748,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBox12.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 346</value>
+    <value>3, 286</value>
   </data>
   <data name="checkBox12.Size" type="System.Drawing.Size, System.Drawing">
-    <value>317, 24</value>
+    <value>261, 19</value>
   </data>
   <data name="checkBox12.TabIndex" type="System.Int32, mscorlib">
     <value>78</value>
@@ -3862,10 +3781,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBox25.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 376</value>
+    <value>3, 311</value>
   </data>
   <data name="checkBox25.Size" type="System.Drawing.Size, System.Drawing">
-    <value>347, 24</value>
+    <value>282, 19</value>
   </data>
   <data name="checkBox25.TabIndex" type="System.Int32, mscorlib">
     <value>79</value>
@@ -3907,7 +3826,7 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>3, 3</value>
   </data>
   <data name="button7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>165, 30</value>
+    <value>134, 25</value>
   </data>
   <data name="button7.TabIndex" type="System.Int32, mscorlib">
     <value>75</value>
@@ -3937,13 +3856,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="button8.Location" type="System.Drawing.Point, System.Drawing">
-    <value>181, 3</value>
+    <value>150, 3</value>
   </data>
   <data name="button8.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>10, 3, 3, 3</value>
   </data>
   <data name="button8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>172, 30</value>
+    <value>140, 25</value>
   </data>
   <data name="button8.TabIndex" type="System.Int32, mscorlib">
     <value>76</value>
@@ -3967,13 +3886,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>Fill</value>
   </data>
   <data name="flowLayoutPanel34.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 403</value>
+    <value>0, 333</value>
   </data>
   <data name="flowLayoutPanel34.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="flowLayoutPanel34.Size" type="System.Drawing.Size, System.Drawing">
-    <value>373, 36</value>
+    <value>305, 31</value>
   </data>
   <data name="flowLayoutPanel34.TabIndex" type="System.Int32, mscorlib">
     <value>39</value>
@@ -3997,7 +3916,7 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>90, 40</value>
   </data>
   <data name="flowLayoutPanel33.Size" type="System.Drawing.Size, System.Drawing">
-    <value>373, 439</value>
+    <value>305, 364</value>
   </data>
   <data name="flowLayoutPanel33.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -4015,13 +3934,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>0</value>
   </data>
   <data name="tabPageCompati.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageCompati.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageCompati.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageCompati.TabIndex" type="System.Int32, mscorlib">
     <value>8</value>
@@ -4057,7 +3976,7 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>3, 3</value>
   </data>
   <data name="checkBox23.Size" type="System.Drawing.Size, System.Drawing">
-    <value>298, 24</value>
+    <value>241, 19</value>
   </data>
   <data name="checkBox23.TabIndex" type="System.Int32, mscorlib">
     <value>73</value>
@@ -4084,10 +4003,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBox13.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 33</value>
+    <value>3, 28</value>
   </data>
   <data name="checkBox13.Size" type="System.Drawing.Size, System.Drawing">
-    <value>215, 24</value>
+    <value>176, 19</value>
   </data>
   <data name="checkBox13.TabIndex" type="System.Int32, mscorlib">
     <value>16</value>
@@ -4114,10 +4033,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBox35.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 63</value>
+    <value>3, 53</value>
   </data>
   <data name="checkBox35.Size" type="System.Drawing.Size, System.Drawing">
-    <value>326, 24</value>
+    <value>265, 19</value>
   </data>
   <data name="checkBox35.TabIndex" type="System.Int32, mscorlib">
     <value>74</value>
@@ -4144,13 +4063,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="label12.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 110</value>
+    <value>3, 95</value>
   </data>
   <data name="label12.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 20, 3, 3</value>
   </data>
   <data name="label12.Size" type="System.Drawing.Size, System.Drawing">
-    <value>176, 20</value>
+    <value>142, 15</value>
   </data>
   <data name="label12.TabIndex" type="System.Int32, mscorlib">
     <value>50</value>
@@ -4180,13 +4099,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>常に行う</value>
   </data>
   <data name="comboBoxReduceArgumentOnLoad.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 136</value>
+    <value>20, 116</value>
   </data>
   <data name="comboBoxReduceArgumentOnLoad.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="comboBoxReduceArgumentOnLoad.Size" type="System.Drawing.Size, System.Drawing">
-    <value>190, 28</value>
+    <value>190, 23</value>
   </data>
   <data name="comboBoxReduceArgumentOnLoad.TabIndex" type="System.Int32, mscorlib">
     <value>49</value>
@@ -4210,13 +4129,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="label15.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 170</value>
+    <value>3, 145</value>
   </data>
   <data name="label15.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="label15.Size" type="System.Drawing.Size, System.Drawing">
-    <value>169, 20</value>
+    <value>138, 15</value>
   </data>
   <data name="label15.TabIndex" type="System.Int32, mscorlib">
     <value>56</value>
@@ -4249,13 +4168,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>3:致命的エラー</value>
   </data>
   <data name="comboBox5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 196</value>
+    <value>20, 166</value>
   </data>
   <data name="comboBox5.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="comboBox5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>190, 28</value>
+    <value>190, 23</value>
   </data>
   <data name="comboBox5.TabIndex" type="System.Int32, mscorlib">
     <value>55</value>
@@ -4279,10 +4198,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBox11.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 230</value>
+    <value>3, 195</value>
   </data>
   <data name="checkBox11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>253, 24</value>
+    <value>207, 19</value>
   </data>
   <data name="checkBox11.TabIndex" type="System.Int32, mscorlib">
     <value>18</value>
@@ -4309,13 +4228,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="label13.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 260</value>
+    <value>3, 220</value>
   </data>
   <data name="label13.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="label13.Size" type="System.Drawing.Size, System.Drawing">
-    <value>208, 20</value>
+    <value>170, 15</value>
   </data>
   <data name="label13.TabIndex" type="System.Int32, mscorlib">
     <value>52</value>
@@ -4348,13 +4267,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>表示する</value>
   </data>
   <data name="comboBox3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 286</value>
+    <value>20, 241</value>
   </data>
   <data name="comboBox3.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="comboBox3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>190, 28</value>
+    <value>190, 23</value>
   </data>
   <data name="comboBox3.TabIndex" type="System.Int32, mscorlib">
     <value>51</value>
@@ -4378,13 +4297,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="label14.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 320</value>
+    <value>3, 270</value>
   </data>
   <data name="label14.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="label14.Size" type="System.Drawing.Size, System.Drawing">
-    <value>248, 20</value>
+    <value>203, 15</value>
   </data>
   <data name="label14.TabIndex" type="System.Int32, mscorlib">
     <value>54</value>
@@ -4417,13 +4336,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>表示する</value>
   </data>
   <data name="comboBox4.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 346</value>
+    <value>20, 291</value>
   </data>
   <data name="comboBox4.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>20, 3, 3, 3</value>
   </data>
   <data name="comboBox4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>190, 28</value>
+    <value>190, 23</value>
   </data>
   <data name="comboBox4.TabIndex" type="System.Int32, mscorlib">
     <value>53</value>
@@ -4459,7 +4378,7 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>3, 3</value>
   </data>
   <data name="button5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>184, 30</value>
+    <value>153, 25</value>
   </data>
   <data name="button5.TabIndex" type="System.Int32, mscorlib">
     <value>74</value>
@@ -4489,10 +4408,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="button6.Location" type="System.Drawing.Point, System.Drawing">
-    <value>193, 3</value>
+    <value>162, 3</value>
   </data>
   <data name="button6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>180, 30</value>
+    <value>148, 25</value>
   </data>
   <data name="button6.TabIndex" type="System.Int32, mscorlib">
     <value>75</value>
@@ -4513,13 +4432,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>1</value>
   </data>
   <data name="flowLayoutPanel31.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 397</value>
+    <value>0, 337</value>
   </data>
   <data name="flowLayoutPanel31.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 20, 0, 0</value>
   </data>
   <data name="flowLayoutPanel31.Size" type="System.Drawing.Size, System.Drawing">
-    <value>376, 36</value>
+    <value>313, 31</value>
   </data>
   <data name="flowLayoutPanel31.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -4543,7 +4462,7 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>93, 52</value>
   </data>
   <data name="flowLayoutPanel32.Size" type="System.Drawing.Size, System.Drawing">
-    <value>376, 433</value>
+    <value>313, 368</value>
   </data>
   <data name="flowLayoutPanel32.TabIndex" type="System.Int32, mscorlib">
     <value>38</value>
@@ -4561,13 +4480,13 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>0</value>
   </data>
   <data name="tabPageDebug.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageDebug.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageDebug.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageDebug.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -4603,7 +4522,7 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>3, 3</value>
   </data>
   <data name="checkBoxCBuseCB.Size" type="System.Drawing.Size, System.Drawing">
-    <value>151, 24</value>
+    <value>121, 19</value>
   </data>
   <data name="checkBoxCBuseCB.TabIndex" type="System.Int32, mscorlib">
     <value>82</value>
@@ -4633,10 +4552,10 @@ Emueraの過去のバージョンで動作したものが動作しない、
     <value>NoControl</value>
   </data>
   <data name="checkBoxCBIgnoreTags.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 33</value>
+    <value>3, 28</value>
   </data>
   <data name="checkBoxCBIgnoreTags.Size" type="System.Drawing.Size, System.Drawing">
-    <value>130, 24</value>
+    <value>104, 19</value>
   </data>
   <data name="checkBoxCBIgnoreTags.TabIndex" type="System.Int32, mscorlib">
     <value>83</value>
@@ -4674,10 +4593,10 @@ the clipboard. This removes those tags. Note some games use &lt;&gt; in
     <value>NoControl</value>
   </data>
   <data name="label29.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 6</value>
+    <value>3, 7</value>
   </data>
   <data name="label29.Size" type="System.Drawing.Size, System.Drawing">
-    <value>134, 20</value>
+    <value>105, 15</value>
   </data>
   <data name="label29.TabIndex" type="System.Int32, mscorlib">
     <value>97</value>
@@ -4703,10 +4622,10 @@ with another text string. Useful for creating a little space between
     <value>0</value>
   </data>
   <data name="textBoxCBReplaceTags.Location" type="System.Drawing.Point, System.Drawing">
-    <value>143, 3</value>
+    <value>114, 3</value>
   </data>
   <data name="textBoxCBReplaceTags.Size" type="System.Drawing.Size, System.Drawing">
-    <value>100, 27</value>
+    <value>100, 23</value>
   </data>
   <data name="textBoxCBReplaceTags.TabIndex" type="System.Int32, mscorlib">
     <value>96</value>
@@ -4729,10 +4648,10 @@ with another text string. Useful for creating a little space between
     <value>1</value>
   </data>
   <data name="flowLayoutPanel36.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 63</value>
+    <value>3, 53</value>
   </data>
   <data name="flowLayoutPanel36.Size" type="System.Drawing.Size, System.Drawing">
-    <value>246, 33</value>
+    <value>217, 29</value>
   </data>
   <data name="flowLayoutPanel36.TabIndex" type="System.Int32, mscorlib">
     <value>97</value>
@@ -4756,10 +4675,10 @@ with another text string. Useful for creating a little space between
     <value>NoControl</value>
   </data>
   <data name="checkBoxCBNewLinesOnly.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 102</value>
+    <value>3, 88</value>
   </data>
   <data name="checkBoxCBNewLinesOnly.Size" type="System.Drawing.Size, System.Drawing">
-    <value>265, 24</value>
+    <value>214, 19</value>
   </data>
   <data name="checkBoxCBNewLinesOnly.TabIndex" type="System.Int32, mscorlib">
     <value>99</value>
@@ -4792,10 +4711,10 @@ resend old lines to fill that amount.</value>
     <value>NoControl</value>
   </data>
   <data name="checkBoxCBClearBuffer.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 132</value>
+    <value>3, 113</value>
   </data>
   <data name="checkBoxCBClearBuffer.Size" type="System.Drawing.Size, System.Drawing">
-    <value>377, 24</value>
+    <value>301, 19</value>
   </data>
   <data name="checkBoxCBClearBuffer.TabIndex" type="System.Int32, mscorlib">
     <value>100</value>
@@ -4827,10 +4746,10 @@ keeps all text.</value>
     <value>NoControl</value>
   </data>
   <data name="label27.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 159</value>
+    <value>3, 135</value>
   </data>
   <data name="label27.Size" type="System.Drawing.Size, System.Drawing">
-    <value>111, 20</value>
+    <value>87, 15</value>
   </data>
   <data name="label27.TabIndex" type="System.Int32, mscorlib">
     <value>101</value>
@@ -4868,7 +4787,7 @@ text when there's too many triggers in succession.</value>
     <value>3, 3</value>
   </data>
   <data name="checkBoxCBTriggerLeftClick.Size" type="System.Drawing.Size, System.Drawing">
-    <value>145, 24</value>
+    <value>119, 19</value>
   </data>
   <data name="checkBoxCBTriggerLeftClick.TabIndex" type="System.Int32, mscorlib">
     <value>89</value>
@@ -4898,10 +4817,10 @@ text when there's too many triggers in succession.</value>
     <value>NoControl</value>
   </data>
   <data name="checkBoxCBTriggerMiddleClick.Location" type="System.Drawing.Point, System.Drawing">
-    <value>154, 3</value>
+    <value>128, 3</value>
   </data>
   <data name="checkBoxCBTriggerMiddleClick.Size" type="System.Drawing.Size, System.Drawing">
-    <value>167, 24</value>
+    <value>136, 19</value>
   </data>
   <data name="checkBoxCBTriggerMiddleClick.TabIndex" type="System.Int32, mscorlib">
     <value>102</value>
@@ -4925,10 +4844,10 @@ text when there's too many triggers in succession.</value>
     <value>1</value>
   </data>
   <data name="flowLayoutPanel37.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 182</value>
+    <value>3, 153</value>
   </data>
   <data name="flowLayoutPanel37.Size" type="System.Drawing.Size, System.Drawing">
-    <value>324, 30</value>
+    <value>267, 25</value>
   </data>
   <data name="flowLayoutPanel37.TabIndex" type="System.Int32, mscorlib">
     <value>102</value>
@@ -4952,10 +4871,10 @@ text when there's too many triggers in succession.</value>
     <value>NoControl</value>
   </data>
   <data name="checkBoxCBTriggerDoubleLeftClick.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 218</value>
+    <value>3, 184</value>
   </data>
   <data name="checkBoxCBTriggerDoubleLeftClick.Size" type="System.Drawing.Size, System.Drawing">
-    <value>202, 24</value>
+    <value>163, 19</value>
   </data>
   <data name="checkBoxCBTriggerDoubleLeftClick.TabIndex" type="System.Int32, mscorlib">
     <value>103</value>
@@ -4985,10 +4904,10 @@ text when there's too many triggers in succession.</value>
     <value>NoControl</value>
   </data>
   <data name="checkBoxCBTriggerAnyKeyWait.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 248</value>
+    <value>3, 209</value>
   </data>
   <data name="checkBoxCBTriggerAnyKeyWait.Size" type="System.Drawing.Size, System.Drawing">
-    <value>383, 24</value>
+    <value>308, 19</value>
   </data>
   <data name="checkBoxCBTriggerAnyKeyWait.TabIndex" type="System.Int32, mscorlib">
     <value>104</value>
@@ -5019,10 +4938,10 @@ that this will still occur if you hold right click through a section of text.</v
     <value>NoControl</value>
   </data>
   <data name="checkBoxCBTriggerInputWait.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 278</value>
+    <value>3, 234</value>
   </data>
   <data name="checkBoxCBTriggerInputWait.Size" type="System.Drawing.Size, System.Drawing">
-    <value>346, 24</value>
+    <value>279, 19</value>
   </data>
   <data name="checkBoxCBTriggerInputWait.TabIndex" type="System.Int32, mscorlib">
     <value>105</value>
@@ -5052,7 +4971,7 @@ that this will still occur if you hold right click through a section of text.</v
     <value>3, 3</value>
   </data>
   <data name="numericUpDownCBMaxCB.Size" type="System.Drawing.Size, System.Drawing">
-    <value>70, 27</value>
+    <value>70, 23</value>
   </data>
   <data name="numericUpDownCBMaxCB.TabIndex" type="System.Int32, mscorlib">
     <value>84</value>
@@ -5083,10 +5002,10 @@ in non-Classic Mode.</value>
     <value>NoControl</value>
   </data>
   <data name="label28.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 6</value>
+    <value>79, 7</value>
   </data>
   <data name="label28.Size" type="System.Drawing.Size, System.Drawing">
-    <value>183, 20</value>
+    <value>145, 15</value>
   </data>
   <data name="label28.TabIndex" type="System.Int32, mscorlib">
     <value>86</value>
@@ -5111,10 +5030,10 @@ in non-Classic Mode.</value>
     <value>1</value>
   </data>
   <data name="flowLayoutPanel38.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 308</value>
+    <value>3, 259</value>
   </data>
   <data name="flowLayoutPanel38.Size" type="System.Drawing.Size, System.Drawing">
-    <value>265, 33</value>
+    <value>227, 29</value>
   </data>
   <data name="flowLayoutPanel38.TabIndex" type="System.Int32, mscorlib">
     <value>106</value>
@@ -5138,7 +5057,7 @@ in non-Classic Mode.</value>
     <value>3, 3</value>
   </data>
   <data name="numericUpDownCBBufferSize.Size" type="System.Drawing.Size, System.Drawing">
-    <value>70, 27</value>
+    <value>70, 23</value>
   </data>
   <data name="numericUpDownCBBufferSize.TabIndex" type="System.Int32, mscorlib">
     <value>85</value>
@@ -5169,10 +5088,10 @@ adjusting unless you need a really long scrollable history.</value>
     <value>NoControl</value>
   </data>
   <data name="label31.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 6</value>
+    <value>79, 7</value>
   </data>
   <data name="label31.Size" type="System.Drawing.Size, System.Drawing">
-    <value>117, 20</value>
+    <value>90, 15</value>
   </data>
   <data name="label31.TabIndex" type="System.Int32, mscorlib">
     <value>87</value>
@@ -5197,10 +5116,10 @@ adjusting unless you need a really long scrollable history.</value>
     <value>1</value>
   </data>
   <data name="flowLayoutPanel39.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 347</value>
+    <value>3, 294</value>
   </data>
   <data name="flowLayoutPanel39.Size" type="System.Drawing.Size, System.Drawing">
-    <value>199, 33</value>
+    <value>172, 29</value>
   </data>
   <data name="flowLayoutPanel39.TabIndex" type="System.Int32, mscorlib">
     <value>107</value>
@@ -5224,7 +5143,7 @@ adjusting unless you need a really long scrollable history.</value>
     <value>3, 3</value>
   </data>
   <data name="numericUpDownCBScrollCount.Size" type="System.Drawing.Size, System.Drawing">
-    <value>70, 27</value>
+    <value>70, 23</value>
   </data>
   <data name="numericUpDownCBScrollCount.TabIndex" type="System.Int32, mscorlib">
     <value>96</value>
@@ -5254,10 +5173,10 @@ adjusting unless you need a really long scrollable history.</value>
     <value>NoControl</value>
   </data>
   <data name="label32.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 6</value>
+    <value>79, 7</value>
   </data>
   <data name="label32.Size" type="System.Drawing.Size, System.Drawing">
-    <value>162, 20</value>
+    <value>128, 15</value>
   </data>
   <data name="label32.TabIndex" type="System.Int32, mscorlib">
     <value>97</value>
@@ -5281,10 +5200,10 @@ adjusting unless you need a really long scrollable history.</value>
     <value>1</value>
   </data>
   <data name="flowLayoutPanel40.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 386</value>
+    <value>3, 329</value>
   </data>
   <data name="flowLayoutPanel40.Size" type="System.Drawing.Size, System.Drawing">
-    <value>244, 33</value>
+    <value>210, 29</value>
   </data>
   <data name="flowLayoutPanel40.TabIndex" type="System.Int32, mscorlib">
     <value>108</value>
@@ -5308,7 +5227,7 @@ adjusting unless you need a really long scrollable history.</value>
     <value>3, 3</value>
   </data>
   <data name="numericUpDownCBMinTimer.Size" type="System.Drawing.Size, System.Drawing">
-    <value>70, 27</value>
+    <value>70, 23</value>
   </data>
   <data name="numericUpDownCBMinTimer.TabIndex" type="System.Int32, mscorlib">
     <value>92</value>
@@ -5340,13 +5259,13 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>NoControl</value>
   </data>
   <data name="label33.Location" type="System.Drawing.Point, System.Drawing">
-    <value>79, 0</value>
+    <value>79, 7</value>
   </data>
   <data name="label33.MaximumSize" type="System.Drawing.Size, System.Drawing">
     <value>250, 0</value>
   </data>
   <data name="label33.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 40</value>
+    <value>226, 15</value>
   </data>
   <data name="label33.TabIndex" type="System.Int32, mscorlib">
     <value>93</value>
@@ -5372,10 +5291,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>1</value>
   </data>
   <data name="flowLayoutPanel41.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 425</value>
+    <value>3, 364</value>
   </data>
   <data name="flowLayoutPanel41.Size" type="System.Drawing.Size, System.Drawing">
-    <value>314, 40</value>
+    <value>308, 29</value>
   </data>
   <data name="flowLayoutPanel41.TabIndex" type="System.Int32, mscorlib">
     <value>109</value>
@@ -5399,13 +5318,13 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>NoControl</value>
   </data>
   <data name="label34.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 468</value>
+    <value>3, 396</value>
   </data>
   <data name="label34.MaximumSize" type="System.Drawing.Size, System.Drawing">
     <value>230, 0</value>
   </data>
   <data name="label34.Size" type="System.Drawing.Size, System.Drawing">
-    <value>218, 60</value>
+    <value>230, 30</value>
   </data>
   <data name="label34.TabIndex" type="System.Int32, mscorlib">
     <value>110</value>
@@ -5432,7 +5351,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>88, 20</value>
   </data>
   <data name="flowLayoutPanel35.Size" type="System.Drawing.Size, System.Drawing">
-    <value>389, 528</value>
+    <value>314, 426</value>
   </data>
   <data name="flowLayoutPanel35.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -5450,13 +5369,13 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>0</value>
   </data>
   <data name="tabPageClipboard.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageClipboard.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageClipboard.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageClipboard.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
@@ -5489,7 +5408,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>3, 3</value>
   </data>
   <data name="rikaiCheckBoxEnable.Size" type="System.Drawing.Size, System.Drawing">
-    <value>194, 24</value>
+    <value>155, 19</value>
   </data>
   <data name="rikaiCheckBoxEnable.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -5522,7 +5441,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>3, 0</value>
   </data>
   <data name="rikaiDictFilenameLabel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>142, 20</value>
+    <value>113, 15</value>
   </data>
   <data name="rikaiDictFilenameLabel.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -5543,10 +5462,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>0</value>
   </data>
   <data name="rikaiDictFilenameTextBox.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 23</value>
+    <value>3, 18</value>
   </data>
   <data name="rikaiDictFilenameTextBox.Size" type="System.Drawing.Size, System.Drawing">
-    <value>152, 27</value>
+    <value>152, 23</value>
   </data>
   <data name="rikaiDictFilenameTextBox.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -5567,7 +5486,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>Left</value>
   </data>
   <data name="flowLayoutPanel42.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 33</value>
+    <value>3, 28</value>
   </data>
   <data name="flowLayoutPanel42.Size" type="System.Drawing.Size, System.Drawing">
     <value>267, 28</value>
@@ -5587,60 +5506,6 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
   <data name="&gt;&gt;flowLayoutPanel42.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="rikaiColorBoxBG.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="rikaiColorBoxBG.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="rikaiColorBoxBG.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 67</value>
-  </data>
-  <data name="rikaiColorBoxBG.Size" type="System.Drawing.Size, System.Drawing">
-    <value>240, 39</value>
-  </data>
-  <data name="rikaiColorBoxBG.TabIndex" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxBG.Name" xml:space="preserve">
-    <value>rikaiColorBoxBG</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxBG.Type" xml:space="preserve">
-    <value>MinorShift.Emuera.Forms.ColorBox, Emuera, Culture=neutral, PublicKeyToken=null</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxBG.Parent" xml:space="preserve">
-    <value>rikaiFlowLayoutPanel</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxBG.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
-  <data name="rikaiColorBoxText.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="rikaiColorBoxText.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="rikaiColorBoxText.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 112</value>
-  </data>
-  <data name="rikaiColorBoxText.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 39</value>
-  </data>
-  <data name="rikaiColorBoxText.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxText.Name" xml:space="preserve">
-    <value>rikaiColorBoxText</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxText.Type" xml:space="preserve">
-    <value>MinorShift.Emuera.Forms.ColorBox, Emuera, Culture=neutral, PublicKeyToken=null</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxText.Parent" xml:space="preserve">
-    <value>rikaiFlowLayoutPanel</value>
-  </data>
-  <data name="&gt;&gt;rikaiColorBoxText.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
   <data name="rikaiCheckBoxSeparateBoxes.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -5648,10 +5513,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>NoControl</value>
   </data>
   <data name="rikaiCheckBoxSeparateBoxes.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 157</value>
+    <value>3, 62</value>
   </data>
   <data name="rikaiCheckBoxSeparateBoxes.Size" type="System.Drawing.Size, System.Drawing">
-    <value>328, 24</value>
+    <value>261, 19</value>
   </data>
   <data name="rikaiCheckBoxSeparateBoxes.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -5669,7 +5534,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>rikaiFlowLayoutPanel</value>
   </data>
   <data name="&gt;&gt;rikaiCheckBoxSeparateBoxes.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>2</value>
   </data>
   <data name="rikaiNote1.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -5678,10 +5543,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>NoControl</value>
   </data>
   <data name="rikaiNote1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 184</value>
+    <value>3, 84</value>
   </data>
   <data name="rikaiNote1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>271, 20</value>
+    <value>217, 15</value>
   </data>
   <data name="rikaiNote1.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
@@ -5699,7 +5564,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>rikaiFlowLayoutPanel</value>
   </data>
   <data name="&gt;&gt;rikaiNote1.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>3</value>
   </data>
   <data name="rikaiNote2.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -5708,10 +5573,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>NoControl</value>
   </data>
   <data name="rikaiNote2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 204</value>
+    <value>3, 99</value>
   </data>
   <data name="rikaiNote2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>325, 40</value>
+    <value>298, 15</value>
   </data>
   <data name="rikaiNote2.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -5729,7 +5594,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>rikaiFlowLayoutPanel</value>
   </data>
   <data name="&gt;&gt;rikaiNote2.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>4</value>
   </data>
   <data name="rikaiNote3.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -5738,10 +5603,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>NoControl</value>
   </data>
   <data name="rikaiNote3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 244</value>
+    <value>3, 114</value>
   </data>
   <data name="rikaiNote3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>261, 20</value>
+    <value>207, 15</value>
   </data>
   <data name="rikaiNote3.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
@@ -5759,7 +5624,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>rikaiFlowLayoutPanel</value>
   </data>
   <data name="&gt;&gt;rikaiNote3.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>5</value>
   </data>
   <data name="rikaiFlowLayoutPanel.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
     <value>TopDown</value>
@@ -5786,13 +5651,13 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>0</value>
   </data>
   <data name="tabPageRikai.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 54</value>
+    <value>4, 44</value>
   </data>
   <data name="tabPageRikai.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
   <data name="tabPageRikai.Size" type="System.Drawing.Size, System.Drawing">
-    <value>522, 417</value>
+    <value>522, 427</value>
   </data>
   <data name="tabPageRikai.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
@@ -5849,7 +5714,7 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>3, 0</value>
   </data>
   <data name="label16.Size" type="System.Drawing.Size, System.Drawing">
-    <value>265, 20</value>
+    <value>216, 15</value>
   </data>
   <data name="label16.TabIndex" type="System.Int32, mscorlib">
     <value>36</value>
@@ -5891,10 +5756,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>True</value>
   </data>
   <data name="flowLayoutPanel2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 23</value>
+    <value>3, 18</value>
   </data>
   <data name="flowLayoutPanel2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>274, 36</value>
+    <value>231, 31</value>
   </data>
   <data name="flowLayoutPanel2.TabIndex" type="System.Int32, mscorlib">
     <value>79</value>
@@ -5915,10 +5780,10 @@ at all. Note scrolling bypasses this and might still cause no-update issues.</va
     <value>TopDown</value>
   </data>
   <data name="flowLayoutPanel3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>253, 484</value>
+    <value>296, 484</value>
   </data>
   <data name="flowLayoutPanel3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>280, 62</value>
+    <value>237, 52</value>
   </data>
   <data name="flowLayoutPanel3.TabIndex" type="System.Int32, mscorlib">
     <value>80</value>

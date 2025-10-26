@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using MinorShift.Emuera.Sub;
 using MinorShift.Emuera.GameData;
 using MinorShift.Emuera.GameData.Expression;
@@ -775,6 +776,16 @@ internal sealed partial class Process
 					state.JumpTo(func.JumpTo);
 					break;
 				}
+			#region EE_SysteInput拡張
+			case FunctionCode.FLOWINPUT:
+				{
+					SpInputsArgument arg = (SpInputsArgument)func.Argument;
+					flowinputdef = arg.Def.GetIntValue(exm);
+					flowinput = arg.Mouse != null && arg.Mouse.GetIntValue(exm) != 0;
+					flowinputcanskip = arg.CanSkip != null && arg.CanSkip.GetIntValue(exm) != 0;
+					break;
+				}
+			#endregion
 			#region EE_SKIPLOG
 			case FunctionCode.SKIPLOG:
 				{
@@ -839,7 +850,7 @@ internal sealed partial class Process
 						cfa = (SpCallArgment)iLine.Argument;
 						funcName = cfa.FuncnameTerm.GetStrValue(exm);
 						if (Config.ICFunction)
-							funcName = funcName.ToUpper();
+							funcName = funcName.ToUpper(CultureInfo.InvariantCulture);
 						callto = CalledFunction.CallFunction(this, funcName, func.JumpTo);
 						if (callto == null)
 							continue;
@@ -864,7 +875,7 @@ internal sealed partial class Process
 							ArgumentParser.SetArgumentTo(iLine);
 						funcName = ((SpCallArgment)iLine.Argument).FuncnameTerm.GetStrValue(exm);
 						if (Config.ICVariable)
-							funcName = funcName.ToUpper();
+							funcName = funcName.ToUpper(CultureInfo.InvariantCulture);
 						jumpto = state.CurrentCalled.CallLabel(this, funcName);
 						if (jumpto != null)
 							break;

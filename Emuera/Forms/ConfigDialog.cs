@@ -157,6 +157,7 @@ namespace MinorShift.Emuera.Forms
 			this.checkBox22.Text = Lang.UI.ConfigDialog.System.DuplicateFuncWarn.Text;
 			this.checkBoxSystemFullSpace.Text = Lang.UI.ConfigDialog.System.WSIncludesFullWidth.Text;
 			this.label11.Text = Lang.UI.ConfigDialog.System.ANSI.Text;
+			this.checkBoxUseLazyLoading.Text = Lang.UI.ConfigDialog.System.UseLazyLoading.Text;
 
 			this.tabPageSystem2.Text = Lang.UI.ConfigDialog.System2.Text;
 			this.label24.Text = Lang.UI.ConfigDialog.System.Warning.Text;
@@ -360,6 +361,7 @@ namespace MinorShift.Emuera.Forms
 			setCheckBox(checkBoxCompatiSP, ConfigCode.CompatiSPChara);
 			setCheckBox(checkBox9, ConfigCode.TimesNotRigorousCalculation);
 			setCheckBox(checkBox29, ConfigCode.SystemNoTarget);
+			setCheckBox(checkBoxUseLazyLoading, ConfigCode.UseLazyLoading);
 			setCheckBox(checkBox30, ConfigCode.ForbidUpdateCheck);
 			setCheckBox(checkBox31, ConfigCode.UseERD);
 			setCheckBox(checkBox34, ConfigCode.VarsizeDimConfig);
@@ -675,6 +677,8 @@ namespace MinorShift.Emuera.Forms
 
 			config.GetConfigItem(ConfigCode.TextEditor).SetValue<string>(textBox1.Text);
 			config.GetConfigItem(ConfigCode.EditorArgument).SetValue<string>(textBox2.Text);
+
+			config.GetConfigItem(ConfigCode.UseLazyLoading).SetValue<bool>(checkBoxUseLazyLoading.Checked);
 
 			#region EM_私家版_LoadText＆SaveText機能拡張
 			config.GetConfigItem(ConfigCode.ValidExtension).TryParse(textBox3.Text);

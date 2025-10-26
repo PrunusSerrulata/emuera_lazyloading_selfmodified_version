@@ -15,6 +15,7 @@ using System.Linq;
 using trmb = EvilMask.Emuera.Lang.MessageBox;
 using trsl = EvilMask.Emuera.Lang.SystemLine;
 using trerror = EvilMask.Emuera.Lang.Error;
+using MinorShift.Emuera.GameProc.PluginSystem;
 
 namespace MinorShift.Emuera.GameProc;
 
@@ -168,6 +169,14 @@ internal sealed partial class Process
 
 			LexicalAnalyzer.UseMacro = false;
 
+			PluginManager.GetInstance().SetParent(this, state, exm);
+			PluginManager.GetInstance().LoadPlugins();
+
+			#region FallBackFont
+			if(Config.UsingFallbackFont)
+				console.PrintSystemLine(string.Format(trsl.FontNotFound.Text, Config.ConfigFont));
+			#endregion
+
 			//ERH読込
 			if (!hLoader.LoadHeaderFiles(Program.ErbDir, Config.DisplayReport))
 			{
@@ -184,7 +193,7 @@ internal sealed partial class Process
 			if (Program.AnalysisMode)
 				noError = loader.loadErbs(Program.AnalysisFiles, labelDic);
 			else
-				noError = loader.LoadErbFiles(Program.ErbDir, Config.DisplayReport, labelDic);
+				noError = loader.LoadErbFiles(Program.ErbDir, Config.DisplayReport, Config.UseLazyLoading, labelDic);
 			initSystemProcess();
 			initialiing = false;
 		}
@@ -207,8 +216,8 @@ internal sealed partial class Process
 	{
 		saveCurrentState(false);
 		state.SystemState = SystemStateCode.System_Reloaderb;
-		ErbLoader loader = new ErbLoader(console, exm, this);
-		loader.LoadErbFiles(Program.ErbDir, false, labelDic);
+		ErbLoader loader = new(console, exm, this);
+		loader.LoadErbFiles(Program.ErbDir, false, Config.UseLazyLoading, labelDic);
 		console.ReadAnyKey();
 	}
 

@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Globalization;
 using MinorShift.Emuera.Sub;
 using EvilMask.Emuera;
 
@@ -18,9 +19,9 @@ internal abstract class AConfigItem
 		this.Code = code;
 		this.Name = code.ToString();
 		// this.Text = text;
-		this.Text = text.ToUpper();
+		this.Text = text.ToUpper(CultureInfo.InvariantCulture);
 		// this.EngText = etext;
-		this.EngText = etext.ToUpper();
+		this.EngText = etext.ToUpper(CultureInfo.InvariantCulture);
 	}
 	#endregion
 
@@ -225,7 +226,7 @@ internal sealed class ConfigItem<T> : AConfigItem
 		}
 		else if (this is ConfigItem<TextDrawingMode>)
 		{
-			str = str.ToUpper();
+			str = str.ToUpper(CultureInfo.InvariantCulture);
 			ret = Enum.IsDefined(typeof(TextDrawingMode), str);
 			if (ret)
 			{
@@ -237,7 +238,7 @@ internal sealed class ConfigItem<T> : AConfigItem
 		}
 		else if (this is ConfigItem<ReduceArgumentOnLoadFlag>)
 		{
-			str = str.ToUpper();
+			str = str.ToUpper(CultureInfo.InvariantCulture);
 			ret = Enum.IsDefined(typeof(ReduceArgumentOnLoadFlag), str);
 			if (ret)
 			{
@@ -249,7 +250,7 @@ internal sealed class ConfigItem<T> : AConfigItem
 		}
 		else if (this is ConfigItem<DisplayWarningFlag>)
 		{
-			str = str.ToUpper();
+			str = str.ToUpper(CultureInfo.InvariantCulture);
 			ret = Enum.IsDefined(typeof(DisplayWarningFlag), str);
 			if (ret)
 			{
@@ -261,7 +262,7 @@ internal sealed class ConfigItem<T> : AConfigItem
 		}
 		else if (this is ConfigItem<UseLanguage>)
 		{
-			str = str.ToUpper();
+			str = str.ToUpper(CultureInfo.InvariantCulture);
 			ret = Enum.IsDefined(typeof(UseLanguage), str);
 			if (ret)
 			{
@@ -273,7 +274,7 @@ internal sealed class ConfigItem<T> : AConfigItem
 		}
 		else if (this is ConfigItem<TextEditorType>)
 		{
-			str = str.ToUpper();
+			str = str.ToUpper(CultureInfo.InvariantCulture);
 			ret = Enum.IsDefined(typeof(TextEditorType), str);
 			if (ret)
 			{

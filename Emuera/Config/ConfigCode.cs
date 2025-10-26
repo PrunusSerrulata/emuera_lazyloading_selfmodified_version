@@ -129,6 +129,7 @@ internal enum ConfigCode
 	//ForbidOneCodeVariable,
 	SystemNoTarget,
 	SystemIgnoreStringSet,
+	UseLazyLoading,
 
 	MoneyLabel = 100,
 	MoneyFirst = 101,

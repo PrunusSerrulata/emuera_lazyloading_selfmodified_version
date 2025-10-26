@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.VisualBasic;
 using MinorShift.Emuera.Sub;
 using MinorShift.Emuera.GameView;
@@ -36,7 +37,7 @@ internal sealed class ErbLoader
 	/// 複数のファイルを読む
 	/// </summary>
 	/// <param name="filepath"></param>
-	public bool LoadErbFiles(string erbDir, bool displayReport, LabelDictionary labelDictionary)
+	public bool LoadErbFiles(string erbDir, bool displayReport, bool useLazyLoading, LabelDictionary labelDictionary)
 	{
 		//1.713 labelDicをnewする位置を変更。
 		//checkScript();の時点でExpressionPerserがProcess.instance.LabelDicを必要とするから。
@@ -45,46 +46,96 @@ internal sealed class ErbLoader
 		List<KeyValuePair<string, string>> erbFiles = Config.GetFiles(erbDir, "*.ERB");
 		List<string> isOnlyEvent = new List<string>();
 		noError = true;
-		uint starttime = WinmmTimer.TickCount;
+		var starttime = DateTime.Now;
+		uint totalstarttime = WinmmTimer.TickCount;
 		try
 		{
 			labelDic.RemoveAll();
+			
+			if (useLazyLoading)
+			{
+				parentProcess.LoadLazyLoadingTable(erbFiles);
+				if (parentProcess.LazyCurrentLazyStatus is Process.LazyStatus.Loaded or Process.LazyStatus.UpdateTable)
+				{
+					output.PrintSystemLine(string.Format(trsl.LazyLoadingTableCount.Text,
+						parentProcess.LazyLoadingFiles.Count.ToString()));
+				}
+				else if (parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.BuildTable)
+				{
+					output.PrintSystemLine(trsl.LazyLoadingNoTable.Text);
+				}
+			}
 			for (int i = 0; i < erbFiles.Count; i++)
 			{
 				string filename = erbFiles[i].Key;
 				string file = erbFiles[i].Value;
-#if DEBUG
-				if (displayReport)
-					output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (WinmmTimer.TickCount - starttime).ToString("D4"), filename));
-#else
-					if (displayReport)
-						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-#endif
+// #if DEBUG
+// 					if (displayReport)
+// 						output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (WinmmTimer.TickCount - starttime).ToString("D4"), filename));
+// #else
+// 					if (displayReport)
+// 						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
+// #endif
+				// Lazy Loading 테이블에 있는 파일인 경우 여기서는 패스.
+				if (useLazyLoading && parentProcess.LazyLoadingFiles.Contains(file))
+					continue;
+
+				if (displayReport && Program.AnalysisMode)
+					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
 				System.Windows.Forms.Application.DoEvents();
 				loadErb(file, filename, isOnlyEvent);
 			}
 			ParserMediator.FlushWarningList();
-#if DEBUG
-			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (WinmmTimer.TickCount - starttime).ToString("D4")));
-#endif
+// #if DEBUG
+// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (WinmmTimer.TickCount - starttime).ToString("D4")));
+// #endif
+			if (displayReport)
+				output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugErbTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			starttime = DateTime.Now; // 타이머 초기화.
 			if (displayReport)
 				output.PrintSystemLine(trsl.BuildingUserFunc.Text);
-			setLabelsArg();
+			//setLabelsArg();
 			ParserMediator.FlushWarningList();
 			labelDic.Initialized = true;
-#if DEBUG
-			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (WinmmTimer.TickCount - starttime).ToString("D4")));
-#endif
+// #if DEBUG
+// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (WinmmTimer.TickCount - starttime).ToString("D4")));
+// #endif
+			if (displayReport)
+				output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugLabelsTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			starttime = DateTime.Now; // 타이머 초기화.
 			if (displayReport)
 				output.PrintSystemLine(trsl.CheckingSyntax.Text);
 			checkScript();
 			ParserMediator.FlushWarningList();
 
-#if DEBUG
-			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (WinmmTimer.TickCount - starttime).ToString("D4")));
-#endif
+// #if DEBUG
+// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (WinmmTimer.TickCount - starttime).ToString("D4")));
+// #endif
 			if (displayReport)
-				output.PrintSystemLine(trsl.LoadComplete.Text);
+					output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugScriptTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			if (parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.BuildTable)
+			{
+				parentProcess.SaveLazyLoadingList(labelDic.GetAllLabels(false), erbFiles);
+				if(parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.Loaded)
+					output.PrintSystemLine(trsl.LazyLoadingTableCreationSuccess.Text);
+				else if(parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.Error)
+					output.PrintSystemLine(trsl.LazyLoadingCreationError.Text);
+				else if(parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.NoLazy)
+					output.PrintSystemLine(trsl.LazyLoadingNoValidFiles.Text);
+			}
+			else if(parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.UpdateTable)
+			{
+				if(parentProcess.SavePartialLazyLoadingList(labelDic.GetAllLabels(false)))
+					output.PrintSystemLine(trsl.LazyLoadingTableUpdated.Text);
+			}
+
+			if (parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.Loaded)
+			{
+				output.PrintSystemLine(string.Format(trsl.LazyLoadingTime.Text,
+					((double)(WinmmTimer.TickCount - totalstarttime)) / 1000));
+			}
+			if(parentProcess.LazyCurrentLazyStatus != Process.LazyStatus.Disabled)
+				output.PrintSystemLine(trsl.LazyLoadingContinue.Text);
 		}
 		catch (Exception e)
 		{
@@ -98,7 +149,7 @@ internal sealed class ErbLoader
 		{
 			parentProcess.scaningLine = null;
 		}
-		isOnlyEvent.Clear();
+        isOnlyEvent.Clear();
 		return noError;
 	}
 
@@ -112,7 +163,7 @@ internal sealed class ErbLoader
 		List<string> isOnlyEvent = new List<string>();
 		noError = true;
 		labelDic = labelDictionary;
-		labelDic.Initialized = false;
+		//labelDic.Initialized = false; // 이걸 false로 걸어두면 IdentifierDictionary.GetFunctionMethod()에서 문제가 터진다.
 		foreach (string fpath in path)
 		{
 			if (fpath.StartsWith(Program.ErbDir, Config.SCIgnoreCase) && !Program.AnalysisMode)
@@ -122,15 +173,17 @@ internal sealed class ErbLoader
 			if (Program.AnalysisMode)
 				output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, fname));
 			System.Windows.Forms.Application.DoEvents();
-			loadErb(fpath, fname, isOnlyEvent);
+			loadErb(fpath, fname, isOnlyEvent, true);
 		}
 		if (Program.AnalysisMode)
 			output.NewLine();
 		ParserMediator.FlushWarningList();
-		setLabelsArg();
+		//setLabelsArg();
 		ParserMediator.FlushWarningList();
-		labelDic.Initialized = true;
-		checkScript();
+		//labelDic.Initialized = true;
+		//Always load function code if its from reloaded files
+		if (parentProcess.getCurrentState.SystemState == SystemStateCode.System_Reloaderb)
+			checkScript();
 		ParserMediator.FlushWarningList();
 		parentProcess.scaningLine = null;
 		isOnlyEvent.Clear();
@@ -295,7 +348,7 @@ internal sealed class ErbLoader
 	/// ファイル一つを読む
 	/// </summary>
 	/// <param name="filepath"></param>
-	private void loadErb(string filepath, string filename, List<string> isOnlyEvent)
+	private void loadErb(string filepath, string filename, List<string> isOnlyEvent, bool isLazyLoading = false)
 	{
 		//読み込んだファイルのパスを記録
 		//一部ファイルの再読み込み時の処理用
@@ -308,7 +361,8 @@ internal sealed class ErbLoader
 		}
 		try
 		{
-			PPState ppstate = new PPState();
+			List<FunctionLabelLine> tempFunctionLabels = [];
+			PPState ppstate = new();
 			LogicalLine nextLine = new NullLine();
 			LogicalLine lastLine = new NullLine();
 			FunctionLabelLine lastLabelLine = null;
@@ -370,6 +424,7 @@ internal sealed class ErbLoader
 						else// if (label is FunctionLabelLine)
 						{
 							labelDic.AddLabel(label);
+							tempFunctionLabels.Add(label);
 							if (!label.IsEvent && (Config.WarnNormalFunctionOverloading || Program.AnalysisMode))
 							{
 								FunctionLabelLine seniorLabel = labelDic.GetSameNameLabel(label);
@@ -435,6 +490,21 @@ internal sealed class ErbLoader
 			addLine(new NullLine(), lastLine);
 			position = new ScriptPosition(eReader.Filename, -1);
 			ppstate.FileEnd(position);
+			
+			// 여기서 setLabelsArg()를 처리.
+			foreach(var label in tempFunctionLabels)
+			{
+				setLabelsArg(label);
+				labelDic.SortLabel(label);
+				
+			}
+
+			// 지연로딩으로 부르는 경우에만 여기서 처리하고, 초기 로딩시에는 #FUNCTION 때문에 일괄 처리해야함.
+			if (isLazyLoading)
+			{
+				foreach (var label in tempFunctionLabels)
+					checkFunctionWithCatch(label);
+			}
 		}
 		finally
 		{
@@ -452,32 +522,37 @@ internal sealed class ErbLoader
 		return nextLine;
 	}
 
+	private void setLabelsArg(FunctionLabelLine label)
+	{
+		try
+		{
+			if (label.Arg != null)
+				return;
+			parentProcess.scaningLine = label;
+			parseLabel(label);
+		}
+		catch (Exception exc)
+		{
+			System.Media.SystemSounds.Hand.Play();
+			string errmes = exc.Message;
+			if (!(exc is EmueraException))
+				errmes = exc.GetType().ToString() + ":" + errmes;
+			ParserMediator.Warn(string.Format(trerror.FuncArgError.Text, label.LabelName, errmes), label, 2, true, false);
+			label.ErrMes = trerror.CalledFailedFunc.Text;
+			label.IsError = true;
+		}
+		finally
+		{
+			parentProcess.scaningLine = null;
+		}
+	}
+
 	private void setLabelsArg()
 	{
 		List<FunctionLabelLine> labelList = labelDic.GetAllLabels(false);
 		foreach (FunctionLabelLine label in labelList)
 		{
-			try
-			{
-				if (label.Arg != null)
-					continue;
-				parentProcess.scaningLine = label;
-				parseLabel(label);
-			}
-			catch (Exception exc)
-			{
-				System.Media.SystemSounds.Hand.Play();
-				string errmes = exc.Message;
-				if (!(exc is EmueraException))
-					errmes = exc.GetType().ToString() + ":" + errmes;
-				ParserMediator.Warn(string.Format(trerror.FuncArgError.Text, label.LabelName, errmes), label, 2, true, false);
-				label.ErrMes = trerror.CalledFailedFunc.Text;
-				label.IsError = true;
-			}
-			finally
-			{
-				parentProcess.scaningLine = null;
-			}
+			setLabelsArg(label);
 		}
 		labelDic.SortLabels();
 	}
@@ -685,7 +760,7 @@ internal sealed class ErbLoader
 				bool ignore = false;
 				if (notCalledWarning == DisplayWarningFlag.ONCE)
 				{
-					string filename = label.Position.Filename.ToUpper();
+					string filename = label.Position.Filename.ToUpper(CultureInfo.InvariantCulture);
 
 					if (!string.IsNullOrEmpty(filename))
 					{
@@ -799,7 +874,7 @@ internal sealed class ErbLoader
 		else if (warnFlag == DisplayWarningFlag.ONCE)
 		{
 
-			string filename = line.Position.Filename.ToUpper();
+			string filename = line.Position.Filename.ToUpper(CultureInfo.InvariantCulture);
 			if (!string.IsNullOrEmpty(filename))
 			{
 				if (ignoredFNFWarningFileList.Contains(filename))
@@ -826,7 +901,7 @@ internal sealed class ErbLoader
 		try
 		{
 			System.Windows.Forms.Application.DoEvents();
-			string filename = label.Position.Filename.ToUpper();
+			string filename = label.Position.Filename.ToUpper(CultureInfo.InvariantCulture);
 			setArgument(label);
 			nestCheck(label);
 			setJumpTo(label);

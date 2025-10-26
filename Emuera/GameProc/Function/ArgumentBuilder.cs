@@ -9,6 +9,7 @@ using MinorShift.Emuera.GameData;
 using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.GameView;
 using trerror = EvilMask.Emuera.Lang.Error;
+using System.Windows.Documents;
 
 namespace MinorShift.Emuera.GameProc.Function;
 
@@ -199,6 +200,7 @@ internal static partial class ArgumentParser
 		argb[FunctionArgType.SP_CALLF] = new SP_CALL_ArgumentBuilder(true, false);
 		argb[FunctionArgType.SP_CALLFORM] = new SP_CALL_ArgumentBuilder(false, true);
 		argb[FunctionArgType.SP_CALLFORMF] = new SP_CALL_ArgumentBuilder(true, true);
+		argb[FunctionArgType.SP_CALLCSHARP] = new SP_CALLSHARP_ArgumentBuilder();
 		argb[FunctionArgType.SP_FOR_NEXT] = new SP_FOR_NEXT_ArgumentBuilder();
 		argb[FunctionArgType.SP_POWER] = new SP_POWER_ArgumentBuilder();
 		argb[FunctionArgType.SP_SWAPVAR] = new SP_SWAPVAR_ArgumentBuilder();
@@ -915,7 +917,69 @@ internal static partial class ArgumentParser
 			return ret;
 		}
 	}
+	private sealed class SP_CALLSHARP_ArgumentBuilder : ArgumentBuilder
+	{
+		public SP_CALLSHARP_ArgumentBuilder()
+		{
 
+		}
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			StringStream st = line.PopArgumentPrimitive();
+			IOperandTerm funcname;
+				string str = LexicalAnalyzer.ReadString(st, StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon);
+				str = str.Trim(new char[] { ' ', '\t' });
+				funcname = new SingleTerm(str);
+			char cur = st.Current;
+			WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+			wc.ShiftNext();
+
+			IOperandTerm[] subNames = null;
+			IOperandTerm[] args = null;
+			if (cur == '[')
+			{
+				subNames = ExpressionParser.ReduceArguments(wc, ArgsEndWith.RightBracket, false);
+				if (!wc.EOL)
+				{
+					if (wc.Current.Type != '(')
+						wc.ShiftNext();
+					args = ExpressionParser.ReduceArguments(wc, ArgsEndWith.RightParenthesis, false);
+				}
+			}
+			if ((cur == '(') || (cur == ','))
+			{
+				if (cur == '(')
+					args = ExpressionParser.ReduceArguments(wc, ArgsEndWith.RightParenthesis, false);
+				else
+					args = ExpressionParser.ReduceArguments(wc, ArgsEndWith.EoL, false);
+				if (!wc.EOL)
+				{ warn(trerror.WrongFormat.Text, line, 2, false); return null; }
+			}
+			if (subNames == null)
+				subNames = new IOperandTerm[0];
+			if (args == null)
+				args = new IOperandTerm[0];
+			for (int i = 0; i < subNames.Length; i++)
+				if (subNames != null)
+					subNames[i] = subNames[i].Restructure(exm);
+			for (int i = 0; i < args.Length; i++)
+				if (args[i] != null)
+					args[i] = args[i].Restructure(exm);
+			Argument ret;
+				ret = new SpCallSharpArgment(funcname, subNames, args);
+			if (funcname is SingleTerm)
+			{
+				ret.IsConst = true;
+				ret.ConstStr = funcname.GetStrValue(null);
+				if (ret.ConstStr == "")
+				{
+					warn(trerror.NotSpecifiedFuncName.Text, line, 2, false);
+					return null;
+				}
+			}
+			return ret;
+		}
+	}
 	private sealed class CASE_ArgumentBuilder : ArgumentBuilder
 	{
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using MinorShift.Emuera.Sub;
 using MinorShift.Emuera.GameProc;
+using MinorShift.Emuera.GameProc.PluginSystem;
 
 namespace MinorShift.Emuera.GameData.Expression;
 

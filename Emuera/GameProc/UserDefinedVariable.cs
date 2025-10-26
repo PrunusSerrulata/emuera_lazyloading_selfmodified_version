@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using MinorShift.Emuera.Sub;
 using System.Text.RegularExpressions;
@@ -51,7 +52,7 @@ internal sealed class UserDefinedVariableData
 			wc.ShiftNext();
 			keyword = idw.Code;
 			if (Config.ICVariable)
-				keyword = keyword.ToUpper();
+				keyword = keyword.ToUpper(CultureInfo.InvariantCulture);
 			//TODO ifの数があたまわるい なんとかしたい
 			switch (keyword)
 			{

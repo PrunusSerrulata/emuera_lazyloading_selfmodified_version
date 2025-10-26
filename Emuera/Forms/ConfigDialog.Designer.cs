@@ -226,6 +226,7 @@
 			flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
 			flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
 			flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
+			checkBoxUseLazyLoading = new System.Windows.Forms.CheckBox();
 			tabControl.SuspendLayout();
 			tabEnvironment.SuspendLayout();
 			flowLayoutPanel13.SuspendLayout();
@@ -905,6 +906,7 @@
 			flowLayoutPanel29.Controls.Add(checkBox19);
 			flowLayoutPanel29.Controls.Add(checkBox22);
 			flowLayoutPanel29.Controls.Add(checkBoxSystemFullSpace);
+			flowLayoutPanel29.Controls.Add(checkBoxUseLazyLoading);
 			flowLayoutPanel29.Controls.Add(flowLayoutPanel28);
 			flowLayoutPanel29.Name = "flowLayoutPanel29";
 			// 
@@ -1624,6 +1626,12 @@
 			flowLayoutPanel2.Controls.Add(buttonCancel);
 			flowLayoutPanel2.Name = "flowLayoutPanel2";
 			// 
+			// checkBoxUseLazyLoading
+			// 
+			resources.ApplyResources(checkBoxUseLazyLoading, "checkBoxUseLazyLoading");
+			checkBoxUseLazyLoading.Name = "checkBoxUseLazyLoading";
+			checkBoxUseLazyLoading.UseVisualStyleBackColor = true;
+			// 
 			// ConfigDialog
 			// 
 			AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
@@ -1960,5 +1968,6 @@
 		private System.Windows.Forms.LinkLabel rikaiNote2;
 		private System.Windows.Forms.Label rikaiNote3;
 		private System.Windows.Forms.CheckBox checkBox35;
+		private System.Windows.Forms.CheckBox checkBoxUseLazyLoading;
 	}
 }

@@ -18,10 +18,9 @@ using System.IO;
 using EvilMask.Emuera;
 using trerror = EvilMask.Emuera.Lang.Error;
 using System.Data;
+using System.Globalization;
 using static EvilMask.Emuera.Lang.UI.ConfigDialog;
 using System.Windows.Navigation;
-using MinorShift.Emuera.GameProc.Function;
-using System.DirectoryServices;
 
 namespace MinorShift.Emuera.GameData.Function;
 
@@ -176,7 +175,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override Int64 GetIntValue(ExpressionMediator exm, IOperandTerm[] arguments)
 		{
-			string arg = arguments[0].GetStrValue(exm).ToUpper();
+			string arg = arguments[0].GetStrValue(exm).ToUpper(CultureInfo.InvariantCulture);
 			string[] array = null;
 			switch (type)
 			{
@@ -198,13 +197,13 @@ internal static partial class FunctionMethodCreator
 					switch (action)
 					{
 						case EAction.BeginsWith:
-							if (item.ToUpper().IndexOf(arg, StringComparison.Ordinal) == 0) strs.Add(item);
+							if (item.ToUpper(CultureInfo.InvariantCulture).IndexOf(arg, StringComparison.Ordinal) == 0) strs.Add(item);
 							break;
 						case EAction.EndsWith:
-							if (item.ToUpper().LastIndexOf(arg, StringComparison.Ordinal) == item.Length - arg.Length) strs.Add(item);
+							if (item.ToUpper(CultureInfo.InvariantCulture).LastIndexOf(arg, StringComparison.Ordinal) == item.Length - arg.Length) strs.Add(item);
 							break;
 						case EAction.With:
-							if (item.ToUpper().IndexOf(arg, StringComparison.Ordinal) >= 0) strs.Add(item);
+							if (item.ToUpper(CultureInfo.InvariantCulture).IndexOf(arg, StringComparison.Ordinal) >= 0) strs.Add(item);
 							break;
 					}
 				}
@@ -4563,7 +4562,7 @@ internal static partial class FunctionMethodCreator
 			switch (strType)
 			{
 				case StrFormType.Upper:
-					return (str.ToUpper());
+					return (str.ToUpper(CultureInfo.InvariantCulture));
 				case StrFormType.Lower:
 					return (str.ToLower());
 				case StrFormType.Half:
@@ -7225,7 +7224,7 @@ internal static partial class FunctionMethodCreator
 			{
 				FunctionLabelLine func;
 				if (Config.SCFunction == StringComparison.OrdinalIgnoreCase)
-					func = GlobalStatic.LabelDictionary.GetNonEventLabel(functionname.ToUpper());
+					func = GlobalStatic.LabelDictionary.GetNonEventLabel(functionname.ToUpper(CultureInfo.InvariantCulture));
 				else
 					func = GlobalStatic.LabelDictionary.GetNonEventLabel(functionname);
 				if (func == null)
@@ -7244,7 +7243,7 @@ internal static partial class FunctionMethodCreator
 			{
 				foreach (string funcname in GlobalStatic.Process.LabelDictionary.NoneventKeys)
 				{
-					if (funcname.ToUpper() == functionname.ToUpper())
+					if (funcname.ToUpper(CultureInfo.InvariantCulture) == functionname.ToUpper(CultureInfo.InvariantCulture))
 					{
 						FunctionLabelLine func = GlobalStatic.LabelDictionary.GetNonEventLabel(funcname);
 
@@ -7383,7 +7382,9 @@ internal static partial class FunctionMethodCreator
 		}
 		public override string GetStrValue(ExpressionMediator exm, IOperandTerm[] arguments)
 		{
-			long num = arguments[0].GetIntValue(exm)-exm.Console.DeletedLines;
+			//修正に失敗したので差し戻す
+			//long num = arguments[0].GetIntValue(exm)-exm.Console.DeletedLines;
+			long num = arguments[0].GetIntValue(exm);
 			if (num < 0 || num >= exm.Console.DisplayLineList.Count)
 				return "";
 			else
@@ -7408,50 +7409,7 @@ internal static partial class FunctionMethodCreator
 			return line.ParentLabelLine.LabelName;
 		}
 	}
-	#endregion
-	#region EE_SystemInput拡張
-	private sealed class FlowInputMethod : FunctionMethod
-	{
-		public FlowInputMethod()
-		{
-			ReturnType = typeof(Int64);
-			argumentTypeArrayEx = new ArgTypeList[] {
-					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 1 },
-				};
-			CanRestructure = false;
-		}
-		public override Int64 GetIntValue(ExpressionMediator exm, IOperandTerm[] arguments)
-		{
 
-			exm.Process.flowinputDef = arguments[0].GetIntValue(exm);
-			if (arguments.Length > 1)
-				exm.Process.flowinput = arguments[1].GetIntValue(exm) != 0 ? true : false ;
-			if (arguments.Length > 2)
-				exm.Process.flowinputCanSkip = arguments[2].GetIntValue(exm) != 0 ? true : false ;
-			if (arguments.Length > 3)
-				exm.Process.flowinputForceSkip = arguments[3].GetIntValue(exm) != 0 ? true : false;
-			return 0;
-		}
-	}
-	private sealed class FlowInputsMethod : FunctionMethod
-	{
-		public FlowInputsMethod()
-		{
-			ReturnType = typeof(Int64);
-			argumentTypeArrayEx = new ArgTypeList[] {
-					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String }, OmitStart = 1 },
-				};
-			CanRestructure = false;
-		}
-		public override Int64 GetIntValue(ExpressionMediator exm, IOperandTerm[] arguments)
-		{
-
-			exm.Process.flowinputString = arguments[0].GetIntValue(exm) != 0 ? true : false ;
-			if (arguments.Length > 1)
-				exm.Process.flowinputDefString = arguments[1].GetStrValue(exm);
-			return 0;
-		}
-	}
 	#endregion
 
 	//Bitmap Cache

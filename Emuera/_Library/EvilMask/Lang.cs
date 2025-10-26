@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
+using System.Reflection;
 
 namespace EvilMask.Emuera;
 
-internal sealed class Lang
+ internal sealed partial class Lang
 {
 	public sealed class TranslatableString
 	{
@@ -215,6 +216,7 @@ internal sealed class Lang
 				[Managed] public static TranslatableString DuplicateFuncWarn { get; } = new TranslatableString("同名の非イベント関数が複数定義されたとき警告する");
 				[Managed] public static TranslatableString WSIncludesFullWidth { get; } = new TranslatableString("全角スペースをホワイトスペースに含める");
 				[Managed] public static TranslatableString ANSI { get; } = new TranslatableString("内部で使用する東アジア言語");
+				[Managed] public static TranslatableString UseLazyLoading { get; } = new TranslatableString("遅延ローディング使用");
 			}
 
 			[Translate("システム2"), Managed]
@@ -1287,20 +1289,55 @@ internal sealed class Lang
 		[Managed] public static TranslatableString LogFileHasBeenCreated { get; } = new TranslatableString("※※※ログファイルを{0}に出力しました※※※");
 		[Managed] public static TranslatableString MinusWontWork { get; } = new TranslatableString("整数型最小値({0})は-を取っても値は変化しません");
 		[Managed] public static TranslatableString ReloadResourceMessage { get; } = new TranslatableString("リソースフォルダを読み直しました");
+		
+		#region LazyLoading
+        [Managed] public static TranslatableString LazyLoadingNoConfigFile { get; } = new TranslatableString("遅延ローディング設定ファイルが見つからないため、テーブル構築をスキップします");
+        [Managed] public static TranslatableString LazyLoadingConfigError { get; } = new TranslatableString("遅延ローディング設定ファイルの読み込みに失敗しました。メッセージ：{0}");
+        [Managed] public static TranslatableString LazyLoadingTableReadError { get; } = new TranslatableString("遅延ローディングテーブルの読み込みに失敗しました。メッセージ：{0}");
+        [Managed] public static TranslatableString LazyLoadingNoValidFiles { get; } = new TranslatableString("lazyloadする有効なファイルがありません。");
+        [Managed] public static TranslatableString LazyLoadingTableCount { get; } = new TranslatableString("{0}ファイルが遅延ローディングテーブルに記録されています");
+        [Managed] public static TranslatableString LazyLoadingNoTable { get; } = new TranslatableString("遅延ローディングテーブルファイルが見つからないため、全ファイルのロード後に新しく生成されます");
+        [Managed] public static TranslatableString LazyLoadingFileFunctionExcluded { get; } = new TranslatableString("ファイル：{0}の関数：{1}に#FUNCTIONが宣言されているため、ファイルは遅延ローディングの対象外になります");
+        [Managed] public static TranslatableString LazyLoadingFileEventExcluded { get; } = new TranslatableString("ファイル：{0}にイベント関数：{1}が定義されているため、ファイルは遅延ローディングの対象外になります");
+        [Managed] public static TranslatableString LazyLoadingTableCreationSuccess { get; } = new TranslatableString("遅延ローディングテーブルの作成に成功しました");
+        [Managed] public static TranslatableString LazyLoadingCreationError { get; } = new TranslatableString("遅延ローディングテーブルの作成に失敗しました");
+        [Managed] public static TranslatableString LazyLoadingTableSaveError { get; } = new TranslatableString("遅延ローディングテーブルファイルの保存に失敗しました。メッセージ：{0}");
+        [Managed] public static TranslatableString LazyLoadingTime { get; } = new TranslatableString("ファイル読み込みが完了しました。経過時間：{0:0.00}秒");
+        [Managed] public static TranslatableString LazyLoadingContinue { get; } = new TranslatableString("Enterキーまたはクリックで進みます");
+        [Managed] public static TranslatableString LazyLoadingErbFileNotFound { get; } = new TranslatableString("関数：{0}の属するERBの遅延読み込みに失敗しました");
+        [Managed] public static TranslatableString LazyLoadingDebugLoadingFile { get; } = new TranslatableString("ファイル：{0}読み込み中・・・");
+        [Managed] public static TranslatableString LazyLoadingDebugErbTime { get; } = new TranslatableString("ERB読み込みが完了しました。経過時間：{0}ms");
+        [Managed] public static TranslatableString LazyLoadingDebugLabelsTime { get; } = new TranslatableString("setLabelsArg()処理が完了しました。経過時間：{0}ms");
+        [Managed] public static TranslatableString LazyLoadingDebugScriptTime { get; } = new TranslatableString("checkScript()処理が完了しました。経過時間：{0}ms");
+		[Managed] public static TranslatableString LazyLoadingFilesModified { get; } = new TranslatableString("変更されたファイル："); 
+		[Managed] public static TranslatableString LazyLoadingFilesDeleted { get; } = new TranslatableString("削除されたファイル：");
+		[Managed] public static TranslatableString LazyLoadingTableUpdated { get; } = new TranslatableString("LazyLoadingテーブルを更新");
+
+        #endregion
+
+        #region FallBackFont
+
+        [Managed] public static TranslatableString FontNotFound { get; } = new TranslatableString("フォント\"{0}\"が見つかりません。フォールバックフォントを使用しています");
+
+        #endregion
+		
 		//[Managed] public static TranslatableString { get; } = new TranslatableString("");
 		//[Managed] public static TranslatableString { get; } = new TranslatableString("");
 
 	}
 
 
-	static public void LoadLanguageFile()
+	[GeneratedRegex(@".*emuera.*\.xml")]
+	private static partial Regex LangFileRegex();
+	
+	public static void LoadLanguageFile()
 	{
 		foreach (var pair in trItems) pair.Value.Clear();
 		if (Directory.Exists(langDir))
 		{
 			foreach (var path in Directory.EnumerateFiles(langDir, "emuera.*.xml", SearchOption.TopDirectoryOnly))
 			{
-				XmlDocument xml = new XmlDocument();
+				XmlDocument xml = new();
 				try
 				{
 					xml.Load(path);
@@ -1309,23 +1346,47 @@ internal sealed class Lang
 				{
 					continue;
 				}
-				var node = xml.SelectSingleNode("/lang/name");
-				if (node != null)
-				{
-					var langName = node.InnerText.Trim();
-					if (langName.IndexOf('\n', StringComparison.Ordinal) < 0 && !langList.ContainsKey(langName))
-					{
-						langList.Add(langName, path);
-						var fontName = node.InnerText.Trim();
-						if (Config.EmueraLang == langName)
-							loadLangXML(xml);
-					}
-				}
+				var langName = GetLanguage(xml);
+				if(langName != null && langList.TryAdd(langName, path) && Config.EmueraLang == langName)
+					loadLangXML(xml);
 			}
+		}
+		
+		var assembly = Assembly.GetExecutingAssembly();
+		var resources = assembly.GetManifestResourceNames();
+		
+		foreach (var path in resources)
+		{
+			if(!LangFileRegex().IsMatch(path))
+				continue;
+			using var stream = assembly.GetManifestResourceStream(path);
+			if(stream == null)
+				continue;
+			XmlDocument xml = new();
+			try
+			{
+				xml.Load(stream);
+			}
+			catch
+			{
+				continue;
+			}
+			var langName = GetLanguage(xml);
+			if(langName != null && langList.TryAdd(langName, path) && Config.EmueraLang == langName)
+				loadLangXML(xml);
 		}
 		langNames = new string[langList.Count];
 		langList.Keys.CopyTo(langNames, 0);
+		return;
+
+		string GetLanguage(XmlDocument xml)
+		{
+			var node = xml.SelectSingleNode("/lang/name");
+			var langName = node?.InnerText.Trim();
+			return langName;
+		}
 	}
+
 	static void loadLangXML(XmlDocument xml)
 	{
 		var fnode = xml.SelectSingleNode("/lang/mfont");

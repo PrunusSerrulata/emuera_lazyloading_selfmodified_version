@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Globalization;
 using MinorShift.Emuera.Sub;
 using System.Text.RegularExpressions;
 using MinorShift.Emuera.GameData.Expression;
@@ -118,6 +119,7 @@ internal sealed class ConfigData
 
 		configArray.Add(new ConfigItem<bool>(ConfigCode.SystemNoTarget, "キャラクタ変数の引数を補完しない", "Do not auto-complete arguments for character variables", false));
 		configArray.Add(new ConfigItem<bool>(ConfigCode.SystemIgnoreStringSet, "文字列変数の代入に文字列式を強制する", "String variable assignment on valid with string expression", false));
+		configArray.Add(new ConfigItem<bool>(ConfigCode.UseLazyLoading, "UseLazyLoading", "UseLazyLoading",true));
 
 		#region EE_UPDATECHECK
 		configArray.Add(new ConfigItem<bool>(ConfigCode.ForbidUpdateCheck, "UPDATECHECKを許可しない", "Disallow UPDATECHECK", false));
@@ -403,7 +405,7 @@ internal sealed class ConfigData
 	public AConfigItem GetConfigItem(string key)
 	{
 		#region EM_私家版_Emuera多言語化改造
-		key = key.ToUpper();
+		key = key.ToUpper(CultureInfo.InvariantCulture);
 		foreach (AConfigItem item in configArray)
 		{
 			if (item == null)
@@ -433,7 +435,7 @@ internal sealed class ConfigData
 	public AConfigItem GetReplaceItem(string key)
 	{
 		#region EM_私家版_Emuera多言語化改造
-		key = key.ToUpper();
+		key = key.ToUpper(CultureInfo.InvariantCulture);
 		foreach (AConfigItem item in replaceArray)
 		{
 			if (item == null)
@@ -461,7 +463,7 @@ internal sealed class ConfigData
 	public AConfigItem GetDebugItem(string key)
 	{
 		#region EM_私家版_Emuera多言語化改造
-		key = key.ToUpper();
+		key = key.ToUpper(CultureInfo.InvariantCulture);
 		foreach (AConfigItem item in debugArray)
 		{
 			if (item == null)

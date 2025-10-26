@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
@@ -45,9 +46,7 @@ namespace MinorShift.Emuera
 			openFileDialog.Multiselect = true;
 			openFileDialog.RestoreDirectory = true;
 			string Emuera_verInfo = "Emuera " + Application.ProductVersion;
-			//なんか変な文字列になるのでしばらく手動
-			//EmuVerToolStripTextBox.Text = Emuera_verInfo;
-			EmuVerToolStripTextBox.Text = "Emuera 1.824+v21+EMv18+EEv46";
+			EmuVerToolStripTextBox.Text = Emuera_verInfo;
 
 			timer.Enabled = true;
 			console = new EmueraConsole(this);
@@ -257,7 +256,7 @@ namespace MinorShift.Emuera
 										MessageBox.Show(trmb.FileNotFound.Text);
 										doit = false;
 									}
-									else if (Path.GetExtension(fname).ToUpper() != ".ERB")
+									else if (Path.GetExtension(fname).ToUpper(CultureInfo.InvariantCulture) != ".ERB")
 									{
 										MessageBox.Show(trmb.IsNotErb.Text, trmb.FileFormatError.Text); //
 										doit = false;
@@ -969,7 +968,7 @@ namespace MinorShift.Emuera
 						MessageBox.Show(trmb.FileNotFound.Text, trmb.FileNotFound.Text);
 						return;
 					}
-					if (Path.GetExtension(fname).ToUpper() != ".ERB")
+					if (Path.GetExtension(fname).ToUpper(CultureInfo.InvariantCulture) != ".ERB")
 					{
 						MessageBox.Show(trmb.IsNotErb.Text, trmb.FileFormatError.Text);
 						return;

@@ -40,6 +40,7 @@ enum FunctionArgType
 	SP_CALLF,
 	SP_CALLFORM,//<書式付文字列>,<引数>,... //引数は省略可能
 	SP_CALLFORMF,//<書式付文字列>,<引数>,... //引数は省略可能
+	SP_CALLCSHARP,
 	SP_FOR_NEXT,//<可変数値変数>,<数値>,<数値>,<数値> //引数は省略可能
 	SP_POWER,//<可変数値変数>,<数値>,<数値>
 	SP_SWAPVAR,//<可変変数>,<可変変数>(同型のみ)

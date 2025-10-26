@@ -8,6 +8,7 @@ using MinorShift.Emuera.GameData;
 using MinorShift._Library;
 using MinorShift.Emuera.GameData.Function;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Windows.Forms;
@@ -17,6 +18,7 @@ using trmb = EvilMask.Emuera.Lang.MessageBox;
 using EvilMask.Emuera;
 using static EvilMask.Emuera.Utils;
 using System.Linq;
+using MinorShift.Emuera.GameProc.PluginSystem;
 
 namespace MinorShift.Emuera.GameProc.Function;
 
@@ -1056,7 +1058,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			SpCallFArgment callfArg = (SpCallFArgment)func.Argument;
 			if (Config.ICFunction)
-				callfArg.ConstStr = callfArg.ConstStr.ToUpper();
+				callfArg.ConstStr = callfArg.ConstStr.ToUpper(CultureInfo.InvariantCulture);
 			try
 			{
 				callfArg.FuncTerm = GlobalStatic.IdentifierDictionary.GetFunctionMethod(GlobalStatic.LabelDictionary, callfArg.ConstStr, callfArg.RowArgs, true);
@@ -1097,6 +1099,75 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
+	private sealed class CALLSHARP_Instruction : AbstractInstruction
+	{
+		public CALLSHARP_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_CALLCSHARP);
+			flag = EXTENDED | METHOD_SAFE | FORCE_SETARG;
+		}
+
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			StringStream st = line.PopArgumentPrimitive();
+			string rowStr;
+			if (st.EOS)
+				throw new CodeEE("引数が設定されていません");
+			else
+				rowStr = st.Substring();
+			rowStr = GlobalStatic.Console.getStBar(rowStr);
+			Argument ret = new ExpressionArgument(new SingleTerm(rowStr))
+			{
+				ConstStr = rowStr,
+				IsConst = true
+			};
+			return ret;
+		}
+
+		public override void SetJumpTo(ref bool useCallForm, InstructionLine func, int currentDepth, ref string FunctionoNotFoundName)
+		{
+			if (!func.Argument.IsConst)
+			{
+				useCallForm = true;
+				return;
+			}
+
+			SpCallSharpArgment arg = (SpCallSharpArgment)func.Argument;
+			var manager = PluginManager.GetInstance();
+			if (!manager.HasMethod(arg.ConstStr))
+			{
+				ParserMediator.Warn(string.Format("No native method {0} found", arg.ConstStr), func, 2, true, false);
+				return;
+			}
+
+			arg.CallFunc = manager.GetMethod(func.Argument.ConstStr);
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+
+			SpCallSharpArgment arg = (SpCallSharpArgment)func.Argument;
+			var manager = PluginManager.GetInstance();
+
+			var pluginArgs = arg.RowArgs.Select((term) => PluginMethodParameterBuilder.ConvertTerm(term, exm)).ToArray();
+			arg.CallFunc.Execute(pluginArgs);
+			for (var i = 0; i < pluginArgs.Count(); ++i)
+			{
+				var rowArg = arg.RowArgs[i];
+				if (rowArg is VariableTerm)
+				{
+					var varTerm = (VariableTerm)rowArg;
+					if (varTerm.IsString) {
+						varTerm.SetValue(pluginArgs[i].strValue, exm);
+					} else
+					{
+						varTerm.SetValue(pluginArgs[i].intValue, exm);
+					}
+				}
+			}
+		}
+	}
+
 	#region EE_TRYCALLF
 	private sealed class TRYCALLF_Instruction : AbstractInstruction
 	{
@@ -1118,7 +1189,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			SpCallFArgment callfArg = (SpCallFArgment)func.Argument;
 			if (Config.ICFunction)
-				callfArg.ConstStr = callfArg.ConstStr.ToUpper();
+				callfArg.ConstStr = callfArg.ConstStr.ToUpper(CultureInfo.InvariantCulture);
 			try
 			{
 				callfArg.FuncTerm = GlobalStatic.IdentifierDictionary.GetFunctionMethod(GlobalStatic.LabelDictionary, callfArg.ConstStr, callfArg.RowArgs, true);
@@ -1373,6 +1444,62 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			exm.Console.SetBgColor(Config.BackColor);
+		}
+	}
+
+	private sealed class SETBGIMAGE_Instruction : AbstractInstruction
+	{
+		public SETBGIMAGE_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.FORM_STR_ANY);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			ExpressionArrayArgument arg = (ExpressionArrayArgument)func.Argument;
+			string bgName;
+			long bgDepth = 0;
+			bgName = arg.TermList[0].GetStrValue(exm);
+			float opacity = 1.0f;
+			if (arg.TermList.Count() >= 2)
+			{
+				bgDepth = Int64.Parse(arg.TermList[1].GetStrValue(exm));
+			}
+			if (arg.TermList.Count() >= 3)
+			{
+				opacity = Int64.Parse(arg.TermList[2].GetStrValue(exm)) / 255.0f;
+			}
+			exm.Console.AddBackgroundImage(bgName, bgDepth, opacity);
+		}
+	}
+	private sealed class REMOVEBGIMAGE_Instruction : AbstractInstruction
+	{
+		public REMOVEBGIMAGE_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.FORM_STR_ANY);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			ExpressionArrayArgument arg = (ExpressionArrayArgument)func.Argument;
+			string bgName;
+			bgName = arg.TermList[0].GetStrValue(exm);
+			exm.Console.RemoveBackground(bgName);
+		}
+	}
+	private sealed class CLEARBGIMAGE_Instruction : AbstractInstruction
+	{
+		public CLEARBGIMAGE_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.VOID);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			exm.Console.ClearBackgroundImage();
 		}
 	}
 
@@ -2222,8 +2349,11 @@ internal sealed partial class FunctionIdentifier
 	}
 	//ここからEnter版
 	#region EE
+	
+	#if NAudio 
 	public static Sound[] sound = new Sound[10];
 	public static Sound bgm = new Sound();
+	#endif
 	private sealed class PLAYSOUND_Instruction : AbstractInstruction
 	{
 
@@ -2234,6 +2364,7 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
+			#if NAudio
 			var soundArg = (SpHtmlPrint)func.Argument;
 			string datFilename = null;
 			if (soundArg.IsConst)
@@ -2266,6 +2397,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				throw new CodeEE(trerror.ImcompatibleSoundFile.Text);
 			}
+			#endif
 		}
 	}
 
@@ -2278,6 +2410,7 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
+			#if NAudio
 			for (int i = 0; i < sound.Length; i++)
 			{
 				if (sound[i] == null)
@@ -2285,6 +2418,7 @@ internal sealed partial class FunctionIdentifier
 				if (sound[i].isPlaying())
 					sound[i].stop();
 			}
+			#endif
 		}
 	}
 
@@ -2298,6 +2432,7 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
+			#if NAudio
 			ExpressionArgument arg = (ExpressionArgument)func.Argument;
 			string datFilename = null;
 			if (arg.IsConst)
@@ -2315,6 +2450,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				throw new CodeEE(trerror.ImcompatibleSoundFile.Text);
 			}
+			#endif
 		}
 	}
 
@@ -2327,7 +2463,9 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
+			#if NAudio
 			bgm.stop();
+			#endif
 		}
 	}
 
@@ -2340,6 +2478,7 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
+			#if NAudio
 			ExpressionArgument intExpArg = (ExpressionArgument)func.Argument;
 			Int32 vol = (Int32)intExpArg.Term.GetIntValue(exm);
 			for (int i = 0; i < sound.Length; i++)
@@ -2348,6 +2487,7 @@ internal sealed partial class FunctionIdentifier
 					sound[i] = new Sound();
 				sound[i].setVolume(vol);
 			}
+			#endif
 		}
 	}
 	public sealed class SETBGMVOLUME_Instruction : AbstractInstruction
@@ -2359,9 +2499,11 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
+			#if NAudio
 			ExpressionArgument intExpArg = (ExpressionArgument)func.Argument;
 			Int32 vol = (Int32)intExpArg.Term.GetIntValue(exm);
 			bgm.setVolume(vol);
+			#endif
 		}
 	}
 
@@ -2565,7 +2707,7 @@ internal sealed partial class FunctionIdentifier
 		{
 			string keyword = func.Argument.ConstStr;
 			if (Config.ICFunction)//1756 BEGINのキーワードは関数扱いらしい
-				keyword = keyword.ToUpper();
+				keyword = keyword.ToUpper(CultureInfo.InvariantCulture);
 			#region EE
 			// state.SetBegin(keyword);
 			state.SetBegin(keyword, true);
@@ -2586,7 +2728,7 @@ internal sealed partial class FunctionIdentifier
 		{
 			string keyword = func.Argument.ConstStr;
 			if (Config.ICFunction)//1756 BEGINのキーワードは関数扱いらしい
-				keyword = keyword.ToUpper();
+				keyword = keyword.ToUpper(CultureInfo.InvariantCulture);
 			state.SetBegin(keyword, true);
 			state.Return(0);
 			exm.Console.ResetStyle();
@@ -3169,7 +3311,7 @@ internal sealed partial class FunctionIdentifier
 			SpCallArgment callArg = (SpCallArgment)func.Argument;
 			string labelName = callArg.ConstStr;
 			if (Config.ICFunction)
-				labelName = labelName.ToUpper();
+				labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 			CalledFunction call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func);
 			if ((call == null) && (!func.Function.IsTry()))
 			{
@@ -3214,7 +3356,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				labelName = spCallArg.FuncnameTerm.GetStrValue(exm);
 				if (Config.ICFunction)
-					labelName = labelName.ToUpper();
+					labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 				call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func);
 			}
 			if (call == null)
@@ -3259,7 +3401,7 @@ internal sealed partial class FunctionIdentifier
 		{
 			string labelName = func.Argument.ConstStr;
 			if (Config.ICFunction)
-				labelName = labelName.ToUpper();
+				labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 			CalledFunction call = CalledFunction.CallEventFunction(GlobalStatic.Process, labelName, func);
 			if (call == null)
 				return;
@@ -3292,7 +3434,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				string labelName = func.Argument.ConstStr;
 				if (Config.ICVariable)//eramakerではGOTO文は大文字小文字を区別しない
-					labelName = labelName.ToUpper();
+					labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 				jumpto = GlobalStatic.LabelDictionary.GetLabelDollar(labelName, func.ParentLabelLine);
 				if (jumpto == null)
 				{
@@ -3325,7 +3467,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				label = ((SpCallArgment)func.Argument).FuncnameTerm.GetStrValue(exm);
 				if (Config.ICVariable)
-					label = label.ToUpper();
+					label = label.ToUpper(CultureInfo.InvariantCulture);
 				jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label);
 			}
 			if (jumpto == null)

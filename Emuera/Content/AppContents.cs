@@ -3,6 +3,7 @@ using MinorShift.Emuera.Sub;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using trerror = EvilMask.Emuera.Lang.Error;
@@ -29,7 +30,7 @@ static class AppContents
 	//{
 	//	if (name == null)
 	//		return null;
-	//	name = name.ToUpper();
+	//	name = name.ToUpper(CultureInfo.InvariantCulture);
 	//	if (!itemDic.ContainsKey(name))
 	//		return null;
 	//	return itemDic[name] as T;
@@ -47,7 +48,7 @@ static class AppContents
 	{
 		if (name == null)
 			return null;
-		name = name.ToUpper();
+		name = name.ToUpper(CultureInfo.InvariantCulture);
 		if (!imageDictionary.ContainsKey(name))
 			return null;
 		return imageDictionary[name];
@@ -57,7 +58,7 @@ static class AppContents
 	{
 		if (name == null)
 			return;
-		name = name.ToUpper();
+		name = name.ToUpper(CultureInfo.InvariantCulture);
 		if (!imageDictionary.ContainsKey(name))
 			return;
 		imageDictionary[name].Dispose();
@@ -85,7 +86,7 @@ static class AppContents
 	{
 		if (string.IsNullOrEmpty(imgName))
 			throw new ArgumentOutOfRangeException();
-		imgName = imgName.ToUpper();
+		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
 		SpriteG newCImg = new SpriteG(imgName, parent, rect);
 		imageDictionary[imgName] = newCImg;
 	}
@@ -94,7 +95,7 @@ static class AppContents
 	{
 		if (string.IsNullOrEmpty(imgName))
 			throw new ArgumentOutOfRangeException();
-		imgName = imgName.ToUpper();
+		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
 		SpriteAnime newCImg = new SpriteAnime(imgName, new Size(w, h));
 		imageDictionary[imgName] = newCImg;
 	}
@@ -114,7 +115,7 @@ static class AppContents
 					continue;
 				//アニメスプライト宣言。nullでないとき、フレーム追加モード
 				SpriteAnime currentAnime = null;
-				string directory = Path.GetDirectoryName(filepath).ToUpper() + "\\";
+				string directory = Path.GetDirectoryName(filepath).ToUpper(CultureInfo.InvariantCulture) + "\\";
 				string filename = Path.GetFileName(filepath);
 				string[] lines = File.ReadAllLines(filepath, EncodingHandler.DetectEncoding(filepath));
 				int lineNo = 0;
@@ -215,8 +216,8 @@ static class AppContents
 	{
 		if (tokens.Length < 2)
 			return null;
-		string name = tokens[0].Trim().ToUpper();//
-		string arg2 = tokens[1].ToUpper();//画像ファイル名
+		string name = tokens[0].Trim().ToUpper(CultureInfo.InvariantCulture);//
+		string arg2 = tokens[1].ToUpper(CultureInfo.InvariantCulture);//画像ファイル名
 		if (name.Length == 0 || arg2.Length == 0)
 			return null;
 		//アニメーションスプライト宣言

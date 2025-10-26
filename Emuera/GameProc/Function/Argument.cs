@@ -5,6 +5,7 @@ using MinorShift.Emuera.GameData.Expression;
 using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.GameProc.PluginSystem;
 
 namespace MinorShift.Emuera.GameProc.Function;
 
@@ -291,6 +292,21 @@ internal sealed class SpCallArgment : Argument
 	readonly public IOperandTerm[] RowArgs;
 	public UserDefinedFunctionArgument UDFArgument;
 	public CalledFunction CallFunc;
+}
+
+internal sealed class SpCallSharpArgment : Argument
+{
+	public SpCallSharpArgment(IOperandTerm funcname, IOperandTerm[] subNames, IOperandTerm[] args)
+	{
+		FuncnameTerm = funcname;
+		SubNames = subNames;
+		RowArgs = args;
+	}
+	readonly public IOperandTerm FuncnameTerm;
+	readonly public IOperandTerm[] SubNames;
+	readonly public IOperandTerm[] RowArgs;
+	public UserDefinedFunctionArgument UDFArgument;
+	public IPluginMethod CallFunc;
 }
 
 internal sealed class SpForNextArgment : Argument

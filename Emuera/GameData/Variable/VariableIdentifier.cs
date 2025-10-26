@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using MinorShift.Emuera.Sub;
 using trerror = EvilMask.Emuera.Lang.Error;
@@ -150,7 +151,7 @@ internal sealed class VariableIdentifier
 			if ((key == null) || (key.StartsWith("__") && key.EndsWith("__")))
 				continue;
 			if (Config.ICVariable)
-				key = key.ToUpper();
+				key = key.ToUpper(CultureInfo.InvariantCulture);
 			if (nameDic.ContainsKey(key))
 				continue;
 #if DEBUG
@@ -282,11 +283,11 @@ internal sealed class VariableIdentifier
 		if (string.IsNullOrEmpty(key))
 			return null;
 		if (Config.ICVariable)
-			key = key.ToUpper();
+			key = key.ToUpper(CultureInfo.InvariantCulture);
 		if (subStr != null)
 		{
 			if (Config.ICFunction)
-				subStr = subStr.ToUpper();
+				subStr = subStr.ToUpper(CultureInfo.InvariantCulture);
 			if (localvarNameDic.TryGetValue(key, out ret))
 				return new VariableIdentifier(ret, subStr);
 			if (nameDic.ContainsKey(key))

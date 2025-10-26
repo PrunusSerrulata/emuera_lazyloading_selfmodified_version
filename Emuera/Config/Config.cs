@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 using MinorShift._Library;
 using MinorShift.Emuera.Sub;
@@ -124,6 +126,8 @@ internal static class Config
 		//ForbidOneCodeVariable = instance.GetConfigValue<bool>(ConfigCode.ForbidOneCodeVariable);
 		SystemNoTarget = instance.GetConfigValue<bool>(ConfigCode.SystemNoTarget);
 
+		UseLazyLoading = instance.GetConfigValue<bool>(ConfigCode.UseLazyLoading);
+
 		#region EE版_UPDATECHECK
 		ForbidUpdateCheck = instance.GetConfigValue<bool>(ConfigCode.ForbidUpdateCheck);
 		#endregion
@@ -242,8 +246,45 @@ internal static class Config
 
 
 	static readonly Dictionary<string, Dictionary<FontStyle, Font>> fontDic = new Dictionary<string, Dictionary<FontStyle, Font>>();
-	public static Font Font { get { return GetFont(null, FontStyle.Regular); } }
+	#region FontFallback
+	public static Font Font;
+	public static string ConfigFont;
+	private const string FallbackFont = "BIZ UDGothic";
+	
+	public static bool UsingFallbackFont => ConfigFont != FontName;
 
+	public static void SetupDefaultFont()
+	{
+		ConfigFont = FontName;
+		var fontName = FontName;
+		
+		if(CheckFont(fontName))
+			Font = GetFont(null, FontStyle.Regular);
+		else
+		{
+			var assembly = Assembly.GetExecutingAssembly();
+			using Stream stream = assembly.GetManifestResourceStream("MinorShift.Emuera.Properties.fonts.BIZUDGothic-Regular.ttf");
+			if (stream == null)
+				throw new Exception();
+			var path = Path.Combine(Path.GetTempPath(), "BIZUDGothic-Regular.ttf");
+			if (!File.Exists(path))
+			{
+				using var file = new FileStream(path, FileMode.Create, FileAccess.Write);
+				stream.CopyTo(file);
+			}
+			GlobalStatic.Pfc.AddFontFile(path);
+			Font =  GetFont(FallbackFont, FontStyle.Regular);
+			FontName = FallbackFont;
+		}
+	}
+
+	private static bool CheckFont(string fontName)
+	{
+		//Best way to check if a font exists on system.drawing...
+		var font = new Font(fontName, 10);
+		return FontFamily.GenericSansSerif.Name != font.Name || GlobalStatic.Pfc.Families.Any(ff => ff.Name == fontName);
+	}
+	#endregion
 	public static Font GetFont(string theFontname, FontStyle style)
 	{
 		string fn = theFontname;
@@ -437,28 +478,15 @@ internal static class Config
 					retList.AddRange(getFiles(dirList[i], rootdir, pattern, toponly, sort));
 			}
 		}
-		string RelativePath;//相対ディレクトリ名
-		if (string.Equals(dir, rootdir, strComp))//現在のパスが検索ルートパスに等しい
-			RelativePath = "";
-		else
-		{
-			if (!dir.StartsWith(rootdir, strComp))
-				RelativePath = dir;
-			else
-				RelativePath = dir.Substring(rootdir.Length);//前方が検索ルートパスと一致するならその部分を切り取る
-			if (!RelativePath.EndsWith("\\") && !RelativePath.EndsWith("/"))
-				RelativePath += "\\";//末尾が\又は/で終わるように。後でFile名を直接加算できるようにしておく
-		}
 		//filepathsは完全パスである
 		string[] filepaths = Directory.GetFiles(dir, pattern, SearchOption.TopDirectoryOnly);
 		if (sort)
 			Array.Sort(filepaths, ignoreCaseComparer);
 		for (int i = 0; i < filepaths.Length; i++)
 			if (Path.GetExtension(filepaths[i]).Length <= 4)//".erb"や".csv"であること。放置すると".erb*"等を拾う。
-				retList.Add(new KeyValuePair<string, string>(RelativePath + Path.GetFileName(filepaths[i]), filepaths[i]));
+				retList.Add(new KeyValuePair<string, string>(Path.GetRelativePath(rootdir,filepaths[i]), filepaths[i]));
 		return retList;
 	}
-
 
 	/// <summary>
 	/// IgnoreCaseはprivateに。代わりにICFunctionかICVariableを使う。
@@ -587,10 +615,12 @@ internal static class Config
 
 	public static bool AllowLongInputByMouse { get; private set; }
 
-	public static bool TimesNotRigorousCalculation { get; private set; }
-	//一文字変数の禁止オプションを考えた名残
-	//public static bool ForbidOneCodeVariable { get; private set; }
-	#endregion
+		public static bool TimesNotRigorousCalculation { get; private set; }
+		//一文字変数の禁止オプションを考えた名残
+		//public static bool ForbidOneCodeVariable { get; private set; }
+		
+		public static bool UseLazyLoading { get; private set; }
+		#endregion
 
 	#region debug
 	public static void SetDebugConfig(ConfigData instance)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using MinorShift.Emuera.Sub;
 using MinorShift.Emuera.GameData;
@@ -469,7 +470,7 @@ internal sealed class IdentifierDictionary
 	public DefineMacro GetMacro(string key)
 	{
 		if (Config.ICVariable)
-			key = key.ToUpper();
+			key = key.ToUpper(CultureInfo.InvariantCulture);
 		if (macroDic.ContainsKey(key))
 			return macroDic[key];
 		return null;
@@ -479,7 +480,7 @@ internal sealed class IdentifierDictionary
 	{
 		VariableToken ret;
 		if (Config.ICVariable)
-			key = key.ToUpper();
+			key = key.ToUpper(CultureInfo.InvariantCulture);
 		if (allowPrivate)
 		{
 			LogicalLine line = GlobalStatic.Process.GetScaningLine();
@@ -512,7 +513,7 @@ internal sealed class IdentifierDictionary
 			{
 				ParserMediator.Warn(treer.CannotRecommendCallLocalVar.Text, line, 1, false, false);
 				if (Config.ICFunction)
-					subKey = subKey.ToUpper();
+					subKey = subKey.ToUpper(CultureInfo.InvariantCulture);
 			}
 			LocalVariableToken retLocal = localvarTokenDic[key].GetExistLocalVariableToken(subKey);
 			if (retLocal == null)
@@ -545,7 +546,7 @@ internal sealed class IdentifierDictionary
 		if (string.IsNullOrEmpty(key))
 			return null;
 		if (Config.ICFunction)
-			key = key.ToUpper();
+			key = key.ToUpper(CultureInfo.InvariantCulture);
 		if (instructionDic.TryGetValue(key, out FunctionIdentifier ret))
 			return ret;
 		else
@@ -570,7 +571,7 @@ internal sealed class IdentifierDictionary
 	public UserDefinedRefMethod GetRefMethod(string codeStr)
 	{
 		if (Config.ICFunction)
-			codeStr = codeStr.ToUpper();
+			codeStr = codeStr.ToUpper(CultureInfo.InvariantCulture);
 		if (refmethodDic.ContainsKey(codeStr))
 			return refmethodDic[codeStr];
 		return null;
@@ -579,7 +580,7 @@ internal sealed class IdentifierDictionary
 	public IOperandTerm GetFunctionMethod(LabelDictionary labelDic, string codeStr, IOperandTerm[] arguments, bool userDefinedOnly)
 	{
 		if (Config.ICFunction)
-			codeStr = codeStr.ToUpper();
+			codeStr = codeStr.ToUpper(CultureInfo.InvariantCulture);
 		if (arguments == null)//引数なし、名前のみの探索
 		{
 			if (refmethodDic.ContainsKey(codeStr))
@@ -627,7 +628,7 @@ internal sealed class IdentifierDictionary
 	{
 		string idStr = str;
 		if (Config.ICFunction || Config.ICVariable) //片方だけなのは互換性用オプションなのでレアケースのはず。対応しない。
-			idStr = idStr.ToUpper();
+			idStr = idStr.ToUpper(CultureInfo.InvariantCulture);
 		if (disableList.Contains(idStr))
 			throw new CodeEE(string.Format(treer.DeclaringDisable.Text, str));
 		if (!isFunc && privateDimList.Contains(idStr))

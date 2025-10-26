@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Windows.Forms;
 using MinorShift._Library;
 using MinorShift.Emuera.GameView;
@@ -9,7 +10,7 @@ using System.IO;
 using EvilMask.Emuera;
 using System.Text;
 using MinorShift.Emuera.GameProc.Function;
-using MinorShift.Emuera.GameData.Function;
+using MinorShift.Emuera.GameProc.PluginSystem;
 
 namespace MinorShift.Emuera;
 
@@ -43,6 +44,9 @@ static class Program
 	[STAThread]
 	static void Main(string[] args)
 	{
+		
+		CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+		CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
 		// ExeDir = Sys.ExeDir;
 		#region eee_カレントディレクトリー
@@ -75,11 +79,13 @@ static class Program
 		ExeName = Path.GetFileNameWithoutExtension(Sys.ExeName);
 
 		//WMPも終了しておく
+		#if NAudio
 		FunctionIdentifier.bgm.close();
 		for (int i = 0; i < FunctionIdentifier.sound.Length; i++)
 		{
 			if (FunctionIdentifier.sound[i] != null) FunctionIdentifier.sound[i].close();
 		}
+		#endif
 
 		//解析モードの判定だけ先に行う
 		//int argsStart = 0;
@@ -110,7 +116,6 @@ static class Program
 		Application.EnableVisualStyles();
 		Application.SetCompatibleTextRenderingDefault(false);
 		ConfigData.Instance.LoadConfig();
-
 
 		#region EM_私家版_Emuera多言語化改造
 		Lang.LoadLanguageFile();
@@ -157,7 +162,9 @@ static class Program
 				GlobalStatic.Pfc.AddFontFile(fontFile);
 		}
 		#endregion
-
+		#region FontFallback
+		Config.SetupDefaultFont();
+		#endregion
 		if (debugMode)
 		{
 			ConfigData.Instance.LoadDebugConfig();
@@ -199,8 +206,8 @@ static class Program
 				}
 				else
 				{
-					//if (Path.GetExtension(args[i]).ToUpper() != ".ERB")
-					if (Path.GetExtension(arg).ToUpper() != ".ERB")
+					//if (Path.GetExtension(args[i]).ToUpper(CultureInfo.InvariantCulture) != ".ERB")
+					if (Path.GetExtension(arg).ToUpper(CultureInfo.InvariantCulture) != ".ERB")
 					{
 						MessageBox.Show(Lang.UI.MainWindow.MsgBox.InvalidArg.Text);
 						return;

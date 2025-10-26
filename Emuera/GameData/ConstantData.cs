@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.IO;
 using MinorShift.Emuera.Sub;
@@ -10,6 +11,7 @@ using trerror = EvilMask.Emuera.Lang.Error;
 using trsl = EvilMask.Emuera.Lang.SystemLine;
 using System.Linq;
 using MinorShift.Emuera.GameProc;
+using System.Windows.Documents;
 
 namespace MinorShift.Emuera.GameData;
 
@@ -106,10 +108,11 @@ internal sealed class ConstantData
 	#endregion
 
 	//private readonly GameBase gamebase;
-	//private readonly string[][] names = new string[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__][];
+	//private readonly string[][] names = new string[(int)VariableCode.__COUNT_CSV_STsRING_ARRAY_1D__][];
 	#region EE_ERD
 	private const int ERD_NAMES_INDEX = (int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__;
 	private readonly string[][] names = new string[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__ + 1][]; // 元より1増やす
+	private readonly Dictionary<string, int>[] aliases = new Dictionary<string, int>[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__ + 1];
 	private readonly Dictionary<string, Dictionary<string, int>> erdNameToIntDics = new Dictionary<string, Dictionary<string, int>>();
 	#endregion
 	private readonly Dictionary<string, int>[] nameToIntDics = new Dictionary<string, int>[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__];
@@ -674,11 +677,23 @@ internal sealed class ConstantData
 			if (names[i] == null)
 				continue;
 			#endregion
+			//Add CSV Names
 			string[] nameArray = names[i];
 			for (int j = 0; j < nameArray.Length; j++)
 			{
 				if (!string.IsNullOrEmpty(nameArray[j]) && !nameToIntDics[i].ContainsKey(nameArray[j]))
 					nameToIntDics[i].Add(nameArray[j], j);
+			}
+			//Add CSV Aliases
+			Dictionary<string, int> aliasDict = aliases[i];
+			if (aliasDict == null)
+			{
+				continue;
+			}
+			foreach (var alias in aliasDict)
+			{
+				if (!string.IsNullOrEmpty(alias.Key) && !nameToIntDics[i].ContainsKey(alias.Key))
+					nameToIntDics[i].Add(alias.Key, alias.Value);
 			}
 		}
 		//if (!Program.AnalysisMode)
@@ -1420,7 +1435,7 @@ internal sealed class ConstantData
 						continue;
 					}
 					tmpl = new CharacterTemplate(index, this);
-					string no = eReader.Filename.ToUpper();
+					string no = eReader.Filename.ToUpper(CultureInfo.InvariantCulture);
 					no = no.Substring(no.IndexOf("CHARA", StringComparison.Ordinal) + 5);
 					StringBuilder sb = new StringBuilder();
 					StringStream ss = new StringStream(no);
@@ -1515,7 +1530,7 @@ internal sealed class ConstantData
 		Dictionary<string, int> namearray;
 
 		string errPos = null;
-		string varname = tokens[0].ToUpper();
+		string varname = tokens[0].ToUpper(CultureInfo.InvariantCulture);
 		switch (varname)
 		{
 			case "NAME":
@@ -1732,6 +1747,67 @@ internal sealed class ConstantData
 
 					targetI[index] = price;
 				}
+			}
+		}
+		catch
+		{
+			System.Media.SystemSounds.Hand.Play();
+			if (position != null)
+				ParserMediator.Warn(trerror.UnexpectedError.Text, position, 3);
+			else
+				output.PrintError(trerror.UnexpectedError.Text);
+			return;
+		}
+		finally
+		{
+			eReader.Close();
+		}
+
+		var aliasPath = Path.GetDirectoryName(csvPath) + "\\" + Path.GetFileNameWithoutExtension(csvPath) + ".als";
+		if (File.Exists(aliasPath))
+		{
+			loadAliases(aliasPath, targetIndex);
+		}
+	}
+
+	private void loadAliases(string aliasPath, int targetIndex)
+	{
+
+		if (!File.Exists(aliasPath))
+			return;
+		if (aliases[targetIndex] == null)
+		{
+			aliases[targetIndex] = new Dictionary<string, int>();
+		}
+		Dictionary<string, int> target = aliases[targetIndex];
+		HashSet<int> defined = [];
+		EraStreamReader eReader = new(false);
+		if (!eReader.Open(aliasPath) && output != null)
+		{
+			output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
+			return;
+		}
+		ScriptPosition position = null;
+		try
+		{
+			StringStream st = null;
+			while ((st = eReader.ReadEnabledLine()) != null)
+			{
+				position = new ScriptPosition(eReader.Filename, eReader.LineNo);
+				string[] tokens = st.Substring().Split(',');
+				if (tokens.Length < 2)
+				{
+					ParserMediator.Warn(trerror.MissingComma.Text, position, 1);
+					continue;
+				}
+				if (!Int32.TryParse(tokens[0], out int index))
+				{
+					ParserMediator.Warn(trerror.FirstValueCanNotConvertToInt.Text, position, 1);
+					continue;
+				}
+				if (!defined.Add(index))
+					ParserMediator.Warn(string.Format(trerror.VarKeyAreadyDefined.Text, index.ToString()), position, 1);
+				target.Add(tokens[1], index);
 			}
 		}
 		catch

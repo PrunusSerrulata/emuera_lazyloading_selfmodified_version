@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <_LastSelectedProfileId>C:\Users\catgi\Dropbox\git_EmueraEMEE\Emuera\Properties\PublishProfiles\FolderProfile1.pubxml</_LastSelectedProfileId>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Compile Update="Forms\ClipBoardDialog.cs">
       <SubType>Form</SubType>
@@ -28,10 +26,5 @@
     <Compile Update="Forms\RikaiDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Forms\MainWindow.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>

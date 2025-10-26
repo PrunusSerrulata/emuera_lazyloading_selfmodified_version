@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using MinorShift.Emuera.Sub;
 using System.Text.RegularExpressions;
@@ -20,7 +21,7 @@ internal static class LogicalLineParser
 		st.ShiftNext();//'#'を飛ばす
 		string token = LexicalAnalyzer.ReadSingleIdentifier(st);//#～自体にはマクロ非適用
 		if (Config.ICFunction)
-			token = token.ToUpper();
+			token = token.ToUpper(CultureInfo.InvariantCulture);
 		//#行として不正な行でもAnalyzeに行って引っかかることがあるので、先に存在しない#～は弾いてしまう
 		if (token == null || (token != "SINGLE" && token != "LATER" && token != "PRI" && token != "ONLY" && token != "FUNCTION" && token != "FUNCTIONS"
 			&& token != "LOCALSIZE" && token != "LOCALSSIZE" && token != "DIM" && token != "DIMS"))
@@ -305,7 +306,7 @@ internal static class LogicalLineParser
 			labelName = ((IdentifierWord)wc.Current).Code;
 			wc.ShiftNext();
 			if (Config.ICVariable)
-				labelName = labelName.ToUpper();
+				labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 			GlobalStatic.IdentifierDictionary.CheckUserLabelName(ref errMes, ref warnLevel, isFunction, labelName);
 			if (warnLevel >= 0)
 			{
@@ -325,7 +326,7 @@ internal static class LogicalLineParser
 			//labelName = LexicalAnalyzer.ReadString(stream, StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon);
 			//labelName = labelName.Trim();
 			//if (Config.ICVariable)
-			//    labelName = labelName.ToUpper();
+			//    labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 			//GlobalStatic.IdentifierDictionary.CheckUserLabelName(ref errMes, ref warnLevel, isFunction, labelName);
 			//if(warnLevel >= 0)
 			//{

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using MinorShift.Emuera.Sub;
 using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.GameData.Expression;
@@ -109,7 +110,7 @@ internal sealed class HeaderFileLoader
 					return false;
 				}
 				if (Config.ICFunction)
-					sharpID = sharpID.ToUpper();
+					sharpID = sharpID.ToUpper(CultureInfo.InvariantCulture);
 				LexicalAnalyzer.SkipWhiteSpace(st);
 				switch (sharpID)
 				{
@@ -162,7 +163,7 @@ internal sealed class HeaderFileLoader
 		if (srcID == null)
 			throw new CodeEE(trerror.MissingReplacementSource.Text, position);
 		if (Config.ICVariable)
-			srcID = srcID.ToUpper();
+			srcID = srcID.ToUpper(CultureInfo.InvariantCulture);
 
 		//ここで名称重複判定しないと、大変なことになる
 		string errMes = "";
@@ -300,7 +301,7 @@ internal sealed class HeaderFileLoader
 						string key;
 						if (data.Dimension == 1)
 						{
-							key = data.Name.ToUpper();
+							key = data.Name.ToUpper(CultureInfo.InvariantCulture);
 							if (erdFileNames.ContainsKey(key))
 							{
 								var info = erdFileNames[key];
@@ -312,7 +313,7 @@ internal sealed class HeaderFileLoader
 						{
 							for (int dim = 1; dim < 3; dim++)
 							{
-								key = data.Name.ToUpper() + "@" + dim;
+								key = data.Name.ToUpper(CultureInfo.InvariantCulture) + "@" + dim;
 								if (erdFileNames.ContainsKey(key))
 								{
 									var info = erdFileNames[key];
@@ -325,7 +326,7 @@ internal sealed class HeaderFileLoader
 						{
 							for (int dim = 1; dim < 4; dim++)
 							{
-								key = data.Name.ToUpper() + "@" + dim;
+								key = data.Name.ToUpper(CultureInfo.InvariantCulture) + "@" + dim;
 								if (erdFileNames.ContainsKey(key))
 								{
 									var info = erdFileNames[key];
@@ -372,7 +373,7 @@ internal sealed class HeaderFileLoader
 		if (erdFileNames == null) erdFileNames = new Dictionary<string, List<string>>();
 		foreach (var path in Directory.GetFiles(Program.ErbDir, "*.erd", SearchOption.AllDirectories))
 		{
-			var key = Path.GetFileNameWithoutExtension(path).ToUpper();
+			var key = Path.GetFileNameWithoutExtension(path).ToUpper(CultureInfo.InvariantCulture);
 			if (!erdFileNames.ContainsKey(key))
 				erdFileNames[key] = new List<string> { path };
 			else
@@ -380,7 +381,7 @@ internal sealed class HeaderFileLoader
 		}
 		foreach (var path in Directory.GetFiles(Program.CsvDir, "*.csv", SearchOption.TopDirectoryOnly))
 		{
-			var key = Path.GetFileNameWithoutExtension(path).ToUpper();
+			var key = Path.GetFileNameWithoutExtension(path).ToUpper(CultureInfo.InvariantCulture);
 			if (!erdFileNames.ContainsKey(key))
 				erdFileNames[key] = new List<string> { path };
 			else

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using MinorShift.Emuera.Sub;
 using System.Text.RegularExpressions;
@@ -50,7 +51,7 @@ internal sealed class UserDefinedFunctionData
 			wc.ShiftNext();
 			keyword = idw.Code;
 			if (Config.ICVariable)
-				keyword = keyword.ToUpper();
+				keyword = keyword.ToUpper(CultureInfo.InvariantCulture);
 			switch (keyword)
 			{
 				case "CONST":
@@ -144,7 +145,7 @@ internal sealed class UserDefinedFunctionData
 					{
 						string str = ((IdentifierWord)wc.Current).Code;
 						if (Config.ICVariable)
-							str = str.ToUpper();
+							str = str.ToUpper(CultureInfo.InvariantCulture);
 						if (str == "REF")
 						{
 							if (state == 0 || state == 2)
