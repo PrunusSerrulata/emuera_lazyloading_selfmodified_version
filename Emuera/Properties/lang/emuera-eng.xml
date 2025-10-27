@@ -1,23 +1,28 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
 <lang>
     <name>English</name>
+    <culture>en</culture>
     <tr id="UI.MainWindow.FileFilter"><![CDATA[ERB file]]></tr>
     <tr id="UI.MainWindow.File"><![CDATA[File(&F)]]></tr>
     <tr id="UI.MainWindow.File.Restart"><![CDATA[Restart(&R)]]></tr>
+    <tr id="UI.MainWindow.File.RestartDebug"><![CDATA[Restart in Debug Mode]]></tr>
     <tr id="UI.MainWindow.File.SaveLog"><![CDATA[Save log...(&S)]]></tr>
     <tr id="UI.MainWindow.File.CopyLogToClipboard"><![CDATA[Open Clipboard(&C)]]></tr>
     <tr id="UI.MainWindow.File.BackToTitle"><![CDATA[Return to Title Screen(&T)]]></tr>
     <tr id="UI.MainWindow.File.ReloadAllScripts"><![CDATA[Reload Code(&C)]]></tr>
     <tr id="UI.MainWindow.File.ReloadFolder"><![CDATA[Reload Folder(&F)]]></tr>
     <tr id="UI.MainWindow.File.ReloadScriptFile"><![CDATA[Reload File(&A)]]></tr>
-    <tr id="UI.MainWindow.File.ReloadResource"><![CDATA[Reload Resource Folder(&R)]]></tr>
     <tr id="UI.MainWindow.File.Exit"><![CDATA[Close(&X)]]></tr>
 	<tr id="UI.MainWindow.File.ReloadResource"><![CDATA[Reload Resource Folder(&R)]]></tr>
     <tr id="UI.MainWindow.Debug"><![CDATA[Debug(&D)]]></tr>
     <tr id="UI.MainWindow.Debug.OpenDebugWindow"><![CDATA[Open Debug widow]]></tr>
     <tr id="UI.MainWindow.Debug.UpdateDebugInfo"><![CDATA[Update Debug Info]]></tr>
+    <tr id="UI.MainWindow.Tools"><![CDATA[Tools]]></tr>
+    <tr id="UI.MainWindow.Tools.LockWindowWidth"><![CDATA[Lock window width]]></tr>
+    <tr id="UI.MainWindow.Tools.CopyToClipboard"><![CDATA[Copy Text to Clipboard]]></tr>
     <tr id="UI.MainWindow.Help"><![CDATA[Help(&H)]]></tr>
     <tr id="UI.MainWindow.Help.Config"><![CDATA[Setting(&C)]]></tr>
+    <tr id="UI.MainWindow.Language"><![CDATA[Language(&L)]]></tr>
     <tr id="UI.MainWindow.ContextMenu.KeyMacro"><![CDATA[Macro]]></tr>
     <tr id="UI.MainWindow.ContextMenu.Cut"><![CDATA[Cut]]></tr>
     <tr id="UI.MainWindow.ContextMenu.Copy"><![CDATA[Copy]]></tr>
@@ -96,7 +101,6 @@ ERB scripts may not work properly.]]></tr>
     <tr id="UI.ConfigDialog.System.DuplicateFuncWarn"><![CDATA[Warn when multiple non-event functions use same name]]></tr>
     <tr id="UI.ConfigDialog.System.WSIncludesFullWidth"><![CDATA[Include full-width space in whitespace]]></tr>
     <tr id="UI.ConfigDialog.System.ANSI"><![CDATA[Internal language used]]></tr>
-    <tr id="UI.ConfigDialog.System.UseLazyLoading"><![CDATA[Use lazy loading]]></tr>
     <tr id="UI.ConfigDialog.System2"><![CDATA[System2]]></tr>
     <tr id="UI.ConfigDialog.System2.IgnoreTripleSymbol"><![CDATA[Don't process triple symbols inside FORM]]></tr>
     <tr id="UI.ConfigDialog.System2.SaveInBinary"><![CDATA[Use binary format for save data]]></tr>
@@ -106,7 +110,7 @@ ERB scripts may not work properly.]]></tr>
     <tr id="UI.ConfigDialog.System2.NoAutoCompleteCVar"><![CDATA[Don't autocomplete arguments in character variables]]></tr>
     <tr id="UI.ConfigDialog.System2.DisallowUpdateCheck"><![CDATA[Don't allow UPDATECHECK]]></tr>
     <tr id="UI.ConfigDialog.System2.UseERD"><![CDATA[Use ERD files]]></tr>
-    <tr id="UI.ConfigDialog.System2.VarsizeDimConfig"><![CDATA[Match VARSIZE dimension specification to ERD]]></tr>
+    <tr id="UI.ConfigDialog.System2.VarsizeDimConfig"><![CDATA[Imitate ERD to VARSIZE dimension specification]]></tr>
     <tr id="UI.ConfigDialog.System2.SaveLoadExt"><![CDATA[Usable extension in LOADTEXT and SAVETEXT]]></tr>
     <tr id="UI.ConfigDialog.Compatibility"><![CDATA[Compatibility]]></tr>
     <tr id="UI.ConfigDialog.Compatibility.Warning"><![CDATA[※Many things work differently between Emuera and eramaker,
@@ -128,7 +132,7 @@ Please don't change anything if there's no issues.]]></tr>
     <tr id="UI.ConfigDialog.Debug"><![CDATA[Debug]]></tr>
     <tr id="UI.ConfigDialog.Debug.CompatibilityWarn"><![CDATA[Display eramaker compatibility warning]]></tr>
     <tr id="UI.ConfigDialog.Debug.LoadingReport"><![CDATA[Display files that are being loaded at start]]></tr>
-    <tr id="UI.ConfigDialog.Debug.CheckDuplicateIdentifier"><![CDATA[Check for duplicate identifiers and local variables in ERDs]]></tr>
+    <tr id="UI.ConfigDialog.Debug.CheckDuplicateIdentifier"><![CDATA[Check duplicate local variables name and ERD identifier]]></tr>
     <tr id="UI.ConfigDialog.Debug.IgnoreUnusedFuncs"><![CDATA[Ignore functions that were not called]]></tr>
     <tr id="UI.ConfigDialog.Debug.FuncNotFoundWarn"><![CDATA[How to deal with calling non-existing functions]]></tr>
     <tr id="UI.ConfigDialog.Debug.UnusedFuncWarn"><![CDATA[How to deal with never called functions]]></tr>
@@ -925,12 +929,12 @@ Error.AttributeCanNotInterpretNum	<{0}> tag has a {1}" attribute with a value th
     <tr id="Error.InvalidUnicode"><![CDATA[{0}: Passed control character(0x{1:X})]]></tr>
     <tr id="Error.ArgShouldBeSpecificValue"><![CDATA[{0}: The {1} argument of the CONVERT function must be either {2}]]></tr>
     <tr id="Error.EncodeToUni2ndArgError"><![CDATA[{0}: The second argument({1}) exceeds the number of characters in the string of the first argument ({2})]]></tr>
-    <tr id="Error.ArgIsEmptyString"><![CDATA[{0}: The {1} argument is an empty string]]></tr>
+    <tr id="Error.ArgIsEmptyString"><![CDATA[{0}: The {1} argument is empty string]]></tr>
     <tr id="Error.InvalidFormString"><![CDATA[{0}: Deployment error of "{1}" string：{2}]]></tr>
     <tr id="Error.UnexectedFormStringErr"><![CDATA[{0}: An error occurred during the deployment process of "{1}" string]]></tr>
     <tr id="Error.InvalidType"><![CDATA[{0}: Wrong type (use the {1} function)]]></tr>
     <tr id="Error.GIdIsNegative"><![CDATA[{0}: Passed negative value to GraphicsID ({1})]]></tr>
-    <tr id="Error.GIdIsTooLarge"><![CDATA[{0}: Passed value ({1}) is too large for GraphicsID]]></tr>
+    <tr id="Error.GIdIsTooLarge"><![CDATA[{0}: Passed too larg value to GraphicsID({1})]]></tr>
     <tr id="Error.InvalidColorARGB"><![CDATA[{0}: Specified invalid ColorARGB value (0x{1:X})]]></tr>
     <tr id="Error.InvalidColorMatrix"><![CDATA[{0}: Specified invalid ColorMatrix({1}, {2}) or less than 5x5]]></tr>
     <tr id="Error.GDIPlusOnly"><![CDATA[{0}: Can not use when graphic interface is WINAPI]]></tr>
@@ -962,9 +966,9 @@ Was it deleted?]]></tr>
     <tr id="MessageBox.NewVersionAvailable"><![CDATA[Now available new version({0}). Open the link?
 Link:{1}]]></tr>
     <tr id="MessageBox.ConfigFileError"><![CDATA[There is a problem with the config file.
-Quit Emuera?]]></tr>
-    <tr id="MessageBox.ReplaceFileError"><![CDATA[There is a problem with _Replace.csv file.
-Quit Emuera?]]></tr>
+Would you like to close Emuera?]]></tr>
+    <tr id="MessageBox.ReplaceFileError"><![CDATA[Abnormality is found in _Replace.csv.
+Would you like to close Emuera?]]></tr>
     <tr id="MessageBox.ReplaceError"><![CDATA[_Replace.csv Error]]></tr>
     <tr id="MessageBox.InfiniteLoop"><![CDATA[There is a possibility of an infinite loop]]></tr>
     <tr id="MessageBox.TooLongLoop"><![CDATA[Currently {1} line at {0} is being executed.
@@ -995,8 +999,6 @@ The drawing process cannot continue and will be terminated.]]></tr>
     <tr id="MessageBox.CanNotOpenClipboard"><![CDATA[Unable to open the clipboard because of an unexpected error]]></tr>
     <tr id="MessageBox.NotAllowChangeSetting"><![CDATA[Some settings couldn't be changed due to them being fixed by _fixed.config]]></tr>
     <tr id="MessageBox.UnableChangeSetting"><![CDATA[Unable To Change Setting]]></tr>
-    <tr id="MessageBox.ReloadResourceAsk"><![CDATA[Try to reload resource folder?]]></tr>
-    <tr id="MessageBox.ReloadResource"><![CDATA[Reload resource folder]]></tr>
     <tr id="KeyMacro.SetMacroGroup"><![CDATA[Set to macro group {0}]]></tr>
     <tr id="KeyMacro.MacroKeyF"><![CDATA[Macro Key F{0}:]]></tr>
     <tr id="KeyMacro.GMacroKeyF"><![CDATA[G{0}:Macro Key F{1}:]]></tr>
@@ -1046,27 +1048,8 @@ The drawing process cannot continue and will be terminated.]]></tr>
 	<tr id="UI.ConfigDialog.Rikai.RikaiSeparateBox"><![CDATA[Use separate boxes for every dictionary entry]]></tr>
 	<tr id="UI.ConfigDialog.Rikai.RikaiLink"><![CDATA[You can download dictionary files from:]]></tr>
 	<tr id="UI.ConfigDialog.Rikai.OtherEDICT1"><![CDATA[or use any other dict in EDICT1 format]]></tr>
-	
-	<tr id="UI.ConfigDialog.System.UseLazyLoading"><![CDATA[Use LazyLoading]]></tr>
-	<tr id="SystemLine.LazyLoadingNoConfigFile"><![CDATA[No lazy loading configuration file found. Skipping building table]]></tr>
-	<tr id="SystemLine.LazyLoadingConfigError"><![CDATA[Failed to read lazy loading configuration file: {0}]]></tr>
-	<tr id="SystemLine.LazyLoadingTableReadError"><![CDATA[Failed to read table: {0}]]></tr>
-	<tr id="SystemLine.LazyLoadingTableCount"><![CDATA[{0} files were found in the lazy loading table]]></tr>
-	<tr id="SystemLine.LazyLoadingNoTable"><![CDATA[No lazy loading table file, will generate the table after full load]]></tr>
-	<tr id="SystemLine.LazyLoadingFileFunctionExcluded"><![CDATA[{0} has #FUNCTION defined in {1}, file excluded]]></tr>
-	<tr id="SystemLine.LazyLoadingFileEventExcluded"><![CDATA[{0} has event function {1}, file excluded]]></tr>
-	<tr id="SystemLine.LazyLoadingTableCreationSuccess"><![CDATA[Successfully created lazy loading table]]></tr>
-	<tr id="SystemLine.LazyLoadingCreationError"><![CDATA[Failed to create lazy loading table]]></tr>
-	<tr id="SystemLine.LazyLoadingTableSaveError"><![CDATA[Failed to save the table: {0}]]></tr>
-	<tr id="SystemLine.LazyLoadingTime"><![CDATA[Loading complete. Took {0:0.00} seconds]]></tr>
-	<tr id="SystemLine.LazyLoadingContinue"><![CDATA[Press Enter or click to proceed]]></tr>
-	<tr id="SystemLine.LazyLoadingErbFileNotFound"><![CDATA[Failed to read relevant file for function: {0}]]></tr>
-	<tr id="SystemLine.LazyLoadingDebugLoadingFile"><![CDATA[Loading file: {0}]]></tr>
-	<tr id="SystemLine.LazyLoadingDebugErbTime"><![CDATA[ERB loading completed. Time: {0} ms]]></tr>
-	<tr id="SystemLine.LazyLoadingDebugLabelsTime"><![CDATA[setLabelsArg() completed. Time: {0} ms]]></tr>
-	<tr id="SystemLine.LazyLoadingDebugScriptTime"><![CDATA[checkScript() completed. Time: {0] ms]]></tr>
-    <tr id="SystemLine.LazyLoadingFilesModified"><![CDATA[Modified Files:]]></tr>
-    <tr id="SystemLine.LazyLoadingFilesDeleted"><![CDATA[Deleted Files:]]></tr>
-    <tr id="SystemLine.LazyLoadingTableUpdated"><![CDATA[Updated LazyLoading Table]]></tr>
-    <tr id="SystemLine.FontNotFound"><![CDATA[Font "{0}" not found. Using fallback font.]]></tr>
+
+	<tr id="UI.ConfigDialog.DotNet.UseButtonFocusColor"><![CDATA[Change buttons background color when focused]]></tr>
+	<tr id="UI.ConfigDialog.DotNet.UseNewRandom"><![CDATA[Use new faster random algorithms]]></tr>
+	<tr id="UI.ConfigDialog.DotNet.UseVAR"><![CDATA[Use VAR instructions]]></tr>
 </lang>

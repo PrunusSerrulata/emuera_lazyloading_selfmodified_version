@@ -1,10 +1,12 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
 <lang>
     <name>简体中文</name>
+    <culture>zh-hans</culture>
     <mfont>微软雅黑</mfont>
     <tr id="UI.MainWindow.FileFilter"><![CDATA[ERB 文件]]></tr>
     <tr id="UI.MainWindow.File"><![CDATA[文件(&F)]]></tr>
     <tr id="UI.MainWindow.File.Restart"><![CDATA[重启(&R)]]></tr>
+    <tr id="UI.MainWindow.File.RestartDebug"><![CDATA[在调试模式下重新启动]]></tr>
     <tr id="UI.MainWindow.File.SaveLog"><![CDATA[保存日志...(&S)]]></tr>
     <tr id="UI.MainWindow.File.CopyLogToClipboard"><![CDATA[将日志复制到剪贴板(&C)]]></tr>
     <tr id="UI.MainWindow.File.BackToTitle"><![CDATA[返回标题画面(&T)]]></tr>
@@ -15,8 +17,12 @@
     <tr id="UI.MainWindow.Debug"><![CDATA[调试(&D)]]></tr>
     <tr id="UI.MainWindow.Debug.OpenDebugWindow"><![CDATA[打开调试窗口]]></tr>
     <tr id="UI.MainWindow.Debug.UpdateDebugInfo"><![CDATA[更新调试信息]]></tr>
+    <tr id="UI.MainWindow.Tools"><![CDATA[工具]]></tr>
+    <tr id="UI.MainWindow.Tools.LockWindowWidth"><![CDATA[锁定窗口宽度]]></tr>
+    <tr id="UI.MainWindow.Tools.CopyToClipboard"><![CDATA[复制到剪贴板]]></tr>
     <tr id="UI.MainWindow.Help"><![CDATA[帮助(&H)]]></tr>
     <tr id="UI.MainWindow.Help.Config"><![CDATA[设置(&C)]]></tr>
+    <tr id="UI.MainWindow.Language"><![CDATA[语言(&L)]]></tr>
     <tr id="UI.MainWindow.ContextMenu.KeyMacro"><![CDATA[按键宏]]></tr>
     <tr id="UI.MainWindow.ContextMenu.Cut"><![CDATA[剪切]]></tr>
     <tr id="UI.MainWindow.ContextMenu.Copy"><![CDATA[复制]]></tr>
@@ -1032,27 +1038,4 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="SystemLine.ReloadCompleted"><![CDATA[重新载入完毕]]></tr>
     <tr id="SystemLine.LogFileHasBeenCreated"><![CDATA[※※※已创建Log文件{0}※※※]]></tr>
     <tr id="SystemLine.MinusWontWork"><![CDATA[对整型最小值({0})进行-操作其值也不对发生变化]]></tr>
-
-    <tr id="UI.ConfigDialog.System.UseLazyLoading"><![CDATA[使用Lazy loading]]></tr>
-    <tr id="SystemLine.LazyLoadingNoConfigFile"><![CDATA[沒有Lazy loading的配置檔, 跳過了加載表的搭建]]></tr>
-    <tr id="SystemLine.LazyLoadingConfigError"><![CDATA[Lazy loading配置檔讀取失敗: {0}]]></tr>
-    <tr id="SystemLine.LazyLoadingTableReadError"><![CDATA[加載表讀取失敗: {0}]]></tr>
-    <tr id="SystemLine.LazyLoadingTableCount"><![CDATA[通過Lazy loading加載表找到了{0}個檔案]]></tr>
-    <tr id="SystemLine.LazyLoadingNoTable"><![CDATA[沒有Lazy loading加載表, 本次完全加載後會開始生成]]></tr>
-    <tr id="SystemLine.LazyLoadingFileFunctionExcluded"><![CDATA[{0}有#FUNCTION定義在{1}, 提前加載了本檔案]]></tr>
-    <tr id="SystemLine.LazyLoadingFileEventExcluded"><![CDATA[{0}有event函數{1}, 提前加載了本檔案]]></tr>
-    <tr id="SystemLine.LazyLoadingTableCreationSuccess"><![CDATA[成功生成了Lazy loading加載表]]></tr>
-    <tr id="SystemLine.LazyLoadingCreationError"><![CDATA[未能生成Lazy loading加載表]]></tr>
-    <tr id="SystemLine.LazyLoadingTableSaveError"><![CDATA[保存加載表失敗: {0}]]></tr>
-    <tr id="SystemLine.LazyLoadingTime"><![CDATA[加載結束  本次消耗 {0:0.00} 秒]]></tr>
-    <tr id="SystemLine.LazyLoadingContinue"><![CDATA[按输入键或點擊繼續]]></tr>
-    <tr id="SystemLine.LazyLoadingErbFileNotFound"><![CDATA[未能成功讀取函數的相關檔案: {0}]]></tr>
-    <tr id="SystemLine.LazyLoadingDebugLoadingFile"><![CDATA[加載文件中: {0}]]></tr>
-    <tr id="SystemLine.LazyLoadingDebugErbTime"><![CDATA[ERB文檔加載結束. 時間: {0} ms]]></tr>
-    <tr id="SystemLine.LazyLoadingDebugLabelsTime"><![CDATA[setLabelsArg()結束. 時間: {0} ms]]></tr>
-    <tr id="SystemLine.LazyLoadingDebugScriptTime"><![CDATA[checkScript()結束. 時間: {0] ms]]></tr>
-    <tr id="SystemLine.LazyLoadingFilesModified"><![CDATA[修改過的檔案:]]></tr>
-    <tr id="SystemLine.LazyLoadingFilesDeleted"><![CDATA[刪除的檔案:]]></tr>
-    <tr id="SystemLine.LazyLoadingTableUpdated"><![CDATA[更新的 LazyLoading 表]]></tr>
-    <tr id="SystemLine.FontNotFound"><![CDATA[未找到字体"{0}"，开始使用预设字体。]]></tr>
 </lang>
