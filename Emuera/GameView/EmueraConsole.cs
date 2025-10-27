@@ -414,7 +414,7 @@ internal sealed partial class EmueraConsole : IDisposable
 	{
 		GlobalStatic.Console = this;
 		GlobalStatic.MainWindow = window;
-		emuera = new GameProc.Process(this);
+		emuera = new GameProc.Process(this, Program.AnalysisMode);
 		GlobalStatic.Process = emuera;
 		if (Program.DebugMode && Config.DebugShowWindow)
 		{
@@ -450,7 +450,7 @@ internal sealed partial class EmueraConsole : IDisposable
 				);
 			if (result == DialogResult.Yes)
 			{
-				Program.Reboot = false;
+				Program.rebootFlag = false;
 				throw new CodeEE(trerror.ForceQuitAndRestartError.Text);
 			}
 		}
@@ -1561,15 +1561,15 @@ internal sealed partial class EmueraConsole : IDisposable
 		}
 		if (forceTextBoxColor)
 		{
-			uint sec = WinmmTimer.TickCount - lastBgColorChange;
+			uint sec = (uint)(WinmmTimer.TickCount - lastBgColorChange);
 			//色変化が速くなりすぎないように一定時間以内の再呼び出しは強制待ちにする
 			while (sec < 200)
 			{
 				Application.DoEvents();
-				sec = WinmmTimer.TickCount - lastBgColorChange;
+				sec = (uint)(WinmmTimer.TickCount - lastBgColorChange);
 			}
 			window.TextBox.BackColor = this.bgColor;
-			lastBgColorChange = WinmmTimer.TickCount;
+			lastBgColorChange = (int)WinmmTimer.TickCount;
 		}
 		verticalScrollBarUpdate();
 		window.Refresh();//OnPaint発行

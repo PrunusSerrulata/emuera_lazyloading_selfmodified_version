@@ -282,7 +282,7 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
 	}
 	#endregion
 	#region private変数
-	readonly Dictionary<string, UserDefinedVariableToken> privateVar = new Dictionary<string, UserDefinedVariableToken>();
+	readonly Dictionary<string, UserDefinedVariableToken> privateVar = [];
 	internal bool AddPrivateVariable(UserDefinedVariableData data)
 	{
 		if (privateVar.ContainsKey(data.Name))
@@ -347,7 +347,7 @@ internal sealed class GotoLabelLine : LogicalLine, IEqualityComparer<GotoLabelLi
 	{
 		if ((x == null) || (y == null))
 			return false;
-		return ((x.ParentLabelLine == y.ParentLabelLine) && (x.labelname == y.labelname));
+		return (x.ParentLabelLine == y.ParentLabelLine) && (x.labelname == y.labelname);
 	}
 
 	public int GetHashCode(GotoLabelLine obj)

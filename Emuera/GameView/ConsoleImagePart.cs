@@ -22,7 +22,7 @@ class ConsoleImagePart : AConsoleDisplayPart
 		ResourceName = resName ?? "";
 		ButtonResourceName = resNameb;
 		MappingGraphName = resNamem;
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new();
 		sb.Append("<img src='").Append(ResourceName).Append('\'');
 		if (ButtonResourceName != null)
 			Utils.AddTagArg(sb, "srcb", ButtonResourceName);

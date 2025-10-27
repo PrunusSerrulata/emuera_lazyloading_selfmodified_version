@@ -159,8 +159,8 @@ internal sealed class ConsoleButtonString
 	{
 		if (divIndex <= 0)
 			return null;
-		List<AConsoleDisplayPart> cssListA = new List<AConsoleDisplayPart>();
-		List<AConsoleDisplayPart> cssListB = new List<AConsoleDisplayPart>();
+		List<AConsoleDisplayPart> cssListA = [];
+		List<AConsoleDisplayPart> cssListB = [];
 		int index = 0;
 		int cssIndex;
 		bool b = false;
@@ -200,7 +200,7 @@ internal sealed class ConsoleButtonString
 		cssListA.CopyTo(cssArrayA);
 		cssListB.CopyTo(cssArrayB);
 		this.strArray = cssArrayA;
-		ConsoleButtonString ret = new ConsoleButtonString(null, cssArrayB);
+		ConsoleButtonString ret = new(null, cssArrayB);
 		this.CalcWidth(sm, XsubPixel);
 		ret.CalcWidth(sm, 0);
 		this.CalcPointX(this.PointX);
@@ -273,7 +273,7 @@ internal sealed class ConsoleButtonString
 
 	public void DrawTo(Graphics graph, int pointY, bool isBackLog, TextDrawingMode mode)
 	{
-		bool isSelecting = (IsButton) && (parent.ButtonIsSelected(this));
+		bool isSelecting = IsButton && parent.ButtonIsSelected(this);
 		#region EM_私家版_描画拡張
 		//foreach (AConsoleDisplayPart css in strArray)
 		//	css.DrawTo(graph, pointY, isSelecting, isBackLog, mode);
@@ -326,7 +326,7 @@ internal sealed class ConsoleButtonString
 
 	public void GDIDrawTo(int pointY, bool isBackLog)
 	{
-		bool isSelecting = (IsButton) && (parent.ButtonIsSelected(this));
+		bool isSelecting = IsButton && parent.ButtonIsSelected(this);
 		foreach (AConsoleDisplayPart css in strArray)
 			css.GDIDrawTo(pointY, isSelecting, isBackLog);
 	}

@@ -99,7 +99,7 @@ internal sealed class EraStreamReader : IDisposable
 			return st;
 		}
 		//curNoはこの後加算しない(始端記号の行を行番号とする)
-		StringBuilder b = new StringBuilder();
+		StringBuilder b = new();
 		while (true)
 		{
 			line = reader.ReadLine();

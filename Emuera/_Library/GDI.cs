@@ -325,7 +325,7 @@ internal static class GDI
 			GetTextExtentPoint32(hDCMesureText, "あ", "あ".Length, out fontMetrics);
 		}
 		int ret = GetTabbedTextExtentW(hDCMesureText, str, LangManager.GetStrlenLang(str), 0, ref devnull);
-		Size size = new Size(ret & 0xffff, (ret >> 16) & 0xffff);
+		Size size = new(ret & 0xffff, (ret >> 16) & 0xffff);
 		return size;
 	}
 	static Size MeasureTextNT(string str, Font font)
@@ -342,7 +342,7 @@ internal static class GDI
 			GetTextExtentPoint32(hDCMesureText, "あ", "あ".Length, out fontMetrics);
 		}
 		int ret = GetTabbedTextExtentW(hDCMesureText, str, str.Length, 0, ref devnull);
-		Size size = new Size(ret & 0xffff, (ret >> 16) & 0xffff);
+		Size size = new(ret & 0xffff, (ret >> 16) & 0xffff);
 		return size;
 	}
 

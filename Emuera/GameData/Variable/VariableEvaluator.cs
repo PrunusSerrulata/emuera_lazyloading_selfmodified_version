@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections;
 using System.IO;
-using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using MinorShift.Emuera.Sub;
 using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.GameProc;
 using MinorShift._Library;
 using MinorShift.Emuera.GameProc.Function;
 using System.Linq;
 //using System.Windows.Forms;
 using trerror = EvilMask.Emuera.Lang.Error;
+using System.Text.Json;
 
 namespace MinorShift.Emuera.GameData.Variable;
 
@@ -22,7 +20,7 @@ internal sealed class VariableEvaluator : IDisposable
 	readonly GameBase gamebase;
 	readonly ConstantData constant;
 	readonly VariableData varData;
-	MTRandom rand = new MTRandom();
+	Random rand = new();
 
 	public VariableData VariableData { get { return varData; } }
 	internal ConstantData Constant { get { return constant; } }
@@ -36,19 +34,20 @@ internal sealed class VariableEvaluator : IDisposable
 	}
 	#region set/get
 
-	public void Randomize(Int64 seed)
+	public void Randomize(long seed)
 	{
-		rand = new MTRandom(seed);
+		rand = new((int)seed);
+		File.WriteAllText("rand.json", JsonSerializer.Serialize(rand));
 	}
 
 	public void InitRanddata()
 	{
-		rand.SetRand(this.RANDDATA);
+		_ = new Exception("InitRanddata is not implemented");
 	}
 
 	public void DumpRanddata()
 	{
-		rand.GetRand(this.RANDDATA);
+		_ = new Exception("DumpRanddata is not implemented"); 
 	}
 	public Int64 GetNextRand(Int64 max)
 	{
@@ -163,7 +162,7 @@ internal sealed class VariableEvaluator : IDisposable
 				indexNum = index.Int;
 			else
 				indexNum = constant.KeywordToInteger(p.Identifier.Code, index.Str, 1);
-			if (indexNum < 0 || indexNum >= ((long[])(p.Identifier.GetArrayChara(0))).Length)
+			if (indexNum < 0 || indexNum >= ((long[])p.Identifier.GetArrayChara(0)).Length)
 				throw new CodeEE(string.Format(trerror.OoRCharaVar.Text, p.Identifier.Name, "2", indexNum.ToString()));
 		}
 
@@ -201,7 +200,7 @@ internal sealed class VariableEvaluator : IDisposable
 				indexNum = index.Int;
 			else
 				indexNum = constant.KeywordToInteger(p.Identifier.Code, index.Str, 1);
-			if (indexNum < 0 || indexNum >= ((string[])(p.Identifier.GetArrayChara(0))).Length)
+			if (indexNum < 0 || indexNum >= ((string[])p.Identifier.GetArrayChara(0)).Length)
 				throw new CodeEE(string.Format(trerror.OoRCharaVar.Text, p.Identifier.Name, "2", indexNum.ToString()));
 		}
 
@@ -569,7 +568,7 @@ internal sealed class VariableEvaluator : IDisposable
 		else
 		{
 			if (length > 0)
-				for (int i = (start + length); i < (start + num); i++)
+				for (int i = start + length; i < (start + num); i++)
 					array[i] = def;
 			else
 			{
@@ -648,7 +647,7 @@ internal sealed class VariableEvaluator : IDisposable
 		else
 		{
 			if (length > 0)
-				for (int i = (start + length); i < (start + num); i++)
+				for (int i = start + length; i < (start + num); i++)
 					arrays[i] = def;
 			else
 			{
@@ -709,7 +708,7 @@ internal sealed class VariableEvaluator : IDisposable
 			if (start > 0)
 				Array.Copy(arrays, 0, temps, 0, start);
 			if ((start + num) < arrays.Length)
-				Array.Copy(arrays, (start + num), temps, start, (arrays.Length - (start + num)));
+				Array.Copy(arrays, start + num, temps, start, arrays.Length - (start + num));
 			temps.CopyTo(arrays, 0);
 		}
 	}
@@ -857,7 +856,7 @@ internal sealed class VariableEvaluator : IDisposable
 		string[] itemnames = this.ITEMNAME;
 		int length = Math.Min(array.Length, itemnames.Length);
 		int count = 0;
-		StringBuilder builder = new StringBuilder(100);
+		StringBuilder builder = new(100);
 		builder.Append("所持アイテム：");
 		for (int i = 0; i < length; i++)
 		{
@@ -894,7 +893,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public string GetCharacterDataString(Int64 target, FunctionCode func)
 	{
-		StringBuilder builder = new StringBuilder(100);
+		StringBuilder builder = new(100);
 		if ((target < 0) || (target >= varData.CharacterList.Count))
 			throw new CodeEE(trerror.OoRCharaNum.Text);
 		CharacterData chara = varData.CharacterList[(int)target];
@@ -988,7 +987,7 @@ internal sealed class VariableEvaluator : IDisposable
 		Int64 param = chara.DataIntegerArray[(int)(VariableCode.PALAM & VariableCode.__LOWERCASE__)][paramCode];
 		Int64[] paramlv = varData.DataIntegerArray[(int)(VariableCode.PALAMLV & VariableCode.__LOWERCASE__)];
 		string paramName = constant.GetCsvNameList(VariableCode.PALAMNAME)[paramCode];
-		if ((param == 0) && (string.IsNullOrEmpty(paramName)))
+		if ((param == 0) && string.IsNullOrEmpty(paramName))
 			return null;
 		if (paramName == null)
 			paramName = "";
@@ -1009,7 +1008,7 @@ internal sealed class VariableEvaluator : IDisposable
 			c = '*';
 			border = paramlv[4];
 		}
-		StringBuilder bar = new StringBuilder(100);
+		StringBuilder bar = new(100);
 
 		bar.Append('[');
 		if ((border <= 0) || (border <= param))
@@ -1035,7 +1034,7 @@ internal sealed class VariableEvaluator : IDisposable
 		CharacterTemplate tmpl = constant.GetCharacterTemplate(charaTmplNo);
 		if (tmpl == null)
 			throw new CodeEE(trerror.AddedUndefinedChara.Text);
-		CharacterData chara = new CharacterData(constant, tmpl, varData);
+		CharacterData chara = new(constant, tmpl, varData);
 		varData.CharacterList.Add(chara);
 	}
 
@@ -1044,7 +1043,7 @@ internal sealed class VariableEvaluator : IDisposable
 		CharacterTemplate tmpl = constant.GetCharacterTemplate_UseSp(charaTmplNo, isSp);
 		if (tmpl == null)
 			throw new CodeEE(trerror.AddedUndefinedChara.Text);
-		CharacterData chara = new CharacterData(constant, tmpl, varData);
+		CharacterData chara = new(constant, tmpl, varData);
 		varData.CharacterList.Add(chara);
 	}
 
@@ -1054,14 +1053,14 @@ internal sealed class VariableEvaluator : IDisposable
 		if (tmpl == null)
 			//throw new CodeEE("定義していないキャラクタを作成しようとしました");
 			tmpl = constant.GetPseudoChara();
-		CharacterData chara = new CharacterData(constant, tmpl, varData);
+		CharacterData chara = new(constant, tmpl, varData);
 		varData.CharacterList.Add(chara);
 	}
 
 	public void AddPseudoCharacter()
 	{
 		CharacterTemplate tmpl = constant.GetPseudoChara();
-		CharacterData chara = new CharacterData(constant, tmpl, varData);
+		CharacterData chara = new(constant, tmpl, varData);
 		varData.CharacterList.Add(chara);
 	}
 
@@ -1075,7 +1074,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public void DelCharacter(Int64[] charaNoList)
 	{
-		List<CharacterData> DelList = new List<CharacterData>();
+		List<CharacterData> DelList = [];
 		foreach (Int64 charaNo in charaNoList)
 		{
 			if ((charaNo < 0) || (charaNo >= varData.CharacterList.Count))
@@ -1101,7 +1100,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public void PickUpChara(Int64[] NoList)
 	{
-		List<Int64> pickList = new List<long>();
+		List<Int64> pickList = [];
 		Int64 oldTarget = this.TARGET;
 		Int64 oldAssi = this.ASSI;
 		Int64 oldMaster = this.MASTER;
@@ -1131,7 +1130,7 @@ internal sealed class VariableEvaluator : IDisposable
 		}
 		if (pickList.Count < varData.CharacterList.Count)
 		{
-			for (int i = (varData.CharacterList.Count - 1); i >= pickList.Count; i--)
+			for (int i = varData.CharacterList.Count - 1; i >= pickList.Count; i--)
 				DelCharacter((Int64)i);
 		}
 	}
@@ -1182,7 +1181,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public void SwapChara(Int64 x, Int64 y)
 	{
-		if (((x < 0) || (x >= varData.CharacterList.Count)) || ((y < 0) || (y >= varData.CharacterList.Count)))
+		if ((x < 0) || (x >= varData.CharacterList.Count) || ((y < 0) || (y >= varData.CharacterList.Count)))
 			throw new CodeEE(trerror.OoRSwapChara.Text);
 		if (x == y)
 			return;
@@ -1214,7 +1213,7 @@ internal sealed class VariableEvaluator : IDisposable
 			varData.CharacterList[i].temp_CurrentOrder = i;
 			varData.CharacterList[i].SetSortKey(sortkey, elem);
 		}
-		if ((fixMaster) && (masterChara != null))
+		if (fixMaster && (masterChara != null))
 		{
 			if (varData.CharacterList.Count <= 2)
 				return;
@@ -1228,7 +1227,7 @@ internal sealed class VariableEvaluator : IDisposable
 		//else
 		//    throw new ExeEE("ソート順序不明");
 
-		if ((fixMaster) && (masterChara != null))
+		if (fixMaster && (masterChara != null))
 		{
 			varData.CharacterList.Insert((int)this.MASTER, masterChara);
 		}
@@ -1247,7 +1246,7 @@ internal sealed class VariableEvaluator : IDisposable
 	{
 		if (startIndex >= lastIndex)
 			return -1;
-		FixedVariableTerm fvp = new FixedVariableTerm(varID);
+		FixedVariableTerm fvp = new(varID);
 		if (varID.IsArray1D)
 			fvp.Index2 = elem64;
 		else if (varID.IsArray2D)
@@ -1281,7 +1280,7 @@ internal sealed class VariableEvaluator : IDisposable
 	{
 		if (startIndex >= lastIndex)
 			return -1;
-		FixedVariableTerm fvp = new FixedVariableTerm(varID);
+		FixedVariableTerm fvp = new(varID);
 		if (varID.IsArray1D)
 			fvp.Index2 = elem64;
 		else if (varID.IsArray2D)
@@ -1430,8 +1429,7 @@ internal sealed class VariableEvaluator : IDisposable
 			default:
 				throw new CodeEE(trerror.RefDoesNotExistData.Text);
 		}
-		Int64 ret;
-		if (intDic.TryGetValue(arg2, out ret))
+		if (intDic.TryGetValue(arg2, out long ret))
 			return ret;
 		return 0L;
 	}
@@ -1561,7 +1559,7 @@ internal sealed class VariableEvaluator : IDisposable
 			//本家の仕様では負の値は無効。
 			if ((up[i] <= 0) && (down[i] <= 0))
 				continue;
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new();
 			if (!skipPrint)
 			{
 				builder.Append(paramname[i]);
@@ -1616,7 +1614,7 @@ internal sealed class VariableEvaluator : IDisposable
 			//本家の仕様では負の値は無効。
 			if ((up[i] <= 0) && (down[i] <= 0))
 				continue;
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new();
 			if (!skipPrint)
 			{
 				builder.Append(paramname[i]);
@@ -1705,7 +1703,7 @@ internal sealed class VariableEvaluator : IDisposable
 		if ((itemNo < 0) || (itemNo >= itemSales.Length) || (itemNo >= itemNames.Length))
 			return false;
 		int index = (int)itemNo;
-		return ((itemSales[index] != 0) && (itemNames[index] != null));
+		return (itemSales[index] != 0) && (itemNames[index] != null);
 	}
 
 	public bool BuyItem(Int64 itemNo)
@@ -1789,7 +1787,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public List<string> GetDatFiles(bool charadat, string pattern)
 	{
-		List<string> files = new List<string>();
+		List<string> files = [];
 		if (!Directory.Exists(Program.DatDir))
 			return files;
 		string searchPattern = "var_" + pattern + ".dat";
@@ -1862,7 +1860,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public EraDataResult CheckDataByFilename(string filename, EraSaveFileType type)
 	{
-		EraDataResult result = new EraDataResult();
+		EraDataResult result = new();
 		if (!File.Exists(filename))
 		{
 			result.State = EraDataState.FILENOTFOUND;
@@ -2045,7 +2043,7 @@ internal sealed class VariableEvaluator : IDisposable
 		FileStream fs = null;
 		try
 		{
-			List<CharacterData> addCharaList = new List<CharacterData>();
+			List<CharacterData> addCharaList = [];
 			fs = new FileStream(filepath, FileMode.Open, FileAccess.Read);
 			bReader = EraBinaryDataReader.CreateReader(fs);
 			if (bReader == null)
@@ -2062,7 +2060,7 @@ internal sealed class VariableEvaluator : IDisposable
 			Int64 loadnum = bReader.ReadInt64();
 			for (int i = 0; i < loadnum; i++)
 			{
-				CharacterData chara = new CharacterData(constant, varData);
+				CharacterData chara = new(constant, varData);
 				chara.LoadFromStreamBinary(bReader);
 				addCharaList.Add(chara);
 			}
@@ -2197,7 +2195,7 @@ internal sealed class VariableEvaluator : IDisposable
 		varData.CharacterList.Clear();
 		for (int i = 0; i < charaCount; i++)
 		{
-			CharacterData chara = new CharacterData(constant, varData);
+			CharacterData chara = new(constant, varData);
 			varData.CharacterList.Add(chara);
 			chara.LoadFromStream(reader);
 		}
@@ -2220,12 +2218,12 @@ internal sealed class VariableEvaluator : IDisposable
 		try
 		{
 			Config.CreateSavDir();
-			using (FileStream fs = new FileStream(filepath, FileMode.Create, FileAccess.Write))
+			using (FileStream fs = new(filepath, FileMode.Create, FileAccess.Write))
 			{
 				if (Config.SystemSaveInBinary)
 				{
 
-					using (EraBinaryDataWriter bWriter = new EraBinaryDataWriter(fs))
+					using (EraBinaryDataWriter bWriter = new(fs))
 					{
 						bWriter.WriteHeader();
 						bWriter.WriteFileType(EraSaveFileType.Global);
@@ -2243,7 +2241,7 @@ internal sealed class VariableEvaluator : IDisposable
 				}
 				else
 				{
-					using (EraDataWriter writer = new EraDataWriter(fs))
+					using (EraDataWriter writer = new(fs))
 					{
 						writer.Write(gamebase.ScriptUniqueCode);
 						writer.Write(gamebase.ScriptVersion);
@@ -2375,7 +2373,7 @@ internal sealed class VariableEvaluator : IDisposable
 		varData.CharacterList.Clear();
 		for (int i = 0; i < charaCount; i++)
 		{
-			CharacterData chara = new CharacterData(constant, varData);
+			CharacterData chara = new(constant, varData);
 			varData.CharacterList.Add(chara);
 			chara.LoadFromStreamBinary(bReader);
 		}

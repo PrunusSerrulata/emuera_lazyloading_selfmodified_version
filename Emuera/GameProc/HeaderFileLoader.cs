@@ -85,7 +85,7 @@ internal sealed class HeaderFileLoader
 		//EraStreamReader eReader = new EraStreamReader(false);
 		//1815修正 _rename.csvの適用
 		//eramakerEXの仕様的には.ERHに適用するのはおかしいけど、もうEmueraの仕様になっちゃってるのでしかたないか
-		EraStreamReader eReader = new EraStreamReader(true);
+		EraStreamReader eReader = new(true);
 
 		if (!eReader.Open(filepath, filename))
 		{
@@ -186,12 +186,12 @@ internal sealed class HeaderFileLoader
 		{
 			//throw new CodeEE("置換先の式がありません", position);
 			//1808a3 空マクロの許可
-			DefineMacro nullmac = new DefineMacro(srcID, new WordCollection(), 0);
+			DefineMacro nullmac = new(srcID, new WordCollection(), 0);
 			idDic.AddMacro(nullmac);
 			return;
 		}
 
-		List<string> argID = new List<string>();
+		List<string> argID = [];
 		if (hasArg)//関数型マクロの引数解析
 		{
 			wc.ShiftNext();//'('を読み飛ばす
@@ -224,7 +224,7 @@ internal sealed class HeaderFileLoader
 		}
 		if (wc.EOL)
 			throw new CodeEE(trerror.MissingSubstitution.Text, position);
-		WordCollection destWc = new WordCollection();
+		WordCollection destWc = new();
 		while (!wc.EOL)
 		{
 			destWc.Add(wc.Current);
@@ -255,7 +255,7 @@ internal sealed class HeaderFileLoader
 		}
 		if (hasArg)//1808a3 関数型マクロの封印
 			throw new CodeEE(trerror.CanNotDeclaredFuncMacro.Text, position);
-		DefineMacro mac = new DefineMacro(srcID, destWc, argID.Count);
+		DefineMacro mac = new(srcID, destWc, argID.Count);
 		idDic.AddMacro(mac);
 	}
 

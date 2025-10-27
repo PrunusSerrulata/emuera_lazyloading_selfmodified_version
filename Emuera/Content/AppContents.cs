@@ -14,10 +14,10 @@ static class AppContents
 {
 	static AppContents()
 	{
-		gList = new Dictionary<int, GraphicsImage>();
+		gList = [];
 	}
-	static Dictionary<string, AContentFile> resourceDic = new Dictionary<string, AContentFile>();
-	static Dictionary<string, ASprite> imageDictionary = new Dictionary<string, ASprite>();
+	static Dictionary<string, AContentFile> resourceDic = [];
+	static Dictionary<string, ASprite> imageDictionary = [];
 	static Dictionary<int, GraphicsImage> gList;
 	static Dictionary<string, ASprite> resourceImageDictionary = new Dictionary<string, ASprite>();
 
@@ -39,7 +39,7 @@ static class AppContents
 	{
 		if (gList.ContainsKey(i))
 			return gList[i];
-		GraphicsImage g = new GraphicsImage(i);
+		GraphicsImage g = new(i);
 		gList[i] = g;
 		return g;
 	}
@@ -87,7 +87,7 @@ static class AppContents
 		if (string.IsNullOrEmpty(imgName))
 			throw new ArgumentOutOfRangeException();
 		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
-		SpriteG newCImg = new SpriteG(imgName, parent, rect);
+		SpriteG newCImg = new(imgName, parent, rect);
 		imageDictionary[imgName] = newCImg;
 	}
 
@@ -140,7 +140,7 @@ static class AppContents
 						continue;
 					string[] tokens = str.Split(',');
 					//AContentItem item = CreateFromCsv(tokens);
-					ScriptPosition sp = new ScriptPosition(filename, lineNo);
+					ScriptPosition sp = new(filename, lineNo);
 
 					if (CreateFromCsv(tokens, directory, currentAnime, sp) is ASprite item)
 					{
@@ -238,7 +238,7 @@ static class AppContents
 				ParserMediator.Warn(trerror.InvalidAnimationSpriteSize.Text, sp, 1);
 				return null;
 			}
-			SpriteAnime anime = new SpriteAnime(name, new Size(sizeValue[0], sizeValue[1]));
+			SpriteAnime anime = new(name, new Size(sizeValue[0], sizeValue[1]));
 
 			return anime;
 		}
@@ -277,7 +277,7 @@ static class AppContents
 				ParserMediator.Warn(string.Format(trerror.TooLargeImageFile.Text, AbstractImage.MAX_IMAGESIZE.ToString(), arg2), sp, 1);
 				//return null;
 			}
-			ConstImage img = new ConstImage(parentName);
+			ConstImage img = new(parentName);
 			img.CreateFrom(bmp, filepath, Config.TextDrawingMode == TextDrawingMode.WINAPI);
 			if (!img.IsCreated)
 			{
@@ -292,9 +292,9 @@ static class AppContents
 			ParserMediator.Warn(string.Format(trerror.SpriteCreateFromFailedResource.Text, arg2), sp, 1);
 			return null;
 		}
-		Rectangle rect = new Rectangle(new Point(0, 0), new Size(parentImage.Width, parentImage.Height));
+		Rectangle rect = new(new Point(0, 0), parentImage.Bitmap.Size);
 		Size size = rect.Size;
-		Point pos = new Point();
+		Point pos = new();
 		int delay = 1000;
 		//name,parentname, x,y,w,h ,offset_x,offset_y, delayTime, destX,destY
 		if (tokens.Length >= 6)//x,y,w,h

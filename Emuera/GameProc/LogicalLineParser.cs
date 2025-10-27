@@ -282,14 +282,14 @@ internal static class LogicalLineParser
 
 	public static LogicalLine ParseLine(string str, EmueraConsole console)
 	{
-		ScriptPosition position = new ScriptPosition();
-		StringStream stream = new StringStream(str);
+		ScriptPosition position = new();
+		StringStream stream = new(str);
 		return ParseLine(stream, position, console);
 	}
 
 	public static LogicalLine ParseLabelLine(StringStream stream, ScriptPosition position, EmueraConsole console)
 	{
-		bool isFunction = (stream.Current == '@');
+		bool isFunction = stream.Current == '@';
 		//int lineNo = position.LineNo;
 		string labelName = "";
 		string errMes = "";
@@ -354,7 +354,7 @@ internal static class LogicalLineParser
 			//wc = LexicalAnalyzer.Analyse(stream, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
 			if (Program.AnalysisMode)
 				console.PrintC("@" + labelName, false);
-			FunctionLabelLine funclabelLine = new FunctionLabelLine(position, labelName, wc);
+			FunctionLabelLine funclabelLine = new(position, labelName, wc);
 			if (IdentifierDictionary.IsEventLabelName(labelName))
 			{
 				funclabelLine.IsEvent = true;

@@ -147,7 +147,7 @@ internal sealed class GraphicsImage : AbstractImage
 		Font usingFont = font;
 		var format = new StringFormat(StringFormat.GenericTypographic);
 		if (usingFont == null)
-			usingFont = new Font(Config.FontName, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
+			usingFont = new(Config.FontName, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
 		System.Drawing.Drawing2D.GraphicsPath gp =
 			new System.Drawing.Drawing2D.GraphicsPath();
 		//一部のフォントで描画がずれる問題修正
@@ -188,7 +188,7 @@ internal sealed class GraphicsImage : AbstractImage
 		}
 		else
 		{
-			using (SolidBrush b = new SolidBrush(Config.ForeColor))
+			using (SolidBrush b = new(Config.ForeColor))
 				g.DrawString(text, usingFont, b, new RectangleF(x, y, width, height));
 		}
 	}
@@ -211,7 +211,7 @@ internal sealed class GraphicsImage : AbstractImage
 		}
 		else
 		{
-			using (Pen p = new Pen(Config.ForeColor))
+			using (Pen p = new(Config.ForeColor))
 				g.DrawRectangle(p, rect);
 		}
 	}
@@ -234,7 +234,7 @@ internal sealed class GraphicsImage : AbstractImage
 		}
 		else
 		{
-			using (SolidBrush b = new SolidBrush(Config.BackColor))
+			using (SolidBrush b = new(Config.BackColor))
 				g.FillRectangle(b, rect);
 		}
 	}
@@ -309,8 +309,8 @@ internal sealed class GraphicsImage : AbstractImage
 
 		drawImgList = null;
 
-		ImageAttributes imageAttributes = new ImageAttributes();
-		ColorMatrix colorMatrix = new ColorMatrix(cm);
+		ImageAttributes imageAttributes = new();
+		ColorMatrix colorMatrix = new(cm);
 		imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
 		img.GraphicsDraw(g, destRect, imageAttributes);
@@ -346,8 +346,8 @@ internal sealed class GraphicsImage : AbstractImage
 		drawImgList = null;
 
 		Bitmap src = srcGra.GetBitmap();
-		ImageAttributes imageAttributes = new ImageAttributes();
-		ColorMatrix colorMatrix = new ColorMatrix(cm);
+		ImageAttributes imageAttributes = new();
+		ColorMatrix colorMatrix = new(cm);
 		imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 		//g.DrawImage(img.Bitmap, destRect, srcRect, GraphicsUnit.Pixel, imageAttributes);なんでこのパターンないのさ
 		g.DrawImage(src, destRect, srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height, GraphicsUnit.Pixel, imageAttributes);
@@ -372,15 +372,15 @@ internal sealed class GraphicsImage : AbstractImage
 		byte[] srcMaskBytes = BytesFromBitmap(maskGra.GetBitmap());
 		Rectangle destRect = new Rectangle(destPoint.X, destPoint.Y, srcGra.Width, srcGra.Height);
 
-		System.Drawing.Imaging.BitmapData bmpData =
+		BitmapData bmpData =
 			destImg.LockBits(new Rectangle(0, 0, destImg.Width, destImg.Height),
-			System.Drawing.Imaging.ImageLockMode.ReadWrite,
+			ImageLockMode.ReadWrite,
 			PixelFormat.Format32bppArgb);
 		try
 		{
 			IntPtr ptr = bmpData.Scan0;
 			byte[] pixels = new byte[bmpData.Stride * destImg.Height];
-			System.Runtime.InteropServices.Marshal.Copy(ptr, pixels, 0, pixels.Length);
+			Marshal.Copy(ptr, pixels, 0, pixels.Length);
 
 
 			for (int y = 0; y < srcGra.Height; y++)
@@ -414,7 +414,7 @@ internal sealed class GraphicsImage : AbstractImage
 			}
 
 			// Bitmapへコピー
-			System.Runtime.InteropServices.Marshal.Copy(pixels, 0, ptr, pixels.Length);
+		Marshal.Copy(pixels, 0, ptr, pixels.Length);
 		}
 		finally
 		{
@@ -660,7 +660,7 @@ internal sealed class GraphicsImage : AbstractImage
 		try
 		{
 			IntPtr ptr = bmpData.Scan0;
-			System.Runtime.InteropServices.Marshal.Copy(ptr, pixels, 0, pixels.Length);
+			Marshal.Copy(ptr, pixels, 0, pixels.Length);
 		}
 		finally
 		{
@@ -682,9 +682,9 @@ internal sealed class GraphicsImage : AbstractImage
 		int h = Bitmap.Height;
 		if (xstart + w > array.GetLength(0) || ystart + h > array.GetLength(1))
 			return false;
-		Rectangle rect = new Rectangle(0, 0, w, h);
-		System.Drawing.Imaging.BitmapData bmpData =
-			Bitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly,
+		Rectangle rect = new (0, 0, w, h);
+		BitmapData bmpData =
+			Bitmap.LockBits(rect, ImageLockMode.ReadOnly,
 			PixelFormat.Format32bppArgb);
 		IntPtr ptr = bmpData.Scan0;
 		byte[] rgbValues = new byte[w * h * 4];
@@ -732,9 +732,9 @@ internal sealed class GraphicsImage : AbstractImage
 				rgbValues[i++] = (byte)((c >> 24) & 0xFF);//A
 			}
 		}
-		Rectangle rect = new Rectangle(0, 0, w, h);
-		System.Drawing.Imaging.BitmapData bmpData =
-			Bitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.WriteOnly,
+		Rectangle rect = new (0, 0, w, h);
+		BitmapData bmpData =
+			Bitmap.LockBits(rect, ImageLockMode.WriteOnly,
 			PixelFormat.Format32bppArgb);
 		IntPtr ptr = bmpData.Scan0;
 		Marshal.Copy(rgbValues, 0, ptr, rgbValues.Length);

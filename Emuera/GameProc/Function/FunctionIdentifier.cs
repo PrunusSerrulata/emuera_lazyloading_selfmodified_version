@@ -41,9 +41,9 @@ internal sealed partial class FunctionIdentifier
 
 	#region static
 	//元BuiltInFunctionManager部分
-	readonly static Dictionary<string, FunctionIdentifier> funcDic = new Dictionary<string, FunctionIdentifier>();
-	readonly static Dictionary<FunctionCode, string> funcMatch = new Dictionary<FunctionCode, string>();
-	readonly static Dictionary<FunctionCode, FunctionCode> funcParent = new Dictionary<FunctionCode, FunctionCode>();
+	readonly static Dictionary<string, FunctionIdentifier> funcDic = [];
+	readonly static Dictionary<FunctionCode, string> funcMatch = [];
+	readonly static Dictionary<FunctionCode, FunctionCode> funcParent = [];
 	readonly static ArgumentBuilder methodArgumentBuilder = null;
 	readonly static AbstractInstruction methodInstruction = null;
 
@@ -561,68 +561,68 @@ internal sealed partial class FunctionIdentifier
 
 	internal bool IsExtended()
 	{
-		return ((flag & EXTENDED) == EXTENDED);
+		return (flag & EXTENDED) == EXTENDED;
 	}
 	internal bool IsPrintDFunction()
 	{
-		return ((flag & ISPRINTDFUNC) == ISPRINTDFUNC);
+		return (flag & ISPRINTDFUNC) == ISPRINTDFUNC;
 	}
 
 	internal bool IsPrintKFunction()
 	{
-		return ((flag & ISPRINTKFUNC) == ISPRINTKFUNC);
+		return (flag & ISPRINTKFUNC) == ISPRINTKFUNC;
 	}
 
 	internal bool IsNewLine()
 	{
-		return ((flag & PRINT_NEWLINE) == PRINT_NEWLINE);
+		return (flag & PRINT_NEWLINE) == PRINT_NEWLINE;
 	}
 
 	internal bool IsWaitInput()
 	{
-		return ((flag & PRINT_WAITINPUT) == PRINT_WAITINPUT);
+		return (flag & PRINT_WAITINPUT) == PRINT_WAITINPUT;
 	}
 	internal bool IsPrintSingle()
 	{
-		return ((flag & PRINT_SINGLE) == PRINT_SINGLE);
+		return (flag & PRINT_SINGLE) == PRINT_SINGLE;
 	}
 
 	internal bool IsPartial()
 	{
-		return ((flag & PARTIAL) == PARTIAL);
+		return (flag & PARTIAL) == PARTIAL;
 	}
 
 	internal bool IsMethodSafe()
 	{
-		return ((flag & METHOD_SAFE) == METHOD_SAFE);
+		return (flag & METHOD_SAFE) == METHOD_SAFE;
 	}
 	internal bool IsPrint()
 	{
-		return ((flag & IS_PRINT) == IS_PRINT);
+		return (flag & IS_PRINT) == IS_PRINT;
 	}
 	internal bool IsInput()
 	{
-		return ((flag & IS_INPUT) == IS_INPUT);
+		return (flag & IS_INPUT) == IS_INPUT;
 	}
 	internal bool IsPrintData()
 	{
-		return ((flag & IS_PRINTDATA) == IS_PRINTDATA);
+		return (flag & IS_PRINTDATA) == IS_PRINTDATA;
 	}
 	internal bool IsForceSetArg()
 	{
-		return ((flag & FORCE_SETARG) == FORCE_SETARG);
+		return (flag & FORCE_SETARG) == FORCE_SETARG;
 	}
 	internal bool IsDebug()
 	{
-		return ((flag & DEBUG_FUNC) == DEBUG_FUNC);
+		return (flag & DEBUG_FUNC) == DEBUG_FUNC;
 	}
 	internal bool IsTry()
 	{
-		return ((flag & IS_TRY) == IS_TRY);
+		return (flag & IS_TRY) == IS_TRY;
 	}
 	internal bool IsJump()
 	{
-		return ((flag & IS_JUMP) == IS_JUMP);
+		return (flag & IS_JUMP) == IS_JUMP;
 	}
 
 	internal bool IsMethod()

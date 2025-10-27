@@ -15,7 +15,7 @@ abstract class ConsoleShapePart : AConsoleColoredPart
 	{
 		string type = shapeType.ToLower();
 		colorchanged = colorchanged || color != Config.ForeColor;
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new();
 		sb.Append("<shape type='");
 		sb.Append(type);
 		sb.Append("' param='");
@@ -142,7 +142,7 @@ internal sealed class ConsoleRectangleShapePart : ConsoleShapePart
 	readonly RectangleF originalRectF;
 	bool visible = false;
 	Rectangle rect;
-	public override void DrawTo(System.Drawing.Graphics graph, int pointY, bool isSelecting, bool isBackLog, TextDrawingMode mode)
+	public override void DrawTo(Graphics graph, int pointY, bool isSelecting, bool isBackLog, TextDrawingMode mode)
 	{
 		if (!visible)
 			return;
@@ -165,13 +165,13 @@ internal sealed class ConsoleRectangleShapePart : ConsoleShapePart
 	}
 	public override void SetWidth(StringMeasure sm, float subPixel)
 	{
-		float widF = (subPixel + WidthF);
-		Width = (int)(widF);
+		float widF = subPixel + WidthF;
+		Width = (int)widF;
 		XsubPixel = widF - Width;
 		rect.X = (int)(subPixel + originalRectF.X);
 		rect.Width = Width - rect.X;
 		rect.X += Config.DrawingParam_ShapePositionShift;
-		visible = (rect.X >= 0 && rect.Width > 0);// && rect.Y >= 0 && (rect.Y + rect.Height) <= Config.FontSize);
+		visible = rect.X >= 0 && rect.Width > 0;// && rect.Y >= 0 && (rect.Y + rect.Height) <= Config.FontSize);
 	}
 }
 
@@ -189,8 +189,8 @@ internal sealed class ConsoleSpacePart : ConsoleShapePart
 	public override void GDIDrawTo(int pointY, bool isSelecting, bool isBackLog) { }
 	public override void SetWidth(StringMeasure sm, float subPixel)
 	{
-		float widF = (subPixel + WidthF);
-		Width = (int)(widF);
+		float widF = subPixel + WidthF;
+		Width = (int)widF;
 		XsubPixel = widF - Width;
 	}
 }

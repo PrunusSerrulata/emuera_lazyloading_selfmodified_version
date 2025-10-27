@@ -202,7 +202,7 @@ internal static class HtmlManager
 		repDic.Add('\'', "&apos;");
 	}
 	static readonly char[] rep = new char[] { '&', '>', '<', '\"', '\'' };
-	static readonly Dictionary<char, string> repDic = new Dictionary<char, string>();
+	static readonly Dictionary<char, string> repDic = [];
 	private sealed class HtmlAnalzeStateFontTag
 	{
 		public int Color = -1;
@@ -228,7 +228,7 @@ internal static class HtmlManager
 	{
 		public bool LineHead = true;//行頭フラグ。一度もテキストが出てきてない状態
 		public FontStyle FontStyle = FontStyle.Regular;
-		public List<HtmlAnalzeStateFontTag> FonttagList = new List<HtmlAnalzeStateFontTag>();
+		public List<HtmlAnalzeStateFontTag> FonttagList = [];
 		public bool FlagNobr = false;//falseの時に</nobr>するとエラー
 		public bool FlagP = false;//falseの時に</p>するとエラー
 		public bool FlagNobrClosed = false;//trueの時に</nobr>するとエラー
@@ -291,7 +291,7 @@ internal static class HtmlManager
 	{
 		if (lines == null || lines.Length == 0)
 			return "";
-		StringBuilder b = new StringBuilder();
+		StringBuilder b = new ();
 		if (needPandN)
 		{
 			switch (lines[0].Align)
@@ -396,8 +396,8 @@ internal static class HtmlManager
 
 	public static string[] HtmlTagSplit(string str)
 	{
-		List<string> strList = new List<string>();
-		StringStream st = new StringStream(str);
+		List<string> strList = [];
+		StringStream st = new(str);
 		int found;
 		while (!st.EOS)
 		{
@@ -453,16 +453,16 @@ internal static class HtmlManager
 	#endregion
 	{
 		#region EM_私家版_HTML_PRINT拡張
-		List<AConsoleDisplayPart> cssList = new List<AConsoleDisplayPart>();
+		List<AConsoleDisplayPart> cssList = [];
 		// List<ConsoleButtonString> buttonList = new List<ConsoleButtonString>();
-		List<ConsoleButtonString> buttonList = buttonsOutput == null ? new List<ConsoleButtonString>() : buttonsOutput;
+		List<ConsoleButtonString> buttonList = buttonsOutput == null ? [] : buttonsOutput;
 		#endregion
 		// StringStream st = new StringStream(str);
-		StringStream st = parent != null ? parent.Stream : new StringStream(str);
+		StringStream st = parent != null ? parent.Stream : new(str);
 		int found;
 		bool hasComment = parent != null ? parent.HasComment : str.IndexOf("<!--", StringComparison.Ordinal) >= 0;
 		bool hasReturn = parent != null ? parent.HasReturn : str.IndexOf('\n', StringComparison.Ordinal) >= 0;
-		HtmlAnalzeState state = new HtmlAnalzeState();
+		HtmlAnalzeState state = new();
 		#region EM_私家版_HTML_divタグ
 		if (parent != null)
 		{
@@ -646,7 +646,7 @@ internal static class HtmlManager
 
 		int index = 0;
 		int found;
-		StringBuilder b = new StringBuilder();
+		StringBuilder b = new();
 		while (index < str.Length)
 		{
 			found = str.IndexOfAny(rep, index);
@@ -670,7 +670,7 @@ internal static class HtmlManager
 		int found = str.IndexOf('&', index);
 		if (found < 0)
 			return str;
-		StringBuilder b = new StringBuilder();
+		StringBuilder b = new();
 		// &～; をひたすら置換するだけ
 		while (index < str.Length)
 		{
@@ -757,8 +757,10 @@ internal static class HtmlManager
 		}
 		else
 		{
-			ret = new ConsoleButtonString(console, css);
-			ret.Title = null;
+			ret = new ConsoleButtonString(console, css)
+			{
+				Title = null
+			};
 		}
 		if (state.LastButtonTag != null)
 		{
@@ -773,7 +775,7 @@ internal static class HtmlManager
 
 	public static string GetColorToString(Color color)
 	{
-		StringBuilder b = new StringBuilder();
+		StringBuilder b = new();
 		b.Append("#");
 		int colorValue = color.R * 0x10000 + color.G * 0x100 + color.B;
 		b.Append(colorValue.ToString("X6"));
@@ -784,7 +786,7 @@ internal static class HtmlManager
 		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && (style.ButtonColor == Config.FocusColor));
 		if (!fontChanged && style.FontStyle == FontStyle.Regular)
 			return "";
-		StringBuilder b = new StringBuilder();
+		StringBuilder b = new();
 		if (fontChanged)
 		{
 			b.Append("<font");
@@ -830,7 +832,7 @@ internal static class HtmlManager
 		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && (style.ButtonColor == Config.FocusColor));
 		if (!fontChanged && style.FontStyle == FontStyle.Regular)
 			return "";
-		StringBuilder b = new StringBuilder();
+		StringBuilder b = new();
 		if (style.FontStyle != FontStyle.Regular)
 		{
 			if ((style.FontStyle & FontStyle.Bold) != FontStyle.Regular)
@@ -849,7 +851,7 @@ internal static class HtmlManager
 
 	private static AConsoleDisplayPart tagAnalyze(HtmlAnalzeState state, StringStream st)
 	{
-		bool endTag = (st.Current == '/');
+		bool endTag = st.Current == '/';
 		string tag;
 		if (endTag)
 		{
@@ -874,12 +876,12 @@ internal static class HtmlManager
 					state.FontStyle ^= endStyle;
 					return null;
 				case "p":
-					if ((!state.FlagP) || (state.FlagPClosed))
+					if ((!state.FlagP) || state.FlagPClosed)
 						throw new CodeEE(string.Format(trerror.UnexpectedCloseTag.Text, "p"));
 					state.FlagPClosed = true;
 					return null;
 				case "nobr":
-					if ((!state.FlagNobr) || (state.FlagNobrClosed))
+					if ((!state.FlagNobr) || state.FlagNobrClosed)
 						throw new CodeEE(string.Format(trerror.UnexpectedCloseTag.Text, "nobr"));
 					state.FlagNobrClosed = true;
 					return null;
@@ -1262,7 +1264,7 @@ internal static class HtmlManager
 				{
 					if (state.CurrentButtonTag != null)
 						throw new CodeEE(trerror.NestedButtonTag.Text);
-					HtmlAnalzeStateButtonTag buttonTag = new HtmlAnalzeStateButtonTag();
+					HtmlAnalzeStateButtonTag buttonTag = new();
 					bool isButton = tag.ToLower() == "button";
 					string attrValue;
 					string value = null;
@@ -1322,7 +1324,7 @@ internal static class HtmlManager
 						{
 							//if (value == null)
 							//	throw new CodeEE("<" + tag + ">タグにvalue属性が設定されていません");
-							buttonTag.ButtonIsInteger = (Int64.TryParse(value, out long intValue));
+							buttonTag.ButtonIsInteger = Int64.TryParse(value, out long intValue);
 							buttonTag.ButtonValueInt = intValue;
 							buttonTag.ButtonValueStr = value;
 						}
@@ -1375,7 +1377,7 @@ internal static class HtmlManager
 				{
 					if (wc == null)
 						throw new CodeEE(string.Format(trerror.TagHasNotAttribute.Text, tag));
-					HtmlAnalzeStateFontTag font = new HtmlAnalzeStateFontTag();
+					HtmlAnalzeStateFontTag font = new ();
 					while (!wc.EOL)
 					{
 						word = wc.Current as IdentifierWord;

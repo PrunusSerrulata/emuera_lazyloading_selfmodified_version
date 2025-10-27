@@ -24,10 +24,10 @@ internal abstract class OperatorMethod : FunctionMethod
 
 internal static class OperatorMethodManager
 {
-	readonly static Dictionary<OperatorCode, OperatorMethod> unaryDic = new Dictionary<OperatorCode, OperatorMethod>();
-	readonly static Dictionary<OperatorCode, OperatorMethod> unaryAfterDic = new Dictionary<OperatorCode, OperatorMethod>();
-	readonly static Dictionary<OperatorCode, OperatorMethod> binaryIntIntDic = new Dictionary<OperatorCode, OperatorMethod>();
-	readonly static Dictionary<OperatorCode, OperatorMethod> binaryStrStrDic = new Dictionary<OperatorCode, OperatorMethod>();
+	readonly static Dictionary<OperatorCode, OperatorMethod> unaryDic = [];
+	readonly static Dictionary<OperatorCode, OperatorMethod> unaryAfterDic = [];
+	readonly static Dictionary<OperatorCode, OperatorMethod> binaryIntIntDic = [];
+	readonly static Dictionary<OperatorCode, OperatorMethod> binaryStrStrDic = [];
 	readonly static OperatorMethod binaryMultIntStr = null;
 	readonly static OperatorMethod ternaryIntIntInt = null;
 	readonly static OperatorMethod ternaryIntStrStr = null;
@@ -276,7 +276,7 @@ internal static class OperatorMethodManager
 				throw new CodeEE(string.Format(trerror.Multiply10kToStr.Text, value.ToString()));
 			if ((str == "") || (value == 0))
 				return "";
-			StringBuilder builder = new StringBuilder
+			StringBuilder builder = new()
 			{
 				Capacity = str.Length * (int)value
 			};
@@ -651,7 +651,7 @@ internal static class OperatorMethodManager
 
 		public override Int64 GetIntValue(ExpressionMediator exm, IOperandTerm[] arguments)
 		{
-			return arguments[0].GetIntValue(exm) >> (Int32)(arguments[1].GetIntValue(exm));
+			return arguments[0].GetIntValue(exm) >> (Int32)arguments[1].GetIntValue(exm);
 		}
 	}
 
@@ -665,7 +665,7 @@ internal static class OperatorMethodManager
 
 		public override Int64 GetIntValue(ExpressionMediator exm, IOperandTerm[] arguments)
 		{
-			return arguments[0].GetIntValue(exm) << (Int32)(arguments[1].GetIntValue(exm));
+			return arguments[0].GetIntValue(exm) << (Int32)arguments[1].GetIntValue(exm);
 		}
 	}
 

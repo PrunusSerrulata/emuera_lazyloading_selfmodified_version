@@ -11,6 +11,9 @@ using trmb = EvilMask.Emuera.Lang.MessageBox;
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using System.Threading.Tasks;
+
 
 namespace MinorShift.Emuera.Forms
 {
@@ -262,6 +265,22 @@ namespace MinorShift.Emuera.Forms
 				page.Location = new Point(diff.Width / 2, diff.Height / 2);
 			}
 
+		}
+
+		private void shown(object sender, EventArgs e)
+		{
+			//フォントを事前読み込み
+			foreach (var ff in new InstalledFontCollection().Families)
+			{
+				if (ff.IsStyleAvailable(FontStyle.Regular) &&
+					ff.IsStyleAvailable(FontStyle.Bold) &&
+					ff.IsStyleAvailable(FontStyle.Italic) &&
+					ff.IsStyleAvailable(FontStyle.Strikeout) &&
+					ff.IsStyleAvailable(FontStyle.Underline))
+				{
+					comboBox2.Items.Add(ff.Name);
+				}
+			}
 		}
 
 		private void buttonSave_Click(object sender, EventArgs e)
@@ -791,23 +810,19 @@ namespace MinorShift.Emuera.Forms
 				return;
 			if (!OperatingSystem.IsWindows())
 				return;
-			InstalledFontCollection ifc = new InstalledFontCollection();
-			foreach (FontFamily ff in ifc.Families)
+			foreach (var ff in new InstalledFontCollection().Families)
 			{
-				/**
-				if (!ff.IsStyleAvailable(FontStyle.Regular))
-					continue;
-				if (!ff.IsStyleAvailable(FontStyle.Bold))
-					continue;
-				if (!ff.IsStyleAvailable(FontStyle.Italic))
-					continue;
-				if (!ff.IsStyleAvailable(FontStyle.Strikeout))
-					continue;
-				if (!ff.IsStyleAvailable(FontStyle.Underline))
-					continue;
-				**/
-				comboBox2.Items.Add(ff.Name);
+				if (ff.IsStyleAvailable(FontStyle.Regular) &&
+					ff.IsStyleAvailable(FontStyle.Bold) &&
+					ff.IsStyleAvailable(FontStyle.Italic) &&
+					ff.IsStyleAvailable(FontStyle.Strikeout) &&
+					ff.IsStyleAvailable(FontStyle.Underline))
+				{
+					comboBox2.Items.Add(ff.Name);
+				}
 			}
+
+			var selectedFontName = comboBox2.Text;
 			#region EE_フォントファイル対応
 			PrivateFontCollection pfc = new PrivateFontCollection();
 			foreach (string fontFile in Directory.GetFiles(Program.FontDir, "*.ttf", SearchOption.AllDirectories))

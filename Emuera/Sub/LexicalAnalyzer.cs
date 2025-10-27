@@ -242,24 +242,28 @@ internal static class LexicalAnalyzer
 				break;
 			}
 		}
-		string strInt = st.Substring(start, st.CurrentPosition - start);
+		var strInt = st.SubstringROS(start, st.CurrentPosition - start);
 		try
 		{
-			return Convert.ToInt64(strInt, fromBase);
+			if (fromBase == 10)
+			{
+				return Int64.Parse(strInt);
+			}
+			return Convert.ToInt64(strInt.ToString(), fromBase);
 		}
 		catch (FormatException)
 		{
-			throw new CodeEE(string.Format(trerror.CanNotConvertToInt.Text, strInt));
+			throw new CodeEE(string.Format(trerror.CanNotConvertToInt.Text, strInt.ToString()));
 		}
 		catch (OverflowException)
 		{
-			throw new CodeEE(string.Format(trerror.OoRInt64.Text, strInt));
+			throw new CodeEE(string.Format(trerror.OoRInt64.Text, strInt.ToString()));
 		}
 		catch (ArgumentOutOfRangeException)
 		{
-			if (string.IsNullOrEmpty(strInt))
+			if (strInt.IsEmpty)
 				throw new CodeEE(trerror.CanNotInterpretNum.Text);
-			throw new CodeEE(string.Format(trerror.CanNotInterpretNumValue.Text, strInt));
+			throw new CodeEE(string.Format(trerror.CanNotInterpretNumValue.Text, strInt.ToString()));
 		}
 	}
 
@@ -284,9 +288,6 @@ internal static class LexicalAnalyzer
 			char c = st.Current;
 			if (char.IsDigit(c) || (c == '.'))
 			{
-				if ((c == '.') && (System.Threading.Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator == ","))
-					st.Replace(st.CurrentPosition, 1, ",");
-
 				st.ShiftNext();
 				continue;
 			}
@@ -310,7 +311,7 @@ internal static class LexicalAnalyzer
 				break;
 			}
 		}
-		return Convert.ToDouble(st.Substring(start, st.CurrentPosition - start));
+		return double.Parse(st.SubstringROS(start, st.CurrentPosition - start));
 	}
 
 	/// <summary>
@@ -445,51 +446,54 @@ internal static class LexicalAnalyzer
 	/// <returns></returns>
 	public static string ReadString(StringStream st, StrEndWith endWith)
 	{
-		StringBuilder buffer = new StringBuilder(100);
-		while (true)
+		var buffer = new StringBuilder(100);
+		void loop()
 		{
-			switch (st.Current)
+			while (true)
 			{
-				case '\0':
-					goto end;
-				case '\"':
-					if (endWith == StrEndWith.DoubleQuotation)
-						goto end;
-					break;
-				case '\'':
-					if (endWith == StrEndWith.SingleQuotation)
-						goto end;
-					break;
-				case ',':
-					if ((endWith == StrEndWith.Comma) || (endWith == StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon))
-						goto end;
-					break;
-				case '(':
-				case '[':
-				case ';':
-					if (endWith == StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon)
-						goto end;
-					break;
-				case '\\'://エスケープ処理
-					st.ShiftNext();//\を読み飛ばす
-					switch (st.Current)
-					{
-						case StringStream.EndOfString:
-							throw new CodeEE(trerror.MissingCharacterAfterEscape.Text);
-						case '\n': break;
-						case 's': buffer.Append(' '); break;
-						case 'S': buffer.Append('　'); break;
-						case 't': buffer.Append('\t'); break;
-						case 'n': buffer.Append('\n'); break;
-						default: buffer.Append(st.Current); break;
-					}
-					st.ShiftNext();//\の次の文字を読み飛ばす
-					continue;
+				switch (st.Current)
+				{
+					case '\0':
+						return;
+					case '\"':
+						if (endWith == StrEndWith.DoubleQuotation)
+							return;
+						break;
+					case '\'':
+						if (endWith == StrEndWith.SingleQuotation)
+							return;
+						break;
+					case ',':
+						if ((endWith == StrEndWith.Comma) || (endWith == StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon))
+							return;
+						break;
+					case '(':
+					case '[':
+					case ';':
+						if (endWith == StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon)
+							return;
+						break;
+					case '\\'://エスケープ処理
+						st.ShiftNext();//\を読み飛ばす
+						switch (st.Current)
+						{
+							case StringStream.EndOfString:
+								throw new CodeEE(trerror.MissingCharacterAfterEscape.Text);
+							case '\n': break;
+							case 's': buffer.Append(' '); break;
+							case 'S': buffer.Append('　'); break;
+							case 't': buffer.Append('\t'); break;
+							case 'n': buffer.Append('\n'); break;
+							default: buffer.Append(st.Current); break;
+						}
+						st.ShiftNext();//\の次の文字を読み飛ばす
+						continue;
+				}
+				buffer.Append(st.Current);
+				st.ShiftNext();
 			}
-			buffer.Append(st.Current);
-			st.ShiftNext();
 		}
-	end:
+		loop();
 		return buffer.ToString();
 	}
 
@@ -792,7 +796,7 @@ internal static class LexicalAnalyzer
 	/// <returns></returns>
 	public static WordCollection Analyse(StringStream st, LexEndWith endWith, LexAnalyzeFlag flag)
 	{
-		WordCollection ret = new WordCollection();
+		WordCollection ret = new();
 		int nestBracketS = 0;
 		//int nestBracketM = 0;
 		int nestBracketL = 0;
@@ -1111,9 +1115,9 @@ internal static class LexicalAnalyzer
 	/// <returns></returns>
 	public static StrFormWord AnalyseFormattedString(StringStream st, FormStrEndWith endWith, bool trim)
 	{
-		List<string> strs = new List<string>();
-		List<SubWord> SWTs = new List<SubWord>();
-		StringBuilder buffer = new StringBuilder(100);
+		List<string> strs = [];
+		List<SubWord> SWTs = [];
+		StringBuilder buffer = new(100);
 		while (true)
 		{
 			char cur = st.Current;

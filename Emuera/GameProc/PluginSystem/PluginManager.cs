@@ -237,9 +237,7 @@ namespace MinorShift.Emuera.GameProc.PluginSystem
 		{
 			if (!Directory.Exists("Plugins"))
 			{
-				//フォルダを作らないようにする
-				return;
-				//Directory.CreateDirectory("Plugins");
+				Directory.CreateDirectory("Plugins");
 			}
 			string[] plugins = Directory.GetFiles("Plugins", "*.dll");
 			bool pluginsAware = File.Exists("pluginsAware.txt");

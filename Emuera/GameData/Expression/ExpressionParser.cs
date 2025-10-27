@@ -50,7 +50,7 @@ internal static class ExpressionParser
 	{
 		if (wc == null)
 			throw new ExeEE(trerror.EmptyStream.Text);
-		List<IOperandTerm> terms = new List<IOperandTerm>();
+		List<IOperandTerm> terms = [];
 		TermEndWith termEndWith = TermEndWith.EoL;
 		switch (endWith)
 		{
@@ -183,7 +183,7 @@ internal static class ExpressionParser
 	/// <returns></returns>
 	public static CaseExpression[] ReduceCaseExpressions(WordCollection wc)
 	{
-		List<CaseExpression> terms = new List<CaseExpression>();
+		List<CaseExpression> terms = [];
 		while (!wc.EOL)
 		{
 			terms.Add(reduceCaseExpression(wc));
@@ -317,9 +317,9 @@ internal static class ExpressionParser
 	#region private reduce
 	private static CaseExpression reduceCaseExpression(WordCollection wc)
 	{
-		CaseExpression ret = new CaseExpression();
+		CaseExpression ret = new();
 		IdentifierWord id = wc.Current as IdentifierWord;
-		if ((id != null) && (id.Code.Equals("IS", Config.SCVariable)))
+		if ((id != null) && id.Code.Equals("IS", Config.SCVariable))
 		{
 			wc.ShiftNext();
 			ret.CaseType = CaseExpressionType.Is;
@@ -342,7 +342,7 @@ internal static class ExpressionParser
 		if (ret.LeftTerm == null)
 			throw new CodeEE(trerror.CanNotOmitCaseArg.Text);
 		id = wc.Current as IdentifierWord;
-		if ((id != null) && (id.Code.Equals("TO", Config.SCVariable)))
+		if ((id != null) && id.Code.Equals("TO", Config.SCVariable))
 		{
 			ret.CaseType = CaseExpressionType.To;
 			wc.ShiftNext();
@@ -374,7 +374,7 @@ internal static class ExpressionParser
 	private static IOperandTerm reduceTerm(WordCollection wc, bool allowKeywordTo, TermEndWith endWith, VariableCode varCode, VariableToken varId = null)
 	#endregion
 	{
-		TermStack stack = new TermStack();
+		TermStack stack = new();
 		//int termCount = 0;
 		int ternaryCount = 0;
 		OperatorCode formerOp = OperatorCode.NULL;
@@ -397,7 +397,7 @@ internal static class ExpressionParser
 					break;
 				case 'A'://IdentifierWT
 					{
-						string idStr = (((IdentifierWord)token).Code);
+						string idStr = ((IdentifierWord)token).Code;
 						if (idStr.Equals("TO", Config.SCVariable))
 						{
 							if (allowKeywordTo)

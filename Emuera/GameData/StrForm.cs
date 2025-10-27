@@ -53,8 +53,10 @@ internal sealed class StrForm
 
 	public static StrForm FromWordToken(StrFormWord wt)
 	{
-		StrForm ret = new StrForm();
-		ret.strs = wt.Strs;
+		StrForm ret = new()
+		{
+			strs = wt.Strs
+		};
 		IOperandTerm[] termArray = new IOperandTerm[wt.SubWords.Length];
 		for (int i = 0; i < wt.SubWords.Length; i++)
 		{
@@ -156,7 +158,7 @@ internal sealed class StrForm
 	{
 		get
 		{
-			return (strs.Length == 1);
+			return strs.Length == 1;
 		}
 	}
 
@@ -182,8 +184,8 @@ internal sealed class StrForm
 		}
 		if (!canRestructure)
 			return;
-		List<string> strList = new List<string>();
-		List<IOperandTerm> termList = new List<IOperandTerm>();
+		List<string> strList = [];
+		List<IOperandTerm> termList = [];
 		strList.AddRange(strs);
 		termList.AddRange(terms);
 		for (int i = 0; i < termList.Count; i++)
@@ -208,7 +210,7 @@ internal sealed class StrForm
 	{
 		if (strs.Length == 1)
 			return strs[0];
-		StringBuilder builder = new StringBuilder(100);
+		StringBuilder builder = new(100);
 		for (int i = 0; i < strs.Length - 1; i++)
 		{
 			builder.Append(strs[i]);

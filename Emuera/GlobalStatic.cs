@@ -39,16 +39,16 @@ internal static class GlobalStatic
 
 	//ERBloaderに引数解析の結果を渡すための橋渡し変数
 	//1756 Processから移動。Program.AnalysisMode用
-	public static Dictionary<string, Int64> tempDic = new Dictionary<string, long>();
+	public static Dictionary<string, Int64> tempDic = [];
 	#region EE_FORCE_QUIT_AND_RESTART
 	public static bool ForceQuitAndRestart = false;//連続実行を防ぐ
 	#endregion
 	#region EE_フォントファイル対応
-	public static PrivateFontCollection Pfc = new PrivateFontCollection();
+	public static PrivateFontCollection Pfc = new();
 	#endregion
 
 #if DEBUG
-	public static List<FunctionLabelLine> StackList = new List<FunctionLabelLine>();
+	public static List<FunctionLabelLine> StackList = [];
 #endif
 	public static void Reset()
 	{

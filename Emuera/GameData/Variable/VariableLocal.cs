@@ -21,7 +21,7 @@ internal sealed class VariableLocal
 	VariableCode varCode;
 	//VariableData varData;
 	CreateLocalVariableToken creater;
-	Dictionary<string, LocalVariableToken> localVarTokens = new Dictionary<string, LocalVariableToken>();
+	Dictionary<string, LocalVariableToken> localVarTokens = [];
 	public LocalVariableToken GetExistLocalVariableToken(string subKey)
 	{
 		if (localVarTokens.TryGetValue(subKey, out LocalVariableToken ret))

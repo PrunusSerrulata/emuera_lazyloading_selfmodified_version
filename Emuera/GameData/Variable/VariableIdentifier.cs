@@ -54,63 +54,63 @@ internal sealed class VariableIdentifier
 	{
 		get
 		{
-			return ((code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__);
+			return (code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__;
 		}
 	}
 	public bool IsInteger
 	{
 		get
 		{
-			return ((code & VariableCode.__INTEGER__) == VariableCode.__INTEGER__);
+			return (code & VariableCode.__INTEGER__) == VariableCode.__INTEGER__;
 		}
 	}
 	public bool IsString
 	{
 		get
 		{
-			return ((code & VariableCode.__STRING__) == VariableCode.__STRING__);
+			return (code & VariableCode.__STRING__) == VariableCode.__STRING__;
 		}
 	}
 	public bool IsArray1D
 	{
 		get
 		{
-			return ((code & VariableCode.__ARRAY_1D__) == VariableCode.__ARRAY_1D__);
+			return (code & VariableCode.__ARRAY_1D__) == VariableCode.__ARRAY_1D__;
 		}
 	}
 	public bool IsArray2D
 	{
 		get
 		{
-			return ((code & VariableCode.__ARRAY_2D__) == VariableCode.__ARRAY_2D__);
+			return (code & VariableCode.__ARRAY_2D__) == VariableCode.__ARRAY_2D__;
 		}
 	}
 	public bool IsArray3D
 	{
 		get
 		{
-			return ((code & VariableCode.__ARRAY_3D__) == VariableCode.__ARRAY_3D__);
+			return (code & VariableCode.__ARRAY_3D__) == VariableCode.__ARRAY_3D__;
 		}
 	}
 	public bool Readonly
 	{
 		get
 		{
-			return ((code & VariableCode.__UNCHANGEABLE__) == VariableCode.__UNCHANGEABLE__);
+			return (code & VariableCode.__UNCHANGEABLE__) == VariableCode.__UNCHANGEABLE__;
 		}
 	}
 	public bool IsCalc
 	{
 		get
 		{
-			return ((code & VariableCode.__CALC__) == VariableCode.__CALC__);
+			return (code & VariableCode.__CALC__) == VariableCode.__CALC__;
 		}
 	}
 	public bool IsLocal
 	{
 		get
 		{
-			return ((code & VariableCode.__LOCAL__) == VariableCode.__LOCAL__);
+			return (code & VariableCode.__LOCAL__) == VariableCode.__LOCAL__;
 		}
 	}
 	//public bool IsConstant
@@ -124,12 +124,12 @@ internal sealed class VariableIdentifier
 	{
 		get
 		{
-			return ((code & VariableCode.__CAN_FORBID__) == VariableCode.__CAN_FORBID__);
+			return (code & VariableCode.__CAN_FORBID__) == VariableCode.__CAN_FORBID__;
 		}
 	}
-	readonly static Dictionary<string, VariableCode> nameDic = new Dictionary<string, VariableCode>();
-	readonly static Dictionary<string, VariableCode> localvarNameDic = new Dictionary<string, VariableCode>();
-	readonly static Dictionary<VariableCode, List<VariableCode>> extSaveListDic = new Dictionary<VariableCode, List<VariableCode>>();
+	readonly static Dictionary<string, VariableCode> nameDic = [];
+	readonly static Dictionary<string, VariableCode> localvarNameDic = [];
+	readonly static Dictionary<VariableCode, List<VariableCode>> extSaveListDic = [];
 
 	public static Dictionary<string, VariableCode> GetVarNameDic()
 	{
@@ -253,7 +253,7 @@ internal sealed class VariableIdentifier
 				VariableCode flag = code &
 					(VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ | VariableCode.__ARRAY_3D__ | VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__ | VariableCode.__INTEGER__);
 				if (!extSaveListDic.ContainsKey(flag))
-					extSaveListDic.Add(flag, new List<VariableCode>());
+					extSaveListDic.Add(flag, []);
 				extSaveListDic[flag].Add(code);
 			}
 		}
@@ -264,7 +264,7 @@ internal sealed class VariableIdentifier
 		VariableCode gFlag = flag &
 			(VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ | VariableCode.__ARRAY_3D__ | VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__ | VariableCode.__INTEGER__);
 		if (!extSaveListDic.ContainsKey(gFlag))
-			return new List<VariableCode>();
+			return [];
 		return extSaveListDic[gFlag];
 	}
 

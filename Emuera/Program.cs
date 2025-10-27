@@ -4,11 +4,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Forms;
 using MinorShift._Library;
-using MinorShift.Emuera.GameView;
-using MinorShift.Emuera.GameData.Expression;
 using System.IO;
 using EvilMask.Emuera;
-using System.Text;
 using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.GameProc.PluginSystem;
 
@@ -44,9 +41,9 @@ static class Program
 	[STAThread]
 	static void Main(string[] args)
 	{
-		
-		CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-		CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+		// memo: Shift-JISを扱うためのおまじない
+		System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
 
 		// ExeDir = Sys.ExeDir;
 		#region eee_カレントディレクトリー
@@ -97,7 +94,7 @@ static class Program
 			if (arg.Equals("-DEBUG", StringComparison.CurrentCultureIgnoreCase))
 			{
 				// argsStart = 1;//デバッグモードかつ解析モード時に最初の1っこ(-DEBUG)を飛ばす
-				debugMode = true;
+				DebugMode = true;
 			}
 			else if (arg.Equals("-GENLANG", StringComparison.CurrentCultureIgnoreCase))
 			{
@@ -113,7 +110,7 @@ static class Program
 		}
 		#endregion
 
-		Application.EnableVisualStyles();
+		ApplicationConfiguration.Initialize();
 		Application.SetCompatibleTextRenderingDefault(false);
 		ConfigData.Instance.LoadConfig();
 
@@ -133,7 +130,7 @@ static class Program
 		#endregion
 
 		//二重起動の禁止かつ二重起動
-		if ((!Config.AllowMultipleInstances) && (Sys.PrevInstance()))
+		if ((!Config.AllowMultipleInstances) && Sys.PrevInstance())
 		{
 			//MessageBox.Show("多重起動を許可する場合、emuera.configを書き換えて下さい", "既に起動しています");
 			MessageBox.Show(Lang.UI.MainWindow.MsgBox.MultiInstanceInfo.Text, Lang.UI.MainWindow.MsgBox.InstaceExists.Text);
@@ -165,7 +162,7 @@ static class Program
 		#region FontFallback
 		Config.SetupDefaultFont();
 		#endregion
-		if (debugMode)
+		if (DebugMode)
 		{
 			ConfigData.Instance.LoadDebugConfig();
 			if (!Directory.Exists(DebugDir))
@@ -218,9 +215,40 @@ static class Program
 			}
 			#endregion
 		}
-		MainWindow win = null;
 		while (true)
 		{
+			var winState = FormWindowState.Normal;
+			var rebootClientHeight = 0;
+			var rebootLocation = Point.Empty;
+			using var win = new MainWindow(winState, rebootLocation, rebootClientHeight, (_) =>
+			{
+				rebootFlag = true;
+			});
+			#region EM_私家版_Emuera多言語化改造
+			win.TranslateUI();
+			#endregion
+			#region EM_私家版_Icon指定機能
+			if (icon != null)
+				win.SetupIcon(icon);
+			#endregion
+			Application.Run(win);
+			Content.AppContents.UnloadContents();
+			if (!rebootFlag)
+				break;
+			RebootWinState = win.WindowState;
+			if (win.WindowState == FormWindowState.Normal)
+			{
+				rebootClientHeight = win.ClientSize.Height;
+				rebootLocation = win.Location;
+			}
+			else
+			{
+				rebootClientHeight = 0;
+				rebootLocation = new Point();
+			}
+
+			/* VVII版マージ前の起動処理
+			MainWindow win = null;
 			StartTime = WinmmTimer.TickCount;
 			using (win = new MainWindow())
 			{
@@ -247,6 +275,7 @@ static class Program
 					RebootLocation = new Point();
 				}
 			}
+			*/
 			//条件次第ではParserMediatorが空でない状態で再起動になる場合がある
 			ParserMediator.ClearWarningList();
 			ParserMediator.Initialize(null);
@@ -256,7 +285,7 @@ static class Program
 			ConfigData.Instance.ReLoadConfig();
 			break;
 		}
-		if (Reboot)
+		if (rebootFlag)
 			Application.Restart();
 		#endregion
 	}
@@ -282,19 +311,17 @@ static class Program
 	#endregion
 
 
-	public static bool Reboot = false;
+	public static bool rebootFlag = false;
 	//public static int RebootClientX = 0;
-	public static int RebootClientY = 0;
+	//public static int RebootClientY = 0;
 	public static FormWindowState RebootWinState = FormWindowState.Normal;
-	public static Point RebootLocation;
+	//public static Point RebootLocation;
 
 	public static bool AnalysisMode = false;
 	public static List<string> AnalysisFiles = null;
 
-	public static bool debugMode = false;
-	public static bool DebugMode { get { return debugMode; } }
-
-
-	public static uint StartTime { get; private set; }
+	//public static bool debugMode = false;
+	//public static bool DebugMode { get { return debugMode; } }
+	public static bool DebugMode { get; private set; }
 
 }

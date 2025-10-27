@@ -10,6 +10,7 @@ using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.GameProc.Function;
 using trerror = EvilMask.Emuera.Lang.Error;
+using System.Runtime.Versioning;
 
 namespace MinorShift.Emuera.GameProc;
 
@@ -43,9 +44,9 @@ internal sealed partial class Process
 					if (func.IsError)
 						throw new CodeEE(func.ErrMes);
 				}
-				if ((skipPrint) && (func.Function.IsPrint()))
+				if (skipPrint && func.Function.IsPrint())
 				{
-					if ((userDefinedSkip) && (func.Function.IsInput()))
+					if (userDefinedSkip && func.Function.IsInput())
 					{
 						console.PrintError(trerror.SkipdispInputError1.Text);
 						console.PrintError(trerror.SkipdispInputError2.Text);
@@ -100,6 +101,7 @@ internal sealed partial class Process
 	}
 
 	#region normal
+	[SupportedOSPlatform("windows")]
 	void doNormalFunction(InstructionLine func)
 	{
 		Int64 iValue = 0;
@@ -301,14 +303,14 @@ internal sealed partial class Process
 				break;
 			#region EE_FORCE_QUIT系
 			case FunctionCode.QUIT_AND_RESTART:
-				Program.Reboot = true;
+				Program.rebootFlag = true;
 				exm.Console.Quit();
 				break;
 			case FunctionCode.FORCE_QUIT://ゲームを終了
 				exm.Console.ForceQuit();
 				break;
 			case FunctionCode.FORCE_QUIT_AND_RESTART:
-				Program.Reboot = true;
+				Program.rebootFlag = true;
 				exm.Console.ForceQuit();
 				break;
 			#endregion
@@ -444,14 +446,14 @@ internal sealed partial class Process
 						Int64 colorRGB = colorArg.ConstInt;
 						colorR = (colorRGB & 0xFF0000) >> 16;
 						colorG = (colorRGB & 0x00FF00) >> 8;
-						colorB = (colorRGB & 0x0000FF);
+						colorB = colorRGB & 0x0000FF;
 					}
 					else if (colorArg.RGB != null)
 					{
 						Int64 colorRGB = colorArg.RGB.GetIntValue(exm);
 						colorR = (colorRGB & 0xFF0000) >> 16;
 						colorG = (colorRGB & 0x00FF00) >> 8;
-						colorB = (colorRGB & 0x0000FF);
+						colorB = colorRGB & 0x0000FF;
 					}
 					else
 					{
@@ -572,10 +574,10 @@ internal sealed partial class Process
 				break;
 			case FunctionCode.SKIPDISP:
 				{
-					iValue = (func.Argument.IsConst) ? func.Argument.ConstInt : ((ExpressionArgument)func.Argument).Term.GetIntValue(exm);
-					skipPrint = (iValue != 0);
-					userDefinedSkip = (iValue != 0);
-					vEvaluator.RESULT = (skipPrint) ? 1L : 0L;
+					iValue = func.Argument.IsConst ? func.Argument.ConstInt : ((ExpressionArgument)func.Argument).Term.GetIntValue(exm);
+					skipPrint = iValue != 0;
+					userDefinedSkip = iValue != 0;
+					vEvaluator.RESULT = skipPrint ? 1L : 0L;
 				}
 				break;
 			case FunctionCode.NOSKIP:
@@ -855,8 +857,7 @@ internal sealed partial class Process
 						if (callto == null)
 							continue;
 						callto.IsJump = func.Function.IsJump();
-						string errMes;
-						UserDefinedFunctionArgument args = callto.ConvertArg(cfa.RowArgs, out errMes);
+						UserDefinedFunctionArgument args = callto.ConvertArg(cfa.RowArgs, out string errMes);
 						if (args == null)
 							throw new CodeEE(errMes);
 						state.IntoFunction(callto, args, exm);
@@ -945,7 +946,7 @@ internal sealed partial class Process
 
 
 
-	List<ProcessState> prevStateList = new List<ProcessState>();
+	List<ProcessState> prevStateList = [];
 	public void saveCurrentState(bool single)
 	{
 		//怖いところだが、現状起こらない現象なので一旦消してみる

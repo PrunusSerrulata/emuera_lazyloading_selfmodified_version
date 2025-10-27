@@ -82,7 +82,7 @@ internal static class KeyMacro
 
 	public static void LoadMacroFile(string filename)
 	{
-		EraStreamReader eReader = new EraStreamReader(false);
+		EraStreamReader eReader = new(false);
 		if (!eReader.Open(filename))
 			return;
 		try

@@ -15,8 +15,10 @@ internal sealed class UserDefinedRefMethod
 
 	internal static UserDefinedRefMethod Create(UserDefinedFunctionData funcData)
 	{
-		UserDefinedRefMethod ret = new UserDefinedRefMethod();
-		ret.Name = funcData.Name;
+		UserDefinedRefMethod ret = new()
+		{
+			Name = funcData.Name
+		};
 		if (funcData.TypeIsStr)
 			ret.RetType = typeof(string);
 		else

@@ -103,7 +103,7 @@ internal abstract class EraBinaryDataReader : IDisposable
 			if ((fs == null) || (fs.Length < 16))
 				return null;
 			#region EM_私家版_セーブ圧縮
-			BinaryReader reader = new BinaryReader(fs, Encoding.Unicode, true);
+			BinaryReader reader = new(fs, Encoding.Unicode, true);
 
 			//if (reader.ReadUInt64() != EraBDConst.Header)
 			//	return null;

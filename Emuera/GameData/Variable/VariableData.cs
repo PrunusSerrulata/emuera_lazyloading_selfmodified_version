@@ -56,17 +56,17 @@ internal sealed partial class VariableData : IDisposable
 	public Int64 LastLoadNo = -1;
 	public string LastLoadText = "";
 
-	Dictionary<string, VariableToken> varTokenDic = new Dictionary<string, VariableToken>();
-	Dictionary<string, VariableLocal> localvarTokenDic = new Dictionary<string, VariableLocal>();
+	Dictionary<string, VariableToken> varTokenDic = [];
+	Dictionary<string, VariableLocal> localvarTokenDic = [];
 
 	/// <summary>
 	/// ユーザー変数のうちStaticかつ非Globalなもの。ERHでのDIM(非GLOBAL) と関数でのDIM (STATIC)の両方。ロードやリセットで初期化が必要。キャラクタ変数は除く。
 	/// </summary>
-	List<UserDefinedVariableToken> userDefinedStaticVarList = new List<UserDefinedVariableToken>();
+	List<UserDefinedVariableToken> userDefinedStaticVarList = [];
 	/// <summary>
 	/// ユーザー広域変数のうちグローバル属性持ち。
 	/// </summary>
-	List<UserDefinedVariableToken> userDefinedGlobalVarList = new List<UserDefinedVariableToken>();
+	List<UserDefinedVariableToken> userDefinedGlobalVarList = [];
 	/// <summary>
 	/// ユーザー広域変数のうちセーブされるもの。グローバル、キャラクタ変数は除く。
 	/// </summary>
@@ -139,8 +139,8 @@ internal sealed partial class VariableData : IDisposable
 		}
 		for (int i = 0; i < 6; i++)
 		{
-			userDefinedSaveVarList[i] = new List<UserDefinedVariableToken>();
-			userDefinedGlobalSaveVarList[i] = new List<UserDefinedVariableToken>();
+			userDefinedSaveVarList[i] = [];
+			userDefinedGlobalSaveVarList[i] = [];
 		}
 
 
@@ -290,7 +290,7 @@ internal sealed partial class VariableData : IDisposable
 		varTokenDic.Add("MONEYNAME", new Str1DConstantToken(VariableCode.MONEYNAME, this));
 		#endregion
 
-		StrConstantToken token = new StrConstantToken(VariableCode.GAMEBASE_AUTHOR, this, gamebase.ScriptAutherName);
+		StrConstantToken token = new(VariableCode.GAMEBASE_AUTHOR, this, gamebase.ScriptAutherName);
 		varTokenDic.Add("GAMEBASE_AUTHER", token);
 		varTokenDic.Add("GAMEBASE_AUTHOR", token);
 		varTokenDic.Add("GAMEBASE_INFO", new StrConstantToken(VariableCode.GAMEBASE_INFO, this, gamebase.ScriptDetail));
@@ -363,7 +363,7 @@ internal sealed partial class VariableData : IDisposable
 	}
 	public Dictionary<string, VariableToken> GetVarTokenDicClone()
 	{
-		Dictionary<string, VariableToken> clone = new Dictionary<string, VariableToken>();
+		Dictionary<string, VariableToken> clone = [];
 		foreach (KeyValuePair<string, VariableToken> pair in varTokenDic)
 			clone.Add(pair.Key, pair.Value);
 		return clone;

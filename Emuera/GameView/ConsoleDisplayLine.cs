@@ -122,7 +122,7 @@ internal sealed class ConsoleDisplayLine
 
 	public void Clear(Brush brush, Graphics graph, int pointY)
 	{
-		Rectangle rect = new Rectangle(0, pointY, Config.WindowX, Config.LineHeight);
+		Rectangle rect = new(0, pointY, Config.WindowX, Config.LineHeight);
 		graph.FillRectangle(brush, rect);
 	}
 
@@ -181,7 +181,7 @@ internal sealed class ConsoleDisplayLine
 	{
 		if (buttons == null)
 			return "";
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new();
 		foreach (ConsoleButtonString button in buttons)
 			builder.Append(button.ToString());
 		return builder.ToString();

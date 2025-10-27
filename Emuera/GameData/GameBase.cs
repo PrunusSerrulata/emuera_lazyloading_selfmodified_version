@@ -32,7 +32,7 @@ internal sealed class GameBase
 	{
 		get
 		{
-			StringBuilder versionStr = new StringBuilder();
+			StringBuilder versionStr = new();
 			versionStr.Append((ScriptVersion / 1000).ToString());
 			versionStr.Append(".");
 			if ((ScriptVersion % 10) != 0)
@@ -62,20 +62,16 @@ internal sealed class GameBase
 	public Int64 DefaultCharacter = -1;
 	public Int64 DefaultNoItem = 0;
 
-	private bool tryatoi(string str, out Int64 i)
+	private bool tryatoi(ReadOnlySpan<char> str, out Int64 i)
 	{
 		if (Int64.TryParse(str, out i))
 			return true;
-		StringStream st = new StringStream(str);
-		StringBuilder sb = new StringBuilder(str.Length);
-		while (true)
+		var sb = new StringBuilder(str.Length);
+		foreach (var character in str)
 		{
-			if (st.EOS)
+			if (!char.IsNumber(character))
 				break;
-			if (!char.IsNumber(st.Current))
-				break;
-			sb.Append(st.Current);
-			st.ShiftNext();
+			sb.Append(character);
 		}
 		if (sb.Length > 0)
 			if (Int64.TryParse(sb.ToString(), out i))
@@ -95,7 +91,7 @@ internal sealed class GameBase
 			return true;
 		}
 		ScriptPosition pos = null;
-		EraStreamReader eReader = new EraStreamReader(false);
+		EraStreamReader eReader = new(false);
 		if (!eReader.Open(basePath))
 		{
 			//output.PrintLine(eReader.Filename + "のオープンに失敗しました");
@@ -155,8 +151,8 @@ internal sealed class GameBase
 							ParserMediator.Warn(trerror.CanNotReadVersion.Text, pos, 0);
 							break;
 						}
-						Version curerntVersion = new Version(GlobalStatic.MainWindow.InternalEmueraVer);
-						Version targetVersoin = new Version(Compatible_EmueraVer);
+						Version curerntVersion = new(GlobalStatic.MainWindow.InternalEmueraVer);
+						Version targetVersoin = new(Compatible_EmueraVer);
 						if (curerntVersion < targetVersoin)
 						{
 							ParserMediator.Warn(string.Format(trerror.RequireLaterEmuera.Text, GlobalStatic.MainWindow.EmueraVerText), pos, 2);

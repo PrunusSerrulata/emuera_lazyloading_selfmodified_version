@@ -81,7 +81,7 @@ internal sealed class ConstantData
 
 
 	public int[] MaxDataList = new int[countNameCsv];
-	readonly HashSet<VariableCode> changedCode = new HashSet<VariableCode>();
+	readonly HashSet<VariableCode> changedCode = [];
 
 	public int[] VariableIntArrayLength;
 	public int[] VariableStrArrayLength;
@@ -116,7 +116,7 @@ internal sealed class ConstantData
 	private readonly Dictionary<string, Dictionary<string, int>> erdNameToIntDics = new Dictionary<string, Dictionary<string, int>>();
 	#endregion
 	private readonly Dictionary<string, int>[] nameToIntDics = new Dictionary<string, int>[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__];
-	private readonly Dictionary<string, int> relationDic = new Dictionary<string, int>();
+	private readonly Dictionary<string, int> relationDic = [];
 	public string[] GetCsvNameList(VariableCode code)
 	{
 		return names[(int)(code & VariableCode.__LOWERCASE__)];
@@ -132,7 +132,7 @@ internal sealed class ConstantData
 		//this.gamebase = gamebase;
 		setDefaultArrayLength();
 
-		CharacterTmplList = new List<CharacterTemplate>();
+		CharacterTmplList = [];
 		useCompatiName = Config.CompatiCALLNAME;
 	}
 
@@ -224,7 +224,7 @@ internal sealed class ConstantData
 	{
 		if (!File.Exists(csvPath))
 			return;
-		EraStreamReader eReader = new EraStreamReader(false);
+		EraStreamReader eReader = new(false);
 		if (!eReader.Open(csvPath))
 		{
 			output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
@@ -280,7 +280,7 @@ internal sealed class ConstantData
 			ParserMediator.Warn(string.Format(trerror.CanNotChange0DVarSize.Text, id.ToString()), position, 1);
 			return;
 		}
-		if ((id.IsCalc) || (id.Code == VariableCode.RANDDATA))
+		if (id.IsCalc || (id.Code == VariableCode.RANDDATA))
 		{
 			ParserMediator.Warn(string.Format(trerror.CanNotChangeVarSize.Text, id.ToString()), position, 1);
 			return;
@@ -631,7 +631,7 @@ internal sealed class ConstantData
 		for (int i = 0; i < countNameCsv; i++)
 		{
 			names[i] = new string[MaxDataList[i]];
-			nameToIntDics[i] = new Dictionary<string, int>();
+			nameToIntDics[i] = [];
 		}
 		ItemPrice = new Int64[MaxDataList[itemIndex]];
 		#region EE_ERD
@@ -842,7 +842,7 @@ internal sealed class ConstantData
 
 			//ここで見つからなかったら下の処理でも通す
 			if (dic.TryGetValue(key, out ret))
-				return (dic.TryGetValue(key, out ret));
+				return dic.TryGetValue(key, out ret);
 		}
 		catch { }
 		if (!string.IsNullOrEmpty(varname))
@@ -1175,7 +1175,7 @@ internal sealed class ConstantData
 			return ret;
 		if (ret == null)
 			throw new CodeEE(string.Format(Lang.Error.CanNotSpecifiedByString.Text, code.ToString()));
-		if ((index != allowIndex))
+		if (index != allowIndex)
 		{
 			if (allowIndex < 0)//GETNUM専用
 				throw new CodeEE(string.Format(Lang.Error.CanNotSpecifiedByString.Text, code.ToString()));
@@ -1260,8 +1260,8 @@ internal sealed class ConstantData
 		}
 		foreach (CharacterTemplate tmpl in CharacterTmplList)
 			tmpl.SetSpFlag();
-		Dictionary<Int64, CharacterTemplate> nList = new Dictionary<Int64, CharacterTemplate>();
-		Dictionary<Int64, CharacterTemplate> spList = new Dictionary<Int64, CharacterTemplate>();
+		Dictionary<Int64, CharacterTemplate> nList = [];
+		Dictionary<Int64, CharacterTemplate> spList = [];
 		foreach (CharacterTemplate tmpl in CharacterTmplList)
 		{
 			Dictionary<Int64, CharacterTemplate> targetList = nList;
@@ -1394,7 +1394,7 @@ internal sealed class ConstantData
 	private void loadCharacterDataFile(string csvPath, string csvName, bool disp)
 	{
 		CharacterTemplate tmpl = null;
-		EraStreamReader eReader = new EraStreamReader(false);
+		EraStreamReader eReader = new(false);
 		if (!eReader.Open(csvPath, csvName))
 		{
 			output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
@@ -1421,8 +1421,8 @@ internal sealed class ConstantData
 					ParserMediator.Warn(trerror.StartedComma.Text, position, 1);
 					continue;
 				}
-				if ((tokens[0].Equals("NO", Config.SCVariable))
-					|| (tokens[0].Equals("番号", Config.SCVariable)))
+				if (tokens[0].Equals("NO", Config.SCVariable)
+					|| tokens[0].Equals("番号", Config.SCVariable))
 				{
 					if (tmpl != null)
 					{
@@ -1437,8 +1437,8 @@ internal sealed class ConstantData
 					tmpl = new CharacterTemplate(index, this);
 					string no = eReader.Filename.ToUpper(CultureInfo.InvariantCulture);
 					no = no.Substring(no.IndexOf("CHARA", StringComparison.Ordinal) + 5);
-					StringBuilder sb = new StringBuilder();
-					StringStream ss = new StringStream(no);
+					StringBuilder sb = new();
+					StringStream ss = new(no);
 					while (!ss.EOS && char.IsDigit(ss.Current))
 					{
 						sb.Append(ss.Current);
@@ -1480,7 +1480,7 @@ internal sealed class ConstantData
 		p = -1;
 		if (string.IsNullOrEmpty(str))
 			return false;
-		StringStream st = new StringStream(str);
+		StringStream st = new (str);
 		int sign = 1;
 		if (st.Current == '+')
 			st.ShiftNext();
@@ -1690,8 +1690,8 @@ internal sealed class ConstantData
 		if (!File.Exists(csvPath))
 			return;
 		string[] target = names[targetIndex];
-		HashSet<int> defined = new HashSet<int>();
-		EraStreamReader eReader = new EraStreamReader(false);
+		HashSet<int> defined = [];
+		EraStreamReader eReader = new(false);
 		#region EE_ERD
 		// if (!eReader.Open(csvPath))
 		if (!eReader.Open(csvPath) && output != null)
@@ -1838,16 +1838,16 @@ internal sealed class CharacterTemplate
 	public string Nickname;
 	public string Mastername;
 	public readonly Int64 No;
-	public readonly Dictionary<Int32, Int64> Maxbase = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> Mark = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> Exp = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> Abl = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> Talent = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> Relation = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> CFlag = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> Equip = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, Int64> Juel = new Dictionary<Int32, Int64>();
-	public readonly Dictionary<Int32, string> CStr = new Dictionary<Int32, string>();
+	public readonly Dictionary<Int32, Int64> Maxbase = [];
+	public readonly Dictionary<Int32, Int64> Mark = [];
+	public readonly Dictionary<Int32, Int64> Exp = [];
+	public readonly Dictionary<Int32, Int64> Abl = [];
+	public readonly Dictionary<Int32, Int64> Talent = [];
+	public readonly Dictionary<Int32, Int64> Relation = [];
+	public readonly Dictionary<Int32, Int64> CFlag = [];
+	public readonly Dictionary<Int32, Int64> Equip = [];
+	public readonly Dictionary<Int32, Int64> Juel = [];
+	public readonly Dictionary<Int32, string> CStr = [];
 	public Int64 csvNo;
 	public bool IsSpchara { get; private set; }
 

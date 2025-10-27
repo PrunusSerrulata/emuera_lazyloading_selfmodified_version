@@ -25,10 +25,10 @@ internal sealed class PrintStringBuffer
 		this.parent = parent;
 	}
 	readonly EmueraConsole parent;
-	StringBuilder builder = new StringBuilder();
-	List<AConsoleDisplayPart> m_stringList = new List<AConsoleDisplayPart>();
-	StringStyle lastStringStyle = new StringStyle();
-	List<ConsoleButtonString> m_buttonList = new List<ConsoleButtonString>();
+	StringBuilder builder = new();
+	List<AConsoleDisplayPart> m_stringList = [];
+	StringStyle lastStringStyle = new();
+	List<ConsoleButtonString> m_buttonList = [];
 
 	public int BufferStrLength
 	{
@@ -131,13 +131,13 @@ internal sealed class PrintStringBuffer
 	{
 		get
 		{
-			return ((m_buttonList.Count == 0) && (builder.Length == 0) && (m_stringList.Count == 0));
+			return (m_buttonList.Count == 0) && (builder.Length == 0) && (m_stringList.Count == 0);
 		}
 	}
 
 	public override string ToString()
 	{
-		StringBuilder buf = new StringBuilder();
+		StringBuilder buf = new();
 		foreach (ConsoleButtonString button in m_buttonList)
 			buf.Append(button.ToString());
 		foreach (AConsoleDisplayPart css in m_stringList)
@@ -163,7 +163,7 @@ internal sealed class PrintStringBuffer
 		setWidthToButtonList(m_buttonList, stringMeasure, true);
 		ConsoleButtonString[] dispLineButtonArray = new ConsoleButtonString[m_buttonList.Count];
 		m_buttonList.CopyTo(dispLineButtonArray);
-		ConsoleDisplayLine line = new ConsoleDisplayLine(dispLineButtonArray, true, temporary);
+		ConsoleDisplayLine line = new(dispLineButtonArray, true, temporary);
 		this.clearBuffer();
 		return line;
 	}
@@ -192,8 +192,8 @@ internal sealed class PrintStringBuffer
 		if (buttonList.Count == 0)
 			return new ConsoleDisplayLine[0];
 		setWidthToButtonList(buttonList, stringMeasure, nobr);
-		List<ConsoleDisplayLine> lineList = new List<ConsoleDisplayLine>();
-		List<ConsoleButtonString> lineButtonList = new List<ConsoleButtonString>();
+		List<ConsoleDisplayLine> lineList = [];
+		List<ConsoleButtonString> lineButtonList = [];
 		#region EM_私家版_HTML_divタグ
 		// int windowWidth = Config.DrawableWidth;
 		// bool firstLine = true;
@@ -210,7 +210,7 @@ internal sealed class PrintStringBuffer
 				i--;
 				continue;
 			}
-			if (nobr || ((buttonList[i].PointX + buttonList[i].Width <= windowWidth)))
+			if (nobr || buttonList[i].PointX + buttonList[i].Width <= windowWidth)
 			{//改行不要モードであるか表示可能領域に収まるならそのままでよい
 				lineButtonList.Add(buttonList[i]);
 				continue;
@@ -376,7 +376,7 @@ internal sealed class PrintStringBuffer
 		int cssStartCharIndex = 0;
 		int buttonEndCharIndex = 0;
 		int cssIndex = 0;
-		List<AConsoleDisplayPart> buttonCssList = new List<AConsoleDisplayPart>();
+		List<AConsoleDisplayPart> buttonCssList = [];
 		for (int i = 0; i < ret.Length; i++)
 		{
 			ButtonPrimitive bp = bpList[i];

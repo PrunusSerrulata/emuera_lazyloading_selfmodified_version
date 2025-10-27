@@ -42,15 +42,15 @@ internal static class ParserMediator
 		if (RenameDic != null)
 			RenameDic.Clear();
 		//とにかく辞書を作る。辞書がnullのときは UseRenameFileがNOの時のみ
-		RenameDic = new Dictionary<string, string>();
-		EraStreamReader eReader = new EraStreamReader(false);
+		RenameDic = [];
+		EraStreamReader eReader = new(false);
 		if ((!File.Exists(filepath)) || (!eReader.Open(filepath)))
 		{
 			return;
 		}
 		string line;
 		ScriptPosition pos = null;
-		Regex reg = new Regex(@"\\,", RegexOptions.Compiled);
+		Regex reg = new(@"\\,", RegexOptions.Compiled);
 		try
 		{
 			while ((line = eReader.ReadLine()) != null)
@@ -131,7 +131,7 @@ internal static class ParserMediator
 		//				console.PrintWarning(str, line.Position, level);
 	}
 
-	private static List<ParserWarning> warningList = new List<ParserWarning>();
+	private static List<ParserWarning> warningList = [];
 
 	public static bool HasWarning { get { return warningList.Count > 0; } }
 	public static void ClearWarningList()

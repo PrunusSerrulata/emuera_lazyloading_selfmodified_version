@@ -104,19 +104,19 @@ internal static class OperatorManager
 
 	public static bool IsUnary(OperatorCode type)
 	{
-		return ((type & OperatorCode.__UNARY__) == OperatorCode.__UNARY__);
+		return (type & OperatorCode.__UNARY__) == OperatorCode.__UNARY__;
 	}
 	public static bool IsUnaryAfter(OperatorCode type)
 	{
-		return ((type & OperatorCode.__UNARY_AFTER__) == OperatorCode.__UNARY_AFTER__);
+		return (type & OperatorCode.__UNARY_AFTER__) == OperatorCode.__UNARY_AFTER__;
 	}
 	public static bool IsBinary(OperatorCode type)
 	{
-		return ((type & OperatorCode.__BINARY__) == OperatorCode.__BINARY__);
+		return (type & OperatorCode.__BINARY__) == OperatorCode.__BINARY__;
 	}
 	public static bool IsTernary(OperatorCode type)
 	{
-		return ((type & OperatorCode.__TERNARY__) == OperatorCode.__TERNARY__);
+		return (type & OperatorCode.__TERNARY__) == OperatorCode.__TERNARY__;
 	}
 
 	/// <summary>

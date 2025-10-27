@@ -25,7 +25,7 @@ internal sealed class ConfigData
 	readonly static string configdebugPath = Program.DebugDir + "debug.config";
 
 	static ConfigData() { }
-	private static ConfigData instance = new ConfigData();
+	private static ConfigData instance = new(); 
 	public static ConfigData Instance { get { return instance; } }
 
 	private ConfigData() { setDefault(); }
@@ -324,7 +324,7 @@ internal sealed class ConfigData
 	public ConfigData Copy()
 	{
 		#region EM_私家版_Emuera多言語化改造
-		ConfigData config = new ConfigData();
+		ConfigData config = new();
 		// for (int i = 0; i < configArray.Length; i++)
 		for (int i = 0; i < configArray.Count; i++)
 			if ((this.configArray[i] != null) && (config.configArray[i] != null))
@@ -343,7 +343,7 @@ internal sealed class ConfigData
 
 	public Dictionary<ConfigCode, string> GetConfigNameDic()
 	{
-		Dictionary<ConfigCode, string> ret = new Dictionary<ConfigCode, string>();
+		Dictionary<ConfigCode, string> ret = [];
 		#region EM_私家版_Emuera多言語化改造
 		foreach (AConfigItem item in configArray)
 		{
@@ -715,7 +715,7 @@ internal sealed class ConfigData
 	{
 		if (!File.Exists(confPath))
 			return false;
-		EraStreamReader eReader = new EraStreamReader(false);
+		using var eReader = new EraStreamReader(false);
 		if (!eReader.Open(confPath))
 			return false;
 		ScriptPosition pos = null;
@@ -802,7 +802,7 @@ internal sealed class ConfigData
 	// 1.52a改変部分　（単位の差し替えおよび前置、後置のためのコンフィグ処理）
 	public void LoadReplaceFile(string filename)
 	{
-		EraStreamReader eReader = new EraStreamReader(false);
+		EraStreamReader eReader = new(false); 
 		if (!eReader.Open(filename))
 			return;
 		ScriptPosition pos = null;
@@ -877,7 +877,7 @@ internal sealed class ConfigData
 	{
 		if (!File.Exists(configdebugPath))
 			goto err;
-		EraStreamReader eReader = new EraStreamReader(false);
+		EraStreamReader eReader = new(false); 
 		if (!eReader.Open(configdebugPath))
 			goto err;
 		ScriptPosition pos = null;

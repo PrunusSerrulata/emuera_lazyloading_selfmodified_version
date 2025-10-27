@@ -5,6 +5,7 @@ using MinorShift.Emuera.Sub;
 using MinorShift.Emuera.GameData;
 using trerror = EvilMask.Emuera.Lang.Error;
 using trsl = EvilMask.Emuera.Lang.SystemLine;
+using System.Runtime.Versioning;
 
 namespace MinorShift.Emuera.GameProc;
 
@@ -12,7 +13,7 @@ internal sealed partial class Process
 {
 	private string[] TrainName = null;
 	delegate void SystemProcess();
-	Dictionary<SystemStateCode, SystemProcess> systemProcessDictionary = new Dictionary<SystemStateCode, SystemProcess>();
+	Dictionary<SystemStateCode, SystemProcess> systemProcessDictionary = [];
 	private void initSystemProcess()
 	{
 		comAble = new int[TrainName.Length];
@@ -147,7 +148,7 @@ internal sealed partial class Process
 	}
 
 	//CheckState()から呼ばれる関数群。ScriptEndに達したときの処理。
-
+	[SupportedOSPlatform("windows")]
 	void beginTitle()
 	{
 		//連続調教コマンド処理中の状態が持ち越されていたらここで消しておく
@@ -157,7 +158,7 @@ internal sealed partial class Process
 		skipPrint = false;
 		console.ResetStyle();
 		deleteAllPrevState();
-		if (Program.AnalysisMode)
+		if (analysisMode)
 		{
 			console.PrintSystemLine(trsl.AnalysisCompleted.Text);
 			#region EE_OUTPUTLOG
@@ -282,7 +283,7 @@ internal sealed partial class Process
 		}
 	}
 
-	List<Int64> coms = new List<long>();
+	List<Int64> coms = [];
 	bool isCTrain = false;
 	int count = 0;
 	bool skipPrint = false;
@@ -894,7 +895,7 @@ internal sealed partial class Process
 			loadPrevState();
 			return;
 		}
-		else if (((int)systemResult / 20) != page && systemResult != AutoSaveIndex && (systemResult >= 0 && systemResult < dataIsAvailable.Length - 1))
+		else if (((int)systemResult / 20) != page && systemResult != AutoSaveIndex && systemResult >= 0 && systemResult < dataIsAvailable.Length - 1)
 		{
 			page = (int)systemResult / 20;
 			state.SystemState = SystemStateCode.SaveGame_Begin;
@@ -973,7 +974,7 @@ internal sealed partial class Process
 			loadPrevState();
 			return;
 		}
-		else if (((int)systemResult / 20) != page && systemResult != AutoSaveIndex && (systemResult >= 0 && systemResult < dataIsAvailable.Length - 1))
+		else if (((int)systemResult / 20) != page && systemResult != AutoSaveIndex && systemResult >= 0 && systemResult < dataIsAvailable.Length - 1)
 		{
 			page = (int)systemResult / 20;
 			if (state.SystemState == SystemStateCode.LoadGameOpenning_WaitInput)

@@ -101,7 +101,7 @@ internal sealed class ProcessState
 			this.console = console;
 	}
 	readonly EmueraConsole console = null;
-	readonly List<CalledFunction> functionList = new List<CalledFunction>();
+	readonly List<CalledFunction> functionList = [];
 	private LogicalLine currentLine;
 	//private LogicalLine nextLine;
 	public int lineCount = 0;
@@ -403,7 +403,7 @@ internal sealed class ProcessState
 			//1756 全てを終了ではなく#PRIや#LATERのグループごとに修正
 			if (called.IsOnly)
 				called.FinishEvent();
-			else if ((called.HasSingleFlag) && (ret == 1))
+			else if (called.HasSingleFlag && (ret == 1))
 				called.ShiftNextGroup();
 			else
 				called.ShiftNext();//次の同名関数に進む。

@@ -34,7 +34,7 @@ internal sealed partial class FunctionIdentifier
 			//PRINT(|FORM)(C|LC)(|K)(|D) コレ
 			//PRINTDATA(|K)(|D)(|L|W) ←は別クラス
 			flag = IS_PRINT;
-			StringStream st = new StringStream(name);
+			StringStream st = new(name);
 			st.Jump(5);//PRINT
 			if (st.CurrentEqualTo("SINGLE"))
 			{
@@ -125,7 +125,7 @@ internal sealed partial class FunctionIdentifier
 				str = func.Argument.ConstStr;
 			else if (isPrintV)
 			{
-				StringBuilder builder = new StringBuilder();
+				StringBuilder builder = new();
 				IOperandTerm[] terms = ((SpPrintVArgument)func.Argument).Terms;
 				foreach (IOperandTerm termV in terms)
 				{
@@ -166,7 +166,7 @@ internal sealed partial class FunctionIdentifier
 			//PRINTDATA(|K)(|D)(|L|W)
 			flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL;
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.VAR_INT);
-			StringStream st = new StringStream(name);
+			StringStream st = new(name);
 			st.Jump(9);//PRINTDATA
 			if (st.CurrentEqualTo("K"))
 			{
@@ -695,8 +695,10 @@ internal sealed partial class FunctionIdentifier
 			SpSwapCharaArgument arg = (SpSwapCharaArgument)func.Argument;
 			Int64 time = arg.X.GetIntValue(exm);
 			Int64 flag = arg.Y.GetIntValue(exm);
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.EnterKey;
+			InputRequest req = new()
+			{
+				InputType = InputType.EnterKey
+			};
 			if (flag != 0)
 				req.InputType = InputType.Void;
 			req.Timelimit = time;
@@ -729,8 +731,10 @@ internal sealed partial class FunctionIdentifier
 			//	req.DefIntValue = def;
 			//}
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.IntValue;
+			InputRequest req = new()
+			{
+				InputType = InputType.IntValue
+			};
 			if (arg.Def != null)
 			{
 				Int64 def;
@@ -782,8 +786,10 @@ internal sealed partial class FunctionIdentifier
 			//	req.DefStrValue = def;
 			//}
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.StrValue;
+			InputRequest req = new()
+			{
+				InputType = InputType.StrValue
+			};
 			if (arg.Def != null)
 			{
 				string def;
@@ -844,9 +850,11 @@ internal sealed partial class FunctionIdentifier
 			//	}
 			//}
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.IntValue;
-			req.OneInput = true;
+			InputRequest req = new()
+			{
+				InputType = InputType.IntValue,
+				OneInput = true
+			};
 			if (arg.Def != null)
 			{
 				Int64 def;
@@ -905,9 +913,11 @@ internal sealed partial class FunctionIdentifier
 			//	}
 			//}
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.StrValue;
-			req.OneInput = true;
+			InputRequest req = new()
+			{
+				InputType = InputType.StrValue,
+				OneInput = true
+			};
 			if (arg.Def != null)
 			{
 				string def;
@@ -948,10 +958,12 @@ internal sealed partial class FunctionIdentifier
 		{
 			SpTInputsArgument tinputarg = (SpTInputsArgument)func.Argument;
 
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.IntValue;
-			req.HasDefValue = true;
-			req.OneInput = isOne;
+			InputRequest req = new()
+			{
+				InputType = InputType.StrValue,
+				HasDefValue = true,
+				OneInput = isOne
+			};
 			Int64 x = tinputarg.Time.GetIntValue(exm);
 			Int64 y = tinputarg.Def.GetIntValue(exm);
 			//TODO:ONEINPUTと標準の値を統一
@@ -1278,7 +1290,7 @@ internal sealed partial class FunctionIdentifier
 					if (d <= Int64.MaxValue && d >= Int64.MinValue)
 						var.SetValue((Int64)d, exm);
 					else
-						var.SetValue((Int64)((double)d), exm);
+						var.SetValue((Int64)(double)d, exm);
 				}
 			}
 		}
@@ -3020,8 +3032,8 @@ internal sealed partial class FunctionIdentifier
 			//if (state.ScriptEnd)
 			//    return;
 			//int termnum = 0;
-			StringStream aSt = new StringStream(((ExpressionArgument)func.Argument).Term.GetStrValue(exm));
-			List<long> termList = new List<long>();
+			StringStream aSt = new(((ExpressionArgument)func.Argument).Term.GetStrValue(exm));
+			List<long> termList = [];
 			while (!aSt.EOS)
 			{
 				WordCollection wc = LexicalAnalyzer.Analyse(aSt, LexEndWith.Comma, LexAnalyzeFlag.None);
@@ -3057,7 +3069,7 @@ internal sealed partial class FunctionIdentifier
 				state.Return(0);
 				return;
 			}
-			List<long> termList = new List<long>();
+			List<long> termList = [];
 			foreach (IOperandTerm term in expArrayArg.TermList)
 			{
 				termList.Add(term.GetIntValue(exm));

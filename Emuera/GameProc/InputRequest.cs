@@ -42,9 +42,9 @@ internal sealed class InputRequest
 		get
 		{
 			#region EE_INPUTANY
-			return (InputType == InputType.IntValue || InputType == InputType.StrValue
+			return InputType == InputType.IntValue || InputType == InputType.StrValue
 				|| InputType == InputType.PrimitiveMouseKey || InputType == InputType.AnyValue
-				|| InputType == InputType.IntButton || InputType == InputType.StrButton);
+				|| InputType == InputType.IntButton || InputType == InputType.StrButton;
 			#endregion
 		}
 	}

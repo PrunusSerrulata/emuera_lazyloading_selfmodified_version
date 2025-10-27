@@ -46,7 +46,7 @@ internal sealed class FunctionMethodTerm : IOperandTerm
 			arguments[i] = arguments[i].Restructure(exm);
 			argIsConst &= arguments[i] is SingleTerm;
 		}
-		if ((method.CanRestructure) && (argIsConst))
+		if (method.CanRestructure && argIsConst)
 			return GetValue(exm);
 		return this;
 

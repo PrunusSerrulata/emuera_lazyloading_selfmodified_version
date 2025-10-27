@@ -212,7 +212,7 @@ internal class VariableTerm : IOperandTerm
 		if (!allArgIsConst)
 			for (int i = 0; i < arguments.Length; i++)
 				transporter[i] = arguments[i].GetIntValue(exm);
-		FixedVariableTerm fp = new FixedVariableTerm(Identifier);
+		FixedVariableTerm fp = new(Identifier);
 		if (transporter.Length >= 1)
 			fp.Index1 = transporter[0];
 		if (transporter.Length >= 2)
@@ -249,7 +249,7 @@ internal class VariableTerm : IOperandTerm
 		}
 		if (!Identifier.IsReference)
 			Identifier.CheckElement(transporter, canCheck);
-		if ((Identifier.CanRestructure) && (allArgIsConst))
+		if (Identifier.CanRestructure && allArgIsConst)
 			return GetValue(exm);
 		else if (allArgIsConst)
 			return new FixedVariableTerm(Identifier, transporter);

@@ -50,7 +50,7 @@ internal sealed class CharacterData : IDisposable
 			int length2 = (int)(length64 & 0x7FFFFFFF);
 			dataStringArray2D[i] = new string[length, length2];
 		}
-		UserDefCVarDataList = new List<object>();
+		UserDefCVarDataList = [];
 		for (int i = 0; i < varData.UserDefinedCharaVarList.Count; i++)
 		{
 			UserDefinedVariableData d = varData.UserDefinedCharaVarList[i].DimData;
@@ -247,9 +247,9 @@ internal sealed class CharacterData : IDisposable
 				{
 					if (var.IsArray1D)
 					{
-						int length = ((string[])(UserDefCVarDataList[var.ArrayIndex])).GetLength(0);
+						int length = ((string[])UserDefCVarDataList[var.ArrayIndex]).GetLength(0);
 						for (int i = 0; i < length; i++)
-							((string[])(other.UserDefCVarDataList[var.ArrayIndex]))[i] = ((string[])(UserDefCVarDataList[var.ArrayIndex]))[i];
+							((string[])other.UserDefCVarDataList[var.ArrayIndex])[i] = ((string[])(UserDefCVarDataList[var.ArrayIndex]))[i];
 					}
 					else if (var.IsArray2D)
 					{
@@ -257,24 +257,24 @@ internal sealed class CharacterData : IDisposable
 						int length2 = ((string[,])UserDefCVarDataList[var.ArrayIndex]).GetLength(1);
 						for (int i = 0; i < length1; i++)
 							for (int j = 0; j < length2; j++)
-								((string[,])(other.UserDefCVarDataList[var.ArrayIndex]))[i, j] = ((string[,])(UserDefCVarDataList[var.ArrayIndex]))[i, j];
+								((string[,])other.UserDefCVarDataList[var.ArrayIndex])[i, j] = ((string[,])UserDefCVarDataList[var.ArrayIndex])[i, j];
 					}
 				}
 				else
 				{
 					if (var.IsArray1D)
 					{
-						int length = ((Int64[])(UserDefCVarDataList[var.ArrayIndex])).GetLength(0);
+						int length = ((Int64[])UserDefCVarDataList[var.ArrayIndex]).GetLength(0);
 						for (int i = 0; i < length; i++)
-							((Int64[])(other.UserDefCVarDataList[var.ArrayIndex]))[i] = ((Int64[])(UserDefCVarDataList[var.ArrayIndex]))[i];
+							((Int64[])other.UserDefCVarDataList[var.ArrayIndex])[i] = ((Int64[])UserDefCVarDataList[var.ArrayIndex])[i];
 					}
 					else if (var.IsArray2D)
 					{
-						int length1 = ((Int64[,])(UserDefCVarDataList[var.ArrayIndex])).GetLength(0);
-						int length2 = ((Int64[,])(UserDefCVarDataList[var.ArrayIndex])).GetLength(1);
+						int length1 = ((Int64[,])UserDefCVarDataList[var.ArrayIndex]).GetLength(0);
+						int length2 = ((Int64[,])UserDefCVarDataList[var.ArrayIndex]).GetLength(1);
 						for (int i = 0; i < length1; i++)
 							for (int j = 0; j < length2; j++)
-								((Int64[,])(other.UserDefCVarDataList[var.ArrayIndex]))[i, j] = ((Int64[,])(UserDefCVarDataList[var.ArrayIndex]))[i, j];
+								((Int64[,])other.UserDefCVarDataList[var.ArrayIndex])[i, j] = ((Int64[,])UserDefCVarDataList[var.ArrayIndex])[i, j];
 					}
 				}
 			}

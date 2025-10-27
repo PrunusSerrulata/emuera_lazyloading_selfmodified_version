@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
 using trerror = EvilMask.Emuera.Lang.Error;
+using System.Runtime.Versioning;
 
 namespace MinorShift.Emuera.Content;
 
@@ -79,7 +80,7 @@ internal abstract class ASpriteSingle : ASprite
 
 	public override bool IsCreated
 	{
-		get { return (BaseImage != null && BaseImage.IsCreated); }
+		get { return BaseImage != null && BaseImage.IsCreated; }
 	}
 	public override Color SpriteGetColor(int x, int y)
 	{
@@ -169,7 +170,7 @@ internal sealed class SpriteAnime : ASprite
 	public SpriteAnime(string name, Size size)
 		: base(name, size)
 	{
-		FrameList = new List<AnimeFrame>();
+		FrameList = [];
 		totaltime = 0;
 	}
 	private sealed class AnimeFrame : IDisposable
@@ -202,11 +203,14 @@ internal sealed class SpriteAnime : ASprite
 
 	internal bool AddFrame(AbstractImage parentImage, Rectangle rect, Point pos, int delay)
 	{
-		AnimeFrame frame = new AnimeFrame();
-		frame.index = FrameList.Count;
-		frame.BaseImage = parentImage;
-		frame.SrcRectangle = rect;
-		frame.Offset = pos;
+		AnimeFrame frame = new()
+		{
+			index = FrameList.Count,
+			BaseImage = parentImage,
+			SrcRectangle = rect,
+			Offset = pos
+		};
+
 		if (delay <= 0)
 			delay = 1;
 		frame.DelayTimeMs = delay;
@@ -245,16 +249,15 @@ internal sealed class SpriteAnime : ASprite
 		//一度もフレーム取得したことがない場合は現在時間を記録して最初のフレームを返す。
 		if (StartTime < 0)
 		{
-			StartTime = MinorShift._Library.WinmmTimer.CurrentFrameTime;
+			StartTime = DateTime.Now.Millisecond;
 			lastFrame = 0;
 			return FrameList[0];
 		}
 		//時間経過なしに複数回呼ばれた場合はさっき返したフレームをもう一度返す。
-		if (MinorShift._Library.WinmmTimer.CurrentFrameTime == lastFrameTime && lastFrame >= 0)
+		if (DateTime.Now.Millisecond == lastFrameTime && lastFrame >= 0)
 			return FrameList[lastFrame];
 		//StartTimeからの経過時間をtotaltimeで剰余計算
-		Int64 time = (MinorShift._Library.WinmmTimer.CurrentFrameTime - StartTime) % totaltime;
-		//winmmtimerは一周して0になることがあり得るのでその場合の対策。C#の剰余の結果の符号は左辺値の符号に等しい。
+		var time = (DateTime.Now.Millisecond - StartTime) % totaltime;      //winmmtimerは一周して0になることがあり得るのでその場合の対策。C#の剰余の結果の符号は左辺値の符号に等しい。
 		if (time < 0)
 			time += totaltime;
 		foreach (AnimeFrame frame in FrameList)
@@ -309,7 +312,7 @@ internal sealed class SpriteAnime : ASprite
 			return;
 		offset.Offset(DestBasePosition);
 		offset.Offset(frame.Offset);
-		Rectangle destRect = new Rectangle(offset, frame.SrcRectangle.Size);
+		Rectangle destRect = new(offset, frame.SrcRectangle.Size);
 		g.DrawImage(frame.BaseImage.Bitmap, destRect, frame.SrcRectangle, GraphicsUnit.Pixel);
 		return;
 	}

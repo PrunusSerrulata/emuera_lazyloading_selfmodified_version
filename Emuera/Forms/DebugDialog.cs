@@ -131,7 +131,7 @@ namespace MinorShift.Emuera.Forms
 			}
 			if ((listViewWatch.Items.Count == 0) || (!string.IsNullOrEmpty(listViewWatch.Items[listViewWatch.Items.Count - 1].Text)))
 			{
-				ListViewItem newLVI = new ListViewItem("");
+				ListViewItem newLVI = new ("");
 				newLVI.SubItems.Add(new ListViewItem.ListViewSubItem(newLVI, ""));
 				listViewWatch.Items.Add(newLVI);
 			}
@@ -152,7 +152,7 @@ namespace MinorShift.Emuera.Forms
 			mainConsole.RunERBFromMemory = true;
 			try
 			{
-				StringStream st = new StringStream(str);
+				StringStream st = new (str);
 				WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
 				IOperandTerm term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
 				SingleTerm value = term.GetValue(GlobalStatic.EMediator);
@@ -184,7 +184,7 @@ namespace MinorShift.Emuera.Forms
 				listViewWatch.Items[e.Item].SubItems[1].Text = getValueString(e.Label);
 				if (e.Item == listViewWatch.Items.Count - 1)
 				{
-					ListViewItem newLVI = new ListViewItem("");
+					ListViewItem newLVI = new ("");
 					newLVI.SubItems.Add(new ListViewItem.ListViewSubItem(newLVI, ""));
 					listViewWatch.Items.Add(newLVI);
 				}
@@ -287,7 +287,7 @@ namespace MinorShift.Emuera.Forms
 		{
 			if (!File.Exists(watchFilepath))
 				return;
-			List<string> saveStrList = new List<string>();
+			List<string> saveStrList = [];
 
 			StreamReader reader = null;
 			try
@@ -314,7 +314,7 @@ namespace MinorShift.Emuera.Forms
 			{
 				if (!string.IsNullOrEmpty(str))
 				{
-					ListViewItem newLVI = new ListViewItem(str);
+					ListViewItem newLVI = new (str);
 					newLVI.SubItems.Add(new ListViewItem.ListViewSubItem(newLVI, ""));
 					listViewWatch.Items.Add(newLVI);
 				}

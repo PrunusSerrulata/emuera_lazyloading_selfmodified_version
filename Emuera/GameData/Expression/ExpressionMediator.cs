@@ -83,8 +83,8 @@ internal sealed class ExpressionMediator
 
 	public string CheckEscape(string str)
 	{
-		StringStream st = new StringStream(str);
-		StringBuilder buffer = new StringBuilder();
+		StringStream st = new(str);
+		StringBuilder buffer = new();
 
 		while (!st.EOS)
 		{
@@ -127,7 +127,7 @@ internal sealed class ExpressionMediator
 			throw new CodeEE(trerror.BarNotPositive.Text);
 		if (length >= 100)//暴走を防ぐため。
 			throw new CodeEE(trerror.TooLongBar.Text);
-		StringBuilder builder = new StringBuilder();
+		StringBuilder builder = new();
 		builder.Append('[');
 		int count;
 		unchecked

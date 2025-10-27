@@ -130,7 +130,7 @@ internal sealed class ScriptPosition : IEquatable<ScriptPosition>, IEqualityComp
 	{
 		if ((x == null) || (y == null))
 			return false;
-		return ((x.Filename == y.Filename) && (x.LineNo == y.LineNo));
+		return (x.Filename == y.Filename) && (x.LineNo == y.LineNo);
 	}
 
 	public int GetHashCode(ScriptPosition obj)

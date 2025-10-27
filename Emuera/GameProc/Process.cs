@@ -19,13 +19,9 @@ using MinorShift.Emuera.GameProc.PluginSystem;
 
 namespace MinorShift.Emuera.GameProc;
 
-internal sealed partial class Process
+internal sealed partial class Process(EmueraConsole view, bool analysisMode)
 {
-	public Process(EmueraConsole view)
-	{
-		console = view;
-	}
-
+	readonly bool analysisMode = analysisMode;
 	public LogicalLine getCurrentLine { get { return state.CurrentLine; } }
 
 	/// <summary>
@@ -42,7 +38,7 @@ internal sealed partial class Process
 	public VariableEvaluator VEvaluator { get { return vEvaluator; } }
 	private ExpressionMediator exm;
 	private GameBase gamebase;
-	readonly EmueraConsole console;
+	readonly EmueraConsole console = view;
 	private IdentifierDictionary idDic;
 	ProcessState state;
 	ProcessState originalState;//リセットする時のために
@@ -81,7 +77,7 @@ internal sealed partial class Process
 			ParserMediator.FlushWarningList();
 			//キーマクロ読み込み
 			#region eee_カレントディレクトリー
-			if (Config.UseKeyMacro && !Program.AnalysisMode)
+			if (Config.UseKeyMacro && !analysisMode)
 			{
 				//if (File.Exists(Program.ExeDir + "macro.txt"))
 				if (File.Exists(Program.WorkingDir + "macro.txt"))
@@ -94,7 +90,7 @@ internal sealed partial class Process
 			}
 			#endregion
 			//_replace.csv読み込み
-			if (Config.UseReplaceFile && !Program.AnalysisMode)
+			if (Config.UseReplaceFile && !analysisMode)
 			{
 				if (File.Exists(Program.CsvDir + "_Replace.csv"))
 				{
@@ -122,7 +118,7 @@ internal sealed partial class Process
 			{
 				if (File.Exists(Program.CsvDir + "_Rename.csv"))
 				{
-					if (Config.DisplayReport || Program.AnalysisMode)
+					if (Config.DisplayReport || analysisMode)
 						console.PrintSystemLine(trsl.LoadingRename.Text);
 					ParserMediator.LoadEraExRenameFile(Program.CsvDir + "_Rename.csv");
 				}
@@ -146,7 +142,7 @@ internal sealed partial class Process
 			GlobalStatic.GameBaseData = gamebase;
 
 			//前記以外のcsvを全て読み込み
-			ConstantData constant = new ConstantData();
+			ConstantData constant = new();
 			constant.LoadData(Program.CsvDir, console, Config.DisplayReport);
 			GlobalStatic.ConstantData = constant;
 			TrainName = constant.GetCsvNameList(VariableCode.TRAINNAME);
@@ -165,7 +161,7 @@ internal sealed partial class Process
 
 			labelDic = new LabelDictionary();
 			GlobalStatic.LabelDictionary = labelDic;
-			HeaderFileLoader hLoader = new HeaderFileLoader(console, idDic, this);
+			HeaderFileLoader hLoader = new(console, idDic, this);
 
 			LexicalAnalyzer.UseMacro = false;
 
@@ -189,8 +185,8 @@ internal sealed partial class Process
 			//TODO:ユーザー定義変数用のcsvの適用
 
 			//ERB読込
-			ErbLoader loader = new ErbLoader(console, exm, this);
-			if (Program.AnalysisMode)
+			var loader = new ErbLoader(console, exm, this);
+			if (analysisMode)
 				noError = loader.loadErbs(Program.AnalysisFiles, labelDic);
 			else
 				noError = loader.LoadErbFiles(Program.ErbDir, Config.DisplayReport, Config.UseLazyLoading, labelDic);
@@ -225,7 +221,7 @@ internal sealed partial class Process
 	{
 		saveCurrentState(false);
 		state.SystemState = SystemStateCode.System_Reloaderb;
-		ErbLoader loader = new ErbLoader(console, exm, this);
+		ErbLoader loader = new(console, exm, this);
 		loader.loadErbs(path, labelDic);
 		console.ReadAnyKey();
 	}
@@ -291,11 +287,11 @@ internal sealed partial class Process
 		vEvaluator.RESULTS = s;
 	}
 
-	private uint startTime = 0;
+	private int startTime = 0;
 
 	public void DoScript()
 	{
-		startTime = WinmmTimer.TickCount;
+		startTime = DateTime.Now.Millisecond;
 		state.lineCount = 0;
 		bool systemProcRunning = true;
 		try
@@ -333,7 +329,7 @@ internal sealed partial class Process
 
 	public void UpdateCheckInfiniteLoopState()
 	{
-		startTime = WinmmTimer.TickCount;
+		startTime = DateTime.Now.Millisecond;
 		state.lineCount = 0;
 	}
 
@@ -350,7 +346,7 @@ internal sealed partial class Process
 		//    console.ReadAnyKey();
 		//    return;
 		//}
-		uint time = WinmmTimer.TickCount - startTime;
+		var time = DateTime.Now.Millisecond - startTime;
 		if (time < Config.InfiniteLoopAlertTime)
 			return;
 		LogicalLine currentLine = state.CurrentLine;
@@ -370,7 +366,7 @@ internal sealed partial class Process
 		else
 		{
 			state.lineCount = 0;
-			startTime = WinmmTimer.TickCount;
+			startTime = DateTime.Now.Millisecond;
 		}
 	}
 
@@ -450,17 +446,17 @@ internal sealed partial class Process
 		console.ThrowError(playSound);
 		if (exc is CodeEE)
 		{
-			console.PrintError(string.Format(trerror.FuncEndError.Text, Program.ExeName));
+			console.PrintError(string.Format(trerror.FuncEndError.Text, Sys.ExeName));
 			console.PrintError(exc.Message);
 		}
 		else if (exc is ExeEE)
 		{
-			console.PrintError(string.Format(trerror.FuncEndEmueraError.Text, Program.ExeName));
+			console.PrintError(string.Format(trerror.FuncEndEmueraError.Text, Sys.ExeName));
 			console.PrintError(exc.Message);
 		}
 		else
 		{
-			console.PrintError(string.Format(trerror.FuncEndUnexpectedError.Text, Program.ExeName));
+			console.PrintError(string.Format(trerror.FuncEndUnexpectedError.Text, Sys.ExeName));
 			console.PrintError(exc.GetType().ToString() + ":" + exc.Message);
 			string[] stack = exc.StackTrace.Split('\n');
 			for (int i = 0; i < stack.Length; i++)
@@ -499,7 +495,7 @@ internal sealed partial class Process
 				}
 				else
 				{
-					console.PrintErrorButton(string.Format(trerror.HasError.Text, posString, Program.ExeName), position);
+					console.PrintErrorButton(string.Format(trerror.HasError.Text, posString, Sys.ExeName), position);
 					printRawLine(position);
 					console.PrintError(string.Format(trerror.ErrorMessage.Text, exc.Message));
 				}
@@ -517,18 +513,18 @@ internal sealed partial class Process
 			}
 			else
 			{
-				console.PrintError(string.Format(trerror.HasError.Text, posString, Program.ExeName));
+				console.PrintError(string.Format(trerror.HasError.Text, posString, Sys.ExeName));
 				console.PrintError(exc.Message);
 			}
 		}
 		else if (exc is ExeEE)
 		{
-			console.PrintError(string.Format(trerror.HasEmueraError.Text, posString, Program.ExeName));
+			console.PrintError(string.Format(trerror.HasEmueraError.Text, posString, Sys.ExeName));
 			console.PrintError(exc.Message);
 		}
 		else
 		{
-			console.PrintError(string.Format(trerror.HasUnexpectedError.Text, posString, Program.ExeName));
+			console.PrintError(string.Format(trerror.HasUnexpectedError.Text, posString, Sys.ExeName));
 			console.PrintError(exc.GetType().ToString() + ":" + exc.Message);
 			string[] stack = exc.StackTrace.Split('\n');
 			for (int i = 0; i < stack.Length; i++)

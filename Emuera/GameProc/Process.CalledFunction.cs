@@ -287,7 +287,7 @@ internal sealed class CalledFunction
 			counter++;
 			if (eventLabelList[group].Count > counter)
 			{
-				CurrentLabel = (eventLabelList[group])[counter];
+				CurrentLabel = eventLabelList[group][counter];
 				return;
 			}
 			group++;

@@ -170,7 +170,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, string> strList = new Dictionary<string, string>();
+		Dictionary<string, string> strList = [];
 		string str;
 		while (true)
 		{
@@ -195,7 +195,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, Int64> intList = new Dictionary<string, Int64>();
+		Dictionary<string, Int64> intList = [];
 		string str;
 		while (true)
 		{
@@ -223,7 +223,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, List<Int64>> ret = new Dictionary<string, List<Int64>>();
+		Dictionary<string, List<Int64>> ret = [];
 		string str;
 		while (true)
 		{
@@ -235,7 +235,7 @@ internal sealed class EraDataReader : IDisposable
 			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
 				break;
 			string key = str;
-			List<Int64> valueList = new List<Int64>();
+			List<Int64> valueList = [];
 			while (true)
 			{
 				str = reader.ReadLine();
@@ -259,7 +259,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, List<string>> ret = new Dictionary<string, List<string>>();
+		Dictionary<string, List<string>> ret = [];
 		string str;
 		while (true)
 		{
@@ -271,7 +271,7 @@ internal sealed class EraDataReader : IDisposable
 			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
 				break;
 			string key = str;
-			List<string> valueList = new List<string>();
+			List<string> valueList = [];
 			while (true)
 			{
 				str = reader.ReadLine();
@@ -293,7 +293,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, List<Int64[]>> ret = new Dictionary<string, List<Int64[]>>();
+		Dictionary<string, List<Int64[]>> ret = [];
 		if (emu_version < 1708)
 			return ret;
 		string str;
@@ -307,7 +307,7 @@ internal sealed class EraDataReader : IDisposable
 			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
 				break;
 			string key = str;
-			List<Int64[]> valueList = new List<Int64[]>();
+			List<Int64[]> valueList = [];
 			while (true)
 			{
 				str = reader.ReadLine();
@@ -340,7 +340,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, List<string[]>> ret = new Dictionary<string, List<string[]>>();
+		Dictionary<string, List<string[]>> ret = [];
 		if (emu_version < 1708)
 			return ret;
 		string str;
@@ -362,7 +362,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, List<List<Int64[]>>> ret = new Dictionary<string, List<List<Int64[]>>>();
+		Dictionary<string, List<List<Int64[]>>> ret = [];
 		if (emu_version < 1729)
 			return ret;
 		string str;
@@ -376,7 +376,7 @@ internal sealed class EraDataReader : IDisposable
 			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
 				break;
 			string key = str;
-			List<List<Int64[]>> valueList = new List<List<Int64[]>>();
+			List<List<Int64[]>> valueList = [];
 			while (true)
 			{
 				str = reader.ReadLine();
@@ -388,7 +388,7 @@ internal sealed class EraDataReader : IDisposable
 					break;
 				if (str.Contains("{"))
 				{
-					List<Int64[]> tokenList = new List<long[]>();
+					List<Int64[]> tokenList = [];
 					while (true)
 					{
 						str = reader.ReadLine();
@@ -420,7 +420,7 @@ internal sealed class EraDataReader : IDisposable
 	{
 		if (reader == null)
 			throw new FileEE(trerror.InvalidStream.Text);
-		Dictionary<string, List<List<string[]>>> ret = new Dictionary<string, List<List<string[]>>>();
+		Dictionary<string, List<List<string[]>>> ret = [];
 		if (emu_version < 1729)
 			return ret;
 		string str;
@@ -643,7 +643,7 @@ internal sealed class EraDataWriter : IDisposable
 				writer.WriteLine("");
 				continue;
 			}
-			StringBuilder builder = new StringBuilder("");
+			StringBuilder builder = new("");
 			for (int y = 0; y < countY[x]; y++)
 			{
 				builder.Append(array2D[x, y].ToString());
@@ -700,7 +700,7 @@ internal sealed class EraDataWriter : IDisposable
 			}
 			for (int y = 0; y < countY[x]; y++)
 			{
-				StringBuilder builder = new StringBuilder("");
+				StringBuilder builder = new("");
 				if (countZ[x, y] == 0)
 				{
 					writer.WriteLine("");

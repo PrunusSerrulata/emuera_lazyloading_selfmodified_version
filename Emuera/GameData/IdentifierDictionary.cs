@@ -49,9 +49,9 @@ internal sealed class IdentifierDictionary
 			'\\', '@', '$', '#', '?', ';', '\'',
 		//'_'はOK
 	};
-	readonly static Regex regexCom = new Regex("^COM[0-9]+$");
-	readonly static Regex regexComAble = new Regex("^COM_ABLE[0-9]+$");
-	readonly static Regex regexAblup = new Regex("^ABLUP[0-9]+$");
+	readonly static Regex regexCom = new("^COM[0-9]+$");
+	readonly static Regex regexComAble = new("^COM_ABLE[0-9]+$");
+	readonly static Regex regexAblup = new("^ABLUP[0-9]+$");
 	#region static
 
 	public static bool IsEventLabelName(string labelName)
@@ -118,10 +118,10 @@ internal sealed class IdentifierDictionary
 	#endregion
 
 
-	Dictionary<string, DefinedNameType> nameDic = new Dictionary<string, DefinedNameType>();
+	Dictionary<string, DefinedNameType> nameDic = [];
 
-	List<string> privateDimList = new List<string>();
-	List<string> disableList = new List<string>();
+	List<string> privateDimList = [];
+	List<string> disableList = [];
 	//Dictionary<string, VariableToken> userDefinedVarDic = new Dictionary<string, VariableToken>();
 
 	VariableData varData;
@@ -167,7 +167,7 @@ internal sealed class IdentifierDictionary
 		varTokenDic = varData.GetVarTokenDicClone();
 		localvarTokenDic = varData.GetLocalvarTokenDic();
 		methodDic = FunctionMethodCreator.GetMethodList();
-		refmethodDic = new Dictionary<string, UserDefinedRefMethod>();
+		refmethodDic = [];
 
 		foreach (KeyValuePair<string, FunctionMethod> pair in methodDic)
 		{
@@ -216,7 +216,7 @@ internal sealed class IdentifierDictionary
 			warnLevel = 1;
 			return;
 		}
-		if (char.IsDigit(labelName[0]) && (labelName[0].ToString()).Length == LangManager.GetStrlenLang(labelName[0].ToString()))
+		if (char.IsDigit(labelName[0]) && labelName[0].ToString().Length == LangManager.GetStrlenLang(labelName[0].ToString()))
 		{
 			errMes = string.Format(treer.LabelStartedHalfDigit.Text, labelName);
 			warnLevel = 0;
@@ -437,7 +437,7 @@ internal sealed class IdentifierDictionary
 
 	#region header.erb
 	//1807 ErbLoaderに移動
-	Dictionary<string, DefineMacro> macroDic = new Dictionary<string, DefineMacro>();
+	Dictionary<string, DefineMacro> macroDic = [];
 
 	internal void AddUseDefinedVariable(VariableToken var)
 	{
@@ -555,7 +555,7 @@ internal sealed class IdentifierDictionary
 
 	public List<string> GetOverloadedList(LabelDictionary labelDic)
 	{
-		List<string> list = new List<string>();
+		List<string> list = [];
 		foreach (KeyValuePair<string, FunctionMethod> pair in methodDic)
 		{
 			FunctionLabelLine func = labelDic.GetNonEventLabel(pair.Key);
@@ -587,7 +587,7 @@ internal sealed class IdentifierDictionary
 				return new UserDefinedRefMethodNoArgTerm(refmethodDic[codeStr]);
 			return null;
 		}
-		if ((labelDic != null) && (labelDic.Initialized))
+		if ((labelDic != null) && labelDic.Initialized)
 		{
 			if (refmethodDic.ContainsKey(codeStr))
 				return new UserDefinedRefMethodTerm(refmethodDic[codeStr], arguments);

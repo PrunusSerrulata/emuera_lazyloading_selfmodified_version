@@ -84,11 +84,29 @@ internal sealed class StringStream
 			length = source.Length - start;
 		return source.Substring(start, length);
 	}
+	public ReadOnlySpan<char> SubstringROS()
+	{
+		if (pointer >= source.Length)
+			return "";
+		else if (pointer == 0)
+			return source;
+		return source.AsSpan()[pointer..]; ;
+	}
+
+	public ReadOnlySpan<char> SubstringROS(int start, int length)
+	{
+		if (start >= source.Length || length == 0)
+			return "";
+		if (start + length > source.Length)
+			length = source.Length - start;
+		return source.AsSpan()[start..(start + length)];
+	}
+
 
 	internal void Replace(int start, int count, string src)
 	{
 		//引数に正しい数字が送られてくること前提
-		source = (source.Remove(start, count)).Insert(start, src);
+		source = source.Remove(start, count).Insert(start, src);
 		pointer = start;
 	}
 

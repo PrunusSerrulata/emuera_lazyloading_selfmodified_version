@@ -22,7 +22,7 @@ internal static class ButtonStringCreator
 	public static List<string> Split(string printBuffer)
 	{
 		List<ButtonPrimitive> list = syn(printBuffer);
-		List<string> ret = new List<string>();
+		List<string> ret = [];
 		foreach (ButtonPrimitive p in list)
 			ret.Add(p.Str);
 		return ret;
@@ -35,7 +35,7 @@ internal static class ButtonStringCreator
 	private static List<ButtonPrimitive> syn(string printBuffer)
 	{
 		string printString = printBuffer.ToString();
-		List<ButtonPrimitive> ret = new List<ButtonPrimitive>();
+		List<ButtonPrimitive> ret = [];
 		if (printString.Length == 0)
 			goto nonButton;
 		List<string> strs;
@@ -72,7 +72,7 @@ internal static class ButtonStringCreator
 		}
 		if (buttonCount <= 1)
 		{
-			ButtonPrimitive button = new ButtonPrimitive
+			ButtonPrimitive button = new()
 			{
 				Str = printBuffer.ToString(),
 				CanSelect = (buttonCount >= 1),
@@ -89,12 +89,12 @@ internal static class ButtonStringCreator
 		Int64 input = 0;
 
 		int state = 0;
-		StringBuilder buffer = new StringBuilder();
+		StringBuilder buffer = new();
 		void reduce()
 		{
 			if (buffer.Length == 0)
 				return;
-			ButtonPrimitive button = new ButtonPrimitive
+			ButtonPrimitive button = new()
 			{
 				Str = buffer.ToString(),
 				CanSelect = canSelect,
@@ -112,7 +112,7 @@ internal static class ButtonStringCreator
 			char c = strs[i][0];
 			if (LexicalAnalyzer.IsWhiteSpace(c))
 			{//ただの空白
-				if (((state & 3) == 3) && (alignmentEtc) && (strs[i].Length >= 2))
+				if (((state & 3) == 3) && alignmentEtc && (strs[i].Length >= 2))
 				{//核と説明を含んだものが完成していればボタン生成。
 				 //一文字以下のスペースはキニシナイ。キャラ購入画面対策
 					reduce();
@@ -164,15 +164,15 @@ internal static class ButtonStringCreator
 		reduce();
 		return ret;
 	nonButton:
-		ret = new List<ButtonPrimitive>();
-		ButtonPrimitive singleButton = new ButtonPrimitive
+		ret = [];
+		ButtonPrimitive singleButton = new()
 		{
 			Str = printString
 		};
 		ret.Add(singleButton);
 		return ret;
 	}
-	readonly static Regex numReg = new Regex(@"\[\s*([0][xXbB])?[+-]?[0-9]+([eEpP][0-9]+)?\s*\]");
+	readonly static Regex numReg = new(@"\[\s*([0][xXbB])?[+-]?[0-9]+([eEpP][0-9]+)?\s*\]");
 
 	/// <summary>
 	/// []付き文字列が数値的であるかどうかを調べる
@@ -198,7 +198,7 @@ internal static class ButtonStringCreator
 		if (!isNumericWord(str))
 			return false;
 		string buttonStr = str.Substring(1, str.Length - 2);
-		StringStream stInt = new StringStream(buttonStr);
+		StringStream stInt = new(buttonStr);
 		LexicalAnalyzer.SkipAllSpace(stInt);
 		try
 		{
@@ -219,7 +219,7 @@ internal static class ButtonStringCreator
 	/// <returns></returns>
 	private static List<string> lex(StringStream st)
 	{
-		List<string> strs = new List<string>();
+		List<string> strs = [];
 		int state = 0;
 		int startIndex = 0;
 		void reduce()
@@ -248,7 +248,7 @@ internal static class ButtonStringCreator
 				reduce();
 				state = 0;
 			}
-			else if ((state == 0) && (LexicalAnalyzer.IsWhiteSpace(st.Current)))
+			else if ((state == 0) && LexicalAnalyzer.IsWhiteSpace(st.Current))
 			{
 				reduce();
 				LexicalAnalyzer.SkipAllSpace(st);

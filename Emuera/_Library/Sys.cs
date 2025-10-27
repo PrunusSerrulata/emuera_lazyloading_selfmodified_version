@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using System.IO;
+using System.Reflection;
 
 namespace MinorShift._Library;
 
@@ -10,7 +8,7 @@ public static class Sys
 {
 	static Sys()
 	{
-		ExePath = Application.ExecutablePath;
+		ExePath = Assembly.GetEntryAssembly().Location; 
 		#region eee_カレントディレクトリー
 		WorkingDir = Directory.GetCurrentDirectory() + "\\";
 		#endregion

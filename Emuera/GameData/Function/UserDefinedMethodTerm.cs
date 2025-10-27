@@ -95,8 +95,7 @@ internal sealed class UserDefinedRefMethodTerm : SuperUserDefinedMethodTerm
 		{
 			if (reffunc.CalledFunction == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefFunc.Text, reffunc.Name));
-			string errMes;
-			UserDefinedFunctionArgument arg = reffunc.CalledFunction.ConvertArg(srcArgs, out errMes);
+			UserDefinedFunctionArgument arg = reffunc.CalledFunction.ConvertArg(srcArgs, out string errMes);
 			if (arg == null)
 				throw new CodeEE(errMes);
 			return arg;

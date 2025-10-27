@@ -161,42 +161,42 @@ internal abstract class VariableToken
 	{
 		get
 		{
-			return ((Code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__);
+			return (Code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__;
 		}
 	}
 	public bool IsInteger
 	{
 		get
 		{
-			return ((Code & VariableCode.__INTEGER__) == VariableCode.__INTEGER__);
+			return (Code & VariableCode.__INTEGER__) == VariableCode.__INTEGER__;
 		}
 	}
 	public bool IsString
 	{
 		get
 		{
-			return ((Code & VariableCode.__STRING__) == VariableCode.__STRING__);
+			return (Code & VariableCode.__STRING__) == VariableCode.__STRING__;
 		}
 	}
 	public bool IsArray1D
 	{
 		get
 		{
-			return ((Code & VariableCode.__ARRAY_1D__) == VariableCode.__ARRAY_1D__);
+			return (Code & VariableCode.__ARRAY_1D__) == VariableCode.__ARRAY_1D__;
 		}
 	}
 	public bool IsArray2D
 	{
 		get
 		{
-			return ((Code & VariableCode.__ARRAY_2D__) == VariableCode.__ARRAY_2D__);
+			return (Code & VariableCode.__ARRAY_2D__) == VariableCode.__ARRAY_2D__;
 		}
 	}
 	public bool IsArray3D
 	{
 		get
 		{
-			return ((Code & VariableCode.__ARRAY_3D__) == VariableCode.__ARRAY_3D__);
+			return (Code & VariableCode.__ARRAY_3D__) == VariableCode.__ARRAY_3D__;
 		}
 	}
 	/// <summary>
@@ -206,28 +206,28 @@ internal abstract class VariableToken
 	{
 		get
 		{
-			return ((Code & VariableCode.__UNCHANGEABLE__) == VariableCode.__UNCHANGEABLE__);
+			return (Code & VariableCode.__UNCHANGEABLE__) == VariableCode.__UNCHANGEABLE__;
 		}
 	}
 	public bool IsCalc
 	{
 		get
 		{
-			return ((Code & VariableCode.__CALC__) == VariableCode.__CALC__);
+			return (Code & VariableCode.__CALC__) == VariableCode.__CALC__;
 		}
 	}
 	public bool IsLocal
 	{
 		get
 		{
-			return ((Code & VariableCode.__LOCAL__) == VariableCode.__LOCAL__);
+			return (Code & VariableCode.__LOCAL__) == VariableCode.__LOCAL__;
 		}
 	}
 	public bool CanForbid
 	{
 		get
 		{
-			return ((Code & VariableCode.__CAN_FORBID__) == VariableCode.__CAN_FORBID__);
+			return (Code & VariableCode.__CAN_FORBID__) == VariableCode.__CAN_FORBID__;
 		}
 	}
 	public bool IsForbid { get; protected set; }
@@ -413,7 +413,7 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 		CanRestructure = false;
 		IsStatic = !data.Private;
 		IsReference = true;
-		arrayList = new List<Array>();
+		arrayList = [];
 		IsForbid = false;
 	}
 	protected List<Array> arrayList = null;
@@ -2146,7 +2146,7 @@ internal sealed partial class VariableData
 		{
 			int[] sizes = data.Lengths;
 			IsStatic = false;
-			arrayList = new List<Int64[]>();
+			arrayList = [];
 			defArray = data.DefaultInt;
 		}
 		readonly List<Int64[]> arrayList = null;
@@ -2217,7 +2217,7 @@ internal sealed partial class VariableData
 		{
 			int[] sizes = data.Lengths;
 			IsStatic = false;
-			arrayList = new List<Int64[,]>();
+			arrayList = [];
 		}
 		readonly List<Int64[,]> arrayList = null;
 		Int64[,] array = null;
@@ -2283,7 +2283,7 @@ internal sealed partial class VariableData
 		{
 			int[] sizes = data.Lengths;
 			IsStatic = false;
-			arrayList = new List<Int64[,,]>();
+			arrayList = [];
 		}
 		readonly List<Int64[,,]> arrayList = null;
 		Int64[,,] array = null;
@@ -2353,7 +2353,7 @@ internal sealed partial class VariableData
 		{
 			int[] sizes = data.Lengths;
 			IsStatic = false;
-			arrayList = new List<string[]>();
+			arrayList = [];
 			defArray = data.DefaultStr;
 		}
 		//int counter = 0;
@@ -2418,7 +2418,7 @@ internal sealed partial class VariableData
 		{
 			int[] sizes = data.Lengths;
 			IsStatic = false;
-			arrayList = new List<string[,]>();
+			arrayList = [];
 		}
 		//int counter = 0;
 		readonly List<string[,]> arrayList = null;
@@ -2483,7 +2483,7 @@ internal sealed partial class VariableData
 		{
 			int[] sizes = data.Lengths;
 			IsStatic = false;
-			arrayList = new List<string[,,]>();
+			arrayList = [];
 		}
 		//int counter = 0;
 		readonly List<string[,,]> arrayList = null;
