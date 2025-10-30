@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MinorShift.Emuera.GameProc;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameData.Expression;
-using trerror = EvilMask.Emuera.Lang.Error;
+﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.Runtime.Script.Parser;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Utils;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
-namespace MinorShift.Emuera.GameData.Variable;
+namespace MinorShift.Emuera.Runtime.Script.Statements.Variable;
 
 internal static class VariableParser
 {
 	public static void Initialize()
 	{
-		ZeroTerm = new SingleTerm(0);
-		IOperandTerm[] zeroArgs = new IOperandTerm[] { ZeroTerm };
+		ZeroTerm = new SingleLongTerm(0);
+		AExpression[] zeroArgs = [ZeroTerm];
 		TARGET = new VariableTerm(GlobalStatic.VariableData.GetSystemVariableToken("TARGET"), zeroArgs);
 	}
 
@@ -54,10 +52,10 @@ internal static class VariableParser
 	/// <returns></returns>
 	public static VariableTerm ReduceVariable(VariableToken id, WordCollection wc)
 	{
-		IOperandTerm operand;
-		IOperandTerm op1 = null;
-		IOperandTerm op2 = null;
-		IOperandTerm op3 = null;
+		AExpression operand;
+		AExpression op1 = null;
+		AExpression op2 = null;
+		AExpression op3 = null;
 		int i = 0;
 		while (true)
 		{
@@ -84,35 +82,32 @@ internal static class VariableParser
 
 
 
-	public static VariableTerm ReduceVariable(VariableToken id, IOperandTerm p1, IOperandTerm p2, IOperandTerm p3)
+	public static VariableTerm ReduceVariable(VariableToken id, AExpression p1, AExpression p2, AExpression p3)
 	{
-		IOperandTerm[] terms;
-		IOperandTerm op1 = p1;
-		IOperandTerm op2 = p2;
-		IOperandTerm op3 = p3;
+		AExpression[] terms;
+		AExpression op1 = p1;
+		AExpression op2 = p2;
+		AExpression op3 = p3;
 		//引数の推測
 		if (id.IsCharacterData)
 		{
 			if (id.IsArray2D)
 			{
-				if ((op1 == null) && (op2 == null) && (op3 == null))
+				if (op1 == null && op2 == null && op3 == null)
 					return new VariableNoArgTerm(id);
-				if ((op1 == null) || (op2 == null) || (op3 == null))
+				if (op1 == null || op2 == null || op3 == null)
 					throw new CodeEE(string.Format(trerror.CanNotOmit1DCharaVarArg1.Text, id.Name));
-				terms = new IOperandTerm[3];
-				terms[0] = op1;
-				terms[1] = op2;
-				terms[2] = op3;
+				terms = [op1, op2, op3];
 			}
 			else if (id.IsArray1D)
 			{
 				if (op3 != null)
 					throw new CodeEE(string.Format(trerror.TooMany1DCharaVarArg.Text, id.Name));
-				if ((op1 == null) && (op2 == null) && (op3 == null) && Config.SystemNoTarget)
+				if (op1 == null && op2 == null && op3 == null && Config.Config.SystemNoTarget)
 					return new VariableNoArgTerm(id);
 				if (op2 == null)
 				{
-					if (Config.SystemNoTarget)
+					if (Config.Config.SystemNoTarget)
 						throw new CodeEE(string.Format(trerror.CanNotOmit1DCharaVarArg2.Text, id.Name));
 					if (op1 == null)
 						op2 = ZeroTerm;
@@ -120,48 +115,40 @@ internal static class VariableParser
 						op2 = op1;
 					op1 = TARGET;
 				}
-				terms = new IOperandTerm[2];
-				terms[0] = op1;
-				terms[1] = op2;
+				terms = [op1, op2];
 			}
 			else
 			{
 				if (op2 != null)
 					throw new CodeEE(string.Format(trerror.TooManyCharaVarArg.Text, id.Name));
-				if ((op1 == null) && (op2 == null) && (op3 == null) && Config.SystemNoTarget)
+				if (op1 == null && op2 == null && op3 == null && Config.Config.SystemNoTarget)
 					return new VariableNoArgTerm(id);
 				if (op1 == null)
 				{
-					if (Config.SystemNoTarget)
+					if (Config.Config.SystemNoTarget)
 						throw new CodeEE(string.Format(trerror.CanNotOmitCharaVarArg2.Text, id.Name));
 					op1 = TARGET;
 				}
-				terms = new IOperandTerm[1];
-				terms[0] = op1;
+				terms = [op1];
 			}
 		}
 		else if (id.IsArray3D)
 		{
-			if ((op1 == null) && (op2 == null) && (op3 == null))
+			if (op1 == null && op2 == null && op3 == null)
 				return new VariableNoArgTerm(id);
-			if ((op1 == null) || (op2 == null) || (op3 == null))
+			if (op1 == null || op2 == null || op3 == null)
 				throw new CodeEE(string.Format(trerror.CanNotOmit3DVarArg.Text, id.Name));
-			terms = new IOperandTerm[3];
-			terms[0] = op1;
-			terms[1] = op2;
-			terms[2] = op3;
+			terms = [op1, op2, op3];
 		}
 		else if (id.IsArray2D)
 		{
-			if ((op1 == null) && (op2 == null) && (op3 == null))
+			if (op1 == null && op2 == null && op3 == null)
 				return new VariableNoArgTerm(id);
-			if ((op1 == null) || (op2 == null))
+			if (op1 == null || op2 == null)
 				throw new CodeEE(string.Format(trerror.CanNotOmit2DVarArg.Text, id.Name));
 			if (op3 != null)
 				throw new CodeEE(string.Format(trerror.TooMany2DVarArg.Text, id.Name));
-			terms = new IOperandTerm[2];
-			terms[0] = op1;
-			terms[1] = op2;
+			terms = [op1, op2];
 		}
 		else if (id.IsArray1D)
 		{
@@ -170,25 +157,24 @@ internal static class VariableParser
 			if (op1 == null)
 			{
 				op1 = ZeroTerm;
-				if (!Config.CompatiRAND && id.Code == VariableCode.RAND)
+				if (!Config.Config.CompatiRAND && id.Code == VariableCode.RAND)
 				{
 					throw new CodeEE(trerror.OmittedRandArg.Text);
 				}
 			}
-			if (!Config.CompatiRAND && op1 is SingleTerm && id.Code == VariableCode.RAND)
+			if (!Config.Config.CompatiRAND && op1 is SingleTerm op1SingleTerm && id.Code == VariableCode.RAND)
 			{
-				if (((SingleTerm)op1).Int == 0)
+				if (((SingleLongTerm)op1SingleTerm).Int == 0)
 					throw new CodeEE(trerror.RandArgIsZero.Text);
 			}
-			terms = new IOperandTerm[1];
-			terms[0] = op1;
+			terms = [op1];
 		}
 		else if (op1 != null)
 		{
 			throw new CodeEE(string.Format(trerror.ZeroDVarHasArg.Text, id.Name));
 		}
 		else
-			terms = new IOperandTerm[0];
+			terms = [];
 		for (int i = 0; i < terms.Length; i++)
 			if (terms[i].IsString)
 				#region EE_ERD

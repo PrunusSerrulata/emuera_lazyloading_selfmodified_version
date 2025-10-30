@@ -92,7 +92,6 @@ static partial class Program
 		//1815 .exeが東方板のNGワードに引っかかるそうなので除去
 		ExeName = Path.GetFileNameWithoutExtension(AssemblyData.ExeName);
 
-
 		var debugMode = result.GetValueForOption(debugModeOption);
 		DebugMode = debugMode;
 
@@ -238,7 +237,7 @@ static partial class Program
 				}
 				else
 				{
-					//if (Path.GetExtension(args[i]).ToUpper() != ".ERB")
+					//if (Path.GetExtension(args[i]).ToUpper(CultureInfo.InvariantCulture) != ".ERB")
 					if (!Path.GetExtension(path).Equals(".ERB", StringComparison.OrdinalIgnoreCase))
 					{
 						MessageBox.Show(Lang.UI.MainWindow.MsgBox.InvalidArg.Text);

@@ -1,13 +1,11 @@
-﻿using System;
+﻿using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using System.Collections.Generic;
-using System.Text;
-using MinorShift.Emuera.GameData.Expression;
 
-namespace MinorShift.Emuera.GameData.Function;
+namespace MinorShift.Emuera.Runtime.Script.Statements.Function;
 
-internal sealed class FunctionMethodTerm : IOperandTerm
+internal sealed class FunctionMethodTerm : AExpression
 {
-	public FunctionMethodTerm(FunctionMethod meth, IOperandTerm[] args)
+	public FunctionMethodTerm(FunctionMethod meth, List<AExpression> args)
 		: base(meth.ReturnType)
 	{
 		method = meth;
@@ -15,7 +13,7 @@ internal sealed class FunctionMethodTerm : IOperandTerm
 	}
 
 	private FunctionMethod method;
-	private IOperandTerm[] arguments;
+	private List<AExpression> arguments;
 
 	public override long GetIntValue(ExpressionMediator exm)
 	{
@@ -30,16 +28,16 @@ internal sealed class FunctionMethodTerm : IOperandTerm
 		return method.GetReturnValue(exm, arguments);
 	}
 
-	public override IOperandTerm Restructure(ExpressionMediator exm)
+	public override AExpression Restructure(ExpressionMediator exm)
 	{
 		if (method.HasUniqueRestructure)
 		{
-			if (method.UniqueRestructure(exm, arguments) && method.CanRestructure)
+			if (method.UniqueRestructure(exm, [.. arguments]) && method.CanRestructure)
 				return GetValue(exm);
 			return this;
 		}
 		bool argIsConst = true;
-		for (int i = 0; i < arguments.Length; i++)
+		for (int i = 0; i < arguments.Count; i++)
 		{
 			if (arguments[i] == null)
 				continue;

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.GameData.Variable;
-using MinorShift.Emuera.GameData;
-using MinorShift.Emuera.GameData.Function;
+﻿using MinorShift.Emuera.Runtime.Script.Statements;
+using MinorShift.Emuera.Runtime.Utils;
 
 namespace MinorShift.Emuera.GameProc.Function;
 
@@ -37,14 +32,14 @@ internal static partial class ArgumentParser
 		catch (EmueraException e)
 		{
 			errmes = e.Message;
-			goto error;
+			return error(line, errmes);
 		}
 		if (arg == null)
 		{
 			if (!line.IsError)
 			{
 				errmes = "命令の引数解析中に特定できないエラーが発生";
-				goto error;
+				return error(line, errmes);
 			}
 			return false;
 		}
@@ -52,12 +47,15 @@ internal static partial class ArgumentParser
 		if (arg == null)
 			line.IsError = true;
 		return true;
-	error:
-		System.Media.SystemSounds.Hand.Play();
 
-		line.IsError = true;
-		line.ErrMes = errmes;
-		ParserMediator.Warn(errmes, line, 2, true, false);
-		return false;
+		static bool error(InstructionLine line, string errmes)
+		{
+			System.Media.SystemSounds.Hand.Play();
+
+			line.IsError = true;
+			line.ErrMes = errmes;
+			ParserMediator.Warn(errmes, line, 2, true, false);
+			return false;
+		}
 	}
 }

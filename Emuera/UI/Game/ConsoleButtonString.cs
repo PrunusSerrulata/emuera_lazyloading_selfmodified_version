@@ -1,11 +1,13 @@
-﻿using System;
+﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using System.Drawing;
-using MinorShift.Emuera.Sub;
+using System.Linq;
+using System.Text;
 
-namespace MinorShift.Emuera.GameView;
+namespace MinorShift.Emuera.UI.Game;
 
 /// <summary>
 /// ボタン。1つ以上の装飾付文字列（ConsoleStyledString）からなる。
@@ -24,19 +26,19 @@ internal sealed class ConsoleButtonString
 			}
 		}
 	}
-	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayPart[] strs)
+	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayNode[] strs)
 	{
-		this.parent = console;
-		this.strArray = strs;
+		parent = console;
+		strArray = strs;
 		IsButton = false;
 		PointX = -1;
 		Width = -1;
 		ErrPos = null;
 	}
-	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayPart[] strs, Int64 input)
+	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayNode[] strs, long input)
 		: this(console, strs)
 	{
-		this.Input = input;
+		Input = input;
 		Inputs = input.ToString();
 		IsButton = true;
 		IsInteger = true;
@@ -48,10 +50,10 @@ internal sealed class ConsoleButtonString
 		}
 		ErrPos = null;
 	}
-	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayPart[] strs, string inputs)
+	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayNode[] strs, string inputs)
 		: this(console, strs)
 	{
-		this.Inputs = inputs;
+		Inputs = inputs;
 		IsButton = true;
 		IsInteger = false;
 		getLastImg();
@@ -63,11 +65,11 @@ internal sealed class ConsoleButtonString
 		ErrPos = null;
 	}
 
-	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayPart[] strs, Int64 input, string inputs)
+	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayNode[] strs, long input, string inputs)
 		: this(console, strs)
 	{
-		this.Input = input;
-		this.Inputs = inputs;
+		Input = input;
+		Inputs = inputs;
 		IsButton = true;
 		IsInteger = true;
 		getLastImg();
@@ -78,10 +80,10 @@ internal sealed class ConsoleButtonString
 		}
 		ErrPos = null;
 	}
-	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayPart[] strs, string inputs, ScriptPosition pos)
+	public ConsoleButtonString(EmueraConsole console, AConsoleDisplayNode[] strs, string inputs, ScriptPosition? pos)
 		: this(console, strs)
 	{
-		this.Inputs = inputs;
+		Inputs = inputs;
 		IsButton = true;
 		IsInteger = false;
 		getLastImg();
@@ -92,39 +94,39 @@ internal sealed class ConsoleButtonString
 		}
 		ErrPos = pos;
 	}
-	public Int64 GetMappedColor(int pointX, int pointY)
+	public long GetMappedColor(int pointX, int pointY)
 	{
 		if (mask != null)
 		{
 			var offsetX = pointX - PointX - mask.PointX - Config.DrawingParam_ShapePositionShift;
 			var offsetY = pointY - parent.GetLinePointY(ParentLine.LineNo) - mask.Top;
-			if (offsetX > 0 && offsetX < mask.Width && offsetY > 0 && offsetY < (mask.Bottom - mask.Top))
+			if (offsetX > 0 && offsetX < mask.Width && offsetY > 0 && offsetY < mask.Bottom - mask.Top)
 				return mask.GetMappingColor(offsetX, offsetY);
 		}
 		return 0;
 	}
 
 	//Bitmap Cache
-	public Bitmap bitmapCache = null;
+	public Bitmap bitmapCache;
 
-	ConsoleImagePart mask = null;
+	ConsoleImagePart mask;
 	#endregion
 
-	AConsoleDisplayPart[] strArray;
-	public AConsoleDisplayPart[] StrArray { get { return strArray; } }
+	AConsoleDisplayNode[] strArray;
+	public AConsoleDisplayNode[] StrArray { get { return strArray; } }
 	EmueraConsole parent;
 
 	public ConsoleDisplayLine ParentLine { get; set; }
 	public bool IsButton { get; private set; }
 	public bool IsInteger { get; private set; }
-	public Int64 Input { get; private set; }
+	public long Input { get; private set; }
 	public string Inputs { get; private set; }
 	public int PointX { get; set; }
 	public bool PointXisLocked { get; set; }
 	public int Width { get; set; }
 	public float XsubPixel { get; set; }
-	public Int64 Generation { get; private set; }
-	public ScriptPosition ErrPos { get; set; }
+	public long Generation { get; private set; }
+	public ScriptPosition? ErrPos { get; set; }
 	public string Title { get; set; }
 
 
@@ -132,15 +134,15 @@ internal sealed class ConsoleButtonString
 	public void LockPointX(int rel_px)
 	{
 		PointX = rel_px * Config.FontSize / 100;
-		XsubPixel = (rel_px * Config.FontSize / 100.0f) - PointX;
+		XsubPixel = rel_px * Config.FontSize / 100.0f - PointX;
 		PointXisLocked = true;
 		RelativePointX = rel_px;
 	}
 
 	#region EM_私家版_描画拡張
-	public AConsoleDisplayPart[] EscapedParts { get { return escaped; } }
-	AConsoleDisplayPart[] escaped;
-	bool escapeFilterApplied = false;
+	public AConsoleDisplayNode[] EscapedParts { get { return escaped; } }
+	AConsoleDisplayNode[] escaped;
+	bool escapeFilterApplied;
 
 	public void FilterEscaped()
 	{
@@ -159,8 +161,8 @@ internal sealed class ConsoleButtonString
 	{
 		if (divIndex <= 0)
 			return null;
-		List<AConsoleDisplayPart> cssListA = [];
-		List<AConsoleDisplayPart> cssListB = [];
+		List<AConsoleDisplayNode> cssListA = [];
+		List<AConsoleDisplayNode> cssListB = [];
 		int index = 0;
 		int cssIndex;
 		bool b = false;
@@ -171,7 +173,7 @@ internal sealed class ConsoleButtonString
 				cssListB.Add(strArray[cssIndex]);
 				continue;
 			}
-			int length = strArray[cssIndex].Str.Length;
+			int length = strArray[cssIndex].Text.Length;
 			if (divIndex < index + length)
 			{
 				ConsoleStyledString oldcss = strArray[cssIndex] as ConsoleStyledString;
@@ -193,37 +195,37 @@ internal sealed class ConsoleButtonString
 			index += length;
 			cssListA.Add(strArray[cssIndex]);
 		}
-		if ((cssIndex >= strArray.Length) && (cssListB.Count == 0))
+		if (cssIndex >= strArray.Length && cssListB.Count == 0)
 			return null;
-		AConsoleDisplayPart[] cssArrayA = new AConsoleDisplayPart[cssListA.Count];
-		AConsoleDisplayPart[] cssArrayB = new AConsoleDisplayPart[cssListB.Count];
+		AConsoleDisplayNode[] cssArrayA = new AConsoleDisplayNode[cssListA.Count];
+		AConsoleDisplayNode[] cssArrayB = new AConsoleDisplayNode[cssListB.Count];
 		cssListA.CopyTo(cssArrayA);
 		cssListB.CopyTo(cssArrayB);
-		this.strArray = cssArrayA;
+		strArray = cssArrayA;
 		ConsoleButtonString ret = new(null, cssArrayB);
-		this.CalcWidth(sm, XsubPixel);
+		CalcWidth(sm, XsubPixel);
 		ret.CalcWidth(sm, 0);
-		this.CalcPointX(this.PointX);
-		ret.CalcPointX(this.PointX + this.Width);
-		ret.parent = this.parent;
-		ret.ParentLine = this.ParentLine;
-		ret.IsButton = this.IsButton;
-		ret.IsInteger = this.IsInteger;
-		ret.Input = this.Input;
-		ret.Inputs = this.Inputs;
-		ret.Generation = this.Generation;
-		ret.ErrPos = this.ErrPos;
-		ret.Title = this.Title;
+		CalcPointX(PointX);
+		ret.CalcPointX(PointX + Width);
+		ret.parent = parent;
+		ret.ParentLine = ParentLine;
+		ret.IsButton = IsButton;
+		ret.IsInteger = IsInteger;
+		ret.Input = Input;
+		ret.Inputs = Inputs;
+		ret.Generation = Generation;
+		ret.ErrPos = ErrPos;
+		ret.Title = Title;
 		return ret;
 	}
 
 	public void CalcWidth(StringMeasure sm, float subpixel)
 	{
 		Width = -1;
-		if ((strArray != null) && (strArray.Length > 0))
+		if (strArray != null && strArray.Length > 0)
 		{
 			Width = 0;
-			foreach (AConsoleDisplayPart css in strArray)
+			foreach (AConsoleDisplayNode css in strArray)
 			{
 				if (css.Width <= 0)
 					css.SetWidth(sm, subpixel);
@@ -258,7 +260,7 @@ internal sealed class ConsoleButtonString
 		if (strArray.Length > 0)
 		{
 			PointX = strArray[0].PointX;
-			Width = strArray[strArray.Length - 1].PointX + strArray[strArray.Length - 1].Width - this.PointX;
+			Width = strArray[^1].PointX + strArray[^1].Width - PointX;
 			//if (Width < 0)
 			//	Width = -1;
 		}
@@ -267,23 +269,24 @@ internal sealed class ConsoleButtonString
 	internal void ShiftPositionX(int shiftX)
 	{
 		PointX += shiftX;
-		foreach (AConsoleDisplayPart css in strArray)
+		foreach (AConsoleDisplayNode css in strArray)
 			css.PointX += shiftX;
 	}
 
 	public void DrawTo(Graphics graph, int pointY, bool isBackLog, TextDrawingMode mode)
 	{
-		bool isSelecting = IsButton && parent.ButtonIsSelected(this);
+		bool isFocus = IsButton && parent.ButtonIsSelected(this);
+		bool isSelecting = IsButton && parent.ButtonIsPointing(this);
 		#region EM_私家版_描画拡張
-		//foreach (AConsoleDisplayPart css in strArray)
+		//foreach (AConsoleDisplayNode css in strArray)
 		//	css.DrawTo(graph, pointY, isSelecting, isBackLog, mode);
 
 		//Bitmap Cache
-		if (this.ParentLine.bitmapCacheEnabled && strArray.Length > 1)
+		if (ParentLine.bitmapCacheEnabled && strArray.Length > 1)
 		{
 			if (bitmapCache == null)
 			{
-				int width = this.Width + 1;
+				int width = Width + 1;
 				//^ Without +1, some things get cropped. I don't know why, probably a bug somewhere.
 				//TODO
 				int height = Config.FontSize;
@@ -291,7 +294,7 @@ internal sealed class ConsoleButtonString
 				Graphics g = Graphics.FromImage(bitmapCache);
 
 				int xOffset = 0;
-				foreach (AConsoleDisplayPart css in strArray)
+				foreach (AConsoleDisplayNode css in strArray)
 				{
 					if (css is not ConsoleStyledString) continue;
 					ConsoleStyledString willDrawHere = css as ConsoleStyledString;
@@ -316,44 +319,39 @@ internal sealed class ConsoleButtonString
 			return;
 		}
 
-		foreach (AConsoleDisplayPart css in strArray)
+		foreach (AConsoleDisplayNode css in strArray)
 		{
 			if (css is ConsoleDivPart div) continue;
-			css.DrawTo(graph, pointY, isSelecting, isBackLog, mode);
+			css.DrawTo(graph, pointY, isSelecting, isFocus, isBackLog, mode, IsButton);
 		}
 		#endregion
 	}
 
-	public void GDIDrawTo(int pointY, bool isBackLog)
-	{
-		bool isSelecting = IsButton && parent.ButtonIsSelected(this);
-		foreach (AConsoleDisplayPart css in strArray)
-			css.GDIDrawTo(pointY, isSelecting, isBackLog);
-	}
-
 	#region EM_私家版_描画拡張
-	public void DrawPartTo(Graphics graph, AConsoleDisplayPart css, int pointY, bool isBackLog, TextDrawingMode mode)
+	public void DrawPartTo(Graphics graph, AConsoleDisplayNode css, int pointY, bool isBackLog, TextDrawingMode mode)
 	{
-		bool isSelecting = (IsButton) && (parent.ButtonIsSelected(this));
-		css.DrawTo(graph, pointY, isSelecting, isBackLog, mode);
+		bool isFocus = IsButton && parent.ButtonIsSelected(this);
+		bool isSelecting = IsButton && parent.ButtonIsPointing(this);
+		css.DrawTo(graph, pointY, isSelecting, isFocus, isBackLog, mode);
 	}
 	#endregion
 
+	readonly static StringBuilder builder = new();
 	public override string ToString()
 	{
 		if (strArray == null)
 			return "";
-		string str = "";
-		foreach (AConsoleDisplayPart css in strArray)
-			str += css.ToString();
-		return str;
+		builder.Clear();
+		foreach (var css in strArray)
+			builder.Append(css.ToString());
+		return builder.ToString();
 	}
 
 	#region EM_私家版_描画拡張
 	public StringBuilder BuildString(StringBuilder builder)
 	{
 		if (strArray != null)
-			foreach (AConsoleDisplayPart css in strArray)
+			foreach (AConsoleDisplayNode css in strArray)
 				css.BuildString(builder);
 		return builder;
 	}

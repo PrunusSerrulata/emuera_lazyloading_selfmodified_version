@@ -1,7 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 
-namespace MinorShift.Emuera.Sub;
+namespace MinorShift.Emuera.Runtime.Utils;
 
 public static class EncodingHandler
 {
@@ -14,12 +15,26 @@ public static class EncodingHandler
 	{
 		try
 		{
+			using var file = File.Open(filePath, FileMode.Open);
+			Span<byte> bom = stackalloc byte[3];
+			_ = file.Read(bom);
+			file.Close();
+			if (bom.SequenceEqual<byte>([0xEF, 0xBB, 0xBF]))
+			{
+				return UTF8BOMEncoding;
+			}
+			//read using UTF8
 			using var sr = new StreamReader(filePath, UTF8Encoding);
+			//Peek for detecting any BOM encoding
 			sr.Peek();
+			//If any BOM was detected durig Peek(), sr.CurrentEncoding won't be the same 
+			//as the encoding we passed as a argument
 			if (!UTF8Encoding.Equals(sr.CurrentEncoding))
 			{
 				return sr.CurrentEncoding;
 			}
+			//Here the used encoding is still UTF8, if it detects any 
+			//invalid byte, it means its not UTF8 in which case we assume its SHIFT-JIS
 			sr.ReadToEnd();
 			sr.Dispose();
 			return UTF8Encoding;

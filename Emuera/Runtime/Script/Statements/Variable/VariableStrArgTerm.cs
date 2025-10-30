@@ -1,21 +1,18 @@
-﻿using System;
+﻿using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Utils;
 using System.Collections.Generic;
-using System.Text;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameProc;
-using MinorShift.Emuera.GameData.Expression;
-using trerror = EvilMask.Emuera.Lang.Error;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
-namespace MinorShift.Emuera.GameData.Variable;
+namespace MinorShift.Emuera.Runtime.Script.Statements.Variable;
 
 //変数の引数のうち文字列型のもの。
-internal sealed class VariableStrArgTerm : IOperandTerm
+internal sealed class VariableStrArgTerm : AExpression
 {
 	#region EE_ERD
 	// public VariableStrArgTerm(VariableCode code, IOperandTerm strTerm, int index)
-	public VariableStrArgTerm(VariableCode code, IOperandTerm strTerm, int index, string varname)
+	public VariableStrArgTerm(VariableCode code, AExpression strTerm, int index, string varname)
 	#endregion
-		: base(typeof(Int64))
+		: base(typeof(long))
 	{
 		this.strTerm = strTerm;
 		parentCode = code;
@@ -25,16 +22,16 @@ internal sealed class VariableStrArgTerm : IOperandTerm
 		#endregion
 
 	}
-	IOperandTerm strTerm;
+	AExpression strTerm;
 	readonly VariableCode parentCode;
 	readonly int index;
 	#region EE_ERD
 	readonly string varname;
 	#endregion
-	Dictionary<string, int> dic = null;
-	string errPos = null;
+	Dictionary<string, int> dic;
+	string errPos;
 
-	public override Int64 GetIntValue(ExpressionMediator exm)
+	public override long GetIntValue(ExpressionMediator exm)
 	{
 		if (dic == null)
 			#region EE_ERD
@@ -42,7 +39,7 @@ internal sealed class VariableStrArgTerm : IOperandTerm
 			dic = exm.VEvaluator.Constant.GetKeywordDictionary(out errPos, parentCode, index, varname);
 		#endregion
 		string key = strTerm.GetStrValue(exm);
-		if (key == "")
+		if (string.IsNullOrEmpty(key))
 			throw new CodeEE(trerror.KeywordCanNotEmpty.Text);
 		#region EE_ERD
 		if (dic == null && key != "")
@@ -59,7 +56,7 @@ internal sealed class VariableStrArgTerm : IOperandTerm
 		return i;
 	}
 
-	public override IOperandTerm Restructure(ExpressionMediator exm)
+	public override AExpression Restructure(ExpressionMediator exm)
 	{
 		if (dic == null)
 			#region EE_ERD
@@ -70,6 +67,6 @@ internal sealed class VariableStrArgTerm : IOperandTerm
 		strTerm = strTerm.Restructure(exm);
 		if (!(strTerm is SingleTerm))
 			return this;
-		return new SingleTerm(this.GetIntValue(exm));
+		return new SingleLongTerm(GetIntValue(exm));
 	}
 }

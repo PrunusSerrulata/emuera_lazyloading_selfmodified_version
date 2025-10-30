@@ -1,21 +1,12 @@
-﻿using MinorShift.Emuera.Sub;
+﻿using MinorShift.Emuera.Runtime.Utils;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Text;
-using trerror = EvilMask.Emuera.Lang.Error;
-using System.Runtime.Versioning;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
-namespace MinorShift.Emuera.Content;
+namespace MinorShift.Emuera.UI.Game.Image;
 
-abstract class AContentItem
-{
-	protected AContentItem(string name) { Name = name; }
-	public readonly string Name;
-	//public bool Enabled { get; protected set; }
-	public abstract bool IsCreated { get; }
-}
 
 internal abstract class ASprite : AContentItem, IDisposable
 {
@@ -84,7 +75,7 @@ internal abstract class ASpriteSingle : ASprite
 	}
 	public override Color SpriteGetColor(int x, int y)
 	{
-		Bitmap bmp = this.Bitmap;
+		Bitmap bmp = Bitmap;
 		if (bmp == null)
 			return Color.Transparent;
 		int bmpX = x + SrcRectangle.X;
@@ -145,7 +136,7 @@ internal sealed class SpriteG : ASpriteSingle
 	public List<Tuple<ASprite, Rectangle>> drawImgList { get { return (BaseImage as GraphicsImage).drawImgList; } }
 	public bool isBaseImage(GraphicsImage gImg)
 	{
-		return (BaseImage as GraphicsImage) == gImg;
+		return BaseImage as GraphicsImage == gImg;
 	}
 
 }
@@ -158,7 +149,7 @@ internal sealed class SpriteF : ASpriteSingle
 	public SpriteF(string name, ConstImage image, Rectangle rect, Point pos, Size destSize)
 		: base(name, image, rect, destSize)
 	{
-		this.DestBasePosition = pos;
+		DestBasePosition = pos;
 	}
 }
 
@@ -199,7 +190,7 @@ internal sealed class SpriteAnime : ASprite
 		}
 	}
 	List<AnimeFrame> FrameList;
-	public Int64 totaltime;
+	public long totaltime;
 
 	internal bool AddFrame(AbstractImage parentImage, Rectangle rect, Point pos, int delay)
 	{
@@ -225,16 +216,16 @@ internal sealed class SpriteAnime : ASprite
 	/// </summary>
 	internal void ResetTime()
 	{
-		StartTime = -1;
-		lastFrameTime = 0;
+		StartTime = DateTime.MinValue;
+		lastFrameTime = DateTime.MinValue;
 		lastFrame = -1;
 	}
 
 	/// <summary>
 	/// 開始時間調整用の値。ミリ秒でUInt32の範囲まで想定。
 	/// </summary>
-	Int64 StartTime = -1;
-	uint lastFrameTime = 0;
+	DateTime StartTime;
+	DateTime lastFrameTime;
 	int lastFrame = -1;
 	private AnimeFrame GetCurrentFrame()
 	{
@@ -247,23 +238,24 @@ internal sealed class SpriteAnime : ASprite
 			throw new ExeEE(trerror.OoRLasframe.Text);
 #endif
 		//一度もフレーム取得したことがない場合は現在時間を記録して最初のフレームを返す。
-		if (StartTime < 0)
+		if (lastFrame == -1)
 		{
-			StartTime = DateTime.Now.Millisecond;
+			StartTime = DateTime.Now;
+			lastFrameTime = StartTime;
 			lastFrame = 0;
 			return FrameList[0];
 		}
 		//時間経過なしに複数回呼ばれた場合はさっき返したフレームをもう一度返す。
-		if (DateTime.Now.Millisecond == lastFrameTime && lastFrame >= 0)
+		if (DateTime.Now == lastFrameTime && lastFrame >= 0)
 			return FrameList[lastFrame];
+		//ここまで来たらlastFrameTimeを更新
+		lastFrameTime = DateTime.Now;
 		//StartTimeからの経過時間をtotaltimeで剰余計算
-		var time = (DateTime.Now.Millisecond - StartTime) % totaltime;      //winmmtimerは一周して0になることがあり得るのでその場合の対策。C#の剰余の結果の符号は左辺値の符号に等しい。
-		if (time < 0)
-			time += totaltime;
+		long elapsedTime = (long)(lastFrameTime - StartTime).TotalMilliseconds % totaltime;
 		foreach (AnimeFrame frame in FrameList)
 		{
-			time -= frame.DelayTimeMs;
-			if (time <= 0)
+			elapsedTime -= frame.DelayTimeMs;
+			if (elapsedTime <= 0)
 			{
 				lastFrame = frame.index;
 				return frame;
@@ -284,8 +276,6 @@ internal sealed class SpriteAnime : ASprite
 			frame.Dispose();
 		FrameList.Clear();
 		totaltime = 0;
-		lastFrameTime = 0;
-		StartTime = -1;
 		lastFrame = -1;
 	}
 

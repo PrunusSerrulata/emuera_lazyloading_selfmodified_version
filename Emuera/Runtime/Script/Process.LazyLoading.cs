@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using trsl = EvilMask.Emuera.Lang.SystemLine;
+using System.Threading.Tasks;
+using MinorShift.Emuera.Runtime.Script.Loader;
+using MinorShift.Emuera.Runtime.Script.Statements;
+using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
 
 namespace MinorShift.Emuera.GameProc;
 
@@ -38,15 +41,15 @@ internal sealed partial class Process
 
 	private const char Separator = '\t';
 
-	public bool TryLazyLoadErb(string functionName)
+	public async Task<bool> TryLazyLoadErb(string functionName)
 	{
 		if (!LazyLoadingTable.TryGetValue(functionName, out List<string> value))
 		{
 			return false;
 		}
 
-		ErbLoader loader = new(console, exm, this);
-		if (loader.loadErbs(value, labelDic))
+		var loader = new ErbLoader(console, exm, this);
+		if (await loader.LoadErbList(value, labelDic))
 		{
 			if (Program.AnalysisMode)
 			{
@@ -209,7 +212,7 @@ internal sealed partial class Process
 		// 메소드(#FUNCTION으로 정의되는) 함수와 이벤트 함수가 하나라도 있는 파일을 리스트에서 제외한다.
 		foreach (FunctionLabelLine label in labels)
 		{
-			if (!files.Contains(label.Position.Filename))
+			if (!files.Contains(label.Position.Value.Filename))
 			{
 				continue;
 			}
@@ -218,16 +221,16 @@ internal sealed partial class Process
 			{
 				if (Program.AnalysisMode)
 					console.PrintSystemLine(string.Format(trsl.LazyLoadingFileFunctionExcluded.Text,
-						label.Position.Filename, label.LabelName));
-				files.Remove(label.Position.Filename);
+						label.Position.Value.Filename, label.LabelName));
+				files.Remove(label.Position.Value.Filename);
 				continue;
 			}
 
 			if (label.IsEvent)
 			{
-				console.PrintSystemLine(string.Format(trsl.LazyLoadingFileEventExcluded.Text, label.Position.Filename,
+				console.PrintSystemLine(string.Format(trsl.LazyLoadingFileEventExcluded.Text, label.Position.Value.Filename,
 					label.LabelName));
-				files.Remove(label.Position.Filename);
+				files.Remove(label.Position.Value.Filename);
 			}
 		}
 
@@ -240,16 +243,16 @@ internal sealed partial class Process
 		{
 			foreach (FunctionLabelLine label in labels)
 			{
-				if (!files.Contains(label.Position.Filename))
+				if (!files.Contains(label.Position.Value.Filename))
 					continue;
 
-				writer.WriteLine(SerializeData(label.LabelName, label.Position.Filename));
+				writer.WriteLine(SerializeData(label.LabelName, label.Position.Value.Filename));
 
-				if (!metafiles.Add(label.Position.Filename))
+				if (!metafiles.Add(label.Position.Value.Filename))
 					continue;
 
-				var lastWrite = File.GetLastWriteTime(ErbPath(label.Position.Filename)).ToFileTimeUtc();
-				metawriter.WriteLine(SerializeData(label.Position.Filename, lastWrite.ToString()));
+				var lastWrite = File.GetLastWriteTime(ErbPath(label.Position.Value.Filename)).ToFileTimeUtc();
+				metawriter.WriteLine(SerializeData(label.Position.Value.Filename, lastWrite.ToString()));
 			}
 		}
 		catch (Exception e)
@@ -271,14 +274,14 @@ internal sealed partial class Process
 			var valid = true;
 			foreach (FunctionLabelLine label in labels)
 			{
-				if(label.Position.Filename != file)
+				if(label.Position.Value.Filename != file)
 					continue;
 				
 				if (label.IsMethod)
 				{
 					if (Program.AnalysisMode)
 						console.PrintSystemLine(string.Format(trsl.LazyLoadingFileFunctionExcluded.Text,
-							label.Position.Filename, label.LabelName));
+							label.Position.Value.Filename, label.LabelName));
 					valid = false;
 					break;
 				}
@@ -287,7 +290,7 @@ internal sealed partial class Process
 				{
 					if (Program.AnalysisMode)
 						console.PrintSystemLine(string.Format(trsl.LazyLoadingFileEventExcluded.Text,
-							label.Position.Filename, label.LabelName));
+							label.Position.Value.Filename, label.LabelName));
 					valid = false;
 					break;
 				}
@@ -302,8 +305,8 @@ internal sealed partial class Process
 			{
 				foreach (var label in temp_labels)
 				{
-					lines.Append(SerializeData(label.LabelName, label.Position.Filename) + '\n');
-					labelFiles.Add(label.Position.Filename);
+					lines.Append(SerializeData(label.LabelName, label.Position.Value.Filename) + '\n');
+					labelFiles.Add(label.Position.Value.Filename);
 				}
 			}
 			temp_labels.Clear();

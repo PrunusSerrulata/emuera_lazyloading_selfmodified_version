@@ -1,33 +1,32 @@
-﻿using System;
+﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Script.Statements.Function;
+using MinorShift.Emuera.Runtime.Script.Statements.Variable;
+using MinorShift.Emuera.Runtime.Utils.PluginSystem;
+using System;
 using System.Collections.Generic;
-using MinorShift.Emuera.GameData;
-using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.GameData.Variable;
-using MinorShift.Emuera.GameData.Function;
-using MinorShift.Emuera.GameView;
-using MinorShift.Emuera.GameProc.PluginSystem;
 
-namespace MinorShift.Emuera.GameProc.Function;
+namespace MinorShift.Emuera.Runtime.Script.Statements;
 
 #region EM_私家版_INPUT系機能拡張
 internal sealed class SpInputsArgument : Argument
 {
-	public SpInputsArgument(IOperandTerm def, IOperandTerm mouse, IOperandTerm canskip)
+	public SpInputsArgument(AExpression def, AExpression mouse, AExpression canskip)
 	{
 		Def = def;
 		Mouse = mouse;
 		CanSkip = canskip;
 	}
-	readonly public IOperandTerm Def;
-	readonly public IOperandTerm Mouse;
-	readonly public IOperandTerm CanSkip;
+	readonly public AExpression Def;
+	readonly public AExpression Mouse;
+	readonly public AExpression CanSkip;
 }
 #endregion
 #region EM_私家版_HTMLパラメータ拡張
 internal sealed class MixedIntegerExprTerm
 {
-	public IOperandTerm num = null;
-	public bool isPx = false;
+	public AExpression num;
+	public bool isPx;
 }
 internal sealed class SpPrintShapeArgument : Argument
 {
@@ -39,16 +38,16 @@ internal sealed class SpPrintShapeArgument : Argument
 }
 internal sealed class SpPrintImgArgument : Argument
 {
-	public SpPrintImgArgument(IOperandTerm name, IOperandTerm nameb, IOperandTerm namem, MixedIntegerExprTerm[] param)
+	public SpPrintImgArgument(AExpression name, AExpression nameb, AExpression namem, MixedIntegerExprTerm[] param)
 	{
 		Name = name;
 		Nameb = nameb;
 		Namem = namem;
 		Param = param;
 	}
-	readonly public IOperandTerm Name;
-	readonly public IOperandTerm Nameb;
-	readonly public IOperandTerm Namem;
+	readonly public AExpression Name;
+	readonly public AExpression Nameb;
+	readonly public AExpression Namem;
 	readonly public MixedIntegerExprTerm[] Param;
 }
 #endregion
@@ -59,36 +58,36 @@ internal sealed class SpDtColumnOptions : Argument
 	{
 		Default,
 	};
-	public SpDtColumnOptions(IOperandTerm dt, IOperandTerm column, DTOptions[] opts, IOperandTerm[] values)
+	public SpDtColumnOptions(AExpression dt, AExpression column, DTOptions[] opts, AExpression[] values)
 	{
 		Values = values;
 		Options = opts;
 		DT = dt;
 		Column = column;
 	}
-	readonly public IOperandTerm[] Values;
+	readonly public AExpression[] Values;
 	readonly public DTOptions[] Options;
-	readonly public IOperandTerm DT;
-	readonly public IOperandTerm Column;
+	readonly public AExpression DT;
+	readonly public AExpression Column;
 }
 #endregion
 #region EM_私家版_HTML_PRINT拡張
 internal sealed class SpHtmlPrint : Argument
 {
-	public SpHtmlPrint(IOperandTerm str, IOperandTerm opt)
+	public SpHtmlPrint(AExpression str, AExpression opt)
 	{
 		Str = str;
 		Opt = opt;
 	}
-	readonly public IOperandTerm Str;
-	readonly public IOperandTerm Opt;
+	readonly public AExpression Str;
+	readonly public AExpression Opt;
 }
 #endregion
 internal abstract class Argument
 {
 	public bool IsConst;
 	public string ConstStr;
-	public Int64 ConstInt;
+	public long ConstInt;
 }
 
 /// <summary>
@@ -96,7 +95,7 @@ internal abstract class Argument
 /// </summary>
 internal sealed class ExpressionsArgument : Argument
 {
-	public ExpressionsArgument(Type[] types, IOperandTerm[] terms)
+	public ExpressionsArgument(Type[] types, List<AExpression> terms)
 	{
 		ArgumentTypeArray = types;
 		ArgumentArray = terms;
@@ -105,7 +104,7 @@ internal sealed class ExpressionsArgument : Argument
 	/// 引数の型(ArgumentArrayよりもLengthが大きい可能性があるので見るのはArgumentArrayにすること)
 	/// </summary>
 	readonly public Type[] ArgumentTypeArray;
-	readonly public IOperandTerm[] ArgumentArray;
+	readonly public List<AExpression> ArgumentArray;
 }
 
 internal sealed class VoidArgument : Argument
@@ -113,41 +112,32 @@ internal sealed class VoidArgument : Argument
 	public VoidArgument() { }
 }
 
-internal sealed class ErrorArgument : Argument
-{
-	public ErrorArgument(string errorMes)
-	{
-		this.errorMes = errorMes;
-	}
-	readonly string errorMes;
-}
-
 internal sealed class ExpressionArgument : Argument
 {
-	public ExpressionArgument(IOperandTerm termSrc)
+	public ExpressionArgument(AExpression termSrc)
 	{
 		Term = termSrc;
 	}
-	readonly public IOperandTerm Term;
+	readonly public AExpression Term;
 }
 
 internal sealed class ExpressionArrayArgument : Argument
 {
-	public ExpressionArrayArgument(List<IOperandTerm> termList)
+	public ExpressionArrayArgument(List<AExpression> termList)
 	{
-		TermList = new IOperandTerm[termList.Count];
+		TermList = new AExpression[termList.Count];
 		termList.CopyTo(TermList);
 	}
-	readonly public IOperandTerm[] TermList;
+	readonly public AExpression[] TermList;
 }
 
 internal sealed class SpPrintVArgument : Argument
 {
-	public SpPrintVArgument(IOperandTerm[] list)
+	public SpPrintVArgument(List<AExpression> list)
 	{
 		Terms = list;
 	}
-	readonly public IOperandTerm[] Terms;
+	readonly public List<AExpression> Terms;
 }
 
 internal sealed class SpTimesArgument : Argument
@@ -163,25 +153,25 @@ internal sealed class SpTimesArgument : Argument
 
 internal sealed class SpBarArgument : Argument
 {
-	public SpBarArgument(IOperandTerm value, IOperandTerm max, IOperandTerm length)
+	public SpBarArgument(AExpression value, AExpression max, AExpression length)
 	{
 		Terms[0] = value;
 		Terms[1] = max;
 		Terms[2] = length;
 	}
-	readonly public IOperandTerm[] Terms = new IOperandTerm[3];
+	readonly public AExpression[] Terms = new AExpression[3];
 }
 
 
 internal sealed class SpSwapCharaArgument : Argument
 {
-	public SpSwapCharaArgument(IOperandTerm x, IOperandTerm y)
+	public SpSwapCharaArgument(AExpression x, AExpression y)
 	{
 		X = x;
 		Y = y;
 	}
-	readonly public IOperandTerm X;
-	readonly public IOperandTerm Y;
+	readonly public AExpression X;
+	readonly public AExpression Y;
 }
 
 internal sealed class SpSwapVarArgument : Argument
@@ -206,20 +196,20 @@ internal sealed class SpVarsizeArgument : Argument
 
 internal sealed class SpSaveDataArgument : Argument
 {
-	public SpSaveDataArgument(IOperandTerm target, IOperandTerm var)
+	public SpSaveDataArgument(AExpression target, AExpression var)
 	{
 		Target = target;
 		StrExpression = var;
 	}
-	readonly public IOperandTerm Target;
-	readonly public IOperandTerm StrExpression;
+	readonly public AExpression Target;
+	readonly public AExpression StrExpression;
 }
 
 internal sealed class SpTInputsArgument : Argument
 {
 	#region EM_私家版_INPUT系機能拡張
-	//public SpTInputsArgument(IOperandTerm time, IOperandTerm def, IOperandTerm disp, IOperandTerm timeout)
-	public SpTInputsArgument(IOperandTerm time, IOperandTerm def, IOperandTerm disp, IOperandTerm timeout, IOperandTerm mouse, IOperandTerm canskip)
+	//public SpTInputsArgument(AExpression time, AExpression def, AExpression disp, AExpression timeout)
+	public SpTInputsArgument(AExpression time, AExpression def, AExpression disp, AExpression timeout, AExpression mouse, AExpression canskip)
 	#endregion
 	{
 		Time = time;
@@ -233,15 +223,15 @@ internal sealed class SpTInputsArgument : Argument
 		CanSkip = canskip;
 		#endregion
 	}
-	readonly public IOperandTerm Time;
-	readonly public IOperandTerm Def;
-	readonly public IOperandTerm Disp;
-	readonly public IOperandTerm Timeout;
+	readonly public AExpression Time;
+	readonly public AExpression Def;
+	readonly public AExpression Disp;
+	readonly public AExpression Timeout;
 	#region EM_私家版_INPUT系機能拡張
-	readonly public IOperandTerm Mouse;
+	readonly public AExpression Mouse;
 	#endregion
 	#region EE_INPUT機能拡張
-	readonly public IOperandTerm CanSkip;
+	readonly public AExpression CanSkip;
 	#endregion
 }
 
@@ -267,74 +257,74 @@ internal sealed class SpSortcharaArgument : Argument
 
 internal sealed class SpCallFArgment : Argument
 {
-	public SpCallFArgment(IOperandTerm funcname, IOperandTerm[] subNames, IOperandTerm[] args)
+	public SpCallFArgment(AExpression funcname, List<AExpression> subNames, List<AExpression> args)
 	{
 		FuncnameTerm = funcname;
 		SubNames = subNames;
 		RowArgs = args;
 	}
-	readonly public IOperandTerm FuncnameTerm;
-	readonly public IOperandTerm[] SubNames;
-	readonly public IOperandTerm[] RowArgs;
-	public IOperandTerm FuncTerm;
+	readonly public AExpression FuncnameTerm;
+	readonly public List<AExpression> SubNames;
+	readonly public List<AExpression> RowArgs;
+	public AExpression FuncTerm;
 }
 
 internal sealed class SpCallArgment : Argument
 {
-	public SpCallArgment(IOperandTerm funcname, IOperandTerm[] subNames, IOperandTerm[] args)
+	public SpCallArgment(AExpression funcname, List<AExpression> subNames, List<AExpression> args)
 	{
 		FuncnameTerm = funcname;
 		SubNames = subNames;
 		RowArgs = args;
 	}
-	readonly public IOperandTerm FuncnameTerm;
-	readonly public IOperandTerm[] SubNames;
-	readonly public IOperandTerm[] RowArgs;
+	readonly public AExpression FuncnameTerm;
+	readonly public List<AExpression> SubNames;
+	readonly public List<AExpression> RowArgs;
 	public UserDefinedFunctionArgument UDFArgument;
 	public CalledFunction CallFunc;
 }
 
 internal sealed class SpCallSharpArgment : Argument
 {
-	public SpCallSharpArgment(IOperandTerm funcname, IOperandTerm[] subNames, IOperandTerm[] args)
+	public SpCallSharpArgment(AExpression funcname, List<AExpression> subNames, List<AExpression> args)
 	{
 		FuncnameTerm = funcname;
 		SubNames = subNames;
 		RowArgs = args;
 	}
-	readonly public IOperandTerm FuncnameTerm;
-	readonly public IOperandTerm[] SubNames;
-	readonly public IOperandTerm[] RowArgs;
+	readonly public AExpression FuncnameTerm;
+	readonly public List<AExpression> SubNames;
+	readonly public List<AExpression> RowArgs;
 	public UserDefinedFunctionArgument UDFArgument;
 	public IPluginMethod CallFunc;
 }
 
 internal sealed class SpForNextArgment : Argument
 {
-	public SpForNextArgment(VariableTerm var, IOperandTerm start, IOperandTerm end, IOperandTerm step)
+	public SpForNextArgment(VariableTerm var, AExpression start, AExpression end, AExpression step)
 	{
-		this.Cnt = var;
-		this.Start = start;
-		this.End = end;
-		this.Step = step;
+		Cnt = var;
+		Start = start;
+		End = end;
+		Step = step;
 	}
 	readonly public VariableTerm Cnt;
-	readonly public IOperandTerm Start;
-	readonly public IOperandTerm End;
-	readonly public IOperandTerm Step;
+	readonly public AExpression Start;
+	readonly public AExpression End;
+	readonly public AExpression Step;
 }
 
 internal sealed class SpPowerArgument : Argument
 {
-	public SpPowerArgument(VariableTerm var, IOperandTerm x, IOperandTerm y)
+	public SpPowerArgument(VariableTerm var, AExpression x, AExpression y)
 	{
 		VariableDest = var;
 		X = x;
 		Y = y;
 	}
 	readonly public VariableTerm VariableDest;
-	readonly public IOperandTerm X;
-	readonly public IOperandTerm Y;
+	readonly public AExpression X;
+	readonly public AExpression Y;
 }
 
 internal sealed class CaseArgument : Argument
@@ -366,27 +356,27 @@ internal sealed class StrDataArgument : Argument
 
 internal sealed class MethodArgument : Argument
 {
-	public MethodArgument(IOperandTerm method)
+	public MethodArgument(AExpression method)
 	{
 		MethodTerm = method;
 	}
-	readonly public IOperandTerm MethodTerm;
+	readonly public AExpression MethodTerm;
 }
 
 internal sealed class BitArgument : Argument
 {
-	public BitArgument(VariableTerm var, IOperandTerm[] termSrc)
+	public BitArgument(VariableTerm var, AExpression[] termSrc)
 	{
 		VariableDest = var;
 		Term = termSrc;
 	}
 	readonly public VariableTerm VariableDest;
-	readonly public IOperandTerm[] Term;
+	readonly public AExpression[] Term;
 }
 
 internal sealed class SpVarSetArgument : Argument
 {
-	public SpVarSetArgument(VariableTerm var, IOperandTerm termSrc, IOperandTerm start, IOperandTerm end)
+	public SpVarSetArgument(VariableTerm var, AExpression termSrc, AExpression start, AExpression end)
 	{
 		VariableDest = var;
 		Term = termSrc;
@@ -394,14 +384,14 @@ internal sealed class SpVarSetArgument : Argument
 		End = end;
 	}
 	readonly public VariableTerm VariableDest;
-	readonly public IOperandTerm Term;
-	readonly public IOperandTerm Start;
-	readonly public IOperandTerm End;
+	readonly public AExpression Term;
+	readonly public AExpression Start;
+	readonly public AExpression End;
 }
 
 internal sealed class SpCVarSetArgument : Argument
 {
-	public SpCVarSetArgument(VariableTerm var, IOperandTerm indexTerm, IOperandTerm termSrc, IOperandTerm start, IOperandTerm end)
+	public SpCVarSetArgument(VariableTerm var, AExpression indexTerm, AExpression termSrc, AExpression start, AExpression end)
 	{
 		VariableDest = var;
 		Index = indexTerm;
@@ -410,66 +400,66 @@ internal sealed class SpCVarSetArgument : Argument
 		End = end;
 	}
 	readonly public VariableTerm VariableDest;
-	readonly public IOperandTerm Index;
-	readonly public IOperandTerm Term;
-	readonly public IOperandTerm Start;
-	readonly public IOperandTerm End;
+	readonly public AExpression Index;
+	readonly public AExpression Term;
+	readonly public AExpression Start;
+	readonly public AExpression End;
 }
 
 internal sealed class SpButtonArgument : Argument
 {
-	public SpButtonArgument(IOperandTerm p1, IOperandTerm p2)
+	public SpButtonArgument(AExpression p1, AExpression p2)
 	{
 		PrintStrTerm = p1;
 		ButtonWord = p2;
 	}
-	readonly public IOperandTerm PrintStrTerm;
-	readonly public IOperandTerm ButtonWord;
+	readonly public AExpression PrintStrTerm;
+	readonly public AExpression ButtonWord;
 }
 
 
 internal sealed class SpColorArgument : Argument
 {
-	public SpColorArgument(IOperandTerm r, IOperandTerm g, IOperandTerm b)
+	public SpColorArgument(AExpression r, AExpression g, AExpression b)
 	{
 		R = r;
 		G = g;
 		B = b;
 	}
-	public SpColorArgument(IOperandTerm rgb)
+	public SpColorArgument(AExpression rgb)
 	{
 		RGB = rgb;
 	}
-	readonly public IOperandTerm R;
-	readonly public IOperandTerm G;
-	readonly public IOperandTerm B;
-	readonly public IOperandTerm RGB;
+	readonly public AExpression R;
+	readonly public AExpression G;
+	readonly public AExpression B;
+	readonly public AExpression RGB;
 }
 
 internal sealed class SpSplitArgument : Argument
 {
-	public SpSplitArgument(IOperandTerm s1, IOperandTerm s2, VariableToken varId, VariableTerm num)
+	public SpSplitArgument(AExpression s1, AExpression s2, VariableToken varId, VariableTerm num)
 	{
 		TargetStr = s1;
 		Split = s2;
 		Var = varId;
 		Num = num;
 	}
-	readonly public IOperandTerm TargetStr;
-	readonly public IOperandTerm Split;
+	readonly public AExpression TargetStr;
+	readonly public AExpression Split;
 	readonly public VariableToken Var;
 	readonly public VariableTerm Num;
 }
 
 internal sealed class SpHtmlSplitArgument : Argument
 {
-	public SpHtmlSplitArgument(IOperandTerm s1, VariableToken varId, VariableTerm num)
+	public SpHtmlSplitArgument(AExpression s1, VariableToken varId, VariableTerm num)
 	{
 		TargetStr = s1;
 		Var = varId;
 		Num = num;
 	}
-	readonly public IOperandTerm TargetStr;
+	readonly public AExpression TargetStr;
 	readonly public VariableToken Var;
 	readonly public VariableTerm Num;
 }
@@ -485,20 +475,20 @@ internal sealed class SpGetIntArgument : Argument
 
 internal sealed class SpArrayControlArgument : Argument
 {
-	public SpArrayControlArgument(VariableTerm var, IOperandTerm num1, IOperandTerm num2)
+	public SpArrayControlArgument(VariableTerm var, AExpression num1, AExpression num2)
 	{
 		VarToken = var;
 		Num1 = num1;
 		Num2 = num2;
 	}
 	readonly public VariableTerm VarToken;
-	readonly public IOperandTerm Num1;
-	readonly public IOperandTerm Num2;
+	readonly public AExpression Num1;
+	readonly public AExpression Num2;
 }
 
 internal sealed class SpArrayShiftArgument : Argument
 {
-	public SpArrayShiftArgument(VariableTerm var, IOperandTerm num1, IOperandTerm num2, IOperandTerm num3, IOperandTerm num4)
+	public SpArrayShiftArgument(VariableTerm var, AExpression num1, AExpression num2, AExpression num3, AExpression num4)
 	{
 		VarToken = var;
 		Num1 = num1;
@@ -507,15 +497,15 @@ internal sealed class SpArrayShiftArgument : Argument
 		Num4 = num4;
 	}
 	readonly public VariableTerm VarToken;
-	readonly public IOperandTerm Num1;
-	readonly public IOperandTerm Num2;
-	readonly public IOperandTerm Num3;
-	readonly public IOperandTerm Num4;
+	readonly public AExpression Num1;
+	readonly public AExpression Num2;
+	readonly public AExpression Num3;
+	readonly public AExpression Num4;
 }
 
 internal sealed class SpArraySortArgument : Argument
 {
-	public SpArraySortArgument(VariableTerm var, SortOrder order, IOperandTerm num1, IOperandTerm num2)
+	public SpArraySortArgument(VariableTerm var, SortOrder order, AExpression num1, AExpression num2)
 	{
 		VarToken = var;
 		Order = order;
@@ -524,31 +514,31 @@ internal sealed class SpArraySortArgument : Argument
 	}
 	readonly public VariableTerm VarToken;
 	readonly public SortOrder Order;
-	readonly public IOperandTerm Num1;
-	readonly public IOperandTerm Num2;
+	readonly public AExpression Num1;
+	readonly public AExpression Num2;
 }
 
 internal sealed class SpCopyArrayArgument : Argument
 {
-	public SpCopyArrayArgument(IOperandTerm str1, IOperandTerm str2)
+	public SpCopyArrayArgument(AExpression str1, AExpression str2)
 	{
 		VarName1 = str1;
 		VarName2 = str2;
 	}
-	readonly public IOperandTerm VarName1;
-	readonly public IOperandTerm VarName2;
+	readonly public AExpression VarName1;
+	readonly public AExpression VarName2;
 }
 
 internal sealed class SpSaveVarArgument : Argument
 {
-	public SpSaveVarArgument(IOperandTerm term, IOperandTerm mes, VariableToken[] varTokens)
+	public SpSaveVarArgument(AExpression term, AExpression mes, VariableToken[] varTokens)
 	{
 		Term = term;
 		SavMes = mes;
 		VarTokens = varTokens;
 	}
-	readonly public IOperandTerm Term;
-	readonly public IOperandTerm SavMes;
+	readonly public AExpression Term;
+	readonly public AExpression SavMes;
 	readonly public VariableToken[] VarTokens;
 }
 
@@ -564,7 +554,7 @@ internal sealed class RefArgument : Argument
 		RefMethodToken = udrm;
 		SrcCalledFunction = src;
 	}
-	public RefArgument(UserDefinedRefMethod udrm, IOperandTerm src)
+	public RefArgument(UserDefinedRefMethod udrm, AExpression src)
 	{
 		RefMethodToken = udrm;
 		SrcTerm = src;
@@ -575,50 +565,28 @@ internal sealed class RefArgument : Argument
 		RefVarToken = vt;
 		SrcVarToken = src;
 	}
-	public RefArgument(ReferenceToken vt, IOperandTerm src)
+	public RefArgument(ReferenceToken vt, AExpression src)
 	{
 		RefVarToken = vt;
 		SrcTerm = src;
 	}
-	readonly public UserDefinedRefMethod RefMethodToken = null;
-	readonly public UserDefinedRefMethod SrcRefMethodToken = null;
-	readonly public CalledFunction SrcCalledFunction = null;
+	readonly public UserDefinedRefMethod RefMethodToken;
+	readonly public UserDefinedRefMethod SrcRefMethodToken;
+	readonly public CalledFunction SrcCalledFunction;
 
-	readonly public ReferenceToken RefVarToken = null;
-	readonly public VariableToken SrcVarToken = null;
-	readonly public IOperandTerm SrcTerm = null;
-}
-
-internal sealed class OneInputArgument : Argument
-{
-	public OneInputArgument(IOperandTerm term, IOperandTerm flag)
-	{
-		Term = term;
-		Flag = flag;
-	}
-	readonly public IOperandTerm Term;
-	readonly public IOperandTerm Flag;
-}
-
-internal sealed class OneInputsArgument : Argument
-{
-	public OneInputsArgument(IOperandTerm term, IOperandTerm flag)
-	{
-		Term = term;
-		Flag = flag;
-	}
-	readonly public IOperandTerm Term;
-	readonly public IOperandTerm Flag;
+	readonly public ReferenceToken RefVarToken;
+	readonly public VariableToken SrcVarToken;
+	readonly public AExpression SrcTerm;
 }
 #region EE
 internal sealed class StrDoubleArgument : Argument
 {
-	public StrDoubleArgument(IOperandTerm term, double doublevalue)
+	public StrDoubleArgument(AExpression term, double doublevalue)
 	{
 		Term = term;
 		DoubleValue = doublevalue;
 	}
-	readonly public IOperandTerm Term;
+	readonly public AExpression Term;
 	readonly public double DoubleValue;
 }
 #endregion
@@ -626,33 +594,78 @@ internal sealed class StrDoubleArgument : Argument
 #region set系
 internal sealed class SpSetArgument : Argument
 {
-	public SpSetArgument(VariableTerm var, IOperandTerm termSrc)
+	public SpSetArgument(VariableTerm var, AExpression termSrc)
 	{
 		VariableDest = var;
 		Term = termSrc;
 	}
 	readonly public VariableTerm VariableDest;
-	readonly public IOperandTerm Term;
-	public bool AddConst = false;
+	readonly public AExpression Term;
+	public bool AddConst;
 }
 
 internal sealed class SpSetArrayArgument : Argument
 {
-	public SpSetArrayArgument(VariableTerm var, IOperandTerm[] termList, Int64[] constList)
+	public SpSetArrayArgument(VariableTerm var, List<AExpression> termList, long[] constList)
 	{
 		VariableDest = var;
 		TermList = termList;
 		ConstIntList = constList;
 	}
-	public SpSetArrayArgument(VariableTerm var, IOperandTerm[] termList, string[] constList)
+	public SpSetArrayArgument(VariableTerm var, List<AExpression> termList, string[] constList)
 	{
 		VariableDest = var;
 		TermList = termList;
 		ConstStrList = constList;
 	}
 	readonly public VariableTerm VariableDest;
-	readonly public IOperandTerm[] TermList;
-	readonly public Int64[] ConstIntList;
+	readonly public List<AExpression> TermList;
+	readonly public long[] ConstIntList;
 	readonly public string[] ConstStrList;
 }
 #endregion
+
+#region Emuera.NET VAR命令
+internal sealed class IntAsignArgument : Argument
+{
+	public int[] Lengths;
+	public IntAsignArgument(string str, int[] lengths)
+	{
+		ConstStr = str;
+	}
+	public AExpression Exp;
+	public IntAsignArgument(string name, int[] lengths, AExpression exp)
+	{
+		ConstStr = name;
+		Lengths = lengths;
+		Exp = exp;
+	}
+}
+
+internal sealed class StrAsignArgument : Argument
+{
+	public int[] Lengths;
+	public StrAsignArgument(string str)
+	{
+		ConstStr = str;
+	}
+	public string Value;
+	public StrAsignArgument(string str, int[] lengths, string value)
+	{
+		ConstStr = str;
+		Lengths = lengths;
+		Value = value;
+	}
+}
+#endregion
+
+internal sealed class HTML_PRINTArgument : Argument
+{
+	public HTML_PRINTArgument(AExpression termSrc, AExpression lineEnd)
+	{
+		Term = termSrc;
+		LineEnd = lineEnd;
+	}
+	readonly public AExpression LineEnd;
+	readonly public AExpression Term;
+}

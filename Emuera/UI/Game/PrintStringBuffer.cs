@@ -1,12 +1,13 @@
-﻿using System;
+﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Utils;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
-using System.Windows.Forms;
-using MinorShift.Emuera.Sub;
-using trerror = EvilMask.Emuera.Lang.Error;
+using System.Text;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
-namespace MinorShift.Emuera.GameView;
+namespace MinorShift.Emuera.UI.Game;
 
 /*
  * ConsoleStyledString = string + StringStyle
@@ -25,20 +26,22 @@ internal sealed class PrintStringBuffer
 		this.parent = parent;
 	}
 	readonly EmueraConsole parent;
-	StringBuilder builder = new();
-	List<AConsoleDisplayPart> m_stringList = [];
-	StringStyle lastStringStyle = new();
+	readonly StringBuilder builder = new(2000);
+	List<AConsoleDisplayNode> m_stringList = [];
+	StringStyle lastStringStyle;
 	List<ConsoleButtonString> m_buttonList = [];
+
+	bool isLastLineEnd = true;
 
 	public int BufferStrLength
 	{
 		get
 		{
 			int length = 0;
-			foreach (AConsoleDisplayPart css in m_stringList)
+			foreach (AConsoleDisplayNode css in m_stringList)
 			{
 				if (css is ConsoleStyledString)
-					length += css.Str.Length;
+					length += css.Text.Length;
 				else
 					length += 1;
 			}
@@ -46,40 +49,36 @@ internal sealed class PrintStringBuffer
 		}
 	}
 
-	public void Append(AConsoleDisplayPart part)
+	public void Append(AConsoleDisplayNode part)
 	{
 		if (builder.Length != 0)
 		{
 			m_stringList.Add(new ConsoleStyledString(builder.ToString(), lastStringStyle));
-			builder.Remove(0, builder.Length);
+			builder.Clear();
 		}
 		m_stringList.Add(part);
 	}
 
-	public void Append(string str, StringStyle style)
+	public void Append(string str, StringStyle style, bool force_button = false, bool lineEnd = true)
 	{
-		Append(str, style, false);
-	}
-
-	public void Append(string str, StringStyle style, bool force_button)
-	{
+		isLastLineEnd = lineEnd;
 		if (BufferStrLength > 2000)
 			return;
 		if (force_button)
 			fromCssToButton();
-		if ((builder.Length == 0) || (lastStringStyle == style))
+		if (builder.Length == 0 || lastStringStyle == style)
 		{
 			if (builder.Length > 2000)
 				return;
 			if (builder.Length + str.Length > 2000)
-				str = str.Substring(0, 2000 - builder.Length) + trerror.BufferOverFlow.Text;
+				str = str[..(2000 - builder.Length)] + trerror.BufferOverFlow.Text;
 			builder.Append(str);
 			lastStringStyle = style;
 		}
 		else
 		{
 			m_stringList.Add(new ConsoleStyledString(builder.ToString(), lastStringStyle));
-			builder.Remove(0, builder.Length);
+			builder.Clear();
 			builder.Append(str);
 			lastStringStyle = style;
 		}
@@ -131,7 +130,7 @@ internal sealed class PrintStringBuffer
 	{
 		get
 		{
-			return (m_buttonList.Count == 0) && (builder.Length == 0) && (m_stringList.Count == 0);
+			return m_buttonList.Count == 0 && builder.Length == 0 && m_stringList.Count == 0;
 		}
 	}
 
@@ -140,13 +139,13 @@ internal sealed class PrintStringBuffer
 		StringBuilder buf = new();
 		foreach (ConsoleButtonString button in m_buttonList)
 			buf.Append(button.ToString());
-		foreach (AConsoleDisplayPart css in m_stringList)
-			buf.Append(css.Str);
+		foreach (AConsoleDisplayNode css in m_stringList)
+			buf.Append(css.Text);
 		buf.Append(builder);
 		return buf.ToString();
 	}
 
-	public ConsoleDisplayLine AppendAndFlushErrButton(string str, StringStyle style, string input, ScriptPosition pos, StringMeasure sm)
+	public ConsoleDisplayLine AppendAndFlushErrButton(string str, StringStyle style, string input, ScriptPosition? pos, StringMeasure sm)
 	{
 		fromCssToButton();
 		m_stringList.Add(new ConsoleStyledString(str, style));
@@ -161,18 +160,17 @@ internal sealed class PrintStringBuffer
 	{
 		fromCssToButton();
 		setWidthToButtonList(m_buttonList, stringMeasure, true);
-		ConsoleButtonString[] dispLineButtonArray = new ConsoleButtonString[m_buttonList.Count];
-		m_buttonList.CopyTo(dispLineButtonArray);
-		ConsoleDisplayLine line = new(dispLineButtonArray, true, temporary);
-		this.clearBuffer();
+		var line = new ConsoleDisplayLine([.. m_buttonList], true, temporary);
+		clearBuffer();
 		return line;
 	}
 
 	public ConsoleDisplayLine[] Flush(StringMeasure stringMeasure, bool temporary)
 	{
 		fromCssToButton();
-		ConsoleDisplayLine[] ret = PrintStringBuffer.ButtonsToDisplayLines(m_buttonList, stringMeasure, false, temporary);
-		this.clearBuffer();
+		ConsoleDisplayLine[] ret = ButtonsToDisplayLines(m_buttonList, stringMeasure, false, temporary);
+		ret[^1].IsLineEnd = isLastLineEnd;
+		clearBuffer();
 		return ret;
 	}
 
@@ -190,7 +188,7 @@ internal sealed class PrintStringBuffer
 	#endregion
 	{
 		if (buttonList.Count == 0)
-			return new ConsoleDisplayLine[0];
+			return [];
 		setWidthToButtonList(buttonList, stringMeasure, nobr);
 		List<ConsoleDisplayLine> lineList = [];
 		List<ConsoleButtonString> lineButtonList = [];
@@ -221,7 +219,7 @@ internal sealed class PrintStringBuffer
 			//「ボタンの途中で行を折りかえさない」がfalseなら分割する
 			//このボタンが単体で表示可能領域を上回るなら分割必須
 			//クリック可能なボタンでないなら分割する。ただし「ver1739以前の非ボタン折り返しを再現する」ならクリックの可否を区別しない
-			if ((!Config.ButtonWrap) || (lineButtonList.Count == 0) || (!buttonList[i].IsButton && !Config.CompatiLinefeedAs1739))
+			if (!Config.ButtonWrap || lineButtonList.Count == 0 || !buttonList[i].IsButton && !Config.CompatiLinefeedAs1739)
 			{//ボタン分割する
 				#region EM_私家版_HTML_divタグ
 				int divIndex = getDivideIndex(buttonList[i], stringMeasure, windowWidth);
@@ -238,7 +236,7 @@ internal sealed class PrintStringBuffer
 					lineButtonList.Add(buttonList[i]);
 					i++;
 				}
-				else if (divIndex == 0 && (lineButtonList.Count > 0))
+				else if (divIndex == 0 && lineButtonList.Count > 0)
 				{//まるごと次の行に送る
 				}
 				else//分割できない要素のみで構成されたボタンは分割できない
@@ -294,7 +292,7 @@ internal sealed class PrintStringBuffer
 
 	private void clearBuffer()
 	{
-		builder.Remove(0, builder.Length);
+		builder.Clear();
 		m_stringList.Clear();
 		m_buttonList.Clear();
 	}
@@ -308,7 +306,7 @@ internal sealed class PrintStringBuffer
 		if (builder.Length != 0)
 		{
 			m_stringList.Add(new ConsoleStyledString(builder.ToString(), lastStringStyle));
-			builder.Remove(0, builder.Length);
+			builder.Clear();
 		}
 		if (m_stringList.Count == 0)
 			return;
@@ -320,30 +318,30 @@ internal sealed class PrintStringBuffer
 	/// 物理行を１つのボタンへ。
 	/// </summary>
 	/// <returns></returns>
-	private ConsoleButtonString createButton(List<AConsoleDisplayPart> cssList, string input)
+	private ConsoleButtonString createButton(List<AConsoleDisplayNode> cssList, string input)
 	{
-		AConsoleDisplayPart[] cssArray = new AConsoleDisplayPart[cssList.Count];
+		AConsoleDisplayNode[] cssArray = new AConsoleDisplayNode[cssList.Count];
 		cssList.CopyTo(cssArray);
 		cssList.Clear();
 		return new ConsoleButtonString(parent, cssArray, input);
 	}
-	private ConsoleButtonString createButton(List<AConsoleDisplayPart> cssList, string input, ScriptPosition pos)
+	private ConsoleButtonString createButton(List<AConsoleDisplayNode> cssList, string input, ScriptPosition? pos)
 	{
-		AConsoleDisplayPart[] cssArray = new AConsoleDisplayPart[cssList.Count];
+		AConsoleDisplayNode[] cssArray = new AConsoleDisplayNode[cssList.Count];
 		cssList.CopyTo(cssArray);
 		cssList.Clear();
 		return new ConsoleButtonString(parent, cssArray, input, pos);
 	}
-	private ConsoleButtonString createButton(List<AConsoleDisplayPart> cssList, long input)
+	private ConsoleButtonString createButton(List<AConsoleDisplayNode> cssList, long input)
 	{
-		AConsoleDisplayPart[] cssArray = new AConsoleDisplayPart[cssList.Count];
+		AConsoleDisplayNode[] cssArray = new AConsoleDisplayNode[cssList.Count];
 		cssList.CopyTo(cssArray);
 		cssList.Clear();
 		return new ConsoleButtonString(parent, cssArray, input);
 	}
-	private ConsoleButtonString createPlainButton(List<AConsoleDisplayPart> cssList)
+	private ConsoleButtonString createPlainButton(List<AConsoleDisplayNode> cssList)
 	{
-		AConsoleDisplayPart[] cssArray = new AConsoleDisplayPart[cssList.Count];
+		AConsoleDisplayNode[] cssArray = new AConsoleDisplayNode[cssList.Count];
 		cssList.CopyTo(cssArray);
 		cssList.Clear();
 		return new ConsoleButtonString(parent, cssArray);
@@ -353,30 +351,27 @@ internal sealed class PrintStringBuffer
 	/// 物理行をボタン単位に分割。引数のcssListの内容は変更される場合がある。
 	/// </summary>
 	/// <returns></returns>
-	private ConsoleButtonString[] createButtons(List<AConsoleDisplayPart> cssList)
+	private ConsoleButtonString[] createButtons(List<AConsoleDisplayNode> cssList)
 	{
-		StringBuilder buf = new StringBuilder();
+		StringBuilder buf = new();
 		for (int i = 0; i < cssList.Count; i++)
 		{
-			buf.Append(cssList[i].Str);
+			buf.Append(cssList[i].Text);
 		}
 		List<ButtonPrimitive> bpList = ButtonStringCreator.SplitButton(buf.ToString());
 		ConsoleButtonString[] ret = new ConsoleButtonString[bpList.Count];
-		AConsoleDisplayPart[] cssArray;
 		if (ret.Length == 1)
 		{
-			cssArray = new AConsoleDisplayPart[cssList.Count];
-			cssList.CopyTo(cssArray);
 			if (bpList[0].CanSelect)
-				ret[0] = new ConsoleButtonString(parent, cssArray, bpList[0].Input);
+				ret[0] = new ConsoleButtonString(parent, [.. cssList], bpList[0].Input);
 			else
-				ret[0] = new ConsoleButtonString(parent, cssArray);
+				ret[0] = new ConsoleButtonString(parent, [.. cssList]);
 			return ret;
 		}
 		int cssStartCharIndex = 0;
 		int buttonEndCharIndex = 0;
 		int cssIndex = 0;
-		List<AConsoleDisplayPart> buttonCssList = [];
+		List<AConsoleDisplayNode> buttonCssList = [];
 		for (int i = 0; i < ret.Length; i++)
 		{
 			ButtonPrimitive bp = bpList[i];
@@ -385,8 +380,8 @@ internal sealed class PrintStringBuffer
 			{
 				if (cssIndex >= cssList.Count)
 					break;
-				AConsoleDisplayPart css = cssList[cssIndex];
-				if (cssStartCharIndex + css.Str.Length >= buttonEndCharIndex)
+				AConsoleDisplayNode css = cssList[cssIndex];
+				if (cssStartCharIndex + css.Text.Length >= buttonEndCharIndex)
 				{//ボタンの終端を発見
 					int used = buttonEndCharIndex - cssStartCharIndex;
 					if (used > 0 && css.CanDivide)
@@ -400,21 +395,19 @@ internal sealed class PrintStringBuffer
 						}
 					}
 					buttonCssList.Add(css);
-					cssStartCharIndex += css.Str.Length;
+					cssStartCharIndex += css.Text.Length;
 					cssIndex++;
 					break;
 				}
 				//ボタンの終端はまだ先。
 				buttonCssList.Add(css);
-				cssStartCharIndex += css.Str.Length;
+				cssStartCharIndex += css.Text.Length;
 				cssIndex++;
 			}
-			cssArray = new AConsoleDisplayPart[buttonCssList.Count];
-			buttonCssList.CopyTo(cssArray);
 			if (bp.CanSelect)
-				ret[i] = new ConsoleButtonString(parent, cssArray, bp.Input);
+				ret[i] = new ConsoleButtonString(parent, [.. buttonCssList], bp.Input);
 			else
-				ret[i] = new ConsoleButtonString(parent, cssArray);
+				ret[i] = new ConsoleButtonString(parent, [.. buttonCssList]);
 			buttonCssList.Clear();
 		}
 		return ret;
@@ -427,8 +420,7 @@ internal sealed class PrintStringBuffer
 	{
 		int pointX = 0;
 		//int count = buttonList.Count;
-		//1.824 修正。サブピクセルの初期値を0から0.5fにすることで端数処理吸収
-		float subPixel = 0.5f;
+		float subPixel = 0.0f;
 		for (int i = 0; i < buttonList.Count; i++)
 		{
 			ConsoleButtonString button = buttonList[i];
@@ -509,13 +501,13 @@ internal sealed class PrintStringBuffer
 	private static int getDivideIndex(ConsoleButtonString button, StringMeasure sm, int divWidth = 0)
 	#endregion
 	{
-		AConsoleDisplayPart divCss = null;
+		AConsoleDisplayNode divCss = null;
 		int pointX = button.PointX;
 		int strLength = 0;
 		int index = 0;
 		#region EM_私家版_描画拡張
 		if (divWidth == 0) divWidth = Config.DrawableWidth;
-		foreach (AConsoleDisplayPart css in button.StrArray)
+		foreach (AConsoleDisplayNode css in button.StrArray)
 		{
 			// if (pointX + css.Width > Config.DrawableWidth)
 			if (pointX + css.Width > divWidth)
@@ -526,7 +518,7 @@ internal sealed class PrintStringBuffer
 				break;
 			}
 			index++;
-			strLength += css.Str.Length;
+			strLength += css.Text.Length;
 			pointX += css.Width;
 		}
 		if (divCss != null)
@@ -541,8 +533,8 @@ internal sealed class PrintStringBuffer
 	}
 
 	#region EM_私家版_描画拡張
-	// private static int getDivideIndex(AConsoleDisplayPart part, StringMeasure sm)
-	private static int getDivideIndex(AConsoleDisplayPart part, StringMeasure sm, int divWidth)
+	// private static int getDivideIndex(AConsoleDisplayNode part, StringMeasure sm)
+	private static int getDivideIndex(AConsoleDisplayNode part, StringMeasure sm, int divWidth)
 	#endregion
 	{
 		if (!part.CanDivide)
@@ -555,31 +547,32 @@ internal sealed class PrintStringBuffer
 		// int widthLimit = Config.DrawableWidth - css.PointX;
 		int widthLimit = divWidth - css.PointX;
 		#endregion
-		string str = css.Str;
+		string str = css.Text;
 		Font font = css.Font;
-		int highLength = str.Length;//widthLimitを超える最低の文字index(文字数-1)。
-		int lowLength = 0;//超えない最大の文字index。
-						  //int i = (int)(widthLimit / fontDisplaySize);//およその文字数を推定
-						  //if (i > str.Length - 1)//配列の外を参照しないように。
-						  //	i = str.Length - 1;
-		int i = lowLength;//およその文字数を推定←やめた
 
-		string test;
-		while ((highLength - lowLength) > 1)//差が一文字以下になるまで繰り返す。
+		//最適なサイズを二分探索する
+		var span = str.AsSpan();
+		ReadOnlySpan<char> test;
+
+		int biggestFitting = 0;
+		int smallestNotFitting = str.Length;
+		while (true)
 		{
-			test = str.Substring(0, i);
-			if (sm.GetDisplayLength(test, font) <= widthLimit)//サイズ内ならlowLengthを更新。文字数を増やす。
+			int middle = (biggestFitting + smallestNotFitting) / 2;
+			if (middle == biggestFitting) middle++;
+			if (middle == smallestNotFitting) break;
+
+			test = span[..middle];
+			if (sm.GetDisplayLength(test, font) <= widthLimit)
 			{
-				lowLength = i;
-				i++;
+				biggestFitting = middle;
 			}
-			else//サイズ外ならhighLengthを更新。文字数を減らす。
+			else
 			{
-				highLength = i;
-				i--;
+				smallestNotFitting = middle;
 			}
 		}
-		return lowLength;
+		return biggestFitting;
 	}
 	#endregion
 

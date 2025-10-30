@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MinorShift.Emuera.Runtime.Config;
 using System.Drawing;
-using MinorShift._Library;
-using System.Windows.Forms;
+using System.Text;
 
-namespace MinorShift.Emuera.GameView;
+namespace MinorShift.Emuera.UI.Game;
 
-//難読化用属性。enum.ToString()やenum.Parse()を行うなら(Exclude=true)にすること。
-[global::System.Reflection.Obfuscation(Exclude = false)]
 internal enum DisplayLineLastState
 {
 	None = 0,
@@ -17,8 +12,6 @@ internal enum DisplayLineLastState
 	BackLog = 3,
 }
 
-//難読化用属性。enum.ToString()やenum.Parse()を行うなら(Exclude=true)にすること。
-[global::System.Reflection.Obfuscation(Exclude = false)]
 internal enum DisplayLineAlignment
 {
 	LEFT = 0,
@@ -32,13 +25,13 @@ internal sealed class ConsoleDisplayLine
 {
 
 	//public ConsoleDisplayLine(EmueraConsole parentWindow, ConsoleButtonString[] buttons, bool isLogical, bool temporary)
-	public ConsoleDisplayLine(ConsoleButtonString[] buttons, bool isLogical, bool temporary)
+	public ConsoleDisplayLine(ConsoleButtonString[] buttons, bool isLogical, bool temporary, bool lineEnd = true)
 	{
 		//parent = parentWindow;
 		if (buttons == null)
 		{
 			//これはthis.buttonの間違い？
-			buttons = new ConsoleButtonString[0];
+			buttons = [];
 			return;
 		}
 		this.buttons = buttons;
@@ -46,25 +39,27 @@ internal sealed class ConsoleDisplayLine
 			button.ParentLine = this;
 		IsLogicalLine = isLogical;
 		IsTemporary = temporary;
+		IsLineEnd = lineEnd;
 	}
 	public int LineNo = -1;
 
 	///論理行の最初となる場合だけtrue。表示の都合で改行された2行目以降はfalse
 	readonly public bool IsLogicalLine = true;
-	readonly public bool IsTemporary = false;
+	readonly public bool IsTemporary;
+	public bool IsLineEnd = true;
 	//EmueraConsole parent;
 	ConsoleButtonString[] buttons;
 	DisplayLineAlignment align;
 	public ConsoleButtonString[] Buttons { get { return buttons; } }
 	public DisplayLineAlignment Align { get { return align; } }
-	bool aligned = false;
+	bool aligned;
 	//Bitmap Cache
-	public bool bitmapCacheEnabled = false;
+	public bool bitmapCacheEnabled;
 	public void SetAlignment(DisplayLineAlignment align, int customWidth = -1/*, int xOffset = 0*/)
 	{
 		if (aligned)
 			return;
-		this.aligned = true;
+		aligned = true;
 		this.align = align;
 		if (buttons.Length == 0)
 			return;
@@ -103,7 +98,7 @@ internal sealed class ConsoleDisplayLine
 		//移動距離
 		int shiftX = movetoX - pointX;
 		if (shiftX != 0)
-			this.ShiftPositionX(shiftX);
+			ShiftPositionX(shiftX);
 	}
 
 	public void ShiftPositionX(int shiftX)
@@ -120,7 +115,7 @@ internal sealed class ConsoleDisplayLine
 		buttons = newButtons;
 	}
 
-	public void Clear(Brush brush, Graphics graph, int pointY)
+	public static void Clear(Brush brush, Graphics graph, int pointY)
 	{
 		Rectangle rect = new(0, pointY, Config.WindowX, Config.LineHeight);
 		graph.FillRectangle(brush, rect);
@@ -150,39 +145,13 @@ internal sealed class ConsoleDisplayLine
 			button.DrawTo(graph, pointY, isBackLog, mode);
 	}
 
-	public void GDIDrawTo(int pointY, bool isBackLog)
-	{
-		foreach (ConsoleButtonString button in buttons)
-			button.GDIDrawTo(pointY, isBackLog);
-		//1819 毎回全消去するので穴埋め処理は不要になった
-		//int pointX = 0;
-		//foreach (ConsoleButtonString button in buttons)
-		//{
-		//	if (button.Width == 0)
-		//		continue;
-		//	if (pointX < button.PointX)
-		//	{
-		//		Rectangle rect = new Rectangle(pointX, pointY, button.PointX - pointX, Config.LineHeight);
-		//		GDI.FillRectBGColor(rect);
-		//	}
-		//	button.GDIDrawTo(pointY, isBackLog);
-		//	//フォントの実高さ＜行間の場合隙間ができてしまうので埋める処理
-		//	GDI.FillGap(Config.LineHeight, button.Width + (button.PointX - pointX), new Point(pointX, pointY));
-		//	pointX = button.PointX + button.Width;
-		//}
-		//if (pointX < Config.WindowX)
-		//{
-		//	Rectangle rect = new Rectangle(pointX, pointY, Config.WindowX - pointX, Config.LineHeight);
-		//	GDI.FillRectBGColor(rect);
-		//}
-	}
-
+	readonly static StringBuilder builder = new();
 	public override string ToString()
 	{
 		if (buttons == null)
 			return "";
-		StringBuilder builder = new();
-		foreach (ConsoleButtonString button in buttons)
+		builder.Clear();
+		foreach (var button in buttons)
 			builder.Append(button.ToString());
 		return builder.ToString();
 	}

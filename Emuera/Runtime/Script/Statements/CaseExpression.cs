@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using System;
 
-namespace MinorShift.Emuera.GameData.Expression;
+namespace MinorShift.Emuera.Runtime.Script.Statements;
 
-//難読化用属性。enum.ToString()やenum.Parse()を行うなら(Exclude=true)にすること。
-[global::System.Reflection.Obfuscation(Exclude = false)]
 internal enum CaseExpressionType
 {
 	Normal = 1,
@@ -15,8 +12,8 @@ internal enum CaseExpressionType
 internal sealed class CaseExpression
 {
 	public CaseExpressionType CaseType = CaseExpressionType.Normal;
-	public IOperandTerm LeftTerm;
-	public IOperandTerm RightTerm;
+	public AExpression LeftTerm;
+	public AExpression RightTerm;
 
 	public OperatorCode Operator;
 	public Type GetOperandType()
@@ -48,13 +45,13 @@ internal sealed class CaseExpression
 		return base.ToString();
 	}
 
-	public bool GetBool(Int64 Is, ExpressionMediator exm)
+	public bool GetBool(long Is, ExpressionMediator exm)
 	{
 		if (CaseType == CaseExpressionType.To)
 			return LeftTerm.GetIntValue(exm) <= Is && Is <= RightTerm.GetIntValue(exm);
 		if (CaseType == CaseExpressionType.Is)
 		{
-			IOperandTerm term = OperatorMethodManager.ReduceBinaryTerm(Operator, new SingleTerm(Is), LeftTerm);
+			AExpression term = OperatorMethodManager.ReduceBinaryTerm(Operator, new SingleLongTerm(Is), LeftTerm);
 			return term.GetIntValue(exm) != 0;
 		}
 		return LeftTerm.GetIntValue(exm) == Is;
@@ -64,12 +61,12 @@ internal sealed class CaseExpression
 	{
 		if (CaseType == CaseExpressionType.To)
 		{
-			return string.Compare(LeftTerm.GetStrValue(exm), Is, Config.SCExpression) <= 0
-				&& string.Compare(Is, RightTerm.GetStrValue(exm), Config.SCExpression) <= 0;
+			return string.Compare(LeftTerm.GetStrValue(exm), Is, Config.Config.SCExpression) <= 0
+				&& string.Compare(Is, RightTerm.GetStrValue(exm), Config.Config.SCExpression) <= 0;
 		}
 		if (CaseType == CaseExpressionType.Is)
 		{
-			IOperandTerm term = OperatorMethodManager.ReduceBinaryTerm(Operator, new SingleTerm(Is), LeftTerm);
+			AExpression term = OperatorMethodManager.ReduceBinaryTerm(Operator, new SingleStrTerm(Is), LeftTerm);
 			return term.GetIntValue(exm) != 0;
 		}
 		return LeftTerm.GetStrValue(exm) == Is;

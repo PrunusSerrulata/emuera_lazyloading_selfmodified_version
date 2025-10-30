@@ -1,22 +1,7 @@
-﻿using MinorShift._Library;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 
-namespace MinorShift.Emuera.Content;
-
-internal abstract class AbstractImage : AContentFile
-{
-	public const int MAX_IMAGESIZE = 8192;
-	public abstract Bitmap Bitmap { get; set; }
-	public IntPtr GDIhDC { get; protected set; }
-	protected Graphics g;
-	protected IntPtr hBitmap;
-	protected IntPtr hDefaultImg;
-	protected bool gdi;
-}
+namespace MinorShift.Emuera.UI.Game.Image;
 
 internal sealed class ConstImage : AbstractImage
 {
@@ -34,27 +19,23 @@ internal sealed class ConstImage : AbstractImage
 	{
 		if (RealBitmap != null || !string.IsNullOrEmpty(Filepath))
 			throw new Exception();
-		try
+		//呼び出し元でファイルチェックはしてるから大丈夫だと思う……一応1000回上限
+		int i = 0;
+		while (i++ < 1000)
 		{
-			RealBitmap = bmp;
-			Filepath = filepath;
-			Width = RealBitmap.Width;
-			Height = RealBitmap.Height;
-			if (useGDI)
+			try
 			{
-				gdi = true;
-				hBitmap = RealBitmap.GetHbitmap();
-				g = Graphics.FromImage(RealBitmap);
-				GDIhDC = g.GetHdc();
-				hDefaultImg = GDI.SelectObject(GDIhDC, hBitmap);
+				RealBitmap = bmp;
+				Filepath = filepath;
+				Width = RealBitmap.Width;
+				Height = RealBitmap.Height;
+				AppContents.tempLoadedConstImages.Add(this);
+				RealIsCreated = true;
+				return;
 			}
-
-			AppContents.tempLoadedConstImages.Add(this);
-			RealIsCreated = true;
-		}
-		catch
-		{
-			return;
+			catch
+			{
+			}
 		}
 		return;
 	}
@@ -69,14 +50,6 @@ internal sealed class ConstImage : AbstractImage
 			if (RealBitmap == null)
 			{
 				return;
-			}
-
-			if (gdi)
-			{
-				hBitmap = RealBitmap.GetHbitmap();
-				g = Graphics.FromImage(RealBitmap);
-				GDIhDC = g.GetHdc();
-				hDefaultImg = GDI.SelectObject(GDIhDC, hBitmap);
 			}
 			AppContents.tempLoadedConstImages.Add(this);
 		}
@@ -114,14 +87,6 @@ internal sealed class ConstImage : AbstractImage
 	{
 		if (RealBitmap == null || !RealIsCreated)
 			return;
-		if (gdi)
-		{
-			GDI.SelectObject(GDIhDC, hDefaultImg);
-			GDI.DeleteObject(hBitmap);
-			//gがすでに死んでると例外になる
-			if (g != null)
-				g.ReleaseHdc(GDIhDC);
-		}
 		if (g != null)
 		{
 			g.Dispose();

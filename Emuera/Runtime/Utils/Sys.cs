@@ -1,25 +1,32 @@
 ﻿using System.Windows.Forms;
 using System.IO;
-using System.Reflection;
+using System;
 
-namespace MinorShift._Library;
+namespace MinorShift.Emuera.Runtime.Utils;
 
-public static class Sys
+public static class AssemblyData
 {
-	static Sys()
+	static AssemblyData()
 	{
-		ExePath = Assembly.GetEntryAssembly().Location; 
+		ExePath = Environment.ProcessPath;
 		#region eee_カレントディレクトリー
 		WorkingDir = Directory.GetCurrentDirectory() + "\\";
 		#endregion
 		ExeDir = Path.GetDirectoryName(ExePath) + "\\";
 		ExeName = Path.GetFileName(ExePath);
+		emueraVer = typeof(AssemblyData).Assembly.GetName().Version;
+
+		EmueraVersionText = "Emuera.NET " + Application.ProductVersion;
 	}
 
 	/// <summary>
 	/// 実行ファイルのパス
 	/// </summary>
 	public static readonly string ExePath;
+
+	public readonly static Version emueraVer;
+
+	public readonly static string EmueraVersionText;
 
 	/// <summary>
 	/// 実行ファイルのディレクトリ。最後に\を付けたstring

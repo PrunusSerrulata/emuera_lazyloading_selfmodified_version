@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Forms;
-using System.Drawing;
+﻿using System.Windows.Forms;
 
-namespace MinorShift.Emuera.Forms
+namespace MinorShift.Emuera.UI.Framework.Forms
 {
 	internal sealed class EraPictureBox : PictureBox
 	{
@@ -46,14 +42,14 @@ namespace MinorShift.Emuera.Forms
 			//    this.SetStyle(ControlStyles.ResizeRedraw, false);
 			//}
 			//背景描画カット
-			this.SetStyle(ControlStyles.Opaque, true);
+			SetStyle(ControlStyles.Opaque, true);
 			//以下3つでダブルバッファリング
 			//ただしOnPaintかPaintイベントのe.Graphicsを使用する場合のみ
-			this.SetStyle(ControlStyles.UserPaint, true);
-			this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-			this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+			SetStyle(ControlStyles.UserPaint, true);
+			SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+			SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 			//リサイズ時に自動再描画
-			this.SetStyle(ControlStyles.ResizeRedraw, true);
+			SetStyle(ControlStyles.ResizeRedraw, true);
 		}
 
 		protected override void OnPaintBackground(PaintEventArgs pevent)

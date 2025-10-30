@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 //This file is generated from deinflect.js from rikaichamp. Use rikaichan.Autogenerate() to generate it again.
 
@@ -56,7 +52,7 @@ partial class Rikaichan
 {
 	DeinflectRule[] deinflectRuleData;
 
-	string[] deinflectReasonStrings = new string[] {
+	string[] deinflectReasonStrings = [
 			"PolitePastNegative",
 			"PoliteNegative",
 			"PoliteVolitional",
@@ -89,11 +85,11 @@ partial class Rikaichan
 			"Continuous",
 			"Ki",
 			"SuruNoun",
-		};
+		];
 
 	void InitData()
 	{
-		List<DeinflectRule> list = new List<DeinflectRule>(0x40); //TODO: no idea how this c# thing works, there is probably a better way.
+		List<DeinflectRule> list = new(0x40); //TODO: no idea how this c# thing works, there is probably a better way.
 		DeinflectRule next;
 		next = new DeinflectRule()
 		{

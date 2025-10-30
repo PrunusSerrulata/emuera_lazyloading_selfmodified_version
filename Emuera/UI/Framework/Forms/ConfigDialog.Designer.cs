@@ -65,6 +65,7 @@
 			label23 = new System.Windows.Forms.Label();
 			comboBox6 = new System.Windows.Forms.ComboBox();
 			textBox2 = new System.Windows.Forms.TextBox();
+			checkBox27 = new System.Windows.Forms.CheckBox();
 			tabPageView = new System.Windows.Forms.TabPage();
 			flowLayoutPanel17 = new System.Windows.Forms.FlowLayoutPanel();
 			label18 = new System.Windows.Forms.Label();
@@ -79,6 +80,7 @@
 			numericUpDown9 = new System.Windows.Forms.NumericUpDown();
 			label1 = new System.Windows.Forms.Label();
 			checkBox14 = new System.Windows.Forms.CheckBox();
+			_useButtonFocusColor = new System.Windows.Forms.CheckBox();
 			label26 = new System.Windows.Forms.Label();
 			comboBox7 = new System.Windows.Forms.ComboBox();
 			tabPageWindow = new System.Windows.Forms.TabPage();
@@ -144,8 +146,12 @@
 			checkBox30 = new System.Windows.Forms.CheckBox();
 			checkBox31 = new System.Windows.Forms.CheckBox();
 			checkBox34 = new System.Windows.Forms.CheckBox();
+			_useNewRandom = new System.Windows.Forms.CheckBox();
+			_useVAR = new System.Windows.Forms.CheckBox();
 			label25 = new System.Windows.Forms.Label();
 			textBox3 = new System.Windows.Forms.TextBox();
+			label35 = new System.Windows.Forms.Label();
+			textBox4 = new System.Windows.Forms.TextBox();
 			tabPageCompati = new System.Windows.Forms.TabPage();
 			flowLayoutPanel33 = new System.Windows.Forms.FlowLayoutPanel();
 			label30 = new System.Windows.Forms.Label();
@@ -181,7 +187,6 @@
 			button6 = new System.Windows.Forms.Button();
 			tabPageClipboard = new System.Windows.Forms.TabPage();
 			flowLayoutPanel35 = new System.Windows.Forms.FlowLayoutPanel();
-			checkBoxCBuseCB = new System.Windows.Forms.CheckBox();
 			checkBoxCBIgnoreTags = new System.Windows.Forms.CheckBox();
 			flowLayoutPanel36 = new System.Windows.Forms.FlowLayoutPanel();
 			label29 = new System.Windows.Forms.Label();
@@ -211,8 +216,8 @@
 			tabPageRikai = new System.Windows.Forms.TabPage();
 			rikaiFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
 			rikaiCheckBoxEnable = new System.Windows.Forms.CheckBox();
-			flowLayoutPanel42 = new System.Windows.Forms.FlowLayoutPanel();
 			rikaiDictFilenameLabel = new System.Windows.Forms.Label();
+			flowLayoutPanel42 = new System.Windows.Forms.FlowLayoutPanel();
 			rikaiDictFilenameTextBox = new System.Windows.Forms.TextBox();
 			rikaiColorBoxBG = new ColorBox();
 			rikaiColorBoxText = new ColorBox();
@@ -357,6 +362,7 @@
 			flowLayoutPanel13.Controls.Add(label22);
 			flowLayoutPanel13.Controls.Add(flowLayoutPanel10);
 			flowLayoutPanel13.Controls.Add(flowLayoutPanel11);
+			flowLayoutPanel13.Controls.Add(checkBox27);
 			flowLayoutPanel13.Name = "flowLayoutPanel13";
 			// 
 			// flowLayoutPanel6
@@ -538,6 +544,12 @@
 			resources.ApplyResources(textBox2, "textBox2");
 			textBox2.Name = "textBox2";
 			// 
+			// checkBox27
+			// 
+			resources.ApplyResources(checkBox27, "checkBox27");
+			checkBox27.Name = "checkBox27";
+			checkBox27.UseVisualStyleBackColor = true;
+			// 
 			// tabPageView
 			// 
 			tabPageView.Controls.Add(flowLayoutPanel17);
@@ -554,6 +566,7 @@
 			flowLayoutPanel17.Controls.Add(flowLayoutPanel15);
 			flowLayoutPanel17.Controls.Add(flowLayoutPanel16);
 			flowLayoutPanel17.Controls.Add(checkBox14);
+			flowLayoutPanel17.Controls.Add(_useButtonFocusColor);
 			flowLayoutPanel17.Controls.Add(label26);
 			flowLayoutPanel17.Controls.Add(comboBox7);
 			flowLayoutPanel17.Name = "flowLayoutPanel17";
@@ -627,6 +640,13 @@
 			resources.ApplyResources(checkBox14, "checkBox14");
 			checkBox14.Name = "checkBox14";
 			checkBox14.UseVisualStyleBackColor = true;
+			// 
+			// _useButtonFocusColor
+			// 
+			resources.ApplyResources(_useButtonFocusColor, "_useButtonFocusColor");
+			_useButtonFocusColor.Name = "_useButtonFocusColor";
+			_useButtonFocusColor.UseVisualStyleBackColor = true;
+			_useButtonFocusColor.CheckedChanged += UseButtonFocusColor_CheckedChanged;
 			// 
 			// label26
 			// 
@@ -802,29 +822,29 @@
 			// 
 			// colorBoxBG
 			// 
-			resources.ApplyResources(colorBoxBG, "colorBoxBG");
 			colorBoxBG.ButtonText = "背景色";
+			resources.ApplyResources(colorBoxBG, "colorBoxBG");
 			colorBoxBG.Name = "colorBoxBG";
 			colorBoxBG.SelectingColor = System.Drawing.Color.Transparent;
 			// 
 			// colorBoxFG
 			// 
-			resources.ApplyResources(colorBoxFG, "colorBoxFG");
 			colorBoxFG.ButtonText = "文字色";
+			resources.ApplyResources(colorBoxFG, "colorBoxFG");
 			colorBoxFG.Name = "colorBoxFG";
 			colorBoxFG.SelectingColor = System.Drawing.Color.Transparent;
 			// 
 			// colorBoxSelecting
 			// 
-			resources.ApplyResources(colorBoxSelecting, "colorBoxSelecting");
 			colorBoxSelecting.ButtonText = "選択中文字色";
+			resources.ApplyResources(colorBoxSelecting, "colorBoxSelecting");
 			colorBoxSelecting.Name = "colorBoxSelecting";
 			colorBoxSelecting.SelectingColor = System.Drawing.Color.Transparent;
 			// 
 			// colorBoxBacklog
 			// 
-			resources.ApplyResources(colorBoxBacklog, "colorBoxBacklog");
 			colorBoxBacklog.ButtonText = "履歴文字色";
+			resources.ApplyResources(colorBoxBacklog, "colorBoxBacklog");
 			colorBoxBacklog.Name = "colorBoxBacklog";
 			colorBoxBacklog.SelectingColor = System.Drawing.Color.Transparent;
 			// 
@@ -1007,8 +1027,12 @@
 			flowLayoutPanel30.Controls.Add(checkBox30);
 			flowLayoutPanel30.Controls.Add(checkBox31);
 			flowLayoutPanel30.Controls.Add(checkBox34);
+			flowLayoutPanel30.Controls.Add(_useNewRandom);
+			flowLayoutPanel30.Controls.Add(_useVAR);
 			flowLayoutPanel30.Controls.Add(label25);
 			flowLayoutPanel30.Controls.Add(textBox3);
+			flowLayoutPanel30.Controls.Add(label35);
+			flowLayoutPanel30.Controls.Add(textBox4);
 			flowLayoutPanel30.Name = "flowLayoutPanel30";
 			// 
 			// label24
@@ -1058,6 +1082,20 @@
 			checkBox34.Name = "checkBox34";
 			checkBox34.UseVisualStyleBackColor = true;
 			// 
+			// _useNewRandom
+			// 
+			resources.ApplyResources(_useNewRandom, "_useNewRandom");
+			_useNewRandom.Name = "_useNewRandom";
+			_useNewRandom.UseVisualStyleBackColor = true;
+			_useNewRandom.CheckedChanged += UseNewRandom_CheckedChanged;
+			// 
+			// _useVAR
+			// 
+			resources.ApplyResources(_useVAR, "_useVAR");
+			_useVAR.Name = "_useVAR";
+			_useVAR.UseVisualStyleBackColor = true;
+			_useVAR.CheckedChanged += _useVAR_CheckedChanged;
+			// 
 			// label25
 			// 
 			resources.ApplyResources(label25, "label25");
@@ -1067,6 +1105,16 @@
 			// 
 			resources.ApplyResources(textBox3, "textBox3");
 			textBox3.Name = "textBox3";
+			// 
+			// label35
+			// 
+			resources.ApplyResources(label35, "label35");
+			label35.Name = "label35";
+			// 
+			// textBox4
+			// 
+			resources.ApplyResources(textBox4, "textBox4");
+			textBox4.Name = "textBox4";
 			// 
 			// tabPageCompati
 			// 
@@ -1320,7 +1368,6 @@
 			// flowLayoutPanel35
 			// 
 			resources.ApplyResources(flowLayoutPanel35, "flowLayoutPanel35");
-			flowLayoutPanel35.Controls.Add(checkBoxCBuseCB);
 			flowLayoutPanel35.Controls.Add(checkBoxCBIgnoreTags);
 			flowLayoutPanel35.Controls.Add(flowLayoutPanel36);
 			flowLayoutPanel35.Controls.Add(checkBoxCBNewLinesOnly);
@@ -1336,13 +1383,6 @@
 			flowLayoutPanel35.Controls.Add(flowLayoutPanel41);
 			flowLayoutPanel35.Controls.Add(label34);
 			flowLayoutPanel35.Name = "flowLayoutPanel35";
-			// 
-			// checkBoxCBuseCB
-			// 
-			resources.ApplyResources(checkBoxCBuseCB, "checkBoxCBuseCB");
-			checkBoxCBuseCB.Name = "checkBoxCBuseCB";
-			toolTip1.SetToolTip(checkBoxCBuseCB, resources.GetString("checkBoxCBuseCB.ToolTip"));
-			checkBoxCBuseCB.UseVisualStyleBackColor = true;
 			// 
 			// checkBoxCBIgnoreTags
 			// 
@@ -1524,6 +1564,7 @@
 			// 
 			resources.ApplyResources(rikaiFlowLayoutPanel, "rikaiFlowLayoutPanel");
 			rikaiFlowLayoutPanel.Controls.Add(rikaiCheckBoxEnable);
+			rikaiFlowLayoutPanel.Controls.Add(rikaiDictFilenameLabel);
 			rikaiFlowLayoutPanel.Controls.Add(flowLayoutPanel42);
 			rikaiFlowLayoutPanel.Controls.Add(rikaiColorBoxBG);
 			rikaiFlowLayoutPanel.Controls.Add(rikaiColorBoxText);
@@ -1540,18 +1581,17 @@
 			rikaiCheckBoxEnable.Name = "rikaiCheckBoxEnable";
 			rikaiCheckBoxEnable.UseVisualStyleBackColor = true;
 			// 
-			// flowLayoutPanel42
-			// 
-			flowLayoutPanel42.Controls.Add(rikaiDictFilenameLabel);
-			flowLayoutPanel42.Controls.Add(rikaiDictFilenameTextBox);
-			resources.ApplyResources(flowLayoutPanel42, "flowLayoutPanel42");
-			flowLayoutPanel42.Name = "flowLayoutPanel42";
-			// 
 			// rikaiDictFilenameLabel
 			// 
 			resources.ApplyResources(rikaiDictFilenameLabel, "rikaiDictFilenameLabel");
 			rikaiDictFilenameLabel.Name = "rikaiDictFilenameLabel";
 			rikaiDictFilenameLabel.Click += rikaiDictFilenameLabel_Click;
+			// 
+			// flowLayoutPanel42
+			// 
+			flowLayoutPanel42.Controls.Add(rikaiDictFilenameTextBox);
+			resources.ApplyResources(flowLayoutPanel42, "flowLayoutPanel42");
+			flowLayoutPanel42.Name = "flowLayoutPanel42";
 			// 
 			// rikaiDictFilenameTextBox
 			// 
@@ -1560,15 +1600,15 @@
 			// 
 			// rikaiColorBoxBG
 			// 
-			resources.ApplyResources(rikaiColorBoxBG, "rikaiColorBoxBG");
 			rikaiColorBoxBG.ButtonText = "Background Color";
+			resources.ApplyResources(rikaiColorBoxBG, "rikaiColorBoxBG");
 			rikaiColorBoxBG.Name = "rikaiColorBoxBG";
 			rikaiColorBoxBG.SelectingColor = System.Drawing.Color.Transparent;
 			// 
 			// rikaiColorBoxText
 			// 
-			resources.ApplyResources(rikaiColorBoxText, "rikaiColorBoxText");
 			rikaiColorBoxText.ButtonText = "Text Color";
+			resources.ApplyResources(rikaiColorBoxText, "rikaiColorBoxText");
 			rikaiColorBoxText.Name = "rikaiColorBoxText";
 			rikaiColorBoxText.SelectingColor = System.Drawing.Color.Transparent;
 			// 
@@ -1927,7 +1967,6 @@
 		private System.Windows.Forms.CheckBox checkBox34;
 		private System.Windows.Forms.TabPage tabPageClipboard;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel35;
-		private System.Windows.Forms.CheckBox checkBoxCBuseCB;
 		private System.Windows.Forms.CheckBox checkBoxCBIgnoreTags;
 		private System.Windows.Forms.Label label29;
 		private System.Windows.Forms.TextBox textBoxCBReplaceTags;
@@ -1968,6 +2007,12 @@
 		private System.Windows.Forms.LinkLabel rikaiNote2;
 		private System.Windows.Forms.Label rikaiNote3;
 		private System.Windows.Forms.CheckBox checkBox35;
+		private System.Windows.Forms.CheckBox _useButtonFocusColor;
+		private System.Windows.Forms.CheckBox _useNewRandom;
+		private System.Windows.Forms.CheckBox _useVAR;
+		private System.Windows.Forms.Label label35;
+		private System.Windows.Forms.TextBox textBox4;
+		private System.Windows.Forms.CheckBox checkBox27;
 		private System.Windows.Forms.CheckBox checkBoxUseLazyLoading;
 	}
 }

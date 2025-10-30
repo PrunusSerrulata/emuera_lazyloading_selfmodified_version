@@ -66,7 +66,7 @@
 			this.menuStrip1.TabIndex = 3;
 			this.menuStrip1.Text = "menuStrip1";
 			// 
-			// toolStripMenuItem1
+			// デバッグモードで再起動ToolStripMenuItem
 			// 
 			this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
 			this.ウォッチリストの保存ToolStripMenuItem,

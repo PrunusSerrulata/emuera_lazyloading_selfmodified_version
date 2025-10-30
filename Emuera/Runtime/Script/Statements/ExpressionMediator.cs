@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameData.Variable;
-using MinorShift.Emuera.GameData.Function;
+﻿using Microsoft.VisualBasic;
 using MinorShift.Emuera.GameProc;
-using Microsoft.VisualBasic;
 using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.GameView;
-using System.Windows.Forms;
-using trerror = EvilMask.Emuera.Lang.Error;
+using MinorShift.Emuera.Runtime.Script.Statements.Variable;
+using MinorShift.Emuera.Runtime.Utils;
+using System.Text;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
-namespace MinorShift.Emuera.GameData.Expression;
+namespace MinorShift.Emuera.Runtime.Script.Statements;
 
 //1756 元ExpressionEvaluator。GetValueの仕事はなくなったので改名。
 //IOperandTerm間での通信や共通の処理に使う。
@@ -34,27 +30,27 @@ internal sealed class ExpressionMediator
 	private bool forceKatakana;
 	private bool halftoFull;
 
-	public void ForceKana(Int64 flag)
+	public void ForceKana(long flag)
 	{
 		if (flag < 0 || flag > 3)
 			throw new CodeEE(trerror.OoRForcekanaArg.Text);
-		forceKatakana = (flag == 1) ? true : false;
-		forceHiragana = (flag > 1) ? true : false;
-		halftoFull = (flag == 3) ? true : false;
+		forceKatakana = flag == 1;
+		forceHiragana = flag > 1;
+		halftoFull = flag == 3;
 	}
 
 	public bool ForceKana()
 	{
-		return (forceHiragana | forceKatakana | halftoFull);
+		return forceHiragana | forceKatakana | halftoFull;
 	}
 
-	public void OutputToConsole(string str, FunctionIdentifier func)
+	public void OutputToConsole(string str, FunctionIdentifier func, bool lineEnd)
 	{
 		if (func.IsPrintSingle())
 			Console.PrintSingleLine(str, false);
 		else
 		{
-			Console.Print(str);
+			Console.Print(str, lineEnd);
 			if (func.IsNewLine() || func.IsWaitInput())
 			{
 				Console.NewLine();
@@ -81,9 +77,9 @@ internal sealed class ExpressionMediator
 		return str;
 	}
 
-	public string CheckEscape(string str)
+	public static string CheckEscape(string str)
 	{
-		StringStream st = new(str);
+		CharStream st = new(str);
 		StringBuilder buffer = new();
 
 		while (!st.EOS)
@@ -119,7 +115,7 @@ internal sealed class ExpressionMediator
 		return buffer.ToString();
 	}
 
-	public string CreateBar(Int64 var, Int64 max, Int64 length)
+	public static string CreateBar(long var, long max, long length)
 	{
 		if (max <= 0)
 			throw new CodeEE(trerror.MaxBarNotPositive.Text);
@@ -138,8 +134,8 @@ internal sealed class ExpressionMediator
 			count = 0;
 		if (count > length)
 			count = (int)length;
-		builder.Append(Config.BarChar1, count);
-		builder.Append(Config.BarChar2, (int)length - count);
+		builder.Append(Config.Config.BarChar1, count);
+		builder.Append(Config.Config.BarChar2, (int)length - count);
 		builder.Append(']');
 		return builder.ToString();
 	}

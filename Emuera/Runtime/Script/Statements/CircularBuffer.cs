@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
-namespace MinorShift.Emuera.GameProc.Function;
+namespace MinorShift.Emuera.Runtime.Script.Statements;
 
 public interface ICircularBuffer<T>
 {
@@ -76,7 +75,7 @@ public class CircularBuffer<T> : ICircularBuffer<T>, IEnumerable<T>
 			throw new InvalidOperationException("queue exhausted");
 
 		var dequeued = _buffer[_tail];
-		_buffer[_tail] = default(T);
+		_buffer[_tail] = default;
 		_tail = (_tail + 1) % Capacity;
 		--Count;
 		return dequeued;

@@ -1,51 +1,49 @@
-﻿using EvilMask.Emuera;
+﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.UI.Game;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using static EvilMask.Emuera.Shape;
-using static EvilMask.Emuera.Utils;
+using static MinorShift.Emuera.Runtime.Utils.EvilMask.Shape;
+using static MinorShift.Emuera.Runtime.Utils.EvilMask.Utils;
 
-namespace MinorShift.Emuera.GameView;
+namespace MinorShift.Emuera.Runtime.Utils.EvilMask;
 
-class ConsoleDivPart : AConsoleDisplayPart
+class ConsoleDivPart : AConsoleDisplayNode
 {
 	public ConsoleDivPart(MixedNum xPos, MixedNum yPos, MixedNum width, MixedNum height, int depth, int color, StyledBoxModel box, bool isRelative, ConsoleDisplayLine[] childs)
 	{
 		backgroundColor = color >= 0 ? Color.FromArgb((int)(color | 0xff000000)) : Color.Transparent;
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new();
 		width.num = Math.Abs(width.num);
 		height.num = Math.Abs(height.num);
 		sb.Append("<div");
-		Utils.AddTagMixedNumArg(sb, "xpos", xPos);
-		Utils.AddTagMixedNumArg(sb, "ypos", yPos);
-		Utils.AddTagMixedNumArg(sb, "width", width);
-		Utils.AddColorParam(sb, "color", backgroundColor);
-		Utils.AddTagMixedNumArg(sb, "height", height);
+		AddTagMixedNumArg(sb, "xpos", xPos);
+		AddTagMixedNumArg(sb, "ypos", yPos);
+		AddTagMixedNumArg(sb, "width", width);
+		AddColorParam(sb, "color", backgroundColor);
+		AddTagMixedNumArg(sb, "height", height);
 		if (box != null)
 		{
-			Utils.AddTagMixedParam(sb, "margin", box.margin);
-			Utils.MixedNum4ToInt4(box.margin, ref margin);
-			Utils.AddTagMixedParam(sb, "padding", box.padding);
-			Utils.MixedNum4ToInt4(box.padding, ref padding);
-			Utils.AddTagMixedParam(sb, "border", box.border);
-			Utils.MixedNum4ToInt4(box.border, ref border);
-			Utils.AddTagMixedParam(sb, "radius", box.radius);
-			Utils.MixedNum4ToInt4(box.radius, ref radius);
+			AddTagMixedParam(sb, "margin", box.margin);
+			MixedNum4ToInt4(box.margin, ref margin);
+			AddTagMixedParam(sb, "padding", box.padding);
+			MixedNum4ToInt4(box.padding, ref padding);
+			AddTagMixedParam(sb, "border", box.border);
+			MixedNum4ToInt4(box.border, ref border);
+			AddTagMixedParam(sb, "radius", box.radius);
+			MixedNum4ToInt4(box.radius, ref radius);
 			if (box.color != null)
 			{
 				borderColors = new Color[4];
 				for (int i = 0; i < 4; i++)
 					borderColors[i] = box.color[i] >= 0 ? Color.FromArgb((int)(box.color[i] | 0xff000000)) : Color.Transparent;
-				Utils.AddColorParam4(sb, "bcolor", borderColors);
+				AddColorParam4(sb, "bcolor", borderColors);
 			}
 		}
 		sb.Append(">");
 		altHeadTag = sb.ToString();
-		Str = string.Empty;
+		Text = string.Empty;
 		xOffset = MixedNum.ToPixel(xPos, 0);
 		#region EE_div各要素の修正
 		if (margin != null) divXOffset += margin[Direction.Left];
@@ -66,7 +64,7 @@ class ConsoleDivPart : AConsoleDisplayPart
 		Depth = depth;
 		IsRelative = isRelative;
 	}
-	int pointX = 0;
+	int pointX;
 	int xOffset;
 	#region EE_div各要素の修正
 	int divXOffset;
@@ -92,7 +90,7 @@ class ConsoleDivPart : AConsoleDisplayPart
 	Color backgroundColor;
 	string altHeadTag;
 	readonly ConsoleDisplayLine[] children;
-	public bool IsEscaped { get; set; } = false;
+	public bool IsEscaped { get; set; }
 	public override int Top { get { return PointY; } }
 	public override int Bottom { get { return PointY + Height; } }
 	public bool IsRelative { get; private set; }
@@ -114,20 +112,20 @@ class ConsoleDivPart : AConsoleDisplayPart
 				ConsoleButtonString button = line.Buttons[line.Buttons.Length - b - 1];
 				if (button == null || button.StrArray == null)
 					continue;
-				if ((button.PointX <= pointX) && (button.PointX + button.Width >= pointX))
+				if (button.PointX <= pointX && button.PointX + button.Width >= pointX)
 				{
-					//if (relPointY >= 0 && relPointY <= Config.FontSize)
+					//if (relPointY >= 0 && relPointY <= Config.Config.FontSize)
 					//{
 					//	pointing = button;
 					//	if(pointing.IsButton)
 					//		goto breakfor;
 					//}
-					foreach (AConsoleDisplayPart part in button.StrArray)
+					foreach (AConsoleDisplayNode part in button.StrArray)
 					{
 						if (part == null)
 							continue;
-						if ((part.PointX <= pointX) && (part.PointX + part.Width >= pointX)
-							&& (relPointY + part.Top <= pointY) && (relPointY + part.Bottom >= pointY))
+						if (part.PointX <= pointX && part.PointX + part.Width >= pointX
+							&& relPointY + part.Top <= pointY && relPointY + part.Bottom >= pointY)
 						{
 							pointing = button;
 							if (pointing.IsButton)
@@ -136,15 +134,15 @@ class ConsoleDivPart : AConsoleDisplayPart
 					}
 				}
 			}
-			relPointY += Config.LineHeight;
+			relPointY += Config.Config.LineHeight;
 		}
 		return pointing;
 	}
-	public override void DrawTo(Graphics graph, int pointY, bool isSelecting, bool isBackLog, TextDrawingMode mode)
+	public override void DrawTo(Graphics graph, int pointY, bool isSelecting, bool isBackLog, bool isFocus, TextDrawingMode mode, bool isButton = false)
 	{
-		if (GlobalStatic.MainWindow == null) return;
+		if (GlobalStatic.EMediator.Console.Window == null) return;
 		var rect = IsRelative ? new Rectangle(PointX + xOffset, pointY + PointY, width + 2, Height)
-			: new Rectangle(xOffset, GlobalStatic.MainWindow.MainPicBox.Height - PointY - Height, width + 2, Height); // 何故か+2pxが必要，なぞ
+			: new Rectangle(xOffset, GlobalStatic.EMediator.Console.Window.MainPicBox.Height - PointY - Height, width + 2, Height); // 何故か+2pxが必要，なぞ
 
 		if (margin != null)
 			rect = new Rectangle(rect.X + margin[Direction.Left], rect.Y + margin[Direction.Top],
@@ -153,7 +151,7 @@ class ConsoleDivPart : AConsoleDisplayPart
 
 		var pxMode = graph.PixelOffsetMode;
 		graph.PixelOffsetMode = PixelOffsetMode.HighQuality; // ここを高品質にしておく、全体的高品質してもいいかな？
-		Shape.BoxBorder.DrawBorder(graph, rect, border, radius, borderColors, backgroundColor);
+		BoxBorder.DrawBorder(graph, rect, border, radius, borderColors, backgroundColor);
 		graph.PixelOffsetMode = pxMode;
 
 		if (border != null)
@@ -170,14 +168,9 @@ class ConsoleDivPart : AConsoleDisplayPart
 		foreach (var child in children)
 		{
 			child.DrawTo(graph, pointY, isBackLog, true, mode);
-			pointY += Config.LineHeight;
+			pointY += Config.Config.LineHeight;
 		}
 		graph.ResetClip();
-	}
-
-	public override void GDIDrawTo(int pointY, bool isSelecting, bool isBackLog)
-	{
-		// WINAPI では使えない
 	}
 
 	public override void SetWidth(StringMeasure sm, float subPixel)

@@ -1,23 +1,22 @@
-﻿using System;
+﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameProc;
+using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.Runtime.Script.Data;
+using MinorShift.Emuera.Runtime.Script.Parser;
+using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Sub;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameView;
-using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.GameData.Variable;
-using MinorShift.Emuera.GameProc.Function;
-using MinorShift._Library;
-using MinorShift.Emuera.GameData;
-using MinorShift.Emuera.GameData.Function;
 using System.IO;
-using trsl = EvilMask.Emuera.Lang.SystemLine;
-using trerror = EvilMask.Emuera.Lang.Error;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
+using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
 
-namespace MinorShift.Emuera.GameProc;
+namespace MinorShift.Emuera.Runtime.Script.Loader;
 
-internal sealed class HeaderFileLoader
+internal sealed class ErhLoader
 {
-	public HeaderFileLoader(EmueraConsole main, IdentifierDictionary idDic, Process proc)
+	public ErhLoader(EmueraConsole main, IdentifierDictionary idDic, Process proc)
 	{
 		output = main;
 		parentProcess = proc;
@@ -37,26 +36,25 @@ internal sealed class HeaderFileLoader
 	/// <returns></returns>
 	public bool LoadHeaderFiles(string headerDir, bool displayReport)
 	{
-		List<KeyValuePair<string, string>> headerFiles = Config.GetFiles(headerDir, "*.ERH");
+		List<KeyValuePair<string, string>> headerFiles = Config.Config.GetFiles(headerDir, "*.ERH");
 		bool noError = true;
+
+
 		dimlines = new Queue<DimLineWC>();
 		#region EE_ERD
 		//ERD読み込み
-		if (Config.UseERD)
+		if (Config.Config.UseERD)
 			PrepareERDFileNames();
 		#endregion
 		try
 		{
-			for (int i = 0; i < headerFiles.Count; i++)
+			foreach (var (filename, file) in headerFiles)
 			{
-				string filename = headerFiles[i].Key;
-				string file = headerFiles[i].Value;
 				if (displayReport)
 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
 				noError = loadHeaderFile(file, filename);
 				if (!noError)
 					break;
-				System.Windows.Forms.Application.DoEvents();
 			}
 			//エラーが起きてる場合でも読み込めてる分だけはチェックする
 			if (dimlines.Count > 0)
@@ -80,14 +78,14 @@ internal sealed class HeaderFileLoader
 
 	private bool loadHeaderFile(string filepath, string filename)
 	{
-		StringStream st;
-		ScriptPosition position = null;
+		CharStream st;
+		ScriptPosition? position = null;
 		//EraStreamReader eReader = new EraStreamReader(false);
 		//1815修正 _rename.csvの適用
 		//eramakerEXの仕様的には.ERHに適用するのはおかしいけど、もうEmueraの仕様になっちゃってるのでしかたないか
-		EraStreamReader eReader = new(true);
+		using EraStreamReader eReader = new(true);
 
-		if (!eReader.Open(filepath, filename))
+		if (!eReader.OpenOnCache(filepath, filename))
 		{
 			throw new CodeEE(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
 			//return false;
@@ -103,35 +101,33 @@ internal sealed class HeaderFileLoader
 				if (st.Current != '#')
 					throw new CodeEE(trerror.NotStartedSharpLineInHeader.Text, position);
 				st.ShiftNext();
-				string sharpID = LexicalAnalyzer.ReadSingleIdentifier(st);
-				if (sharpID == null)
+				var sharpID = LexicalAnalyzer.ReadSingleIdentifierROS(st);
+				if (sharpID.IsEmpty)
 				{
 					ParserMediator.Warn(trerror.CanNotInterpretSharpLine.Text, position, 1);
 					return false;
 				}
-				if (Config.ICFunction)
-					sharpID = sharpID.ToUpper(CultureInfo.InvariantCulture);
 				LexicalAnalyzer.SkipWhiteSpace(st);
 				switch (sharpID)
 				{
-					case "DEFINE":
+					case var s when s.Equals("DEFINE", Config.Config.StringComparison):
 						analyzeSharpDefine(st, position);
 						break;
-					case "FUNCTION":
-					case "FUNCTIONS":
+					case var s when s.Equals("FUNCTION", Config.Config.StringComparison) ||
+									s.Equals("FUNCTIONS", Config.Config.StringComparison):
 						analyzeSharpFunction(st, position, sharpID == "FUNCTIONS");
 						break;
-					case "DIM":
-					case "DIMS":
+					case var s when s.Equals("DIM", Config.Config.StringComparison) ||
+									s.Equals("DIMS", Config.Config.StringComparison):
 						//1822 #DIMは保留しておいて後でまとめてやる
 						{
 							WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
-							dimlines.Enqueue(new DimLineWC(wc, sharpID == "DIMS", false, position));
+							dimlines.Enqueue(new DimLineWC(wc, sharpID.SequenceEqual("DIMS"), false, position));
 						}
 						//analyzeSharpDim(st, position, sharpID == "DIMS");
 						break;
 					default:
-						throw new CodeEE(string.Format(trerror.UnknownPreprocessorInSharpLine.Text, sharpID), position);
+						throw new CodeEE(string.Format(trerror.UnknownPreprocessorInSharpLine.Text, sharpID.ToString()), position);
 				}
 			}
 		}
@@ -156,14 +152,12 @@ internal sealed class HeaderFileLoader
 	//#dims puyo, j
 	//static List<string> keywordsList = new List<string>();
 
-	private void analyzeSharpDefine(StringStream st, ScriptPosition position)
+	private void analyzeSharpDefine(CharStream st, ScriptPosition? position)
 	{
 		//LexicalAnalyzer.SkipWhiteSpace(st);呼び出し前に行う。
 		string srcID = LexicalAnalyzer.ReadSingleIdentifier(st);
 		if (srcID == null)
 			throw new CodeEE(trerror.MissingReplacementSource.Text, position);
-		if (Config.ICVariable)
-			srcID = srcID.ToUpper(CultureInfo.InvariantCulture);
 
 		//ここで名称重複判定しないと、大変なことになる
 		string errMes = "";
@@ -242,7 +236,7 @@ internal sealed class HeaderFileLoader
 				}
 				for (int i = 0; i < argID.Count; i++)
 				{
-					if (string.Equals(word.Code, argID[i], Config.SCVariable))
+					if (string.Equals(word.Code, argID[i], Config.Config.StringComparison))
 					{
 						destWc.Remove();
 						destWc.Insert(new MacroWord(i));
@@ -251,7 +245,7 @@ internal sealed class HeaderFileLoader
 				}
 				destWc.ShiftNext();
 			}
-			destWc.Pointer = 0;
+			destWc.PointerReset();;
 		}
 		if (hasArg)//1808a3 関数型マクロの封印
 			throw new CodeEE(trerror.CanNotDeclaredFuncMacro.Text, position);
@@ -259,7 +253,7 @@ internal sealed class HeaderFileLoader
 		idDic.AddMacro(mac);
 	}
 
-	//private void analyzeSharpDim(StringStream st, ScriptPosition position, bool dims)
+	//private void analyzeSharpDim(StringStream st, ScriptPosition? position, bool dims)
 	//{
 	//	//WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
 	//	//UserDefinedVariableData data = UserDefinedVariableData.Create(wc, dims, false, position);
@@ -296,7 +290,7 @@ internal sealed class HeaderFileLoader
 						var = parentProcess.VEvaluator.VariableData.CreateUserDefVariable(data, dimline);
 					idDic.AddUseDefinedVariable(var);
 					#region EE_ERD
-					if (Config.UseERD)
+					if (Config.Config.UseERD)
 					{
 						string key;
 						if (data.Dimension == 1)
@@ -305,7 +299,7 @@ internal sealed class HeaderFileLoader
 							if (erdFileNames.ContainsKey(key))
 							{
 								var info = erdFileNames[key];
-								GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name, data.Lengths[0], Config.DisplayReport, dimline.SC);
+								GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name, data.Lengths[0], Config.Config.DisplayReport, dimline.SC);
 							}
 							System.Windows.Forms.Application.DoEvents();
 						}
@@ -317,7 +311,7 @@ internal sealed class HeaderFileLoader
 								if (erdFileNames.ContainsKey(key))
 								{
 									var info = erdFileNames[key];
-									GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name + "@" + dim, data.Lengths[dim - 1], Config.DisplayReport, dimline.SC);
+									GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
 								}
 								System.Windows.Forms.Application.DoEvents();
 							}
@@ -330,7 +324,7 @@ internal sealed class HeaderFileLoader
 								if (erdFileNames.ContainsKey(key))
 								{
 									var info = erdFileNames[key];
-									GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name + "@" + dim, data.Lengths[dim - 1], Config.DisplayReport, dimline.SC);
+									GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
 								}
 								System.Windows.Forms.Application.DoEvents();
 							}
@@ -344,7 +338,7 @@ internal sealed class HeaderFileLoader
 					//繰り返すことで解決する見込みがあるならキューの最後に追加
 					if (tryAgain)
 					{
-						dimline.WC.Pointer = 0;
+						dimline.WC.PointerReset();;
 						dimlines.Enqueue(dimline);
 					}
 					else
@@ -370,12 +364,12 @@ internal sealed class HeaderFileLoader
 
 	private void PrepareERDFileNames()
 	{
-		if (erdFileNames == null) erdFileNames = new Dictionary<string, List<string>>();
+		if (erdFileNames == null) erdFileNames = [];
 		foreach (var path in Directory.GetFiles(Program.ErbDir, "*.erd", SearchOption.AllDirectories))
 		{
 			var key = Path.GetFileNameWithoutExtension(path).ToUpper(CultureInfo.InvariantCulture);
 			if (!erdFileNames.ContainsKey(key))
-				erdFileNames[key] = new List<string> { path };
+				erdFileNames[key] = [path];
 			else
 				erdFileNames[key].Add(path);
 		}
@@ -383,13 +377,13 @@ internal sealed class HeaderFileLoader
 		{
 			var key = Path.GetFileNameWithoutExtension(path).ToUpper(CultureInfo.InvariantCulture);
 			if (!erdFileNames.ContainsKey(key))
-				erdFileNames[key] = new List<string> { path };
+				erdFileNames[key] = [path];
 			else
 				erdFileNames[key].Add(path);
 		}
 	}
 	#endregion
-	private void analyzeSharpFunction(StringStream st, ScriptPosition position, bool funcs)
+	private static void analyzeSharpFunction(CharStream st, ScriptPosition? position, bool funcs)
 	{
 		throw new NotImplCodeEE();
 		//WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);

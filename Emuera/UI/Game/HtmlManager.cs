@@ -1,16 +1,19 @@
-﻿using System;
+﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script.Parser;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
-using MinorShift.Emuera.Sub;
-using System.Drawing;
-using MinorShift.Emuera.GameData.Expression;
-using trerror = EvilMask.Emuera.Lang.Error;
-using EvilMask.Emuera;
-using static EvilMask.Emuera.Utils;
-using static EvilMask.Emuera.Shape;
+using static MinorShift.Emuera.Runtime.Utils.EvilMask.Shape;
+using static MinorShift.Emuera.Runtime.Utils.EvilMask.Utils;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
-namespace MinorShift.Emuera.GameView;
+namespace MinorShift.Emuera.UI.Game;
 
 //TODO:1810～
 /* Emuera用Htmlもどきが実装すべき要素
@@ -43,7 +46,7 @@ internal static class HtmlManager
 	#region EM_私家版_HtmlManager機能拡張
 	public static int HtmlLength(string s)
 	{
-		ConsoleDisplayLine[] lines = HtmlManager.Html2DisplayLine(s, GlobalStatic.Console.StrMeasure, null);
+		ConsoleDisplayLine[] lines = Html2DisplayLine(s, GlobalStatic.Console.StrMeasure, null);
 		int len = 0;
 		if (lines.Length <= 0) return 0;
 		foreach (var btn in lines[0].Buttons) len += btn.Width;
@@ -73,36 +76,38 @@ internal static class HtmlManager
 
 		public HTMLI(string v1, bool v2) : this()
 		{
-			this.tag = v1;
-			this.isStyleTag = v2;
+			tag = v1;
+			isStyleTag = v2;
 		}
 	};
 	public static string[] HtmlSubString(string str, int length)
 	{
-		Stack<HTMLI> beginStack = new Stack<HTMLI>(), endStack = new Stack<HTMLI>();
+		Stack<HTMLI> beginStack = new(), endStack = new();
 
 		length = length * Config.FontSize / 2;
-
+		str = Unescape(str);
 		int found = -1, last = 0, delbr = 0;
+		bool content = false;
 		while (true)
 		{
+			string tstr;
+			int tmp;
 			found = str.IndexOf('<', last);
 			if (found != last)
 			{
 				string pref = "", suff = "";
 				foreach (HTMLI s in beginStack) if (s.isStyleTag) pref += s.tag;
-				Stack<HTMLI> arr = new Stack<HTMLI>(endStack);
+				Stack<HTMLI> arr = new(endStack);
 				while (arr.Count > 0)
 					if (arr.Peek().isStyleTag) suff += arr.Pop().tag;
 					else arr.Pop();
-				int tmp;
-				string tstr;
 				if (found < 0)
 					tstr = str.Substring(last, str.Length - last);
 				else
 					tstr = str.Substring(last, found - last);
 				tmp = GetSubStr(pref, suff, tstr, ref length);
 				last += tmp + 1;
+				content = true;
 				if (found < 0 || tmp < tstr.Length) break;
 			}
 			else last++;
@@ -119,14 +124,27 @@ internal static class HtmlManager
 				if (fspace < 0) fspace = found;
 				string tag = str.Substring(last, fspace - last);
 				if (tag == "br") { delbr = 1; break; }
-				bool ist = (tag == "b" || tag == "i" || tag == "s");
-				beginStack.Push(new HTMLI('<' + str.Substring(last, found - last) + '>', ist));
-				endStack.Push(new HTMLI("</" + tag + '>', ist));
+				//These have their own size and need to be handled separately
+				if (tag is "img" or "shape")
+				{
+					var pos = last - 1;
+					tstr = str.Substring(pos, found-pos+1);
+					tmp = HtmlLength(tstr);
+					length -= tmp;
+					//If there is no space and the line has content, exclude the figure
+					if (length < 0 && content) break;
+				}
+				else
+				{
+					bool ist = tag == "b" || tag == "i" || tag == "s";
+					beginStack.Push(new HTMLI(string.Concat("<", str.AsSpan(last, found - last), ">"), ist));
+					endStack.Push(new HTMLI("</" + tag + '>', ist));
+				}
 			}
 			last = found + 1;
 		}
 		string[] ret = new string[2];
-		if (last == 0) return new string[] { "", str };
+		if (last == 0) return ["", str];
 		ret[0] = str.Substring(0, last - 1);
 		while (endStack.Count > 0) ret[0] += endStack.Pop().tag;
 		while (beginStack.Count > 0) ret[1] = beginStack.Pop().tag + ret[1];
@@ -137,7 +155,7 @@ internal static class HtmlManager
 	public static void ParseParam4IntNum(ref int[] nums, string tag, string word, string attrValue)
 	{
 		if (nums == null) nums = new int[4];
-		else throw new CodeEE(string.Format(Lang.Error.DuplicateAttribute.Text, tag, word));
+		else throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word));
 		string[] tokens = attrValue.Split(',');
 		switch (tokens.Length)
 		{
@@ -164,7 +182,7 @@ internal static class HtmlManager
 					nums[i] = stringToColorInt32(tokens[i].Trim());
 				break;
 			default:
-				throw new CodeEE(string.Format(Lang.Error.CanNotInterpretAttribute.Text, attrValue));
+				throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, attrValue));
 		}
 	}
 	#endregion
@@ -182,7 +200,7 @@ internal static class HtmlManager
 			StyledBox = box;
 			IsRelative = isRelative;
 		}
-		public ConsoleDisplayLine[] Lines = null;
+		public ConsoleDisplayLine[] Lines;
 		public MixedNum Width;
 		public MixedNum Height;
 		public MixedNum X;
@@ -201,13 +219,13 @@ internal static class HtmlManager
 		repDic.Add('\"', "&quot;");
 		repDic.Add('\'', "&apos;");
 	}
-	static readonly char[] rep = new char[] { '&', '>', '<', '\"', '\'' };
+	static readonly char[] rep = ['&', '>', '<', '\"', '\''];
 	static readonly Dictionary<char, string> repDic = [];
 	private sealed class HtmlAnalzeStateFontTag
 	{
 		public int Color = -1;
 		public int BColor = -1;
-		public string FontName = null;
+		public string FontName;
 		//public int PointX = 0;
 		//public bool PointXisLocked = false;
 	}
@@ -216,12 +234,12 @@ internal static class HtmlManager
 	{
 		public bool IsButton = true;
 		public bool IsButtonTag = true;
-		public Int64 ButtonValueInt = 0;
-		public string ButtonValueStr = null;
-		public string ButtonTitle = null;
-		public bool ButtonIsInteger = false;
-		public int PointX = 0;
-		public bool PointXisLocked = false;
+		public long ButtonValueInt;
+		public string ButtonValueStr;
+		public string ButtonTitle;
+		public bool ButtonIsInteger;
+		public int PointX;
+		public bool PointXisLocked;
 	}
 
 	private sealed class HtmlAnalzeState
@@ -229,34 +247,34 @@ internal static class HtmlManager
 		public bool LineHead = true;//行頭フラグ。一度もテキストが出てきてない状態
 		public FontStyle FontStyle = FontStyle.Regular;
 		public List<HtmlAnalzeStateFontTag> FonttagList = [];
-		public bool FlagNobr = false;//falseの時に</nobr>するとエラー
-		public bool FlagP = false;//falseの時に</p>するとエラー
-		public bool FlagNobrClosed = false;//trueの時に</nobr>するとエラー
-		public bool FlagPClosed = false;//trueの時に</p>するとエラー
+		public bool FlagNobr;//falseの時に</nobr>するとエラー
+		public bool FlagP;//falseの時に</p>するとエラー
+		public bool FlagNobrClosed;//trueの時に</nobr>するとエラー
+		public bool FlagPClosed;//trueの時に</p>するとエラー
 		public DisplayLineAlignment Alignment = DisplayLineAlignment.LEFT;
 
 		/// <summary>
 		/// 今まで追加された文字列についてのボタンタグ情報
 		/// </summary>
-		public HtmlAnalzeStateButtonTag LastButtonTag = null;
+		public HtmlAnalzeStateButtonTag LastButtonTag;
 		/// <summary>
 		/// 最新のボタンタグ情報
 		/// </summary>
-		public HtmlAnalzeStateButtonTag CurrentButtonTag = null;
+		public HtmlAnalzeStateButtonTag CurrentButtonTag;
 
 		#region EM_私家版_clearbutton
-		public bool FlagClearButton = false;//falseの時に</clearbutton>するとエラー,trueの時ボタン化が無効とする
-		public bool FlagClearButtonTooltip = false;//tureの時にボタンのツールチップ属性を無効とする
+		public bool FlagClearButton;//falseの時に</clearbutton>するとエラー,trueの時ボタン化が無効とする
+		public bool FlagClearButtonTooltip;//tureの時にボタンのツールチップ属性を無効とする
 		#endregion
 
 		#region EM_私家版_HTML_divタグ
-		public bool StartingSubDivision = false;
-		public HtmlDivTag CurrentDivTag = null;
+		public bool StartingSubDivision;
+		public HtmlDivTag CurrentDivTag;
 		public int SubDivisionWidth;
 		// public int SubDivisionXOffset; // 必要がなさそうなので削除する
 		#endregion
-		public bool FlagBr = false;//<br>による強制改行の予約
-		public bool FlagButton = false;//<button></button>によるボタン化の予約
+		public bool FlagBr;//<br>による強制改行の予約
+		public bool FlagButton;//<button></button>によるボタン化の予約
 
 		public StringStyle GetSS()
 		{
@@ -266,16 +284,16 @@ internal static class HtmlManager
 			bool colorChanged = false;
 			if (FonttagList.Count > 0)
 			{
-				HtmlAnalzeStateFontTag font = FonttagList[FonttagList.Count - 1];
+				HtmlAnalzeStateFontTag font = FonttagList[^1];
 				fontname = font.FontName;
 				if (font.Color >= 0)
 				{
 					colorChanged = true;
-					c = Color.FromArgb(font.Color >> 16, (font.Color >> 8) & 0xFF, font.Color & 0xFF);
+					c = Color.FromArgb(font.Color >> 16, font.Color >> 8 & 0xFF, font.Color & 0xFF);
 				}
 				if (font.BColor >= 0)
 				{
-					b = Color.FromArgb(font.BColor >> 16, (font.BColor >> 8) & 0xFF, font.BColor & 0xFF);
+					b = Color.FromArgb(font.BColor >> 16, font.BColor >> 8 & 0xFF, font.BColor & 0xFF);
 				}
 			}
 			return new StringStyle(c, colorChanged, b, FontStyle, fontname);
@@ -291,7 +309,7 @@ internal static class HtmlManager
 	{
 		if (lines == null || lines.Length == 0)
 			return "";
-		StringBuilder b = new ();
+		StringBuilder b = new();
 		if (needPandN)
 		{
 			switch (lines[0].Align)
@@ -342,19 +360,19 @@ internal static class HtmlManager
 					if (buttons[buttonCounter].PointXisLocked)
 					{
 						b.Append(" pos='");
-						b.Append(buttons[buttonCounter].RelativePointX.ToString());
+						b.Append(buttons[buttonCounter].RelativePointX);
 						b.Append("'");
 					}
 					b.Append(">");
 				}
-				AConsoleDisplayPart[] parts = buttons[buttonCounter].StrArray;
+				AConsoleDisplayNode[] parts = buttons[buttonCounter].StrArray;
 				for (int cssCounter = 0; cssCounter < parts.Length; cssCounter++)
 				{
 					if (parts[cssCounter] is ConsoleStyledString)
 					{
 						ConsoleStyledString css = parts[cssCounter] as ConsoleStyledString;
 						b.Append(getStringStyleStartingTag(css.StringStyle));
-						b.Append(Escape(css.Str));
+						b.Append(Escape(css.Text));
 						b.Append(getClosingStyleStartingTag(css.StringStyle));
 					}
 					else if (parts[cssCounter] is ConsoleImagePart)
@@ -397,7 +415,7 @@ internal static class HtmlManager
 	public static string[] HtmlTagSplit(string str)
 	{
 		List<string> strList = [];
-		StringStream st = new(str);
+		CharStream st = new(str);
 		int found;
 		while (!st.EOS)
 		{
@@ -428,7 +446,7 @@ internal static class HtmlManager
 	sealed class HtmlParentInfo
 	{
 		public HtmlAnalzeState State;
-		public StringStream Stream;
+		public CharStream Stream;
 		public bool HasComment;
 		public bool HasReturn;
 	}
@@ -453,15 +471,15 @@ internal static class HtmlManager
 	#endregion
 	{
 		#region EM_私家版_HTML_PRINT拡張
-		List<AConsoleDisplayPart> cssList = [];
+		List<AConsoleDisplayNode> cssList = [];
 		// List<ConsoleButtonString> buttonList = new List<ConsoleButtonString>();
 		List<ConsoleButtonString> buttonList = buttonsOutput == null ? [] : buttonsOutput;
 		#endregion
 		// StringStream st = new StringStream(str);
-		StringStream st = parent != null ? parent.Stream : new(str);
+		CharStream st = parent != null ? parent.Stream : new(str);
 		int found;
-		bool hasComment = parent != null ? parent.HasComment : str.IndexOf("<!--", StringComparison.Ordinal) >= 0;
-		bool hasReturn = parent != null ? parent.HasReturn : str.IndexOf('\n', StringComparison.Ordinal) >= 0;
+		bool hasComment = parent != null ? parent.HasComment : str.Contains("<!--", StringComparison.Ordinal);
+		bool hasReturn = parent != null ? parent.HasReturn : str.Contains('\n', StringComparison.Ordinal);
 		HtmlAnalzeState state = new();
 		#region EM_私家版_HTML_divタグ
 		if (parent != null)
@@ -518,7 +536,7 @@ internal static class HtmlManager
 			else//タグ解析
 			{
 				st.ShiftNext();
-				AConsoleDisplayPart part = tagAnalyze(state, st);
+				AConsoleDisplayNode part = tagAnalyze(state, st);
 				if (st.Current != '>')
 					throw new CodeEE(trerror.NotFoundTerminateTag.Text);
 				if (part != null)
@@ -652,11 +670,11 @@ internal static class HtmlManager
 			found = str.IndexOfAny(rep, index);
 			if (found < 0)//見つからなければ以降を追加して終了
 			{
-				b.Append(str.Substring(index));
+				b.Append(str[index..]);
 				break;
 			}
 			if (found > index)//間に非エスケープ文字があるなら追加しておく
-				b.Append(str.Substring(index, found - index));
+				b.Append(str[index..found]);
 			string repnew = repDic[str[found]];
 			b.Append(repnew);
 			index = found + 1;
@@ -677,11 +695,11 @@ internal static class HtmlManager
 			found = str.IndexOf('&', index);
 			if (found < 0)//見つからなければ以降を追加して終了
 			{
-				b.Append(str.Substring(index));
+				b.Append(str[index..]);
 				break;
 			}
 			if (found > index)//間に非エスケープ文字があるなら追加しておく
-				b.Append(str.Substring(index, found - index));
+				b.Append(str[index..found]);
 			index = found;
 			found = str.IndexOf(';', index);
 			if (found <= index + 1)
@@ -710,10 +728,10 @@ internal static class HtmlManager
 						if (escWord.Length > 1 && escWord[1] == 'x')
 						{
 							iBbase = 16;
-							escWord = escWord.Substring(2);
+							escWord = escWord[2..];
 						}
 						else
-							escWord = escWord.Substring(1);
+							escWord = escWord[1..];
 						try
 						{
 							unicode = Convert.ToInt32(escWord, iBbase);
@@ -742,9 +760,9 @@ internal static class HtmlManager
 	/// <param name="state"></param>
 	/// <param name="console"></param>
 	/// <returns></returns>
-	private static ConsoleButtonString cssToButton(List<AConsoleDisplayPart> cssList, HtmlAnalzeState state, EmueraConsole console)
+	private static ConsoleButtonString cssToButton(List<AConsoleDisplayNode> cssList, HtmlAnalzeState state, EmueraConsole console)
 	{
-		AConsoleDisplayPart[] css = new AConsoleDisplayPart[cssList.Count];
+		AConsoleDisplayNode[] css = new AConsoleDisplayNode[cssList.Count];
 		cssList.CopyTo(css);
 		cssList.Clear();
 		ConsoleButtonString ret;
@@ -783,7 +801,7 @@ internal static class HtmlManager
 	}
 	private static string getStringStyleStartingTag(StringStyle style)
 	{
-		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && (style.ButtonColor == Config.FocusColor));
+		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && style.ButtonColor == Config.FocusColor);
 		if (!fontChanged && style.FontStyle == FontStyle.Regular)
 			return "";
 		StringBuilder b = new();
@@ -793,7 +811,7 @@ internal static class HtmlManager
 			if (style.Fontname != null && style.Fontname != Config.FontName)
 			{
 				b.Append(" face='");
-				b.Append(HtmlManager.Escape(style.Fontname));
+				b.Append(Escape(style.Fontname));
 				b.Append("'");
 			}
 			if (style.ColorChanged)
@@ -829,7 +847,7 @@ internal static class HtmlManager
 
 	private static string getClosingStyleStartingTag(StringStyle style)
 	{
-		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && (style.ButtonColor == Config.FocusColor));
+		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && style.ButtonColor == Config.FocusColor);
 		if (!fontChanged && style.FontStyle == FontStyle.Regular)
 			return "";
 		StringBuilder b = new();
@@ -849,7 +867,7 @@ internal static class HtmlManager
 		return b.ToString();
 	}
 
-	private static AConsoleDisplayPart tagAnalyze(HtmlAnalzeState state, StringStream st)
+	private static AConsoleDisplayNode tagAnalyze(HtmlAnalzeState state, CharStream st)
 	{
 		bool endTag = st.Current == '/';
 		string tag;
@@ -876,12 +894,12 @@ internal static class HtmlManager
 					state.FontStyle ^= endStyle;
 					return null;
 				case "p":
-					if ((!state.FlagP) || state.FlagPClosed)
+					if (!state.FlagP || state.FlagPClosed)
 						throw new CodeEE(string.Format(trerror.UnexpectedCloseTag.Text, "p"));
 					state.FlagPClosed = true;
 					return null;
 				case "nobr":
-					if ((!state.FlagNobr) || state.FlagNobrClosed)
+					if (!state.FlagNobr || state.FlagNobrClosed)
 						throw new CodeEE(string.Format(trerror.UnexpectedCloseTag.Text, "nobr"));
 					state.FlagNobrClosed = true;
 					return null;
@@ -1050,15 +1068,15 @@ internal static class HtmlManager
 						}
 						else if (word.Code.Equals("height", StringComparison.OrdinalIgnoreCase))
 						{
-							Utils.ParseMixedNum(ref height, tag, word.Code, attrValue);
+							ParseMixedNum(ref height, tag, word.Code, attrValue);
 						}
 						else if (word.Code.Equals("width", StringComparison.OrdinalIgnoreCase))
 						{
-							Utils.ParseMixedNum(ref width, tag, word.Code, attrValue);
+							ParseMixedNum(ref width, tag, word.Code, attrValue);
 						}
 						else if (word.Code.Equals("ypos", StringComparison.OrdinalIgnoreCase))
 						{
-							Utils.ParseMixedNum(ref ypos, tag, word.Code, attrValue);
+							ParseMixedNum(ref ypos, tag, word.Code, attrValue);
 						}
 						else
 							throw new CodeEE(string.Format(trerror.CanNotInterpretAttributeName.Text, tag, word.Code));
@@ -1095,26 +1113,26 @@ internal static class HtmlManager
 						attrValue = Unescape(attr.Str);
 						if (word.Code.Equals("height", StringComparison.OrdinalIgnoreCase))
 						{
-							Utils.ParseMixedNum(ref height, tag, word.Code, attrValue);
+							ParseMixedNum(ref height, tag, word.Code, attrValue);
 						}
 						else if (word.Code.Equals("width", StringComparison.OrdinalIgnoreCase))
 						{
-							Utils.ParseMixedNum(ref width, tag, word.Code, attrValue);
+							ParseMixedNum(ref width, tag, word.Code, attrValue);
 						}
 						else if (word.Code.Equals("ypos", StringComparison.OrdinalIgnoreCase))
 						{
-							Utils.ParseMixedNum(ref y, tag, word.Code, attrValue);
+							ParseMixedNum(ref y, tag, word.Code, attrValue);
 						}
 						else if (word.Code.Equals("xpos", StringComparison.OrdinalIgnoreCase))
 						{
-							Utils.ParseMixedNum(ref x, tag, word.Code, attrValue);
+							ParseMixedNum(ref x, tag, word.Code, attrValue);
 						}
 						else if (word.Code.Equals("depth", StringComparison.OrdinalIgnoreCase))
 						{
 							if (depth != 0)
-								throw new CodeEE(string.Format(Lang.Error.AttributeCanNotInterpretNum.Text, tag, attr));
+								throw new CodeEE(string.Format(trerror.AttributeCanNotInterpretNum.Text, tag, attr));
 							if (!int.TryParse(attrValue, out depth))
-								throw new CodeEE(string.Format(Lang.Error.AttributeCanNotInterpretNum.Text, tag, attr));
+								throw new CodeEE(string.Format(trerror.AttributeCanNotInterpretNum.Text, tag, attr));
 						}
 						else if (word.Code.Equals("color", StringComparison.OrdinalIgnoreCase))
 						{
@@ -1132,8 +1150,8 @@ internal static class HtmlManager
 								tokens[i] = tokens[i].Trim();
 								switch (i)
 								{
-									case 0: Utils.ParseMixedNum(ref width, tag, "width", tokens[i]); break;
-									case 1: Utils.ParseMixedNum(ref height, tag, "height", tokens[i]); break;
+									case 0: ParseMixedNum(ref width, tag, "width", tokens[i]); break;
+									case 1: ParseMixedNum(ref height, tag, "height", tokens[i]); break;
 								}
 							}
 						}
@@ -1147,24 +1165,24 @@ internal static class HtmlManager
 								tokens[i] = tokens[i].Trim();
 								switch (i)
 								{
-									case 0: Utils.ParseMixedNum(ref x, tag, "xpos", tokens[i]); break;
-									case 1: Utils.ParseMixedNum(ref y, tag, "ypos", tokens[i]); break;
-									case 2: Utils.ParseMixedNum(ref width, tag, "width", tokens[i]); break;
-									case 3: Utils.ParseMixedNum(ref height, tag, "height", tokens[i]); break;
+									case 0: ParseMixedNum(ref x, tag, "xpos", tokens[i]); break;
+									case 1: ParseMixedNum(ref y, tag, "ypos", tokens[i]); break;
+									case 2: ParseMixedNum(ref width, tag, "width", tokens[i]); break;
+									case 3: ParseMixedNum(ref height, tag, "height", tokens[i]); break;
 								}
 							}
 						}
 						else if (word.Code.Equals("bcolor", StringComparison.OrdinalIgnoreCase))
 						{
-							ParseParam4IntNum(ref Utils.CreateIfNull(ref box).color, tag, word.Code, attrValue);
+							ParseParam4IntNum(ref CreateIfNull(ref box).color, tag, word.Code, attrValue);
 						}
 						else if (word.Code.Equals("display", StringComparison.OrdinalIgnoreCase))
 						{
 							if (attrValue.Equals("absolute", StringComparison.OrdinalIgnoreCase)) isRelative = false;
 							else if (attrValue.Equals("relative", StringComparison.OrdinalIgnoreCase)) isRelative = true;
-							else throw new CodeEE(string.Format(Lang.Error.CanNotInterpretAttribute.Text, attrValue));
+							else throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, attrValue));
 						}
-						else if (!Utils.TryParseStyledBoxModel(ref box, tag, word.Code, attrValue))
+						else if (!TryParseStyledBoxModel(ref box, tag, word.Code, attrValue))
 							throw new CodeEE(string.Format(trerror.CanNotInterpretAttributeName.Text, tag, word.Code));
 					}
 					if (width == null)
@@ -1250,11 +1268,11 @@ internal static class HtmlManager
 					Color b = Config.FocusColor;
 					if (color >= 0)
 					{
-						c = Color.FromArgb(color >> 16, (color >> 8) & 0xFF, color & 0xFF);
+						c = Color.FromArgb(color >> 16, color >> 8 & 0xFF, color & 0xFF);
 					}
 					if (bcolor >= 0)
 					{
-						b = Color.FromArgb(bcolor >> 16, (bcolor >> 8) & 0xFF, bcolor & 0xFF);
+						b = Color.FromArgb(bcolor >> 16, bcolor >> 8 & 0xFF, bcolor & 0xFF);
 					}
 					return ConsoleShapePart.CreateShape(type, param, c, b, color >= 0);
 					#endregion
@@ -1265,7 +1283,7 @@ internal static class HtmlManager
 					if (state.CurrentButtonTag != null)
 						throw new CodeEE(trerror.NestedButtonTag.Text);
 					HtmlAnalzeStateButtonTag buttonTag = new();
-					bool isButton = tag.ToLower() == "button";
+					bool isButton = tag.Equals("button", StringComparison.OrdinalIgnoreCase);
 					string attrValue;
 					string value = null;
 					//if (wc == null)
@@ -1324,7 +1342,7 @@ internal static class HtmlManager
 						{
 							//if (value == null)
 							//	throw new CodeEE("<" + tag + ">タグにvalue属性が設定されていません");
-							buttonTag.ButtonIsInteger = Int64.TryParse(value, out long intValue);
+							buttonTag.ButtonIsInteger = long.TryParse(value, out long intValue);
 							buttonTag.ButtonValueInt = intValue;
 							buttonTag.ButtonValueStr = value;
 						}
@@ -1377,7 +1395,7 @@ internal static class HtmlManager
 				{
 					if (wc == null)
 						throw new CodeEE(string.Format(trerror.TagHasNotAttribute.Text, tag));
-					HtmlAnalzeStateFontTag font = new ();
+					HtmlAnalzeStateFontTag font = new();
 					while (!wc.EOL)
 					{
 						word = wc.Current as IdentifierWord;
@@ -1425,7 +1443,7 @@ internal static class HtmlManager
 					//他のfontタグの内側であるなら未設定項目については外側のfontタグの設定を受け継ぐ(posは除く)
 					if (state.FonttagList.Count > 0)
 					{
-						HtmlAnalzeStateFontTag oldFont = state.FonttagList[state.FonttagList.Count - 1];
+						HtmlAnalzeStateFontTag oldFont = state.FonttagList[^1];
 						if (font.Color < 0)
 							font.Color = oldFont.Color;
 						if (font.BColor < 0)
@@ -1452,7 +1470,7 @@ internal static class HtmlManager
 		int i;
 		if (str[0] == '#')
 		{
-			string colorvalue = str.Substring(1);
+			string colorvalue = str[1..];
 			try
 			{
 				i = Convert.ToInt32(colorvalue, 16);

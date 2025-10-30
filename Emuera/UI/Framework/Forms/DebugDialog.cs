@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameProc;
-using System.IO;
+﻿using MinorShift.Emuera.GameProc;
 using MinorShift.Emuera.GameView;
-using EvilMask.Emuera;
+using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script.Parser;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
 
 namespace MinorShift.Emuera.Forms
 {
@@ -21,21 +20,21 @@ namespace MinorShift.Emuera.Forms
 			InitializeComponent();
 			listViewWatch.AfterLabelEdit += new LabelEditEventHandler(listViewWatch_AfterLabelEdit);
 
-			this.TopMost = Config.DebugWindowTopMost;
-			int width = Math.Max(this.MinimumSize.Width, Config.DebugWindowWidth);
-			int height = Math.Max(this.MinimumSize.Height, Config.DebugWindowHeight);
-			this.Size = new Size(width, height);
+			TopMost = Config.DebugWindowTopMost;
+			int width = Math.Max(MinimumSize.Width, Config.DebugWindowWidth);
+			int height = Math.Max(MinimumSize.Height, Config.DebugWindowHeight);
+			Size = new Size(width, height);
 			if (Config.DebugSetWindowPos)
 			{
-				this.StartPosition = FormStartPosition.Manual;
-				this.Location = new Point(Config.DebugWindowPosX, Config.DebugWindowPosY);
+				StartPosition = FormStartPosition.Manual;
+				Location = new Point(Config.DebugWindowPosX, Config.DebugWindowPosY);
 			}
 			updateSize();
-			checkBoxTopMost.Checked = this.TopMost;
+			checkBoxTopMost.Checked = TopMost;
 			loadWatchList();
 		}
-		private Process emuera = null;
-		private EmueraConsole mainConsole = null;
+		private Process emuera;
+		private EmueraConsole mainConsole;
 
 		internal void SetParent(EmueraConsole console, Process process)
 		{
@@ -45,26 +44,26 @@ namespace MinorShift.Emuera.Forms
 
 		public void TranslateUI()
 		{
-			this.Text = Lang.UI.DebugDialog.Text;
+			Text = Lang.UI.DebugDialog.Text;
 
-			this.toolStripMenuItem1.Text = Lang.UI.MainWindow.File.Text;
-			this.ウォッチリストの保存ToolStripMenuItem.Text = Lang.UI.DebugDialog.File.SaveWatchList.Text;
-			this.ウォッチリストの読込ToolStripMenuItem.Text = Lang.UI.DebugDialog.File.LoadWatchList.Text;
-			this.閉じるToolStripMenuItem.Text = Lang.UI.DebugDialog.Close.Text;
+			toolStripMenuItem1.Text = Lang.UI.MainWindow.File.Text;
+			ウォッチリストの保存ToolStripMenuItem.Text = Lang.UI.DebugDialog.File.SaveWatchList.Text;
+			ウォッチリストの読込ToolStripMenuItem.Text = Lang.UI.DebugDialog.File.LoadWatchList.Text;
+			閉じるToolStripMenuItem.Text = Lang.UI.DebugDialog.Close.Text;
 
-			this.設定ToolStripMenuItem.Text = Lang.UI.DebugDialog.Setting.Text;
-			this.設定ToolStripMenuItem1.Text = Lang.UI.DebugDialog.Setting.Config.Text;
+			設定ToolStripMenuItem.Text = Lang.UI.DebugDialog.Setting.Text;
+			設定ToolStripMenuItem1.Text = Lang.UI.DebugDialog.Setting.Config.Text;
 
-			this.tabPageWatch.Text = Lang.UI.DebugDialog.VariableWatch.Text;
-			this.columnHeader1.Text = Lang.UI.DebugDialog.VariableWatch.Object.Text;
-			this.columnHeader3.Text = Lang.UI.DebugDialog.VariableWatch.Value.Text;
+			tabPageWatch.Text = Lang.UI.DebugDialog.VariableWatch.Text;
+			columnHeader1.Text = Lang.UI.DebugDialog.VariableWatch.Object.Text;
+			columnHeader3.Text = Lang.UI.DebugDialog.VariableWatch.Value.Text;
 
-			this.tabPageTrace.Text = Lang.UI.DebugDialog.StackTrace.Text;
-			this.tabPageConsole.Text = Lang.UI.DebugDialog.Console.Text;
+			tabPageTrace.Text = Lang.UI.DebugDialog.StackTrace.Text;
+			tabPageConsole.Text = Lang.UI.DebugDialog.Console.Text;
 
-			this.checkBoxTopMost.Text = Lang.UI.DebugDialog.StayOnTop.Text;
-			this.button2.Text = Lang.UI.DebugDialog.UpdateData.Text;
-			this.button1.Text = Lang.UI.DebugDialog.Close.Text;
+			checkBoxTopMost.Text = Lang.UI.DebugDialog.StayOnTop.Text;
+			button2.Text = Lang.UI.DebugDialog.UpdateData.Text;
+			button1.Text = Lang.UI.DebugDialog.Close.Text;
 		}
 
 		public string ConsoleText
@@ -79,9 +78,9 @@ namespace MinorShift.Emuera.Forms
 		}
 		public void AddTraceText(string str)
 		{
-			this.SuspendLayout();
+			SuspendLayout();
 			textBoxTrace.Text += str;
-			this.ResumeLayout(false);
+			ResumeLayout(false);
 		}
 
 		public void UpdateData()
@@ -129,9 +128,9 @@ namespace MinorShift.Emuera.Forms
 					i--;
 				}
 			}
-			if ((listViewWatch.Items.Count == 0) || (!string.IsNullOrEmpty(listViewWatch.Items[listViewWatch.Items.Count - 1].Text)))
+			if ((listViewWatch.Items.Count == 0) || (!string.IsNullOrEmpty(listViewWatch.Items[^1].Text)))
 			{
-				ListViewItem newLVI = new ("");
+				ListViewItem newLVI = new("");
 				newLVI.SubItems.Add(new ListViewItem.ListViewSubItem(newLVI, ""));
 				listViewWatch.Items.Add(newLVI);
 			}
@@ -141,7 +140,7 @@ namespace MinorShift.Emuera.Forms
 			}
 			GlobalStatic.Process.clearMethodStack();
 			GlobalStatic.Process.loadPrevState();
-			this.Update();
+			Update();
 		}
 		private string getValueString(string str)
 		{
@@ -152,9 +151,9 @@ namespace MinorShift.Emuera.Forms
 			mainConsole.RunERBFromMemory = true;
 			try
 			{
-				StringStream st = new (str);
+				CharStream st = new(str);
 				WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
-				IOperandTerm term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
+				AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
 				SingleTerm value = term.GetValue(GlobalStatic.EMediator);
 				return value.ToString();
 			}
@@ -184,7 +183,7 @@ namespace MinorShift.Emuera.Forms
 				listViewWatch.Items[e.Item].SubItems[1].Text = getValueString(e.Label);
 				if (e.Item == listViewWatch.Items.Count - 1)
 				{
-					ListViewItem newLVI = new ("");
+					ListViewItem newLVI = new("");
 					newLVI.SubItems.Add(new ListViewItem.ListViewSubItem(newLVI, ""));
 					listViewWatch.Items.Add(newLVI);
 				}
@@ -193,17 +192,17 @@ namespace MinorShift.Emuera.Forms
 
 		private void checkBoxTopMost_CheckedChanged(object sender, EventArgs e)
 		{
-			this.TopMost = checkBoxTopMost.Checked;
+			TopMost = checkBoxTopMost.Checked;
 		}
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			this.Close();
+			Close();
 		}
 
 		private void 閉じるToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			this.Close();
+			Close();
 		}
 
 		private void ウォッチリストの読込ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -219,7 +218,6 @@ namespace MinorShift.Emuera.Forms
 
 
 		private readonly string watchFilepath = Program.DebugDir + "watchlist.csv";
-		private readonly string traceFilepath = Program.DebugDir + "trace.log";
 		private readonly string consoleFilepath = Program.DebugDir + "console.log";
 
 		private void saveData()
@@ -314,7 +312,7 @@ namespace MinorShift.Emuera.Forms
 			{
 				if (!string.IsNullOrEmpty(str))
 				{
-					ListViewItem newLVI = new (str);
+					ListViewItem newLVI = new(str);
 					newLVI.SubItems.Add(new ListViewItem.ListViewSubItem(newLVI, ""));
 					listViewWatch.Items.Add(newLVI);
 				}
@@ -329,7 +327,7 @@ namespace MinorShift.Emuera.Forms
 
 		private void updateSize()
 		{
-			if (this.WindowState == FormWindowState.Minimized)
+			if (WindowState == FormWindowState.Minimized)
 				return;
 
 			if (tabControlMain.SelectedTab == tabPageConsole)
@@ -341,10 +339,10 @@ namespace MinorShift.Emuera.Forms
 
 		private void DebugDialog_Resize(object sender, EventArgs e)
 		{
-			if (this.WindowState == FormWindowState.Minimized)
+			if (WindowState == FormWindowState.Minimized)
 				return;
 			//環境依存かもしれない。誰かに指摘されたら考えよう。
-			tabControlMain.Height = this.Size.Height - 103;
+			tabControlMain.Height = Size.Height - 103;
 			updateSize();
 
 		}
@@ -419,58 +417,35 @@ namespace MinorShift.Emuera.Forms
 			}
 		}
 
-		//1750 MainWindowからほぼコピペ
-		string[] prevInputs = new string[100];
-		int selectedInputs = 100;
-		int lastSelected = 100;
+		List<string> history = [];
+		int selectedIndex;
 		void updateInputs()
 		{
-			string cur = textBoxCommand.Text;
-			if (string.IsNullOrEmpty(cur))
+			var input = textBoxCommand.Text;
+			if (string.IsNullOrEmpty(input))
 				return;
-			for (int i = 0; i < prevInputs.Length - 1; i++)
-			{
-				prevInputs[i] = prevInputs[i + 1];
-			}
-			prevInputs[prevInputs.Length - 1] = cur;
-			//entered = console.IsWaintingOnePhrase;
+			history.Add(input);
+			selectedIndex++;
 			textBoxCommand.Text = "";
-			//1729a eramakerと同じ処理系に変更 1730a 再修正
-			if (selectedInputs > 0 && selectedInputs != prevInputs.Length && cur == prevInputs[selectedInputs - 1])
-				lastSelected = --selectedInputs;
-			else
-				lastSelected = 100;
-			selectedInputs = prevInputs.Length;
 		}
 		void movePrev(int move)
 		{
-			if (move == 0)
-				return;
-			//if((selectedInputs != prevInputs.Length) &&(prevInputs[selectedInputs] != richTextBox1.Text))
-			//	selectedInputs =  prevInputs.Length;
-			int next;
-			if (lastSelected != prevInputs.Length && selectedInputs == prevInputs.Length)
+			selectedIndex += move;
+			if (selectedIndex < 0)
 			{
-				if (move == -1)
-					move = 0;
-				next = lastSelected + move;
+				selectedIndex = 0;
+			}
+
+			if (selectedIndex < history.Count)
+			{
+				textBoxCommand.Text = history[selectedIndex];
 			}
 			else
-				next = selectedInputs + move;
-			if ((next < 0) || (next > prevInputs.Length))
-				return;
-			if (next == prevInputs.Length)
 			{
-				selectedInputs = next;
+				selectedIndex = history.Count;
 				textBoxCommand.Text = "";
 				return;
 			}
-			if (string.IsNullOrEmpty(prevInputs[next]))
-				if (++next == prevInputs.Length)
-					return;
-
-			selectedInputs = next;
-			textBoxCommand.Text = prevInputs[next];
 			textBoxCommand.SelectionStart = 0;
 			textBoxCommand.SelectionLength = textBoxCommand.Text.Length;
 			return;
@@ -479,13 +454,13 @@ namespace MinorShift.Emuera.Forms
 		private void 設定ToolStripMenuItem1_Click(object sender, EventArgs e)
 		{
 			bool tempTopMost = TopMost;
-			this.TopMost = false;
-			DebugConfigDialog dialog = new DebugConfigDialog();
+			TopMost = false;
+			DebugConfigDialog dialog = new();
 			dialog.TranslateUI();
 			dialog.StartPosition = FormStartPosition.CenterParent;
 			dialog.SetConfig(this);
 			dialog.ShowDialog();
-			this.TopMost = tempTopMost;
+			TopMost = tempTopMost;
 		}
 
 	}

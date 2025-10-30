@@ -1,9 +1,8 @@
-﻿using System;
+﻿using MinorShift.Emuera.Runtime.Utils;
 using System.Drawing;
 using System.IO;
-using WebPWrapper;
 
-namespace MinorShift.Emuera.Content;
+namespace MinorShift.Emuera.UI.Game.Image;
 
 static class ImgUtils
 {
@@ -17,7 +16,7 @@ static class ImgUtils
 
 		if (Path.GetExtension(filepath).ToUpperInvariant() == ".WEBP")
 		{
-			using (WebP webp = new WebP())
+			using (WebP webp = new())
 				bmp = webp.Load(filepath);
 
 			if (bmp == null)

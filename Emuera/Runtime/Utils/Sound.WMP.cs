@@ -1,10 +1,10 @@
 ﻿using WMPLib;
 
-namespace MinorShift._Library;
+namespace MinorShift.Emuera.Runtime.Utils;
 
 internal class Sound
 {
-	private WindowsMediaPlayer player = new WindowsMediaPlayer();
+	private WindowsMediaPlayer player = new();
 	public void play(string filename, int repeat = 1)
 	{
 		player.URL = filename;

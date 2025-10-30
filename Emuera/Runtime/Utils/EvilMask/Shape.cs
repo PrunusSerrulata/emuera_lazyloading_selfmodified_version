@@ -1,13 +1,7 @@
-﻿using MinorShift.Emuera;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EvilMask.Emuera;
+namespace MinorShift.Emuera.Runtime.Utils.EvilMask;
 
 internal sealed class Shape
 {
@@ -60,18 +54,18 @@ internal sealed class Shape
 			if (border[flipX ? Direction.Right : Direction.Left] > 0)
 			{
 				// 左枠の半分
-				Color color = colors == null ? Config.ForeColor : colors[flipX ? Direction.Right : Direction.Left];
+				Color color = colors == null ? Config.Config.ForeColor : colors[flipX ? Direction.Right : Direction.Left];
 				if (color != Color.Transparent)
 					using (var path = new GraphicsPath())
 					{
 						path.AddPolygon(new Point[] {
-								new Point(flipX ? rect.X+rect.Width : rect.X,
+								new(flipX ? rect.X+rect.Width : rect.X,
 									flipY ? rect.Y+rect.Height : rect.Y),
-								new Point(flipX ? rect.X+rect.Width-border[Direction.Right] : rect.X+border[Direction.Left],
+								new(flipX ? rect.X+rect.Width-border[Direction.Right] : rect.X+border[Direction.Left],
 									flipY ? rect.Y+rect.Height-border[Direction.Bottom] : rect.Y+border[Direction.Top]),
-								new Point(flipX ? rect.X+rect.Width-border[Direction.Right] : rect.X+border[Direction.Left],
+								new(flipX ? rect.X+rect.Width-border[Direction.Right] : rect.X+border[Direction.Left],
 									rect.Y+rect.Height/2),
-								new Point(flipX ? rect.X+rect.Width : rect.X,
+								new(flipX ? rect.X+rect.Width : rect.X,
 									rect.Y+rect.Height/2)
 							});
 						using (var brush = new SolidBrush(color))
@@ -83,18 +77,18 @@ internal sealed class Shape
 			if (border[flipY ? Direction.Bottom : Direction.Top] > 0)
 			{
 				// 上枠の半分
-				Color color = colors == null ? Config.ForeColor : colors[flipY ? Direction.Bottom : Direction.Top];
+				Color color = colors == null ? Config.Config.ForeColor : colors[flipY ? Direction.Bottom : Direction.Top];
 				if (color != Color.Transparent)
 					using (var path = new GraphicsPath())
 					{
 						path.AddPolygon(new Point[] {
-								new Point(flipX ? rect.X+rect.Width : rect.X,
+								new(flipX ? rect.X+rect.Width : rect.X,
 									flipY ? rect.Y+rect.Height : rect.Y),
-								new Point(flipX ? rect.X+rect.Width-border[Direction.Right] : rect.X+border[Direction.Left],
+								new(flipX ? rect.X+rect.Width-border[Direction.Right] : rect.X+border[Direction.Left],
 									flipY ? rect.Y+rect.Height-border[Direction.Bottom] : rect.Y+border[Direction.Top]),
-								new Point(rect.X+rect.Width/2,
+								new(rect.X+rect.Width/2,
 									flipY ? rect.Y+rect.Height-border[Direction.Bottom] : rect.Y+border[Direction.Top]),
-								new Point(rect.X+rect.Width/2,
+								new(rect.X+rect.Width/2,
 									flipY ? rect.Y+rect.Height : rect.Y)
 							});
 						using (var brush = new SolidBrush(color))
@@ -110,8 +104,8 @@ internal sealed class Shape
 			var backUp = graph.SmoothingMode;
 			graph.SmoothingMode = SmoothingMode.AntiAlias;
 			GraphicsPath innerEllipse = null;
-			int corner = flipX ? (flipY ? Corner.RightBottom : Corner.RightTop) : (flipY ? Corner.LeftBottom : Corner.LeftTop);
-			Rectangle cornerRect = new Rectangle(
+			int corner = flipX ? flipY ? Corner.RightBottom : Corner.RightTop : flipY ? Corner.LeftBottom : Corner.LeftTop;
+			Rectangle cornerRect = new(
 				flipX ? rect.X + rect.Width - radius[corner] : rect.X,
 				flipY ? rect.Y + rect.Height - radius[corner] : rect.Y,
 				radius[corner],
@@ -173,17 +167,17 @@ internal sealed class Shape
 					if (border[flipX ? Direction.Right : Direction.Left] > 0)
 					{
 						// 左枠の半分
-						Color color = colors == null ? Config.ForeColor : colors[flipX ? Direction.Right : Direction.Left];
+						Color color = colors == null ? Config.Config.ForeColor : colors[flipX ? Direction.Right : Direction.Left];
 						if (color != Color.Transparent)
 							using (var path = new GraphicsPath())
 							using (var brush = new SolidBrush(color))
 							{
 								path.AddPolygon(new Point[] {
-										new Point(flipX ? rect.X+rect.Width : rect.X,
+										new(flipX ? rect.X+rect.Width : rect.X,
 											flipY ? rect.Y+rect.Height : rect.Y),
-										new Point(flipX ? rect.X+rect.Width-cornerRect.Width : rect.X+cornerRect.Width,
+										new(flipX ? rect.X+rect.Width-cornerRect.Width : rect.X+cornerRect.Width,
 											flipY ? rect.Y+rect.Height-cornerRect.Height : rect.Y+cornerRect.Height),
-										new Point(flipX ? rect.X+rect.Width : rect.X,
+										new(flipX ? rect.X+rect.Width : rect.X,
 											flipY ? rect.Y+rect.Height-cornerRect.Height : rect.Y+cornerRect.Height)});
 								graph.SetClip(path, CombineMode.Intersect);
 								graph.FillPath(brush, cornerEllipse);
@@ -200,17 +194,17 @@ internal sealed class Shape
 					if (border[flipY ? Direction.Bottom : Direction.Top] > 0)
 					{
 						// 上枠の半分
-						Color color = colors == null ? Config.ForeColor : colors[flipY ? Direction.Bottom : Direction.Top];
+						Color color = colors == null ? Config.Config.ForeColor : colors[flipY ? Direction.Bottom : Direction.Top];
 						if (color != Color.Transparent)
 							using (var path = new GraphicsPath())
 							using (var brush = new SolidBrush(color))
 							{
 								path.AddPolygon(new Point[] {
-										new Point(flipX ? rect.X+rect.Width : rect.X,
+										new(flipX ? rect.X+rect.Width : rect.X,
 											flipY ? rect.Y+rect.Height : rect.Y),
-										new Point(flipX ? rect.X+rect.Width-cornerRect.Width : rect.X+cornerRect.Width,
+										new(flipX ? rect.X+rect.Width-cornerRect.Width : rect.X+cornerRect.Width,
 											flipY ? rect.Y+rect.Height-cornerRect.Height : rect.Y+cornerRect.Height),
-										new Point(flipX ? rect.X+rect.Width-cornerRect.Width : rect.X+cornerRect.Width,
+										new(flipX ? rect.X+rect.Width-cornerRect.Width : rect.X+cornerRect.Width,
 											flipY ? rect.Y+rect.Height : rect.Y)});
 								graph.SetClip(path, CombineMode.Intersect);
 								graph.FillPath(brush, cornerEllipse);

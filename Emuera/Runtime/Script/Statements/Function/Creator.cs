@@ -1,9 +1,8 @@
-﻿using System;
+﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script.Data;
+using MinorShift.Emuera.Runtime.Script.Statements.Function;
+using MinorShift.Emuera.Runtime.Utils;
 using System.Collections.Generic;
-using System.Text;
-using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameProc;
 
 namespace MinorShift.Emuera.GameData.Function;
 
@@ -11,7 +10,7 @@ internal static partial class FunctionMethodCreator
 {
 	static FunctionMethodCreator()
 	{
-		methodList = new Dictionary<string, FunctionMethod>
+		methodList = new Dictionary<string, FunctionMethod>(Config.StrComper)
 		{
 			//キャラクタデータ系
 			["GETCHARA"] = new GetcharaMethod(),
@@ -106,7 +105,7 @@ internal static partial class FunctionMethodCreator
 			["INRANGE"] = new InRangeMethod(),
 			["INRANGEARRAY"] = new InRangeArrayMethod(),
 			["INRANGECARRAY"] = new InRangeArrayMethod(true),
-			["GETNUMB"] = new GetnumMethod(),
+			["GETNUMB"] = new GetnumBMethod(),
 
 			["ARRAYMSORT"] = new ArrayMultiSortMethod(),
 
@@ -210,6 +209,10 @@ internal static partial class FunctionMethodCreator
 			["SPRITEANIMECREATE"] = new SpriteAnimeCreateMethod(),
 			["SPRITEANIMEADDFRAME"] = new SpriteAnimeAddFrameMethod(),
 			["SETANIMETIMER"] = new SetAnimeTimerMethod(),
+
+			#region EE_OUTPUTLOG拡張
+			["OUTPUTLOG"] = new OutputlogMethod(),
+			#endregion
 
 			#region EM_私家版_追加関数
 			["HTML_STRINGLEN"] = new HtmlStringLenMethod(),
@@ -329,10 +332,23 @@ internal static partial class FunctionMethodCreator
 			["GETDISPLAYLINE"] = new GetDisplayLineMethod(),
 			["GDASHSTYLE"] = new GraphicsSetDashStyleMethod(),
 			["GETDOINGFUNCTION"] = new GetDoingFunctionMethod(),
+			["FLOWINPUT"] = new FlowInputMethod(),
+			["FLOWINPUTS"] = new FlowInputsMethod(),
+
+			#endregion
+
+			#region daughter-patch追加
+			["GETMETH"] = new GetMethMethod(),
+			["GETMETHS"] = new GetMethsMethod(),
+			["EXISTMETH"] = new ExistMethMethod(),
 			#endregion
 
 			//Bitmap Cache
 			["BITMAP_CACHE_ENABLE"] = new BitmapCacheEnableMethod(),
+
+			//HOTKEY STATE
+			["HOTKEY_STATE"] = new HotkeyStateMethod(),
+			["HOTKEY_STATE_INIT"] = new HotkeyStateInitMethod(),
 		};
 
 

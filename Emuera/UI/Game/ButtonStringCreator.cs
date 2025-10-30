@@ -1,16 +1,16 @@
-﻿using System;
+﻿using MinorShift.Emuera.Runtime.Script.Parser;
+using MinorShift.Emuera.Runtime.Utils;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using MinorShift.Emuera.Sub;
 
-namespace MinorShift.Emuera.GameView;
+namespace MinorShift.Emuera.UI.Game;
 
 internal sealed class ButtonPrimitive
 {
 	public string Str = "";
-	public Int64 Input;
-	public bool CanSelect = false;
+	public long Input;
+	public bool CanSelect;
 	public override string ToString()
 	{
 		return Str;
@@ -39,15 +39,15 @@ internal static class ButtonStringCreator
 		if (printString.Length == 0)
 			goto nonButton;
 		List<string> strs;
-		if ((!printString.Contains("[")) || (!printString.Contains("]")))
+		if (!printString.Contains('[') || !printString.Contains(']'))
 			goto nonButton;
-		strs = lex(new StringStream(printString));
+		strs = lex(new CharStream(printString));
 		if (strs == null)
 			goto nonButton;
 		bool beforeButton = false;//最初のボタン（"[1]"とか）より前にテキストがある
 		bool afterButton = false;//最後のボタン（"[1]"とか）より後にテキストがある
 		int buttonCount = 0;
-		Int64 inpL = 0;
+		long inpL = 0;
 		for (int i = 0; i < strs.Count; i++)
 		{
 			if (strs[i].Length == 0)
@@ -75,7 +75,7 @@ internal static class ButtonStringCreator
 			ButtonPrimitive button = new()
 			{
 				Str = printBuffer.ToString(),
-				CanSelect = (buttonCount >= 1),
+				CanSelect = buttonCount >= 1,
 				Input = inpL
 			};
 			ret.Add(button);
@@ -86,7 +86,7 @@ internal static class ButtonStringCreator
 		bool alignmentLeft = beforeButton && !afterButton;//説明はボタンの左固定
 		bool alignmentEtc = !alignmentRight && !alignmentLeft;//臨機応変に
 		bool canSelect = false;
-		Int64 input = 0;
+		long input = 0;
 
 		int state = 0;
 		StringBuilder buffer = new();
@@ -112,7 +112,7 @@ internal static class ButtonStringCreator
 			char c = strs[i][0];
 			if (LexicalAnalyzer.IsWhiteSpace(c))
 			{//ただの空白
-				if (((state & 3) == 3) && alignmentEtc && (strs[i].Length >= 2))
+				if ((state & 3) == 3 && alignmentEtc && strs[i].Length >= 2)
 				{//核と説明を含んだものが完成していればボタン生成。
 				 //一文字以下のスペースはキニシナイ。キャラ購入画面対策
 					reduce();
@@ -128,7 +128,7 @@ internal static class ButtonStringCreator
 			if (isButtonCore(strs[i], ref inpL))
 			{
 				buttonCount++;
-				if (((state & 1) == 1) || alignmentRight)
+				if ((state & 1) == 1 || alignmentRight)
 				{//bufferが既に核を含んでいる、又は強制的に右配置
 					reduce();
 					buffer.Append(strs[i]);
@@ -193,12 +193,12 @@ internal static class ButtonStringCreator
 	/// <returns></returns>
 	private static bool isButtonCore(string str, ref long input)
 	{
-		if ((str == null) || (str.Length < 3) || (str[0] != '[') || (str[str.Length - 1] != ']'))
+		if (str == null || str.Length < 3 || str[0] != '[' || str[^1] != ']')
 			return false;
 		if (!isNumericWord(str))
 			return false;
-		string buttonStr = str.Substring(1, str.Length - 2);
-		StringStream stInt = new(buttonStr);
+		string buttonStr = str[1..^1];
+		CharStream stInt = new(buttonStr);
 		LexicalAnalyzer.SkipAllSpace(stInt);
 		try
 		{
@@ -217,7 +217,7 @@ internal static class ButtonStringCreator
 	/// </summary>
 	/// <param name="st"></param>
 	/// <returns></returns>
-	private static List<string> lex(StringStream st)
+	private static List<string> lex(CharStream st)
 	{
 		List<string> strs = [];
 		int state = 0;
@@ -248,7 +248,7 @@ internal static class ButtonStringCreator
 				reduce();
 				state = 0;
 			}
-			else if ((state == 0) && LexicalAnalyzer.IsWhiteSpace(st.Current))
+			else if (state == 0 && LexicalAnalyzer.IsWhiteSpace(st.Current))
 			{
 				reduce();
 				LexicalAnalyzer.SkipAllSpace(st);

@@ -1,32 +1,88 @@
-﻿using System;
+﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.Runtime;
+using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config.JSON;
+using MinorShift.Emuera.Runtime.Script;
+using MinorShift.Emuera.Runtime.Script.Data;
+using MinorShift.Emuera.Runtime.Script.Parser;
+using MinorShift.Emuera.Runtime.Script.Statements;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Script.Statements.Function;
+using MinorShift.Emuera.Runtime.Script.Statements.Variable;
+using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using MinorShift.Emuera.Runtime.Utils.PluginSystem;
+using MinorShift.Emuera.UI.Game;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.Sub;
-using MinorShift.Emuera.GameData.Variable;
-using MinorShift.Emuera.GameData;
-using MinorShift._Library;
-using MinorShift.Emuera.GameData.Function;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
-using System.Net;
-using System.Windows.Forms;
-using MinorShift.Emuera.GameView;
-using trerror = EvilMask.Emuera.Lang.Error;
-using trmb = EvilMask.Emuera.Lang.MessageBox;
-using EvilMask.Emuera;
-using static EvilMask.Emuera.Utils;
 using System.Linq;
-using MinorShift.Emuera.GameProc.PluginSystem;
+using System.Net;
+using System.Text;
+using System.Windows.Forms;
+using static MinorShift.Emuera.Runtime.Utils.EvilMask.Utils;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
+using trmb = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.MessageBox;
 
 namespace MinorShift.Emuera.GameProc.Function;
 
 internal sealed partial class FunctionIdentifier
 {
-	#region normalFunction
-	private sealed class PRINT_Instruction : AbstractInstruction
+	#region Emuera.NET VAR命令
+	private sealed class VARI_Instruction : AInstruction
 	{
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			var arg = (IntAsignArgument)func.Argument;
+			var varName = arg.ConstStr;
+	
+			var privateVar = func.ParentLabelLine.GetPrivateVariable(varName);
+			privateVar.ScopeIn();
+			if (privateVar.GetLength(0) == 1)
+			{
+				privateVar.SetValue(arg.Exp.GetIntValue(exm), [0]);
+			}
+			else
+			{
+
+			}
+		}
+
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			return null;
+		}
+	}
+	private sealed class VARS_Instruction : AInstruction
+	{
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			var arg = (StrAsignArgument)func.Argument;
+			var varName = arg.ConstStr;
+
+			var privateVar = func.ParentLabelLine.GetPrivateVariable(varName);
+			privateVar.ScopeIn();
+			if (privateVar.GetLength(0) == 1)
+			{
+				privateVar.SetValue(arg.Value, [0]);
+			}
+			else
+			{
+
+			}
+		}
+
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			return null;
+		}
+	}
+	#endregion
+	#region normalFunction
+	private sealed class PRINT_Instruction : AInstruction
+	{
+		bool isLineEnd = true;
 		public PRINT_Instruction(string name)
 		{
 			//PRINT(|V|S|FORM|FORMS)(|K)(|D)(|L|W) コレと
@@ -34,7 +90,7 @@ internal sealed partial class FunctionIdentifier
 			//PRINT(|FORM)(C|LC)(|K)(|D) コレ
 			//PRINTDATA(|K)(|D)(|L|W) ←は別クラス
 			flag = IS_PRINT;
-			StringStream st = new(name);
+			CharStream st = new(name);
 			st.Jump(5);//PRINT
 			if (st.CurrentEqualTo("SINGLE"))
 			{
@@ -91,6 +147,12 @@ internal sealed partial class FunctionIdentifier
 				flag |= ISPRINTDFUNC | EXTENDED;
 				st.Jump(1);
 			}
+			if (st.CurrentEqualTo("N"))
+			{
+				isLineEnd = false;
+				flag |= PRINT_WAITINPUT;
+				st.Jump(1);
+			}
 			if (st.CurrentEqualTo("L"))
 			{
 				flag |= PRINT_NEWLINE;
@@ -126,11 +188,11 @@ internal sealed partial class FunctionIdentifier
 			else if (isPrintV)
 			{
 				StringBuilder builder = new();
-				IOperandTerm[] terms = ((SpPrintVArgument)func.Argument).Terms;
-				foreach (IOperandTerm termV in terms)
+				var terms = ((SpPrintVArgument)func.Argument).Terms;
+				foreach (AExpression termV in terms)
 				{
-					if (termV.GetOperandType() == typeof(Int64))
-						builder.Append(termV.GetIntValue(exm).ToString());
+					if (termV.GetOperandType() == typeof(long))
+						builder.Append(termV.GetIntValue(exm));
 					else
 						builder.Append(termV.GetStrValue(exm));
 				}
@@ -141,8 +203,8 @@ internal sealed partial class FunctionIdentifier
 				str = ((ExpressionArgument)func.Argument).Term.GetStrValue(exm);
 				if (isForms)
 				{
-					str = exm.CheckEscape(str);
-					StrFormWord wt = LexicalAnalyzer.AnalyseFormattedString(new StringStream(str), FormStrEndWith.EoL, false);
+					str = ExpressionMediator.CheckEscape(str);
+					StrFormWord wt = LexicalAnalyzer.AnalyseFormattedString(new CharStream(str), FormStrEndWith.EoL, false);
 					StrForm strForm = StrForm.FromWordToken(wt);
 					str = strForm.GetString(exm);
 				}
@@ -154,19 +216,19 @@ internal sealed partial class FunctionIdentifier
 			else if (isLC)
 				exm.Console.PrintC(str, false);
 			else
-				exm.OutputToConsole(str, func.Function);
+				exm.OutputToConsole(str, func.Function, isLineEnd);
 			exm.Console.UseSetColorStyle = true;
 		}
 	}
 
-	private sealed class PRINT_DATA_Instruction : AbstractInstruction
+	private sealed class PRINT_DATA_Instruction : AInstruction
 	{
 		public PRINT_DATA_Instruction(string name)
 		{
 			//PRINTDATA(|K)(|D)(|L|W)
 			flag = EXTENDED | IS_PRINT | IS_PRINTDATA | PARTIAL;
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.VAR_INT);
-			StringStream st = new(name);
+			CharStream st = new(name);
 			st.Jump(9);//PRINTDATA
 			if (st.CurrentEqualTo("K"))
 			{
@@ -218,7 +280,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			List<InstructionLine> iList = func.dataList[choice];
 			int i = 0;
-			IOperandTerm term;
+			AExpression term;
 			string str;
 			foreach (InstructionLine selectedLine in iList)
 			{
@@ -230,7 +292,7 @@ internal sealed partial class FunctionIdentifier
 				if (func.Function.IsPrintKFunction())
 					str = exm.ConvertStringType(str);
 				exm.Console.Print(str);
-				if (++i < (int)iList.Count)
+				if (++i < iList.Count)
 					exm.Console.NewLine();
 			}
 			if (func.Function.IsNewLine() || func.Function.IsWaitInput())
@@ -246,7 +308,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class HTML_PRINT_Instruction : AbstractInstruction
+	private sealed class HTML_PRINT_Instruction : AInstruction
 	{
 		public HTML_PRINT_Instruction()
 		{
@@ -273,7 +335,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class HTML_TAGSPLIT_Instruction : AbstractInstruction
+	private sealed class HTML_TAGSPLIT_Instruction : AInstruction
 	{
 		public HTML_TAGSPLIT_Instruction()
 		{
@@ -285,7 +347,7 @@ internal sealed partial class FunctionIdentifier
 		{
 			SpHtmlSplitArgument spSplitArg = (SpHtmlSplitArgument)func.Argument;
 			string str = spSplitArg.TargetStr.GetStrValue(exm);
-			string[] strs = MinorShift.Emuera.GameView.HtmlManager.HtmlTagSplit(str);
+			string[] strs = HtmlManager.HtmlTagSplit(str);
 
 			if (strs == null)
 			{
@@ -300,8 +362,43 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
+	private sealed class HTML_PRINT_ISLAND_Instruction : AInstruction
+	{
+		public HTML_PRINT_ISLAND_Instruction()
+		{
+			flag = EXTENDED | METHOD_SAFE;
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_HTML_PRINT);
+		}
 
-	private sealed class PRINT_IMG_Instruction : AbstractInstruction
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			if (GlobalStatic.Process.SkipPrint)
+				return;
+			string str;
+			var arg = (SpHtmlPrint)func.Argument;
+			if (arg.IsConst)
+				str = arg.ConstStr;
+			else
+				str = ((SpHtmlPrint)func.Argument).Str.GetStrValue(exm);
+			exm.Console.PrintHTMLIsland(str);
+		}
+	}
+
+	private sealed class HTML_PRINT_ISLAND_CLEAR_Instruction : AInstruction
+	{
+		public HTML_PRINT_ISLAND_CLEAR_Instruction()
+		{
+			flag = EXTENDED | METHOD_SAFE;
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.VOID);
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			exm.Console.ClearHTMLIsland();
+		}
+	}
+
+	private sealed class PRINT_IMG_Instruction : AInstruction
 	{
 		public PRINT_IMG_Instruction()
 		{
@@ -323,7 +420,7 @@ internal sealed partial class FunctionIdentifier
 			//else
 			//	str = ((ExpressionArgument)func.Argument).Term.GetStrValue(exm);
 			//exm.Console.PrintImg(str);
-			var arg = ((SpPrintImgArgument)func.Argument);
+			var arg = (SpPrintImgArgument)func.Argument;
 			if (arg == null)
 				throw new CodeEE(trerror.InvalidArg.Text);
 			var strb = arg.Nameb != null ? arg.Nameb.GetStrValue(exm) : null;
@@ -340,7 +437,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class PRINT_RECT_Instruction : AbstractInstruction
+	private sealed class PRINT_RECT_Instruction : AInstruction
 	{
 		public PRINT_RECT_Instruction()
 		{
@@ -362,7 +459,7 @@ internal sealed partial class FunctionIdentifier
 			//	param[i] = FunctionIdentifier.toUInt32inArg(intExpArg.TermList[i].GetIntValue(exm), "PRINT_RECT", i + 1);
 
 			//exm.Console.PrintShape("rect", param);
-			var arg = ((SpPrintShapeArgument)func.Argument);
+			var arg = (SpPrintShapeArgument)func.Argument;
 			if (arg == null)
 				throw new CodeEE(trerror.InvalidArg.Text);
 			var param = new MixedNum[arg.Param.Length];
@@ -373,7 +470,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class PRINT_SPACE_Instruction : AbstractInstruction
+	private sealed class PRINT_SPACE_Instruction : AInstruction
 	{
 		public PRINT_SPACE_Instruction()
 		{
@@ -396,7 +493,7 @@ internal sealed partial class FunctionIdentifier
 			//	param = ((ExpressionArgument)func.Argument).Term.GetIntValue(exm);
 			//int param32 = FunctionIdentifier.toUInt32inArg(param, "PRINT_SPACE", 1);
 			// exm.Console.PrintShape("space", new int[] { param32 });
-			var arg = ((SpPrintShapeArgument)func.Argument);
+			var arg = (SpPrintShapeArgument)func.Argument;
 			if (arg == null)
 				throw new CodeEE(trerror.InvalidArg.Text);
 			var param = new MixedNum[arg.Param.Length];
@@ -406,7 +503,7 @@ internal sealed partial class FunctionIdentifier
 			#endregion
 		}
 	}
-	private sealed class CUSTOMDRAWLINE_Instruction : AbstractInstruction
+	private sealed class CUSTOMDRAWLINE_Instruction : AInstruction
 	{
 		public CUSTOMDRAWLINE_Instruction()
 		{
@@ -416,14 +513,14 @@ internal sealed partial class FunctionIdentifier
 
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
 		{
-			StringStream st = line.PopArgumentPrimitive();
+			CharStream st = line.PopArgumentPrimitive();
 			string rowStr;
 			if (st.EOS)
-				throw new CodeEE("引数が設定されていません");
+				throw new CodeEE(trerror.MissingArg.Text);
 			else
 				rowStr = st.Substring();
 			rowStr = GlobalStatic.Console.getStBar(rowStr);
-			Argument ret = new ExpressionArgument(new SingleTerm(rowStr))
+			Argument ret = new ExpressionArgument(new SingleStrTerm(rowStr))
 			{
 				ConstStr = rowStr,
 				IsConst = true
@@ -435,12 +532,12 @@ internal sealed partial class FunctionIdentifier
 		{
 			if (GlobalStatic.Process.SkipPrint)
 				return;
-			GlobalStatic.Console.printCustomBar(((ExpressionArgument)func.Argument).ConstStr, true);
+			GlobalStatic.Console.printCustomBar(func.Argument.ConstStr, true);
 			exm.Console.NewLine();
 		}
 	}
 
-	private sealed class DEBUGPRINT_Instruction : AbstractInstruction
+	private sealed class DEBUGPRINT_Instruction : AInstruction
 	{
 		public DEBUGPRINT_Instruction(bool form, bool newline)
 		{
@@ -465,7 +562,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class DEBUGCLEAR_Instruction : AbstractInstruction
+	private sealed class DEBUGCLEAR_Instruction : AInstruction
 	{
 		public DEBUGCLEAR_Instruction()
 		{
@@ -478,7 +575,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class METHOD_Instruction : AbstractInstruction
+	private sealed class METHOD_Instruction : AInstruction
 	{
 		public METHOD_Instruction()
 		{
@@ -487,9 +584,9 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			IOperandTerm term = ((MethodArgument)func.Argument).MethodTerm;
+			AExpression term = ((MethodArgument)func.Argument).MethodTerm;
 			//Type type = term.GetOperandType();
-			if (term.GetOperandType() == typeof(Int64))
+			if (term.GetOperandType() == typeof(long))
 				exm.VEvaluator.RESULT = term.GetIntValue(exm);
 			else// if (func.Argument.MethodTerm.GetOperandType() == typeof(string))
 				exm.VEvaluator.RESULTS = term.GetStrValue(exm);
@@ -502,7 +599,7 @@ internal sealed partial class FunctionIdentifier
 	/// <summary>
 	/// 代入文
 	/// </summary>
-	private sealed class SET_Instruction : AbstractInstruction
+	private sealed class SET_Instruction : AInstruction
 	{
 		public SET_Instruction()
 		{
@@ -511,16 +608,15 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			if (func.Argument is SpSetArrayArgument)
+			if (func.Argument is SpSetArrayArgument arg)
 			{
-				SpSetArrayArgument arg = (SpSetArrayArgument)func.Argument;
 				if (arg.VariableDest.IsInteger)
 				{
 					if (arg.IsConst)
 						arg.VariableDest.SetValue(arg.ConstIntList, exm);
 					else
 					{
-						Int64[] values = new Int64[arg.TermList.Length];
+						long[] values = new long[arg.TermList.Count];
 						for (int i = 0; i < values.Length; i++)
 						{
 							values[i] = arg.TermList[i].GetIntValue(exm);
@@ -534,7 +630,7 @@ internal sealed partial class FunctionIdentifier
 						arg.VariableDest.SetValue(arg.ConstStrList, exm);
 					else
 					{
-						string[] values = new string[arg.TermList.Length];
+						string[] values = new string[arg.TermList.Count];
 						for (int i = 0; i < values.Length; i++)
 						{
 							values[i] = arg.TermList[i].GetStrValue(exm);
@@ -547,9 +643,9 @@ internal sealed partial class FunctionIdentifier
 			SpSetArgument spsetarg = (SpSetArgument)func.Argument;
 			if (spsetarg.VariableDest.IsInteger)
 			{
-				Int64 src = spsetarg.IsConst ? spsetarg.ConstInt : spsetarg.Term.GetIntValue(exm);
+				long src = spsetarg.IsConst ? spsetarg.ConstInt : spsetarg.Term.GetIntValue(exm);
 				if (spsetarg.AddConst)
-					spsetarg.VariableDest.PlusValue(src, exm);
+					spsetarg.VariableDest.ChangeValue(src, exm);
 				else
 					spsetarg.VariableDest.SetValue(src, exm);
 			}
@@ -561,7 +657,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class REUSELASTLINE_Instruction : AbstractInstruction
+	private sealed class REUSELASTLINE_Instruction : AInstruction
 	{
 		public REUSELASTLINE_Instruction()
 		{
@@ -570,13 +666,13 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			IOperandTerm term = ((ExpressionArgument)func.Argument).Term;
+			AExpression term = ((ExpressionArgument)func.Argument).Term;
 			string str = term.GetStrValue(exm);
 			exm.Console.PrintTemporaryLine(str);
 		}
 	}
 
-	private sealed class CLEARLINE_Instruction : AbstractInstruction
+	private sealed class CLEARLINE_Instruction : AInstruction
 	{
 		public CLEARLINE_Instruction()
 		{
@@ -586,13 +682,13 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			ExpressionArgument intExpArg = (ExpressionArgument)func.Argument;
-			Int32 delNum = (Int32)intExpArg.Term.GetIntValue(exm);
+			int delNum = (int)intExpArg.Term.GetIntValue(exm);
 			exm.Console.deleteLine(delNum);
 			exm.Console.RefreshStrings(false);
 		}
 	}
 
-	private sealed class STRLEN_Instruction : AbstractInstruction
+	private sealed class STRLEN_Instruction : AInstruction
 	{
 		public STRLEN_Instruction(bool argisform, bool unicode)
 		{
@@ -618,7 +714,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class SETBIT_Instruction : AbstractInstruction
+	private sealed class SETBIT_Instruction : AInstruction
 	{
 		public SETBIT_Instruction(int op)
 		{
@@ -631,14 +727,14 @@ internal sealed partial class FunctionIdentifier
 		{
 			BitArgument spsetarg = (BitArgument)func.Argument;
 			VariableTerm varTerm = spsetarg.VariableDest;
-			IOperandTerm[] terms = spsetarg.Term;
+			var terms = spsetarg.Term;
 			for (int i = 0; i < terms.Length; i++)
 			{
-				Int64 x = terms[i].GetIntValue(exm);
+				long x = terms[i].GetIntValue(exm);
 				if ((x < 0) || (x > 63))
 					throw new CodeEE(string.Format(trerror.ArgIsOoRBit.Text, "2"));
-				Int64 baseValue = varTerm.GetIntValue(exm);
-				Int64 shift = 1L << (int)x;
+				long baseValue = varTerm.GetIntValue(exm);
+				long shift = 1L << (int)x;
 				if (op == 1)
 					baseValue |= shift;
 				else if (op == 0)
@@ -650,7 +746,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class WAIT_Instruction : AbstractInstruction
+	private sealed class WAIT_Instruction : AInstruction
 	{
 		public WAIT_Instruction(bool force)
 		{
@@ -668,7 +764,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class WAITANYKEY_Instruction : AbstractInstruction
+	private sealed class WAITANYKEY_Instruction : AInstruction
 	{
 		public WAITANYKEY_Instruction()
 		{
@@ -681,7 +777,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class TWAIT_Instruction : AbstractInstruction
+	private sealed class TWAIT_Instruction : AInstruction
 	{
 		public TWAIT_Instruction()
 		{
@@ -693,8 +789,8 @@ internal sealed partial class FunctionIdentifier
 		{
 			exm.Console.ReadAnyKey();
 			SpSwapCharaArgument arg = (SpSwapCharaArgument)func.Argument;
-			Int64 time = arg.X.GetIntValue(exm);
-			Int64 flag = arg.Y.GetIntValue(exm);
+			long time = arg.X.GetIntValue(exm);
+			long flag = arg.Y.GetIntValue(exm);
 			InputRequest req = new()
 			{
 				InputType = InputType.EnterKey
@@ -706,7 +802,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class INPUT_Instruction : AbstractInstruction
+	private sealed class INPUT_Instruction : AInstruction
 	{
 		public INPUT_Instruction()
 		{
@@ -735,9 +831,10 @@ internal sealed partial class FunctionIdentifier
 			{
 				InputType = InputType.IntValue
 			};
+
 			if (arg.Def != null)
 			{
-				Int64 def;
+				long def;
 				def = arg.Def.GetIntValue(exm);
 				req.HasDefValue = true;
 				req.DefIntValue = def;
@@ -746,7 +843,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				req.MouseInput = arg.Mouse.GetIntValue(exm) != 0;
 			}
-			GlobalStatic.MainWindow.ApplyTextBoxChanges();
+			exm.Console.Window.ApplyTextBoxChanges();
 			#endregion
 			#region EE_INPUT機能拡張
 			if (arg.CanSkip != null && GlobalStatic.Console.MesSkip)
@@ -761,7 +858,7 @@ internal sealed partial class FunctionIdentifier
 			#endregion
 		}
 	}
-	private sealed class INPUTS_Instruction : AbstractInstruction
+	private sealed class INPUTS_Instruction : AInstruction
 	{
 		public INPUTS_Instruction()
 		{
@@ -801,7 +898,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				req.MouseInput = arg.Mouse.GetIntValue(exm) != 0;
 			}
-			GlobalStatic.MainWindow.ApplyTextBoxChanges();
+			exm.Console.Window.ApplyTextBoxChanges();
 			#endregion
 			#region EE_INPUT機能拡張
 			if (arg.CanSkip != null && GlobalStatic.Console.MesSkip)
@@ -817,7 +914,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class ONEINPUT_Instruction : AbstractInstruction
+	private sealed class ONEINPUT_Instruction : AInstruction
 	{
 		public ONEINPUT_Instruction()
 		{
@@ -857,7 +954,7 @@ internal sealed partial class FunctionIdentifier
 			};
 			if (arg.Def != null)
 			{
-				Int64 def;
+				long def;
 				def = arg.Def.GetIntValue(exm);
 				req.HasDefValue = true;
 				req.DefIntValue = def;
@@ -882,7 +979,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class ONEINPUTS_Instruction : AbstractInstruction
+	private sealed class ONEINPUTS_Instruction : AInstruction
 	{
 		public ONEINPUTS_Instruction()
 		{
@@ -945,13 +1042,13 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class TINPUT_Instruction : AbstractInstruction
+	private sealed class TINPUT_Instruction : AInstruction
 	{
 		public TINPUT_Instruction(bool oneInput)
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_TINPUT);
 			flag = IS_PRINT | IS_INPUT | EXTENDED;
-			this.isOne = oneInput;
+			isOne = oneInput;
 		}
 		bool isOne;
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
@@ -960,12 +1057,12 @@ internal sealed partial class FunctionIdentifier
 
 			InputRequest req = new()
 			{
-				InputType = InputType.StrValue,
+				InputType = InputType.IntValue,
 				HasDefValue = true,
 				OneInput = isOne
 			};
-			Int64 x = tinputarg.Time.GetIntValue(exm);
-			Int64 y = tinputarg.Def.GetIntValue(exm);
+			long x = tinputarg.Time.GetIntValue(exm);
+			long y = tinputarg.Def.GetIntValue(exm);
 			//TODO:ONEINPUTと標準の値を統一
 			#region EM_私家版_INPUT系機能拡張
 			//if (isOne)
@@ -980,7 +1077,7 @@ internal sealed partial class FunctionIdentifier
 				req.MouseInput = tinputarg.Mouse.GetIntValue(exm) == 1;
 			}
 			#endregion
-			Int64 z = (tinputarg.Disp != null) ? tinputarg.Disp.GetIntValue(exm) : 1;
+			long z = (tinputarg.Disp != null) ? tinputarg.Disp.GetIntValue(exm) : 1;
 			req.Timelimit = x;
 			req.DefIntValue = y;
 			req.DisplayTime = z != 0;
@@ -1002,23 +1099,25 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class TINPUTS_Instruction : AbstractInstruction
+	private sealed class TINPUTS_Instruction : AInstruction
 	{
 		public TINPUTS_Instruction(bool oneInput)
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_TINPUTS);
 			flag = IS_PRINT | IS_INPUT | EXTENDED;
-			this.isOne = oneInput;
+			isOne = oneInput;
 		}
 		bool isOne;
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			SpTInputsArgument tinputarg = (SpTInputsArgument)func.Argument;
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.StrValue;
-			req.HasDefValue = true;
-			req.OneInput = isOne;
-			Int64 x = tinputarg.Time.GetIntValue(exm);
+			InputRequest req = new()
+			{
+				InputType = InputType.StrValue,
+				HasDefValue = true,
+				OneInput = isOne
+			};
+			long x = tinputarg.Time.GetIntValue(exm);
 			string strs = tinputarg.Def.GetStrValue(exm);
 			#region EM_私家版_INPUT系機能拡張
 			//if (isOne && strs.Length > 1)
@@ -1028,7 +1127,7 @@ internal sealed partial class FunctionIdentifier
 				req.MouseInput = tinputarg.Mouse.GetIntValue(exm) == 1;
 			}
 			#endregion
-			Int64 z = (tinputarg.Disp != null) ? tinputarg.Disp.GetIntValue(exm) : 1;
+			long z = (tinputarg.Disp != null) ? tinputarg.Disp.GetIntValue(exm) : 1;
 			req.Timelimit = x;
 			req.DefStrValue = strs;
 			req.DisplayTime = z != 0;
@@ -1050,7 +1149,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class CALLF_Instruction : AbstractInstruction
+	private sealed class CALLF_Instruction : AInstruction
 	{
 		public CALLF_Instruction(bool form)
 		{
@@ -1069,8 +1168,6 @@ internal sealed partial class FunctionIdentifier
 				return;
 			}
 			SpCallFArgment callfArg = (SpCallFArgment)func.Argument;
-			if (Config.ICFunction)
-				callfArg.ConstStr = callfArg.ConstStr.ToUpper(CultureInfo.InvariantCulture);
 			try
 			{
 				callfArg.FuncTerm = GlobalStatic.IdentifierDictionary.GetFunctionMethod(GlobalStatic.LabelDictionary, callfArg.ConstStr, callfArg.RowArgs, true);
@@ -1092,9 +1189,9 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			IOperandTerm mToken;
+			AExpression mToken;
 			string labelName;
-			if ((!func.Argument.IsConst) || (exm.Console.RunERBFromMemory))
+			if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)
 			{
 				SpCallFArgment spCallformArg = (SpCallFArgment)func.Argument;
 				labelName = spCallformArg.FuncnameTerm.GetStrValue(exm);
@@ -1111,7 +1208,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class CALLSHARP_Instruction : AbstractInstruction
+	private sealed class CALLSHARP_Instruction : AInstruction
 	{
 		public CALLSHARP_Instruction()
 		{
@@ -1121,14 +1218,14 @@ internal sealed partial class FunctionIdentifier
 
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
 		{
-			StringStream st = line.PopArgumentPrimitive();
+			CharStream st = line.PopArgumentPrimitive();
 			string rowStr;
 			if (st.EOS)
-				throw new CodeEE("引数が設定されていません");
+				throw new CodeEE(trerror.MissingArg.Text);
 			else
 				rowStr = st.Substring();
 			rowStr = GlobalStatic.Console.getStBar(rowStr);
-			Argument ret = new ExpressionArgument(new SingleTerm(rowStr))
+			Argument ret = new ExpressionArgument(new SingleStrTerm(rowStr))
 			{
 				ConstStr = rowStr,
 				IsConst = true
@@ -1169,9 +1266,11 @@ internal sealed partial class FunctionIdentifier
 				if (rowArg is VariableTerm)
 				{
 					var varTerm = (VariableTerm)rowArg;
-					if (varTerm.IsString) {
+					if (varTerm.IsString)
+					{
 						varTerm.SetValue(pluginArgs[i].strValue, exm);
-					} else
+					}
+					else
 					{
 						varTerm.SetValue(pluginArgs[i].intValue, exm);
 					}
@@ -1181,7 +1280,7 @@ internal sealed partial class FunctionIdentifier
 	}
 
 	#region EE_TRYCALLF
-	private sealed class TRYCALLF_Instruction : AbstractInstruction
+	private sealed class TRYCALLF_Instruction : AInstruction
 	{
 		public TRYCALLF_Instruction(bool form)
 		{
@@ -1200,8 +1299,8 @@ internal sealed partial class FunctionIdentifier
 				return;
 			}
 			SpCallFArgment callfArg = (SpCallFArgment)func.Argument;
-			if (Config.ICFunction)
-				callfArg.ConstStr = callfArg.ConstStr.ToUpper(CultureInfo.InvariantCulture);
+			//if (Config.Config.IgnoreCase)
+			//	callfArg.ConstStr = callfArg.ConstStr.ToUpper(CultureInfo.InvariantCulture);
 			try
 			{
 				callfArg.FuncTerm = GlobalStatic.IdentifierDictionary.GetFunctionMethod(GlobalStatic.LabelDictionary, callfArg.ConstStr, callfArg.RowArgs, true);
@@ -1218,9 +1317,9 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			IOperandTerm mToken;
+			AExpression mToken;
 			string labelName;
-			if ((!func.Argument.IsConst) || (exm.Console.RunERBFromMemory))
+			if ((!func.Argument.IsConst) || exm.Console.RunERBFromMemory)
 			{
 				SpCallFArgment spCallformArg = (SpCallFArgment)func.Argument;
 				labelName = spCallformArg.FuncnameTerm.GetStrValue(exm);
@@ -1238,7 +1337,7 @@ internal sealed partial class FunctionIdentifier
 	}
 	#endregion
 
-	private sealed class BAR_Instruction : AbstractInstruction
+	private sealed class BAR_Instruction : AInstruction
 	{
 		public BAR_Instruction(bool newline)
 		{
@@ -1251,16 +1350,16 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			SpBarArgument barArg = (SpBarArgument)func.Argument;
-			Int64 var = barArg.Terms[0].GetIntValue(exm);
-			Int64 max = barArg.Terms[1].GetIntValue(exm);
-			Int64 length = barArg.Terms[2].GetIntValue(exm);
-			exm.Console.Print(exm.CreateBar(var, max, length));
+			long var = barArg.Terms[0].GetIntValue(exm);
+			long max = barArg.Terms[1].GetIntValue(exm);
+			long length = barArg.Terms[2].GetIntValue(exm);
+			exm.Console.Print(ExpressionMediator.CreateBar(var, max, length));
 			if (newline)
 				exm.Console.NewLine();
 		}
 	}
 
-	private sealed class TIMES_Instruction : AbstractInstruction
+	private sealed class TIMES_Instruction : AInstruction
 	{
 		public TIMES_Instruction()
 		{
@@ -1274,10 +1373,10 @@ internal sealed partial class FunctionIdentifier
 			VariableTerm var = timesArg.VariableDest;
 			if (Config.TimesNotRigorousCalculation)
 			{
-				double d = (double)var.GetIntValue(exm) * timesArg.DoubleValue;
+				double d = var.GetIntValue(exm) * timesArg.DoubleValue;
 				unchecked
 				{
-					var.SetValue((Int64)d, exm);
+					var.SetValue((long)d, exm);
 				}
 			}
 			else
@@ -1287,17 +1386,17 @@ internal sealed partial class FunctionIdentifier
 				{
 					//decimal型は強制的にOverFlowExceptionを投げるので対策が必要
 					//OverFlowの場合は昔の挙動に近づけてみる
-					if (d <= Int64.MaxValue && d >= Int64.MinValue)
-						var.SetValue((Int64)d, exm);
+					if (d <= long.MaxValue && d >= long.MinValue)
+						var.SetValue((long)d, exm);
 					else
-						var.SetValue((Int64)(double)d, exm);
+						var.SetValue((long)(double)d, exm);
 				}
 			}
 		}
 	}
 
 
-	private sealed class ADDCHARA_Instruction : AbstractInstruction
+	private sealed class ADDCHARA_Instruction : AInstruction
 	{
 		public ADDCHARA_Instruction(bool flagSp, bool flagDel)
 		{
@@ -1314,10 +1413,10 @@ internal sealed partial class FunctionIdentifier
 			if (!Config.CompatiSPChara && isSp)
 				throw new CodeEE(trerror.SPCharaConfigIsOff.Text);
 			ExpressionArrayArgument intExpArg = (ExpressionArrayArgument)func.Argument;
-			Int64 integer;
-			Int64[] charaNoList = new Int64[intExpArg.TermList.Length];
+			long integer;
+			long[] charaNoList = new long[intExpArg.TermList.Length];
 			int i = 0;
-			foreach (IOperandTerm int64Term in intExpArg.TermList)
+			foreach (AExpression int64Term in intExpArg.TermList)
 			{
 				integer = int64Term.GetIntValue(exm);
 				if (isDel)
@@ -1343,7 +1442,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class ADDVOIDCHARA_Instruction : AbstractInstruction
+	private sealed class ADDVOIDCHARA_Instruction : AInstruction
 	{
 		public ADDVOIDCHARA_Instruction()
 		{
@@ -1357,7 +1456,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class SWAPCHARA_Instruction : AbstractInstruction
+	private sealed class SWAPCHARA_Instruction : AInstruction
 	{
 		public SWAPCHARA_Instruction()
 		{
@@ -1373,7 +1472,7 @@ internal sealed partial class FunctionIdentifier
 			exm.VEvaluator.SwapChara(x, y);
 		}
 	}
-	private sealed class COPYCHARA_Instruction : AbstractInstruction
+	private sealed class COPYCHARA_Instruction : AInstruction
 	{
 		public COPYCHARA_Instruction()
 		{
@@ -1390,7 +1489,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class ADDCOPYCHARA_Instruction : AbstractInstruction
+	private sealed class ADDCOPYCHARA_Instruction : AInstruction
 	{
 		public ADDCOPYCHARA_Instruction()
 		{
@@ -1401,12 +1500,12 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			ExpressionArrayArgument intExpArg = (ExpressionArrayArgument)func.Argument;
-			foreach (IOperandTerm int64Term in intExpArg.TermList)
+			foreach (AExpression int64Term in intExpArg.TermList)
 				exm.VEvaluator.AddCopyChara(int64Term.GetIntValue(exm));
 		}
 	}
 
-	private sealed class SORTCHARA_Instruction : AbstractInstruction
+	private sealed class SORTCHARA_Instruction : AInstruction
 	{
 		public SORTCHARA_Instruction()
 		{
@@ -1417,7 +1516,7 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			SpSortcharaArgument spSortArg = (SpSortcharaArgument)func.Argument;
-			Int64 elem = 0;
+			long elem = 0;
 			VariableTerm sortKey = spSortArg.SortKey;
 			if (sortKey.Identifier.IsArray1D)
 				elem = sortKey.GetElementInt(1, exm);
@@ -1431,7 +1530,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RESETCOLOR_Instruction : AbstractInstruction
+	private sealed class RESETCOLOR_Instruction : AInstruction
 	{
 		public RESETCOLOR_Instruction()
 		{
@@ -1445,7 +1544,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RESETBGCOLOR_Instruction : AbstractInstruction
+	private sealed class RESETBGCOLOR_Instruction : AInstruction
 	{
 		public RESETBGCOLOR_Instruction()
 		{
@@ -1459,7 +1558,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class SETBGIMAGE_Instruction : AbstractInstruction
+	private sealed class SETBGIMAGE_Instruction : AInstruction
 	{
 		public SETBGIMAGE_Instruction()
 		{
@@ -1476,16 +1575,16 @@ internal sealed partial class FunctionIdentifier
 			float opacity = 1.0f;
 			if (arg.TermList.Count() >= 2)
 			{
-				bgDepth = Int64.Parse(arg.TermList[1].GetStrValue(exm));
+				bgDepth = long.Parse(arg.TermList[1].GetStrValue(exm));
 			}
 			if (arg.TermList.Count() >= 3)
 			{
-				opacity = Int64.Parse(arg.TermList[2].GetStrValue(exm)) / 255.0f;
+				opacity = long.Parse(arg.TermList[2].GetStrValue(exm)) / 255.0f;
 			}
 			exm.Console.AddBackgroundImage(bgName, bgDepth, opacity);
 		}
 	}
-	private sealed class REMOVEBGIMAGE_Instruction : AbstractInstruction
+	private sealed class REMOVEBGIMAGE_Instruction : AInstruction
 	{
 		public REMOVEBGIMAGE_Instruction()
 		{
@@ -1501,7 +1600,7 @@ internal sealed partial class FunctionIdentifier
 			exm.Console.RemoveBackground(bgName);
 		}
 	}
-	private sealed class CLEARBGIMAGE_Instruction : AbstractInstruction
+	private sealed class CLEARBGIMAGE_Instruction : AInstruction
 	{
 		public CLEARBGIMAGE_Instruction()
 		{
@@ -1515,7 +1614,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class FONTBOLD_Instruction : AbstractInstruction
+	private sealed class FONTBOLD_Instruction : AInstruction
 	{
 		public FONTBOLD_Instruction()
 		{
@@ -1530,7 +1629,7 @@ internal sealed partial class FunctionIdentifier
 			exm.Console.SetStringStyle(exm.Console.StringStyle.FontStyle | FontStyle.Bold);
 		}
 	}
-	private sealed class FONTITALIC_Instruction : AbstractInstruction
+	private sealed class FONTITALIC_Instruction : AInstruction
 	{
 		public FONTITALIC_Instruction()
 		{
@@ -1545,7 +1644,7 @@ internal sealed partial class FunctionIdentifier
 			exm.Console.SetStringStyle(exm.Console.StringStyle.FontStyle | FontStyle.Italic);
 		}
 	}
-	private sealed class FONTREGULAR_Instruction : AbstractInstruction
+	private sealed class FONTREGULAR_Instruction : AInstruction
 	{
 		public FONTREGULAR_Instruction()
 		{
@@ -1561,7 +1660,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class VARSET_Instruction : AbstractInstruction
+	private sealed class VARSET_Instruction : AInstruction
 	{
 		public VARSET_Instruction()
 		{
@@ -1581,31 +1680,29 @@ internal sealed partial class FunctionIdentifier
 			if (spvarsetarg.End != null)
 				end = (int)spvarsetarg.End.GetIntValue(exm);
 			else if (var.Identifier.IsArray1D)
-				end = (int)var.GetLength();
+				end = var.GetLength();
 			if (spvarsetarg.Start != null)
 			{
 				start = (int)spvarsetarg.Start.GetIntValue(exm);
 				if (start > end)
 				{
-					int temp = start;
-					start = end;
-					end = temp;
+					(end, start) = (start, end);
 				}
 			}
 			if (var.IsString)
 			{
 				string src = spvarsetarg.Term.GetStrValue(exm);
-				exm.VEvaluator.SetValueAll(p, src, start, end);
+				VariableEvaluator.SetValueAll(p, src, start, end);
 			}
 			else
 			{
 				long src = spvarsetarg.Term.GetIntValue(exm);
-				exm.VEvaluator.SetValueAll(p, src, start, end);
+				VariableEvaluator.SetValueAll(p, src, start, end);
 			}
 		}
 	}
 
-	private sealed class CVARSET_Instruction : AbstractInstruction
+	private sealed class CVARSET_Instruction : AInstruction
 	{
 		public CVARSET_Instruction()
 		{
@@ -1643,10 +1740,10 @@ internal sealed partial class FunctionIdentifier
 			}
 			if (!p.Identifier.IsCharacterData)
 				throw new CodeEE(string.Format(trerror.CvarsetArgIsNotCharaVar.Text, p.Identifier.Name));
-			if (index.GetOperandType() == typeof(string) && p.Identifier.IsArray1D)
+			if (index is SingleStrTerm singleStrTerm && p.Identifier.IsArray1D)
 			{
-				if (!GlobalStatic.ConstantData.isDefined(p.Identifier.Code, index.Str))
-					throw new CodeEE(string.Format(trerror.NotDefinedKey.Text, p.Identifier.Name, index.Str));
+				if (!GlobalStatic.ConstantData.isDefined(p.Identifier.Code, singleStrTerm.Str))
+					throw new CodeEE(string.Format(trerror.NotDefinedKey.Text, p.Identifier.Name, singleStrTerm.Str));
 			}
 			if (p.Identifier.IsString)
 			{
@@ -1661,7 +1758,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RANDOMIZE_Instruction : AbstractInstruction
+	private sealed class RANDOMIZE_Instruction : AInstruction
 	{
 		public RANDOMIZE_Instruction()
 		{
@@ -1671,15 +1768,23 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			Int64 iValue;
+			long iValue;
 			if (func.Argument.IsConst)
 				iValue = func.Argument.ConstInt;
 			else
 				iValue = ((ExpressionArgument)func.Argument).Term.GetIntValue(exm);
-			exm.VEvaluator.Randomize(iValue);
+			if (JSONConfig.Data.UseNewRandom)
+			{
+				ParserMediator.Warn(trerror.IgnoreRandomize.Text, null, 0);
+				ParserMediator.FlushWarningList();
+			}
+			else
+			{
+				exm.VEvaluator.Randomize(iValue);
+			}
 		}
 	}
-	private sealed class INITRAND_Instruction : AbstractInstruction
+	private sealed class INITRAND_Instruction : AInstruction
 	{
 		public INITRAND_Instruction()
 		{
@@ -1689,11 +1794,19 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			exm.VEvaluator.InitRanddata();
+			if (JSONConfig.Data.UseNewRandom)
+			{
+				ParserMediator.Warn(trerror.CanNotUseInitrand.Text, null, 0);
+				ParserMediator.FlushWarningList();
+			}
+			else
+			{
+				exm.VEvaluator.InitRanddata();
+			}
 		}
 	}
 
-	private sealed class DUMPRAND_Instruction : AbstractInstruction
+	private sealed class DUMPRAND_Instruction : AInstruction
 	{
 		public DUMPRAND_Instruction()
 		{
@@ -1703,12 +1816,20 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			exm.VEvaluator.DumpRanddata();
+			if (JSONConfig.Data.UseNewRandom)
+			{
+				ParserMediator.Warn(trerror.CanNotUseDumprand.Text, null, 0);
+				ParserMediator.FlushWarningList();
+			}
+			else
+			{
+				exm.VEvaluator.DumpRanddata();
+			}
 		}
 	}
 
 
-	private sealed class SAVEGLOBAL_Instruction : AbstractInstruction
+	private sealed class SAVEGLOBAL_Instruction : AInstruction
 	{
 		public SAVEGLOBAL_Instruction()
 		{
@@ -1722,7 +1843,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class LOADGLOBAL_Instruction : AbstractInstruction
+	private sealed class LOADGLOBAL_Instruction : AInstruction
 	{
 		public LOADGLOBAL_Instruction()
 		{
@@ -1739,7 +1860,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RESETDATA_Instruction : AbstractInstruction
+	private sealed class RESETDATA_Instruction : AInstruction
 	{
 		public RESETDATA_Instruction()
 		{
@@ -1754,7 +1875,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RESETGLOBAL_Instruction : AbstractInstruction
+	private sealed class RESETGLOBAL_Instruction : AInstruction
 	{
 		public RESETGLOBAL_Instruction()
 		{
@@ -1768,17 +1889,17 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private static int toUInt32inArg(Int64 value, string funcName, int argnum)
+	private static int toUInt32inArg(long value, string funcName, int argnum)
 	{
 		if (value < 0)
 			throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, funcName, argnum.ToString(), value.ToString()));
-		else if (value > Int32.MaxValue)
+		else if (value > int.MaxValue)
 			throw new CodeEE(string.Format(trerror.ArgIsTooLarge.Text, funcName, argnum.ToString(), value.ToString()));
 
 		return (int)value;
 	}
 
-	private sealed class SAVECHARA_Instruction : AbstractInstruction
+	private sealed class SAVECHARA_Instruction : AInstruction
 	{
 		public SAVECHARA_Instruction()
 		{
@@ -1789,28 +1910,28 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			ExpressionArrayArgument arg = (ExpressionArrayArgument)func.Argument;
-			IOperandTerm[] terms = arg.TermList;
+			var terms = arg.TermList;
 			string datFilename = terms[0].GetStrValue(exm);
 			string savMes = terms[1].GetStrValue(exm);
 			int[] savCharaList = new int[terms.Length - 2];
 			int charanum = (int)exm.VEvaluator.CHARANUM;
 			for (int i = 0; i < savCharaList.Length; i++)
 			{
-				Int64 v = terms[i + 2].GetIntValue(exm);
-				savCharaList[i] = FunctionIdentifier.toUInt32inArg(v, "SAVECHARA", i + 3);
+				long v = terms[i + 2].GetIntValue(exm);
+				savCharaList[i] = toUInt32inArg(v, "SAVECHARA", i + 3);
 				if (savCharaList[i] >= charanum)
 					throw new CodeEE(string.Format(trerror.OoRSavecharaArg.Text, (i + 3).ToString()));
 				for (int j = 0; j < i; j++)
 				{
 					if (savCharaList[i] == savCharaList[j])
-						throw new CodeEE(string.Format(trerror.DuplicateCharaNo.Text, (savCharaList[i]).ToString()));
+						throw new CodeEE(string.Format(trerror.DuplicateCharaNo.Text, savCharaList[i].ToString()));
 				}
 			}
 			exm.VEvaluator.SaveChara(datFilename, savMes, savCharaList);
 		}
 	}
 
-	private sealed class LOADCHARA_Instruction : AbstractInstruction
+	private sealed class LOADCHARA_Instruction : AInstruction
 	{
 		public LOADCHARA_Instruction()
 		{
@@ -1831,7 +1952,7 @@ internal sealed partial class FunctionIdentifier
 	}
 
 
-	private sealed class SAVEVAR_Instruction : AbstractInstruction
+	private sealed class SAVEVAR_Instruction : AInstruction
 	{
 		public SAVEVAR_Instruction()
 		{
@@ -1849,7 +1970,7 @@ internal sealed partial class FunctionIdentifier
 			//exm.VEvaluator.SaveVariable(datFilename, savMes, vars);
 		}
 	}
-	private sealed class LOADVAR_Instruction : AbstractInstruction
+	private sealed class LOADVAR_Instruction : AInstruction
 	{
 		public LOADVAR_Instruction()
 		{
@@ -1871,7 +1992,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class DELDATA_Instruction : AbstractInstruction
+	private sealed class DELDATA_Instruction : AInstruction
 	{
 		public DELDATA_Instruction()
 		{
@@ -1881,18 +2002,18 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			Int64 target;
+			long target;
 			if (func.Argument.IsConst)
 				target = func.Argument.ConstInt;
 			else
 				target = ((ExpressionArgument)func.Argument).Term.GetIntValue(exm);
 
-			int target32 = FunctionIdentifier.toUInt32inArg(target, "DELDATA", 1);
-			exm.VEvaluator.DelData(target32);
+			int target32 = toUInt32inArg(target, "DELDATA", 1);
+			VariableEvaluator.DelData(target32);
 		}
 	}
 
-	private sealed class DO_NOTHING_Instruction : AbstractInstruction
+	private sealed class DO_NOTHING_Instruction : AInstruction
 	{
 		public DO_NOTHING_Instruction()
 		{
@@ -1907,7 +2028,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class REF_Instruction : AbstractInstruction
+	private sealed class REF_Instruction : AInstruction
 	{
 		public REF_Instruction(bool byname)
 		{
@@ -1988,7 +2109,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class TOOLTIP_SETCOLOR_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_SETCOLOR_Instruction : AInstruction
 	{
 		public TOOLTIP_SETCOLOR_Instruction()
 		{
@@ -2011,7 +2132,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class TOOLTIP_SETDELAY_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_SETDELAY_Instruction : AInstruction
 	{
 		public TOOLTIP_SETDELAY_Instruction()
 		{
@@ -2033,7 +2154,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class TOOLTIP_SETDURATION_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_SETDURATION_Instruction : AInstruction
 	{
 		public TOOLTIP_SETDURATION_Instruction()
 		{
@@ -2057,7 +2178,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class INPUTMOUSEKEY_Instruction : AbstractInstruction
+	private sealed class INPUTMOUSEKEY_Instruction : AInstruction
 	{
 		public INPUTMOUSEKEY_Instruction()
 		{
@@ -2070,18 +2191,20 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			ExpressionsArgument arg = (ExpressionsArgument)func.Argument;
-			Int64 time = 0;
-			if (arg.ArgumentArray.Length > 0)
+			long time = 0;
+			if (arg.ArgumentArray.Count > 0)
 				time = arg.ArgumentArray[0].GetIntValue(exm);
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.PrimitiveMouseKey;
+			InputRequest req = new()
+			{
+				InputType = InputType.PrimitiveMouseKey
+			};
 			if (time > 0)
 				req.Timelimit = (int)time;
 			exm.Console.WaitInput(req);
 		}
 	}
 	#region EE_INPUTANY
-	private sealed class INPUTANY_Instruction : AbstractInstruction
+	private sealed class INPUTANY_Instruction : AInstruction
 	{
 		public INPUTANY_Instruction()
 		{
@@ -2092,14 +2215,16 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.AnyValue;
+			InputRequest req = new()
+			{
+				InputType = InputType.AnyValue
+			};
 			exm.Console.WaitInput(req);
 		}
 	}
 	#endregion
 	#region EE_BINPUT
-	private sealed class BINPUT_Instruction : AbstractInstruction
+	private sealed class BINPUT_Instruction : AInstruction
 	{
 		public BINPUT_Instruction()
 		{
@@ -2114,11 +2239,13 @@ internal sealed partial class FunctionIdentifier
 				exm.Console.NewLine();
 			exm.Console.RefreshStrings(true);
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.IntButton;
+			InputRequest req = new()
+			{
+				InputType = InputType.IntButton
+			};
 			if (arg.Def != null)
 			{
-				Int64 def;
+				long def;
 				def = arg.Def.GetIntValue(exm);
 				req.HasDefValue = true;
 				req.DefIntValue = def;
@@ -2127,7 +2254,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				req.MouseInput = arg.Mouse.GetIntValue(exm) != 0;
 			}
-			GlobalStatic.MainWindow.ApplyTextBoxChanges();
+			exm.Console.Window.ApplyTextBoxChanges();
 			int count = 0;
 			if (arg.CanSkip != null && GlobalStatic.Console.MesSkip)
 			{
@@ -2149,7 +2276,7 @@ internal sealed partial class FunctionIdentifier
 					}
 				}
 			loopep:
-				List<AConsoleDisplayPart> ep;
+				List<AConsoleDisplayNode> ep;
 				foreach (var value in exm.Console.EscapedParts)
 				{
 					ep = value.Value;
@@ -2187,7 +2314,7 @@ internal sealed partial class FunctionIdentifier
 			exm.Console.WaitInput(req);
 		}
 	}
-	private sealed class BINPUTS_Instruction : AbstractInstruction
+	private sealed class BINPUTS_Instruction : AInstruction
 	{
 		public BINPUTS_Instruction()
 		{
@@ -2215,8 +2342,10 @@ internal sealed partial class FunctionIdentifier
 				exm.Console.NewLine();
 			exm.Console.RefreshStrings(true);
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
-			InputRequest req = new InputRequest();
-			req.InputType = InputType.StrButton;
+			InputRequest req = new()
+			{
+				InputType = InputType.StrButton
+			};
 			if (arg.Def != null)
 			{
 				string def;
@@ -2228,7 +2357,7 @@ internal sealed partial class FunctionIdentifier
 			{
 				req.MouseInput = arg.Mouse.GetIntValue(exm) != 0;
 			}
-			GlobalStatic.MainWindow.ApplyTextBoxChanges();
+			exm.Console.Window.ApplyTextBoxChanges();
 			int count = 0;
 			if (arg.CanSkip != null && GlobalStatic.Console.MesSkip)
 			{
@@ -2250,7 +2379,7 @@ internal sealed partial class FunctionIdentifier
 					}
 				}
 			loopep:
-				List<AConsoleDisplayPart> ep;
+				List<AConsoleDisplayNode> ep;
 				foreach (var value in exm.Console.EscapedParts)
 				{
 					ep = value.Value;
@@ -2291,7 +2420,7 @@ internal sealed partial class FunctionIdentifier
 	#endregion
 
 	#region EM_DT
-	private sealed class DT_COLUMN_OPTIONS_Instruction : AbstractInstruction
+	private sealed class DT_COLUMN_OPTIONS_Instruction : AInstruction
 	{
 		public DT_COLUMN_OPTIONS_Instruction()
 		{
@@ -2319,12 +2448,12 @@ internal sealed partial class FunctionIdentifier
 				switch (opt)
 				{
 					case SpDtColumnOptions.DTOptions.Default:
-						if (v.GetOperandType() != (isString ? typeof(string) : typeof(Int64)))
-							throw new CodeEE(string.Format(Lang.Error.DTInvalidDataType.Text, "DT_COLUMN_OPTIONS", key, cName));
+						if (v.GetOperandType() != (isString ? typeof(string) : typeof(long)))
+							throw new CodeEE(string.Format(trerror.DTInvalidDataType.Text, "DT_COLUMN_OPTIONS", key, cName));
 						if (isString)
 							column.DefaultValue = v.GetStrValue(exm);
 						else
-							column.DefaultValue = Utils.DataTable.ConvertInt(v.GetIntValue(exm), column.DataType);
+							column.DefaultValue = DataTable.ConvertInt(v.GetIntValue(exm), column.DataType);
 						break;
 				}
 				idx++;
@@ -2333,7 +2462,7 @@ internal sealed partial class FunctionIdentifier
 	}
 	#endregion
 
-	private sealed class AWAIT_Instruction : AbstractInstruction
+	private sealed class AWAIT_Instruction : AInstruction
 	{
 		public AWAIT_Instruction()
 		{
@@ -2345,7 +2474,7 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			Int64 waittime = -1;
+			long waittime = -1;
 			ExpressionArgument arg = func.Argument as ExpressionArgument;
 			if (arg != null && arg.Term != null)
 			{
@@ -2361,12 +2490,9 @@ internal sealed partial class FunctionIdentifier
 	}
 	//ここからEnter版
 	#region EE
-	
-	#if NAudio 
 	public static Sound[] sound = new Sound[10];
-	public static Sound bgm = new Sound();
-	#endif
-	private sealed class PLAYSOUND_Instruction : AbstractInstruction
+	public static Sound bgm = new();
+	private sealed class PLAYSOUND_Instruction : AInstruction
 	{
 
 		public PLAYSOUND_Instruction()
@@ -2376,7 +2502,6 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			#if NAudio
 			var soundArg = (SpHtmlPrint)func.Argument;
 			string datFilename = null;
 			if (soundArg.IsConst)
@@ -2384,10 +2509,10 @@ internal sealed partial class FunctionIdentifier
 			else
 				datFilename = soundArg.Str.GetStrValue(exm);
 			int repeat = soundArg.Opt != null ? (int)Math.Max(soundArg.Opt.GetIntValue(exm), 1) : 1;
-			string filepath = System.IO.Path.GetFullPath(".\\sound\\" + datFilename);
+			string filepath = Path.GetFullPath(".\\sound\\" + datFilename);
 			try
 			{
-				if (System.IO.File.Exists(filepath))
+				if (File.Exists(filepath))
 				{
 					int i;
 					for (i = 0; i < sound.Length; i++)
@@ -2409,11 +2534,10 @@ internal sealed partial class FunctionIdentifier
 			{
 				throw new CodeEE(trerror.ImcompatibleSoundFile.Text);
 			}
-			#endif
 		}
 	}
 
-	public sealed class STOPSOUND_Instruction : AbstractInstruction
+	public sealed class STOPSOUND_Instruction : AInstruction
 	{
 		public STOPSOUND_Instruction()
 		{
@@ -2422,7 +2546,6 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			#if NAudio
 			for (int i = 0; i < sound.Length; i++)
 			{
 				if (sound[i] == null)
@@ -2430,11 +2553,10 @@ internal sealed partial class FunctionIdentifier
 				if (sound[i].isPlaying())
 					sound[i].stop();
 			}
-			#endif
 		}
 	}
 
-	private sealed class PLAYBGM_Instruction : AbstractInstruction
+	private sealed class PLAYBGM_Instruction : AInstruction
 	{
 
 		public PLAYBGM_Instruction()
@@ -2444,29 +2566,27 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			#if NAudio
 			ExpressionArgument arg = (ExpressionArgument)func.Argument;
 			string datFilename = null;
 			if (arg.IsConst)
 				datFilename = arg.ConstStr;
 			else
 				datFilename = arg.Term.GetStrValue(exm);
-			string filepath = System.IO.Path.GetFullPath(".\\sound\\" + datFilename);
+			string filepath = Path.GetFullPath(".\\sound\\" + datFilename);
 
 			try
 			{
-				if (System.IO.File.Exists(filepath))
+				if (File.Exists(filepath))
 					bgm.play(filepath, -1); // -1 means repeat indefinitely
 			}
 			catch
 			{
 				throw new CodeEE(trerror.ImcompatibleSoundFile.Text);
 			}
-			#endif
 		}
 	}
 
-	public sealed class STOPBGM_Instruction : AbstractInstruction
+	public sealed class STOPBGM_Instruction : AInstruction
 	{
 		public STOPBGM_Instruction()
 		{
@@ -2475,13 +2595,11 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			#if NAudio
 			bgm.stop();
-			#endif
 		}
 	}
 
-	public sealed class SETSOUNDVOLUME_Instruction : AbstractInstruction
+	public sealed class SETSOUNDVOLUME_Instruction : AInstruction
 	{
 		public SETSOUNDVOLUME_Instruction()
 		{
@@ -2490,19 +2608,17 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			#if NAudio
 			ExpressionArgument intExpArg = (ExpressionArgument)func.Argument;
-			Int32 vol = (Int32)intExpArg.Term.GetIntValue(exm);
+			int vol = (int)intExpArg.Term.GetIntValue(exm);
 			for (int i = 0; i < sound.Length; i++)
 			{
 				if (sound[i] == null)
 					sound[i] = new Sound();
 				sound[i].setVolume(vol);
 			}
-			#endif
 		}
 	}
-	public sealed class SETBGMVOLUME_Instruction : AbstractInstruction
+	public sealed class SETBGMVOLUME_Instruction : AInstruction
 	{
 		public SETBGMVOLUME_Instruction()
 		{
@@ -2511,15 +2627,13 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			#if NAudio
 			ExpressionArgument intExpArg = (ExpressionArgument)func.Argument;
-			Int32 vol = (Int32)intExpArg.Term.GetIntValue(exm);
+			int vol = (int)intExpArg.Term.GetIntValue(exm);
 			bgm.setVolume(vol);
-			#endif
 		}
 	}
 
-	public sealed class UPDATECHECK_Instruction : AbstractInstruction
+	public sealed class UPDATECHECK_Instruction : AInstruction
 	{
 		public UPDATECHECK_Instruction()
 		{
@@ -2541,7 +2655,7 @@ internal sealed partial class FunctionIdentifier
 			}
 
 			string url = GlobalStatic.GameBaseData.UpdateCheckURL;
-			WebClient wc = new WebClient();
+			WebClient wc = new();
 			if (url == null || url == "")
 			{
 				exm.VEvaluator.RESULT = 3;
@@ -2550,7 +2664,7 @@ internal sealed partial class FunctionIdentifier
 			try
 			{
 				Stream st = wc.OpenRead(url);
-				StreamReader sr = new StreamReader(st);
+				StreamReader sr = new(st);
 				try
 				{
 					var version = sr.ReadLine();
@@ -2619,7 +2733,7 @@ internal sealed partial class FunctionIdentifier
 	}
 	#endregion
 	#region EE_TOOLTIP拡張
-	private sealed class TOOLTIP_SETFONT_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_SETFONT_Instruction : AInstruction
 	{
 		public TOOLTIP_SETFONT_Instruction()
 		{
@@ -2635,7 +2749,7 @@ internal sealed partial class FunctionIdentifier
 			exm.Console.SetToolTipFontName(fn.Term.GetStrValue(exm));
 		}
 	}
-	private sealed class TOOLTIP_SETFONTSIZE_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_SETFONTSIZE_Instruction : AInstruction
 	{
 		public TOOLTIP_SETFONTSIZE_Instruction()
 		{
@@ -2651,7 +2765,7 @@ internal sealed partial class FunctionIdentifier
 			exm.Console.SetToolTipFontSize(fs.Term.GetIntValue(exm));
 		}
 	}
-	private sealed class TOOLTIP_CUSTOM_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_CUSTOM_Instruction : AInstruction
 	{
 		public TOOLTIP_CUSTOM_Instruction()
 		{
@@ -2670,7 +2784,7 @@ internal sealed partial class FunctionIdentifier
 				exm.Console.CustomToolTip(true);
 		}
 	}
-	private sealed class TOOLTIP_FORMAT_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_FORMAT_Instruction : AInstruction
 	{
 		public TOOLTIP_FORMAT_Instruction()
 		{
@@ -2686,7 +2800,7 @@ internal sealed partial class FunctionIdentifier
 			exm.Console.SetToolTipFormat(i.Term.GetIntValue(exm));
 		}
 	}
-	private sealed class TOOLTIP_IMG_Instruction : AbstractInstruction
+	private sealed class TOOLTIP_IMG_Instruction : AInstruction
 	{
 		public TOOLTIP_IMG_Instruction()
 		{
@@ -2708,7 +2822,7 @@ internal sealed partial class FunctionIdentifier
 
 	#region flowControlFunction
 
-	private sealed class BEGIN_Instruction : AbstractInstruction
+	private sealed class BEGIN_Instruction : AInstruction
 	{
 		public BEGIN_Instruction()
 		{
@@ -2718,8 +2832,6 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			string keyword = func.Argument.ConstStr;
-			if (Config.ICFunction)//1756 BEGINのキーワードは関数扱いらしい
-				keyword = keyword.ToUpper(CultureInfo.InvariantCulture);
 			#region EE
 			// state.SetBegin(keyword);
 			state.SetBegin(keyword, true);
@@ -2729,7 +2841,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 	#region EE
-	private sealed class FORCE_BEGIN_Instruction : AbstractInstruction
+	private sealed class FORCE_BEGIN_Instruction : AInstruction
 	{
 		public FORCE_BEGIN_Instruction()
 		{
@@ -2739,15 +2851,15 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			string keyword = func.Argument.ConstStr;
-			if (Config.ICFunction)//1756 BEGINのキーワードは関数扱いらしい
-				keyword = keyword.ToUpper(CultureInfo.InvariantCulture);
+			//if (Config.Config.IgnoreCase)//1756 BEGINのキーワードは関数扱いらしい
+			//	keyword = keyword.ToUpper(CultureInfo.InvariantCulture);
 			state.SetBegin(keyword, true);
 			state.Return(0);
 			exm.Console.ResetStyle();
 		}
 	}
 	#endregion
-	private sealed class SAVELOADGAME_Instruction : AbstractInstruction
+	private sealed class SAVELOADGAME_Instruction : AInstruction
 	{
 		public SAVELOADGAME_Instruction(bool isSave)
 		{
@@ -2771,7 +2883,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class REPEAT_Instruction : AbstractInstruction
+	private sealed class REPEAT_Instruction : AInstruction
 	{
 		public REPEAT_Instruction(bool fornext)
 		{
@@ -2802,7 +2914,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class WHILE_Instruction : AbstractInstruction
+	private sealed class WHILE_Instruction : AInstruction
 	{
 		public WHILE_Instruction()
 		{
@@ -2818,7 +2930,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class SIF_Instruction : AbstractInstruction
+	private sealed class SIF_Instruction : AInstruction
 	{
 		public SIF_Instruction()
 		{
@@ -2848,7 +2960,7 @@ internal sealed partial class FunctionIdentifier
 			else
 				func.JumpTo = func.NextLine.NextLine;
 
-			if ((func.JumpTo != null) && (func.Position.LineNo + 1 != func.NextLine.Position.LineNo))
+			if ((func.JumpTo != null) && (func.Position.Value.LineNo + 1 != func.NextLine.Position.Value.LineNo))
 				ParserMediator.Warn(trerror.EmptyAfterSif.Text, func, 0, false, true);
 		}
 
@@ -2860,7 +2972,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class ELSEIF_Instruction : AbstractInstruction
+	private sealed class ELSEIF_Instruction : AInstruction
 	{
 		public ELSEIF_Instruction(FunctionArgType argtype)
 		{
@@ -2877,7 +2989,7 @@ internal sealed partial class FunctionIdentifier
 			state.JumpTo(func.JumpTo);
 		}
 	}
-	private sealed class ENDIF_Instruction : AbstractInstruction
+	private sealed class ENDIF_Instruction : AInstruction
 	{
 		public ENDIF_Instruction()
 		{
@@ -2889,7 +3001,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class IF_Instruction : AbstractInstruction
+	private sealed class IF_Instruction : AInstruction
 	{
 		public IF_Instruction()
 		{
@@ -2905,10 +3017,8 @@ internal sealed partial class FunctionIdentifier
 											   //if (func.JumpTo == null)
 											   //	throw new ExeEE("IFに対応するENDIFが設定されていない");
 
-			InstructionLine line;
-			for (int i = 0; i < func.IfCaseList.Count; i++)
+			foreach (var line in func.IfCaseList)
 			{
-				line = func.IfCaseList[i];
 				if (line.IsError)
 					continue;
 				if (line.FunctionCode == FunctionCode.ELSE)
@@ -2924,7 +3034,15 @@ internal sealed partial class FunctionIdentifier
 
 				//1730 ELSEIFが出したエラーがIFのエラーとして検出されていた
 				state.CurrentLine = line;
-				Int64 value = ((ExpressionArgument)(line.Argument)).Term.GetIntValue(exm);
+				long value = 0;
+				if (line.Argument.IsConst)
+				{
+					value = line.Argument.ConstInt;
+				}
+				else
+				{
+					value = ((ExpressionArgument)line.Argument).Term.GetIntValue(exm);
+				}
 				if (value != 0)//式が真
 				{
 					ifJumpto = line;
@@ -2938,7 +3056,7 @@ internal sealed partial class FunctionIdentifier
 	}
 
 
-	private sealed class SELECTCASE_Instruction : AbstractInstruction
+	private sealed class SELECTCASE_Instruction : AInstruction
 	{
 		public SELECTCASE_Instruction()
 		{
@@ -2948,9 +3066,9 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			LogicalLine caseJumpto = func.JumpTo;//ENDSELECT
-			IOperandTerm selectValue = ((ExpressionArgument)func.Argument).Term;
+			AExpression selectValue = ((ExpressionArgument)func.Argument).Term;
 			string sValue = null;
-			Int64 iValue = 0;
+			long iValue = 0;
 			if (selectValue.IsInteger)
 				iValue = selectValue.GetIntValue(exm);
 			else
@@ -2960,10 +3078,8 @@ internal sealed partial class FunctionIdentifier
 			//	throw new ExeEE("SELECTCASEのCASEリストが適正に作成されていない");
 			//if (func.JumpTo == null)
 			//	throw new ExeEE("SELECTCASEに対応するENDSELECTが設定されていない");
-			InstructionLine line;
-			for (int i = 0; i < func.IfCaseList.Count; i++)
+			foreach (var line in func.IfCaseList)
 			{
-				line = func.IfCaseList[i];
 				if (line.IsError)
 					continue;
 				if (line.FunctionCode == FunctionCode.CASEELSE)
@@ -2971,7 +3087,7 @@ internal sealed partial class FunctionIdentifier
 					caseJumpto = line;
 					break;
 				}
-				CaseArgument caseArg = (CaseArgument)(line.Argument);
+				CaseArgument caseArg = (CaseArgument)line.Argument;
 				//チェック済み
 				//if (caseArg == null)
 				//	throw new ExeEE("CASEチェック中。引数が解析されていない。", func.IfCaseList[i].Position);
@@ -2979,7 +3095,7 @@ internal sealed partial class FunctionIdentifier
 				state.CurrentLine = line;
 				if (selectValue.IsInteger)
 				{
-					Int64 Is = iValue;
+					long Is = iValue;
 					foreach (CaseExpression caseExp in caseArg.CaseExps)
 					{
 						if (caseExp.GetBool(Is, exm))
@@ -3009,7 +3125,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RETURNFORM_Instruction : AbstractInstruction
+	private sealed class RETURNFORM_Instruction : AInstruction
 	{
 		public RETURNFORM_Instruction()
 		{
@@ -3032,7 +3148,7 @@ internal sealed partial class FunctionIdentifier
 			//if (state.ScriptEnd)
 			//    return;
 			//int termnum = 0;
-			StringStream aSt = new(((ExpressionArgument)func.Argument).Term.GetStrValue(exm));
+			CharStream aSt = new(((ExpressionArgument)func.Argument).Term.GetStrValue(exm));
 			List<long> termList = [];
 			while (!aSt.EOS)
 			{
@@ -3052,7 +3168,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RETURN_Instruction : AbstractInstruction
+	private sealed class RETURN_Instruction : AInstruction
 	{
 		public RETURN_Instruction()
 		{
@@ -3070,7 +3186,7 @@ internal sealed partial class FunctionIdentifier
 				return;
 			}
 			List<long> termList = [];
-			foreach (IOperandTerm term in expArrayArg.TermList)
+			foreach (AExpression term in expArrayArg.TermList)
 			{
 				termList.Add(term.GetIntValue(exm));
 				//exm.VEvaluator.SetResultX(term.GetIntValue(exm), termnum++);
@@ -3082,7 +3198,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class CATCH_Instruction : AbstractInstruction
+	private sealed class CATCH_Instruction : AInstruction
 	{
 		public CATCH_Instruction()
 		{
@@ -3096,7 +3212,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class RESTART_Instruction : AbstractInstruction
+	private sealed class RESTART_Instruction : AInstruction
 	{
 		public RESTART_Instruction()
 		{
@@ -3109,7 +3225,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class BREAK_Instruction : AbstractInstruction
+	private sealed class BREAK_Instruction : AInstruction
 	{
 		public BREAK_Instruction()
 		{
@@ -3127,14 +3243,14 @@ internal sealed partial class FunctionIdentifier
 			{
 				unchecked
 				{//eramakerではBREAK時にCOUNTが回る
-					jumpTo.LoopCounter.PlusValue(jumpTo.LoopStep, exm);
+					jumpTo.LoopCounter.ChangeValue(jumpTo.LoopStep, exm);
 				}
 			}
 			state.JumpTo(iLine);
 		}
 	}
 
-	private sealed class CONTINUE_Instruction : AbstractInstruction
+	private sealed class CONTINUE_Instruction : AInstruction
 	{
 		public CONTINUE_Instruction()
 		{
@@ -3154,9 +3270,9 @@ internal sealed partial class FunctionIdentifier
 				}
 				unchecked
 				{
-					jumpTo.LoopCounter.PlusValue(jumpTo.LoopStep, exm);
+					jumpTo.LoopCounter.ChangeValue(jumpTo.LoopStep, exm);
 				}
-				Int64 counter = jumpTo.LoopCounter.GetIntValue(exm);
+				long counter = jumpTo.LoopCounter.GetIntValue(exm);
 				//まだ回数が残っているなら、
 				if (((jumpTo.LoopStep > 0) && (jumpTo.LoopEnd > counter))
 					|| ((jumpTo.LoopStep < 0) && (jumpTo.LoopEnd < counter)))
@@ -3190,7 +3306,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class REND_Instruction : AbstractInstruction
+	private sealed class REND_Instruction : AInstruction
 	{
 		public REND_Instruction()
 		{
@@ -3208,9 +3324,9 @@ internal sealed partial class FunctionIdentifier
 			}
 			unchecked
 			{
-				jumpTo.LoopCounter.PlusValue(jumpTo.LoopStep, exm);
+				jumpTo.LoopCounter.ChangeValue(jumpTo.LoopStep, exm);
 			}
-			Int64 counter = jumpTo.LoopCounter.GetIntValue(exm);
+			long counter = jumpTo.LoopCounter.GetIntValue(exm);
 			//まだ回数が残っているなら、
 			if (((jumpTo.LoopStep > 0) && (jumpTo.LoopEnd > counter))
 				|| ((jumpTo.LoopStep < 0) && (jumpTo.LoopEnd < counter)))
@@ -3218,7 +3334,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class WEND_Instruction : AbstractInstruction
+	private sealed class WEND_Instruction : AInstruction
 	{
 		public WEND_Instruction()
 		{
@@ -3233,7 +3349,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class LOOP_Instruction : AbstractInstruction
+	private sealed class LOOP_Instruction : AInstruction
 	{
 		public LOOP_Instruction()
 		{
@@ -3249,7 +3365,7 @@ internal sealed partial class FunctionIdentifier
 	}
 
 
-	private sealed class RETURNF_Instruction : AbstractInstruction
+	private sealed class RETURNF_Instruction : AInstruction
 	{
 		public RETURNF_Instruction()
 		{
@@ -3266,12 +3382,12 @@ internal sealed partial class FunctionIdentifier
 			}
 			if (func.Argument != null)
 			{
-				IOperandTerm term = ((ExpressionArgument)func.Argument).Term;
+				AExpression term = ((ExpressionArgument)func.Argument).Term;
 				if (term != null)
 				{
 					if (label.MethodType != term.GetOperandType())
 					{
-						if (label.MethodType == typeof(Int64))
+						if (label.MethodType == typeof(long))
 							ParserMediator.Warn(trerror.ReturnfStrInIntFunc.Text, func, 2, true, false);
 						else if (label.MethodType == typeof(string))
 							ParserMediator.Warn(trerror.ReturnfIntInStrFunc.Text, func, 2, true, false);
@@ -3282,7 +3398,7 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			IOperandTerm term = ((ExpressionArgument)func.Argument).Term;
+			AExpression term = ((ExpressionArgument)func.Argument).Term;
 			SingleTerm ret = null;
 			if (term != null)
 			{
@@ -3292,7 +3408,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class CALL_Instruction : AbstractInstruction
+	private sealed class CALL_Instruction : AInstruction
 	{
 		public CALL_Instruction(bool form, bool isJump, bool isTry, bool isTryCatch)
 		{
@@ -3322,9 +3438,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			SpCallArgment callArg = (SpCallArgment)func.Argument;
 			string labelName = callArg.ConstStr;
-			if (Config.ICFunction)
-				labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
-			CalledFunction call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func);
+			CalledFunction call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func).GetAwaiter().GetResult();
 			if ((call == null) && (!func.Function.IsTry()))
 			{
 				FunctionoNotFoundName = labelName;
@@ -3367,9 +3481,7 @@ internal sealed partial class FunctionIdentifier
 			else
 			{
 				labelName = spCallArg.FuncnameTerm.GetStrValue(exm);
-				if (Config.ICFunction)
-					labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
-				call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func);
+				call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func).GetAwaiter().GetResult();
 			}
 			if (call == null)
 			{
@@ -3391,7 +3503,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class CALLEVENT_Instruction : AbstractInstruction
+	private sealed class CALLEVENT_Instruction : AInstruction
 	{
 		public CALLEVENT_Instruction()
 		{
@@ -3412,8 +3524,6 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			string labelName = func.Argument.ConstStr;
-			if (Config.ICFunction)
-				labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 			CalledFunction call = CalledFunction.CallEventFunction(GlobalStatic.Process, labelName, func);
 			if (call == null)
 				return;
@@ -3421,7 +3531,7 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class GOTO_Instruction : AbstractInstruction
+	private sealed class GOTO_Instruction : AInstruction
 	{
 		public GOTO_Instruction(bool form, bool isTry, bool isTryCatch)
 		{
@@ -3445,8 +3555,6 @@ internal sealed partial class FunctionIdentifier
 			if (func.Argument.IsConst)
 			{
 				string labelName = func.Argument.ConstStr;
-				if (Config.ICVariable)//eramakerではGOTO文は大文字小文字を区別しない
-					labelName = labelName.ToUpper(CultureInfo.InvariantCulture);
 				jumpto = GlobalStatic.LabelDictionary.GetLabelDollar(labelName, func.ParentLabelLine);
 				if (jumpto == null)
 				{
@@ -3478,8 +3586,6 @@ internal sealed partial class FunctionIdentifier
 			else
 			{
 				label = ((SpCallArgment)func.Argument).FuncnameTerm.GetStrValue(exm);
-				if (Config.ICVariable)
-					label = label.ToUpper(CultureInfo.InvariantCulture);
 				jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label);
 			}
 			if (jumpto == null)

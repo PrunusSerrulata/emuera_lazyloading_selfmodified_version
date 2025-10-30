@@ -8,7 +8,7 @@ using NAudio.Extras;
 using NAudio.Vorbis;
 using NAudio.CoreAudioApi.Interfaces;
 
-namespace MinorShift._Library
+namespace MinorShift.Emuera.Runtime.Utils
 {
 	internal class AudioDeviceTracker : IMMNotificationClient
 	{

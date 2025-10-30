@@ -1,24 +1,19 @@
-﻿using MinorShift.Emuera;
-using MinorShift.Emuera.GameView;
-using System;
+﻿using MinorShift.Emuera.UI.Game;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EvilMask.Emuera;
+namespace MinorShift.Emuera.Runtime.Utils.EvilMask;
 
 internal sealed class ConsoleEscapedParts
 {
 	const int ROW_LINE = 0, ROW_DEPTH = 1, ROW_TOP = 2, ROW_BOTTOM = 3, ROW_ID = 4, ROW_DIVTYPE = 5;
-	static readonly DataTable dt = new DataTable(); // divの情報を保存する場所
-	static readonly Dictionary<Int64, AConsoleDisplayPart> parts = new Dictionary<long, AConsoleDisplayPart>(); //　実際にdivデータを保存する場所
+	static readonly DataTable dt = new(); // divの情報を保存する場所
+	static readonly Dictionary<long, AConsoleDisplayNode> parts = []; //　実際にdivデータを保存する場所
 	/// <summary>
 	/// 最近GetPartsInRangeを行ったか
 	/// </summary>
-	static bool getOnce = false;
+	static bool getOnce;
 	/// <summary>
 	/// 前回GetPartsInRangeを行った時の状態
 	/// </summary>
@@ -42,7 +37,7 @@ internal sealed class ConsoleEscapedParts
 		dt.Columns.Add("depth", typeof(int)); // divの奥行き
 		dt.Columns.Add("top", typeof(int)); // divの一行目がこの行より下回る
 		dt.Columns.Add("bottom", typeof(int)); // divの一行目がこの行より上回る
-		dt.Columns.Add("id", typeof(Int64)); // ユニークID（保存時点のTimeStamp）
+		dt.Columns.Add("id", typeof(long)); // ユニークID（保存時点のTimeStamp）
 		dt.Columns.Add("div", typeof(sbyte)); //　divの種類（display:absoluteかdisplay:relativeか）
 	}
 	public static void Clear()
@@ -52,7 +47,7 @@ internal sealed class ConsoleEscapedParts
 		parts.Clear();
 		Changed = false;
 	}
-	public static void Add(AConsoleDisplayPart part, int line, int depth, int top, int bottom)
+	public static void Add(AConsoleDisplayNode part, int line, int depth, int top, int bottom)
 	{
 		var id = Utils.TimePoint();
 		var row = dt.NewRow();
@@ -74,9 +69,9 @@ internal sealed class ConsoleEscapedParts
 	/// </summary>
 	public static void Remove(int line)
 	{
-		foreach (var row in DataTableExtensions.AsEnumerable(dt).Where(r => (int)r[ROW_LINE] >= line).ToArray())
+		foreach (var row in dt.AsEnumerable().Where(r => (int)r[ROW_LINE] >= line).ToArray())
 		{
-			parts.Remove((Int64)row[ROW_ID]);
+			parts.Remove((long)row[ROW_ID]);
 			dt.Rows.Remove(row);
 			Changed = true;
 		}
@@ -86,9 +81,9 @@ internal sealed class ConsoleEscapedParts
 	/// </summary>
 	public static void RemoveAt(int line)
 	{
-		foreach (var row in DataTableExtensions.AsEnumerable(dt).Where(r => (int)r[ROW_LINE] == line).ToArray())
+		foreach (var row in dt.AsEnumerable().Where(r => (int)r[ROW_LINE] == line).ToArray())
 		{
-			parts.Remove((Int64)row[ROW_ID]);
+			parts.Remove((long)row[ROW_ID]);
 			dt.Rows.Remove(row);
 			Changed = true;
 		}
@@ -97,11 +92,11 @@ internal sealed class ConsoleEscapedParts
 	/// top行からbottom行までの範囲内表示内容があったdivをrmapで保存。
 	/// genは今のbuttonGeneration，重複計算防止用。
 	/// </summary>
-	public static void GetPartsInRange(int top, int bottom, int gen, Dictionary<int, List<AConsoleDisplayPart>> rmap)
+	public static void GetPartsInRange(int top, int bottom, int gen, Dictionary<int, List<AConsoleDisplayNode>> rmap)
 	{
-		if (GlobalStatic.Console?.GetLineNo > Config.MaxLog)
+		if (GlobalStatic.Console?.GetLineNo > Config.Config.MaxLog)
 		{
-			var correction = GlobalStatic.Console.GetLineNo - Config.MaxLog;
+			var correction = GlobalStatic.Console.GetLineNo - Config.Config.MaxLog;
 			top += correction;
 			bottom += correction;
 		}
@@ -111,18 +106,18 @@ internal sealed class ConsoleEscapedParts
 		// とtop行からbottom行までの範囲内表示内容があったdiv
 		// と所在行がtop行からbottom行までの範囲内のdiv
 		// に対し
-		foreach (var row in DataTableExtensions.AsEnumerable(dt)
-			.Where(r => ((sbyte)r[ROW_DIVTYPE] & 2) != 0 || ((int)r[ROW_TOP] <= bottom + 1 && (int)r[ROW_BOTTOM] >= top && r[ROW_LINE] is int line
-			&& ((sbyte)r[ROW_DIVTYPE] != 0 || top > line || line > bottom + 1))))
+		foreach (var row in dt.AsEnumerable()
+			.Where(r => ((sbyte)r[ROW_DIVTYPE] & 2) != 0 || (int)r[ROW_TOP] <= bottom + 1 && (int)r[ROW_BOTTOM] >= top && r[ROW_LINE] is int line
+			&& ((sbyte)r[ROW_DIVTYPE] != 0 || top > line || line > bottom + 1)))
 		{
-			List<AConsoleDisplayPart> list = null;
+			List<AConsoleDisplayNode> list = null;
 			rmap.TryGetValue((int)row[ROW_DEPTH], out list);
 			if (list == null)
 			{
-				list = new List<AConsoleDisplayPart>();
+				list = [];
 				rmap.Add((int)row[ROW_DEPTH], list);
 			}
-			list.Add(parts[(Int64)row[ROW_ID]]);
+			list.Add(parts[(long)row[ROW_ID]]);
 		}
 		getOnce = true;
 		lastTop = top; lastBottom = bottom; lastGeneration = gen;

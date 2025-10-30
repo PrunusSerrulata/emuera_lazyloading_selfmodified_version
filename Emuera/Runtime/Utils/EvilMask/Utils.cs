@@ -1,17 +1,12 @@
-﻿using MinorShift.Emuera;
-using MinorShift.Emuera.GameData.Expression;
-using MinorShift.Emuera.GameView;
-using MinorShift.Emuera.Sub;
+﻿using MinorShift.Emuera.UI.Game;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
-using WebPWrapper;
 
-namespace EvilMask.Emuera;
+namespace MinorShift.Emuera.Runtime.Utils.EvilMask;
 
 internal sealed class Utils
 {
@@ -19,33 +14,33 @@ internal sealed class Utils
 	{
 		public static int ToPixel(MixedNum num, int def)
 		{
-			return num != null ? (num.isPx ? num.num : num.num * Config.FontSize / 100) : def;
+			return num != null ? num.isPx ? num.num : num.num * Config.Config.FontSize / 100 : def;
 		}
 		public static int ToPixel(MixedNum num)
 		{
-			return num != null ? (num.isPx ? num.num : num.num * Config.FontSize / 100) : 0;
+			return num != null ? num.isPx ? num.num : num.num * Config.Config.FontSize / 100 : 0;
 		}
 		public static float ToPixelf(MixedNum num, float def)
 		{
-			return num != null ? (num.isPx ? num.num : num.num * Config.FontSize / 100f) : def;
+			return num != null ? num.isPx ? num.num : num.num * Config.Config.FontSize / 100f : def;
 		}
 		public static float ToPixelf(MixedNum num)
 		{
-			return num != null ? (num.isPx ? num.num : num.num * Config.FontSize / 100f) : 0f;
+			return num != null ? num.isPx ? num.num : num.num * Config.Config.FontSize / 100f : 0f;
 		}
-		public int num = 0;
-		public bool isPx = false;
+		public int num;
+		public bool isPx;
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
 			if (isPx) sb.Append(num).Append("px");
-			else sb.Append(num * Config.FontSize / 100);
+			else sb.Append(num * Config.Config.FontSize / 100);
 			return sb.ToString();
 		}
 		public StringBuilder BuilderString(StringBuilder sb)
 		{
 			if (isPx) sb.Append(num).Append("px");
-			else sb.Append(num * Config.FontSize / 100);
+			else sb.Append(num * Config.Config.FontSize / 100);
 			return sb;
 		}
 	}
@@ -54,8 +49,8 @@ internal sealed class Utils
 		public MixedNum[] border, margin, padding, radius;
 		public int[] color;
 	}
-	static Stopwatch stopwatch = new Stopwatch();
-	static Int64 stopwatch_base = DateTime.Now.Ticks;
+	static Stopwatch stopwatch = new();
+	static long stopwatch_base = DateTime.Now.Ticks;
 	public static void ParseParam4MixedNum(ref MixedNum[] nums, string tag, string word, string attrValue)
 	{
 		string[] tokens = attrValue.Split(',');
@@ -208,7 +203,7 @@ internal sealed class Utils
 	{
 		sb.Append(' ').Append(name).Append("='").Append(value).Append('\'');
 	}
-	public static Int64 TimePoint()
+	public static long TimePoint()
 	{
 		if (!stopwatch.IsRunning) stopwatch.Start();
 		return stopwatch_base + stopwatch.Elapsed.Ticks;
@@ -267,7 +262,7 @@ internal sealed class Utils
 	{
 		Image img = bmp;
 
-		Bitmap bitmap = new Bitmap(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+		Bitmap bitmap = new(256, 256, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 		Graphics g = Graphics.FromImage(bitmap);
 		g.DrawImage(img, new Rectangle(0, 0, 256, 256));
 		g.Dispose();
@@ -281,31 +276,33 @@ internal sealed class Utils
 
 	public sealed class DataTable
 	{
-		static Type[] builtInDTTypes = { typeof(sbyte), typeof(Int16), typeof(Int32), typeof(Int64), typeof(string) };
-		static Dictionary<Type, string> builtInDictDTTypeNames = new Dictionary<Type, string>{
+		static Type[] builtInDTTypes = [typeof(sbyte), typeof(short), typeof(int), typeof(long), typeof(string)];
+		static Dictionary<Type, string> builtInDictDTTypeNames = new()
+		{
 				{ typeof(sbyte), "int8" },
-				{ typeof(Int16), "int16" },
-				{ typeof(Int32), "int32" },
-				{ typeof(Int64), "int64" },
+				{ typeof(short), "int16" },
+				{ typeof(int), "int32" },
+				{ typeof(long), "int64" },
 				{ typeof(string), "string" },
 			};
-		static Dictionary<string, Type> builtInDictDTTypeNames_R = new Dictionary<string, Type>{
+		static Dictionary<string, Type> builtInDictDTTypeNames_R = new()
+		{
 				{ "int8", typeof(sbyte) },
-				{ "int16", typeof(Int16) },
-				{ "int32", typeof(Int32) },
-				{ "int64", typeof(Int64) },
+				{ "int16", typeof(short) },
+				{ "int32", typeof(int) },
+				{ "int64", typeof(long) },
 				{ "string", typeof(string) },
 			};
-		public static Int64 TypeToInt(Type t)
+		public static long TypeToInt(Type t)
 		{
 			if (t == typeof(sbyte)) return 1;
-			if (t == typeof(Int16)) return 2;
-			if (t == typeof(Int32)) return 3;
-			if (t == typeof(Int64)) return 4;
+			if (t == typeof(short)) return 2;
+			if (t == typeof(int)) return 3;
+			if (t == typeof(long)) return 4;
 			if (t == typeof(string)) return 5;
-			return Int64.MaxValue;
+			return long.MaxValue;
 		}
-		public static Type IntToType(Int64 i)
+		public static Type IntToType(long i)
 		{
 			if (i > 0 && i <= builtInDTTypes.Length) return builtInDTTypes[i - 1];
 			return null;
@@ -320,11 +317,11 @@ internal sealed class Utils
 			if (builtInDictDTTypeNames.ContainsKey(t)) return builtInDictDTTypeNames[t];
 			return null;
 		}
-		public static object ConvertInt(Int64 v, Type t)
+		public static object ConvertInt(long v, Type t)
 		{
 			if (t == typeof(sbyte)) return (sbyte)Math.Min(Math.Max(v, sbyte.MinValue), sbyte.MaxValue);
-			if (t == typeof(Int16)) return (Int16)Math.Min(Math.Max(v, Int16.MinValue), Int16.MaxValue);
-			if (t == typeof(Int32)) return (Int32)Math.Min(Math.Max(v, Int32.MinValue), Int32.MaxValue);
+			if (t == typeof(short)) return (short)Math.Min(Math.Max(v, short.MinValue), short.MaxValue);
+			if (t == typeof(int)) return (int)Math.Min(Math.Max(v, int.MinValue), int.MaxValue);
 			return v;
 		}
 	}

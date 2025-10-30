@@ -1,7 +1,6 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace MinorShift._Library;
+namespace MinorShift.Emuera.Runtime.Utils;
 
 /// <summary>
 /// wrapされたtimer。外からは、このTickCountだけを呼び出す。

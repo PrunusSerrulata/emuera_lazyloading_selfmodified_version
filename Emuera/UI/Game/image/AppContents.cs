@@ -1,29 +1,27 @@
-﻿using EvilMask.Emuera;
-using MinorShift.Emuera.Sub;
+﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using trerror = EvilMask.Emuera.Lang.Error;
+using System.Linq;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
-namespace MinorShift.Emuera.Content;
+namespace MinorShift.Emuera.UI.Game.Image;
 
 static class AppContents
 {
-	static AppContents()
-	{
-		gList = [];
-	}
-	static Dictionary<string, AContentFile> resourceDic = [];
-	static Dictionary<string, ASprite> imageDictionary = [];
-	static Dictionary<int, GraphicsImage> gList;
-	static Dictionary<string, ASprite> resourceImageDictionary = new Dictionary<string, ASprite>();
+	static ConcurrentDictionary<string, AbstractImage> resourceDic = new(Config.StrComper);
+	static ConcurrentDictionary<string, ASprite> imageDictionary = new(Config.StrComper);
+	static ConcurrentDictionary<int, GraphicsImage> gList = [];
+	static ConcurrentDictionary<string, ASprite> resourceImageDictionary = new(Config.StrComper);
 
 	// the ConstImages that has been loaded into memory. will free them in every SetBegin(BeginType.SHOP)
-	public static HashSet<ConstImage> tempLoadedConstImages = new HashSet<ConstImage>();
-	public static HashSet<GraphicsImage> tempLoadedGraphicsImages = new HashSet<GraphicsImage>();
+	public static HashSet<ConstImage> tempLoadedConstImages = [];
+	public static HashSet<GraphicsImage> tempLoadedGraphicsImages = [];
 
 
 	//static public T GetContent<T>(string name)where T :AContentItem
@@ -37,8 +35,8 @@ static class AppContents
 	//}
 	static public GraphicsImage GetGraphics(int i)
 	{
-		if (gList.ContainsKey(i))
-			return gList[i];
+		if (gList.TryGetValue(i, out GraphicsImage value))
+			return value;
 		GraphicsImage g = new(i);
 		gList[i] = g;
 		return g;
@@ -49,9 +47,9 @@ static class AppContents
 		if (name == null)
 			return null;
 		name = name.ToUpper(CultureInfo.InvariantCulture);
-		if (!imageDictionary.ContainsKey(name))
+		if (!imageDictionary.TryGetValue(name, out ASprite value))
 			return null;
-		return imageDictionary[name];
+		return value;
 	}
 
 	static public void SpriteDispose(string name)
@@ -59,10 +57,10 @@ static class AppContents
 		if (name == null)
 			return;
 		name = name.ToUpper(CultureInfo.InvariantCulture);
-		if (!imageDictionary.ContainsKey(name))
+		if (!imageDictionary.TryGetValue(name, out ASprite value))
 			return;
-		imageDictionary[name].Dispose();
-		imageDictionary.Remove(name);
+		value.Dispose();
+		imageDictionary.TryRemove(name, out _);
 	}
 
 	static public long SpriteDisposeAll(bool delCsvImage)
@@ -77,7 +75,7 @@ static class AppContents
 		}
 		else
 		{
-			imageDictionary = new Dictionary<string, ASprite>(resourceImageDictionary);
+			imageDictionary = new ConcurrentDictionary<string, ASprite>(resourceImageDictionary);
 			return sprites - csprites;
 		}
 	}
@@ -96,78 +94,78 @@ static class AppContents
 		if (string.IsNullOrEmpty(imgName))
 			throw new ArgumentOutOfRangeException();
 		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
-		SpriteAnime newCImg = new SpriteAnime(imgName, new Size(w, h));
+		SpriteAnime newCImg = new(imgName, new Size(w, h));
 		imageDictionary[imgName] = newCImg;
 	}
 
-	static public bool LoadContents(bool reload)
+	static public Exception LoadContents(bool reload)
 	{
 		if (!Directory.Exists(Program.ContentDir))
-			return true;
+			return null;
 		try
 		{
 			//resourcesフォルダ内の全てのcsvファイルを探索する
-			string[] csvFiles = Directory.GetFiles(Program.ContentDir, "*.csv", SearchOption.AllDirectories);
+			var csvFiles = Directory.EnumerateFiles(Program.ContentDir, "*.csv", SearchOption.AllDirectories);
 			foreach (var filepath in csvFiles)
 			{
-				//".csv"のみを拾うように
-				if (0 != ".csv".CompareTo(Path.GetExtension(filepath).ToLower()))
-					continue;
-				//アニメスプライト宣言。nullでないとき、フレーム追加モード
-				SpriteAnime currentAnime = null;
-				string directory = Path.GetDirectoryName(filepath).ToUpper(CultureInfo.InvariantCulture) + "\\";
-				string filename = Path.GetFileName(filepath);
-				string[] lines = File.ReadAllLines(filepath, EncodingHandler.DetectEncoding(filepath));
-				int lineNo = 0;
 				if (reload)
 				{
 					foreach (string key in resourceImageDictionary.Keys)
 					{
-						imageDictionary.Remove(key);
+						imageDictionary.TryRemove(key, out _);
 					}
 					resourceImageDictionary.Clear();
 					foreach (var img in resourceDic.Values)
 						img.Dispose();
 					resourceDic.Clear();
 				}
-				foreach (var line in lines)
+			}
+			csvFiles.AsParallel()
+				.Where(path => Path.GetExtension(path).Equals(".csv", StringComparison.OrdinalIgnoreCase))
+				.ForAll(path =>
 				{
-					lineNo++;
-					if (line.Length == 0)
-						continue;
-					string str = line.Trim();
-					if (str.Length == 0 || str.StartsWith(";"))
-						continue;
-					string[] tokens = str.Split(',');
-					//AContentItem item = CreateFromCsv(tokens);
-					ScriptPosition sp = new(filename, lineNo);
-
-					if (CreateFromCsv(tokens, directory, currentAnime, sp) is ASprite item)
+					//アニメスプライト宣言。nullでないとき、フレーム追加モード
+					SpriteAnime currentAnime = null;
+					string directory = Path.GetDirectoryName(path) + "\\";
+					string filename = Path.GetFileName(path);
+					string[] lines = File.ReadAllLines(path, EncodingHandler.DetectEncoding(path));
+					int lineNo = 0;
+					foreach (var line in lines)
 					{
-						//アニメスプライト宣言ならcurrentAnime上書きしてフレーム追加モードにする。そうでないならnull
-						currentAnime = item as SpriteAnime;
-						if (reload && resourceImageDictionary.ContainsKey(item.Name))
-							resourceImageDictionary.Remove(item.Name);
-						if (!resourceImageDictionary.ContainsKey(item.Name))
+						lineNo++;
+						if (line.Length == 0)
+							continue;
+						string str = line.Trim();
+						if (str.Length == 0 || str.StartsWith(';'))
+							continue;
+						string[] tokens = str.Split(',');
+						//AContentItem item = CreateFromCsv(tokens);
+						ScriptPosition? sp = new(filename, lineNo);
+						if (CreateFromCsv(tokens, directory, currentAnime, sp) is ASprite item)
 						{
-							resourceImageDictionary.Add(item.Name, item);
-						}
-						else
-						{
-							ParserMediator.Warn(string.Format(trerror.SpriteNameAlreadyUsed.Text, item.Name), sp, 0);
-							item.Dispose();
+							//アニメスプライト宣言ならcurrentAnime上書きしてフレーム追加モードにする。そうでないならnull
+							currentAnime = item as SpriteAnime;
+							if (reload && resourceImageDictionary.ContainsKey(item.Name))
+								resourceImageDictionary.Remove(item.Name, out _);
+
+							if (!resourceImageDictionary.TryAdd(item.Name, item))
+							{
+								ParserMediator.Warn(string.Format(trerror.SpriteNameAlreadyUsed.Text, item.Name), sp, 0);
+								item.Dispose();
+							}
+							//else
+							//	resourceImageDictionary.TryAdd(item.Name, item);
 						}
 					}
-				}
-			}
+				});
 		}
-		catch
+		catch (Exception e)
 		{
-			return false;
+			return e;
 			//throw new CodeEE("リソースファイルのロード中にエラーが発生しました");
 		}
-		imageDictionary = new Dictionary<string, ASprite>(resourceImageDictionary);
-		return true;
+		imageDictionary = new ConcurrentDictionary<string, ASprite>(resourceImageDictionary);
+		return null;
 	}
 
 	static public void UnloadContents()
@@ -212,16 +210,16 @@ static class AppContents
 	/// <param name="currentAnime"></param>
 	/// <param name="sp"></param>
 	/// <returns></returns>
-	static private AContentItem CreateFromCsv(string[] tokens, string dir, SpriteAnime currentAnime, ScriptPosition sp)
+	static private AContentItem CreateFromCsv(string[] tokens, string dir, SpriteAnime currentAnime, ScriptPosition? sp)
 	{
 		if (tokens.Length < 2)
 			return null;
 		string name = tokens[0].Trim().ToUpper(CultureInfo.InvariantCulture);//
-		string arg2 = tokens[1].ToUpper(CultureInfo.InvariantCulture);//画像ファイル名
+		string arg2 = tokens[1];//画像ファイル名
 		if (name.Length == 0 || arg2.Length == 0)
 			return null;
 		//アニメーションスプライト宣言
-		if (arg2 == "ANIME")
+		if (arg2.Equals("ANIME", StringComparison.OrdinalIgnoreCase))
 		{
 			if (tokens.Length < 4)
 			{
@@ -253,23 +251,22 @@ static class AppContents
 
 
 		//親画像のロードConstImage
-		if (!resourceDic.ContainsKey(parentName))
+		if (!resourceDic.TryGetValue(parentName, out AbstractImage value))
 		{
 			string filepath = parentName;
-			if (!File.Exists(filepath))
-			{
-				ParserMediator.Warn(string.Format(trerror.NotExistImageFile.Text, arg2), sp, 1);
-				return null;
-			}
+			Bitmap bmp;
 			#region EM_私家版_webp
 			// Bitmap bmp = new Bitmap(filepath);
-			var bmp = Utils.LoadImage(filepath);
+			var webpbmp = Utils.LoadImage(filepath);
 			#endregion
-			if (bmp == null)
+			if (webpbmp == null)
 			{
 				ParserMediator.Warn(string.Format(trerror.FailedLoadFile.Text, arg2), sp, 1);
 				return null;
 			}
+
+			bmp = webpbmp;
+
 			if (bmp.Width > AbstractImage.MAX_IMAGESIZE || bmp.Height > AbstractImage.MAX_IMAGESIZE)
 			{
 				//1824-2 すでに8192以上の幅を持つ画像を利用したバリアントが存在してしまっていたため、警告しつつ許容するように変更
@@ -284,15 +281,16 @@ static class AppContents
 				ParserMediator.Warn(string.Format(trerror.FailedCreateResource.Text, arg2), sp, 1);
 				return null;
 			}
-			resourceDic.Add(parentName, img);
+			value = img;
+			resourceDic.TryAdd(parentName, value);
 			img.Dispose();
 		}
-		if (!(resourceDic[parentName] is ConstImage parentImage) || !parentImage.IsCreated)
+		if (value is not ConstImage parentImage || !parentImage.IsCreated)
 		{
 			ParserMediator.Warn(string.Format(trerror.SpriteCreateFromFailedResource.Text, arg2), sp, 1);
 			return null;
 		}
-		Rectangle rect = new(new Point(0, 0), parentImage.Bitmap.Size);
+		Rectangle rect = new(0, 0, parentImage.Width, parentImage.Height);
 		Size size = rect.Size;
 		Point pos = new();
 		int delay = 1000;
@@ -357,6 +355,9 @@ static class AppContents
 
 		//新規スプライト定義
 		ASprite image = new SpriteF(name, parentImage, rect, pos, size);
+
+		//if (Config.DisplayReport)
+		//	ParserMediator.SingleLine(string.Format(Lang.SystemLine.CreateFromCSV.Text, arg2, name));
 		return image;
 	}
 }
