@@ -6,7 +6,6 @@ using MinorShift.Emuera.UI.Game;
 using MinorShift.Emuera.UI.Game.Image;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
 
@@ -16,44 +15,44 @@ internal sealed partial class Process
 {
 	private string[] TrainName;
 	delegate void SystemProcess();
-	Dictionary<SystemStateCode, SystemProcess> systemProcessDictionary = new Dictionary<SystemStateCode, SystemProcess>();
+	Dictionary<SystemStateCode, SystemProcess> systemProcessDictionary = [];
 	private void initSystemProcess()
 	{
 		comAble = new int[TrainName.Length];
-		systemProcessDictionary.Add(SystemStateCode.Title_Begin,new SystemProcess(async () => await beginTitle()));
-		systemProcessDictionary.Add(SystemStateCode.Openning, new SystemProcess(async () => await endOpenning()));
+		systemProcessDictionary.Add(SystemStateCode.Title_Begin, new SystemProcess(beginTitle));
+		systemProcessDictionary.Add(SystemStateCode.Openning, new SystemProcess(endOpenning));
 
-		systemProcessDictionary.Add(SystemStateCode.Train_Begin, new SystemProcess(async () => await beginTrain()));
+		systemProcessDictionary.Add(SystemStateCode.Train_Begin, new SystemProcess(beginTrain));
 		systemProcessDictionary.Add(SystemStateCode.Train_CallEventTrain, new SystemProcess(endCallEventTrain));
 		systemProcessDictionary.Add(SystemStateCode.Train_CallShowStatus, new SystemProcess(endCallShowStatus));
-		systemProcessDictionary.Add(SystemStateCode.Train_CallComAbleXX, new SystemProcess(async () => await endCallComAbleXX()));
+		systemProcessDictionary.Add(SystemStateCode.Train_CallComAbleXX, new SystemProcess(endCallComAbleXX));
 		systemProcessDictionary.Add(SystemStateCode.Train_CallShowUserCom, new SystemProcess(endCallShowUserCom));
 		systemProcessDictionary.Add(SystemStateCode.Train_WaitInput, new SystemProcess(trainWaitInput));
 		systemProcessDictionary.Add(SystemStateCode.Train_CallEventCom, new SystemProcess(endEventCom));
 		systemProcessDictionary.Add(SystemStateCode.Train_CallComXX, new SystemProcess(endCallComXX));
-		systemProcessDictionary.Add(SystemStateCode.Train_CallSourceCheck, new SystemProcess(async () => await endCallSourceCheck()));
-		systemProcessDictionary.Add(SystemStateCode.Train_CallEventComEnd, new SystemProcess(async () => await endCallEventComEnd())); ;
+		systemProcessDictionary.Add(SystemStateCode.Train_CallSourceCheck, new SystemProcess(endCallSourceCheck));
+		systemProcessDictionary.Add(SystemStateCode.Train_CallEventComEnd, new SystemProcess(endCallEventComEnd)); ;
 		systemProcessDictionary.Add(SystemStateCode.Train_DoTrain, new SystemProcess(doTrain));
 
-		systemProcessDictionary.Add(SystemStateCode.AfterTrain_Begin, new SystemProcess(async () => await beginAfterTrain()));
+		systemProcessDictionary.Add(SystemStateCode.AfterTrain_Begin, new SystemProcess(beginAfterTrain));
 
-		systemProcessDictionary.Add(SystemStateCode.Ablup_Begin, new SystemProcess(async () => await beginAblup()));
+		systemProcessDictionary.Add(SystemStateCode.Ablup_Begin, new SystemProcess(beginAblup));
 		systemProcessDictionary.Add(SystemStateCode.Ablup_CallShowJuel, new SystemProcess(endCallShowJuel));
 		systemProcessDictionary.Add(SystemStateCode.Ablup_CallShowAblupSelect, new SystemProcess(endCallShowAblupSelect));
-		systemProcessDictionary.Add(SystemStateCode.Ablup_WaitInput, new SystemProcess(async () => await ablupWaitInput()));
+		systemProcessDictionary.Add(SystemStateCode.Ablup_WaitInput, new SystemProcess(ablupWaitInput));
 		systemProcessDictionary.Add(SystemStateCode.Ablup_CallAblupXX, new SystemProcess(endCallAblupXX));
 
-		systemProcessDictionary.Add(SystemStateCode.Turnend_Begin, new SystemProcess(async () => await beginTurnend()));
+		systemProcessDictionary.Add(SystemStateCode.Turnend_Begin, new SystemProcess(beginTurnend));
 
-		systemProcessDictionary.Add(SystemStateCode.Shop_Begin, new SystemProcess(async () => await beginShop()));
+		systemProcessDictionary.Add(SystemStateCode.Shop_Begin, new SystemProcess(beginShop));
 		systemProcessDictionary.Add(SystemStateCode.Shop_CallEventShop, new SystemProcess(endCallEventShop));
 		systemProcessDictionary.Add(SystemStateCode.Shop_CallShowShop, new SystemProcess(endCallShowShop));
-		systemProcessDictionary.Add(SystemStateCode.Shop_WaitInput, new SystemProcess(async () => await shopWaitInput()));
+		systemProcessDictionary.Add(SystemStateCode.Shop_WaitInput, new SystemProcess(shopWaitInput));
 		systemProcessDictionary.Add(SystemStateCode.Shop_CallEventBuy, new SystemProcess(endCallEventBuy));
 
 		systemProcessDictionary.Add(SystemStateCode.SaveGame_Begin, new SystemProcess(beginSaveGame));
 		systemProcessDictionary.Add(SystemStateCode.SaveGame_WaitInput, new SystemProcess(saveGameWaitInput));
-		systemProcessDictionary.Add(SystemStateCode.SaveGame_WaitInputOverwrite, new SystemProcess(async () => await saveGameWaitInputOverwrite()));
+		systemProcessDictionary.Add(SystemStateCode.SaveGame_WaitInputOverwrite, new SystemProcess(saveGameWaitInputOverwrite));
 		systemProcessDictionary.Add(SystemStateCode.SaveGame_CallSaveInfo, new SystemProcess(endCallSaveInfo));
 		systemProcessDictionary.Add(SystemStateCode.LoadGame_Begin, new SystemProcess(beginLoadGame));
 		systemProcessDictionary.Add(SystemStateCode.LoadGame_WaitInput, new SystemProcess(loadGameWaitInput));
@@ -64,14 +63,14 @@ internal sealed partial class Process
 		systemProcessDictionary.Add(SystemStateCode.AutoSave_CallSaveInfo, new SystemProcess(endAutoSaveCallSaveInfo));
 		systemProcessDictionary.Add(SystemStateCode.AutoSave_CallUniqueAutosave, new SystemProcess(endAutoSave));
 
-		systemProcessDictionary.Add(SystemStateCode.LoadData_DataLoaded, new SystemProcess(async () => await beginDataLoaded()));
-		systemProcessDictionary.Add(SystemStateCode.LoadData_CallSystemLoad, new SystemProcess(async () => await endSystemLoad()));
+		systemProcessDictionary.Add(SystemStateCode.LoadData_DataLoaded, new SystemProcess(beginDataLoaded));
+		systemProcessDictionary.Add(SystemStateCode.LoadData_CallSystemLoad, new SystemProcess(endSystemLoad));
 		systemProcessDictionary.Add(SystemStateCode.LoadData_CallEventLoad, new SystemProcess(endEventLoad));
 
 		systemProcessDictionary.Add(SystemStateCode.Openning_TitleLoadgame, new SystemProcess(endTitleLoadgame));
 
 		systemProcessDictionary.Add(SystemStateCode.System_Reloaderb, new SystemProcess(endReloaderb));
-		systemProcessDictionary.Add(SystemStateCode.First_Begin, new SystemProcess(async () => await beginFirst()));
+		systemProcessDictionary.Add(SystemStateCode.First_Begin, new SystemProcess(beginFirst));
 
 
 		systemProcessDictionary.Add(SystemStateCode.Normal, new SystemProcess(endNormal));
@@ -149,13 +148,13 @@ internal sealed partial class Process
 	}
 
 
-	private async Task<bool> callFunction(string functionName, bool force, bool isEvent)
+	private bool callFunction(string functionName, bool force, bool isEvent)
 	{
 		CalledFunction call;
 		if (isEvent)
 			call = CalledFunction.CallEventFunction(this, functionName, null);
 		else
-			call = await CalledFunction.CallFunction(this, functionName, null);
+			call = CalledFunction.CallFunction(this, functionName, null);
 		if (call == null)
 			if (!force)
 				return false;
@@ -169,11 +168,11 @@ internal sealed partial class Process
 	}
 
 	//CheckState()から呼ばれる関数群。ScriptEndに達したときの処理。
-	async Task beginTitle()
+	void beginTitle()
 	{
 		//連続調教コマンド処理中の状態が持ち越されていたらここで消しておく
 		if (isCTrain)
-			if (await ClearCommands())
+			if (ClearCommands())
 				return;
 		skipPrint = false;
 		console.ResetStyle();
@@ -206,7 +205,7 @@ internal sealed partial class Process
 			console.ThrowTitleError(true);
 			return;
 		}
-		if (await callFunction("SYSTEM_TITLE", false, false))
+		if (callFunction("SYSTEM_TITLE", false, false))
 		{//独自定義
 			state.SystemState = SystemStateCode.Normal;
 			return;
@@ -239,7 +238,7 @@ internal sealed partial class Process
 		return;
 	}
 
-	async Task endOpenning()
+	void endOpenning()
 	{
 		if (systemResult == 0)
 		{//[0] 最初からはじめる
@@ -255,7 +254,7 @@ internal sealed partial class Process
 		}
 		else if (systemResult == 1)
 		{
-			if (await callFunction("TITLE_LOADGAME", false, false))
+			if (callFunction("TITLE_LOADGAME", false, false))
 			{//独自定義
 				state.SystemState = SystemStateCode.Openning_TitleLoadgame;
 			}
@@ -275,12 +274,12 @@ internal sealed partial class Process
 
 	}
 
-	async Task beginFirst()
+	void beginFirst()
 	{
 		state.SystemState = SystemStateCode.Normal;
 		//連続調教コマンド処理中の状態が持ち越されていたらここで消しておく
 		if (isCTrain)
-			if (await ClearCommands())
+			if (ClearCommands())
 				return;
 		skipPrint = false;
 		callFunction("EVENTFIRST", true, true);
@@ -291,12 +290,12 @@ internal sealed partial class Process
 		beginTitle();
 	}
 
-	async Task beginTrain()
+	void beginTrain()
 	{
 		vEvaluator.UpdateInBeginTrain();
 		state.SystemState = SystemStateCode.Train_CallEventTrain;
 		//EVENTTRAINを呼び出してTrain_CallEventTrainへ移行。
-		if (!await callFunction("EVENTTRAIN", false, true))
+		if (!callFunction("EVENTTRAIN", false, true))
 		{
 			//存在しなければスキップしてTrain_CallEventTrainが終わったことにする。
 			endCallEventTrain();
@@ -356,7 +355,7 @@ internal sealed partial class Process
 	}
 
 	int printComCount;
-	async Task endCallComAbleXX()
+	void endCallComAbleXX()
 	{
 		//選択肢追加。RESULTが0の場合は選択肢の番号のみ増やして追加はしない。
 		if ((lastCalledComable >= 0) && (TrainName[lastCalledComable] != null))
@@ -381,7 +380,7 @@ internal sealed partial class Process
 			if (TrainName[lastCalledComable] == null)
 				continue;
 			string comName = string.Format("COM_ABLE{0}", lastCalledComable);
-			if (!await callFunction(comName, false, false))
+			if (!callFunction(comName, false, false))
 			{
 				lastAddCom++;
 				if (Config.ComAbleDefault == 0)
@@ -479,11 +478,11 @@ internal sealed partial class Process
 		callEventCom();
 	}
 
-	async Task callEventCom()
+	void callEventCom()
 	{
 		vEvaluator.UpdateAfterInputCom();
 		state.SystemState = SystemStateCode.Train_CallEventCom;
-		if (!await callFunction("EVENTCOM", false, true))
+		if (!callFunction("EVENTCOM", false, true))
 			endEventCom();
 		return;
 	}
@@ -511,7 +510,7 @@ internal sealed partial class Process
 		}
 	}
 
-	async Task endCallSourceCheck()
+	void endCallSourceCheck()
 	{
 		//SOURCEはここでリセット
 		vEvaluator.UpdateAfterSourceCheck();
@@ -519,7 +518,7 @@ internal sealed partial class Process
 		state.SystemState = SystemStateCode.Train_CallEventComEnd;
 		//EVENTCOMENDが存在しない、またはEVENTCOMEND内でWAIT系命令が行われない場合、EVENTCOMEND後にWAITを追加する。
 		NeedWaitToEventComEnd = true;
-		if (!await callFunction("EVENTCOMEND", false, true))
+		if (!callFunction("EVENTCOMEND", false, true))
 		{
 			//見つからないならスキップしてTrain_CallEventComEndが終了したとみなす。
 			endCallEventComEnd();
@@ -527,7 +526,7 @@ internal sealed partial class Process
 	}
 	public bool NeedWaitToEventComEnd;
 	bool needCheck = true;
-	async Task endCallEventComEnd()
+	void endCallEventComEnd()
 	{
 		if (console.LastLineIsTemporary && !isCTrain && needCheck)
 		{
@@ -547,7 +546,7 @@ internal sealed partial class Process
 				skipPrint = false;
 				coms.Clear();
 				count = 0;
-				if (await callFunction("CALLTRAINEND", false, false))
+				if (callFunction("CALLTRAINEND", false, false))
 				{
 					needCheck = false;
 					return;
@@ -566,11 +565,11 @@ internal sealed partial class Process
 		}
 	}
 
-	async Task beginAfterTrain()
+	void beginAfterTrain()
 	{
 		//連続調教モード中にここに来る場合があるので、ここで解除
 		if (isCTrain)
-			if (await ClearCommands())
+			if (ClearCommands())
 				return;
 		skipPrint = false;
 		state.SystemState = SystemStateCode.Normal;
@@ -578,11 +577,11 @@ internal sealed partial class Process
 		callFunction("EVENTEND", true, true);
 	}
 
-	async Task beginAblup()
+	void beginAblup()
 	{
 		//連続調教コマンド処理中の状態が持ち越されていたらここで消しておく
 		if (isCTrain)
-			if (await ClearCommands())
+			if (ClearCommands())
 				return;
 		skipPrint = false;
 		state.SystemState = SystemStateCode.Ablup_CallShowJuel;
@@ -604,14 +603,14 @@ internal sealed partial class Process
 		state.SystemState = SystemStateCode.Ablup_WaitInput;
 	}
 
-	async Task ablupWaitInput()
+	void ablupWaitInput()
 	{
 		//定義されていなくても100未満ならABLUPが呼ばれ、USERABLUPは呼ばれない。そうしないと[99]反発刻印とかが出来ない。
 		if ((systemResult >= 0) && (systemResult < 100))
 		{
 			state.SystemState = SystemStateCode.Ablup_CallAblupXX;
 			string ablName = string.Format("ABLUP{0}", systemResult);
-			if (!await callFunction(ablName, false, false))
+			if (!callFunction(ablName, false, false))
 			{
 				//見つからなければ終了
 				console.deleteLine(1);
@@ -644,11 +643,11 @@ internal sealed partial class Process
 			beginAblup();
 	}
 
-	async Task beginTurnend()
+	void beginTurnend()
 	{
 		//連続調教コマンド処理中の状態が持ち越されていたらここで消しておく
 		if (isCTrain)
-			if (await ClearCommands())
+			if (ClearCommands())
 				return;
 		skipPrint = false;
 		//EVENTTURNENDを呼び出しNormalへ移行
@@ -656,16 +655,16 @@ internal sealed partial class Process
 		state.SystemState = SystemStateCode.Normal;
 	}
 
-	async Task beginShop()
+	void beginShop()
 	{
 		//連続調教コマンド処理中の状態が持ち越されていたらここで消しておく
 		if (isCTrain)
-			if (await ClearCommands())
+			if (ClearCommands())
 				return;
 		skipPrint = false;
 		state.SystemState = SystemStateCode.Shop_CallEventShop;
 		//EVENTSHOPを呼び出してShop_CallEventShopへ移行。
-		if (!await callFunction("EVENTSHOP", false, true))
+		if (!callFunction("EVENTSHOP", false, true))
 		{
 			//存在しなければスキップしてShop_CallEventShopが終わったことにする。
 			endCallEventShop();
@@ -684,9 +683,9 @@ internal sealed partial class Process
 		}
 	}
 
-	async Task beginAutoSave()
+	void beginAutoSave()
 	{
-		if (await callFunction("SYSTEM_AUTOSAVE", false, false))
+		if (callFunction("SYSTEM_AUTOSAVE", false, false))
 		{//@SYSTEM_AUTOSAVEが存在するならそれを使う。
 			state.SystemState = SystemStateCode.AutoSave_CallUniqueAutosave;
 			return;
@@ -694,7 +693,7 @@ internal sealed partial class Process
 		saveTarget = AutoSaveIndex;
 		vEvaluator.SAVEDATA_TEXT = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + " ";
 		state.SystemState = SystemStateCode.AutoSave_CallSaveInfo;
-		if (!await callFunction("SAVEINFO", false, false))
+		if (!callFunction("SAVEINFO", false, false))
 			endAutoSaveCallSaveInfo();//存在しなければスキップ
 	}
 
@@ -733,7 +732,7 @@ internal sealed partial class Process
 
 	//PRINT_SHOPITEMとは独立している。
 	//BOUGHTが100以上のアイテムが有り、ITEMSALESがTRUEだとしても強制的に@USERSHOP行き。
-	async Task shopWaitInput()
+	void shopWaitInput()
 	{
 		if ((systemResult >= 0) && (systemResult < Config.MaxShopItem))
 		{
@@ -743,7 +742,7 @@ internal sealed partial class Process
 				{
 					state.SystemState = SystemStateCode.Shop_CallEventBuy;
 					//EVENTBUYを呼び出しShop_CallEventBuyへ移行
-					if (!await callFunction("EVENTBUY", false, true))
+					if (!callFunction("EVENTBUY", false, true))
 						endCallEventBuy();
 					return;
 				}
@@ -799,20 +798,20 @@ internal sealed partial class Process
 	}
 
 
-	async Task beginDataLoaded()
+	void beginDataLoaded()
 	{
 		state.SystemState = SystemStateCode.LoadData_CallSystemLoad;
 
-		if (!await callFunction("SYSTEM_LOADEND", false, false))
+		if (!callFunction("SYSTEM_LOADEND", false, false))
 			endSystemLoad();//存在しなければスキップ
 	}
-	async Task endSystemLoad()
+	void endSystemLoad()
 	{
 		AppContents.UnloadTempLoadedConstImageNames();
 		AppContents.UnloadTempLoadedGraphicsImageNames();
 		state.SystemState = SystemStateCode.LoadData_CallEventLoad;
 		//EVENTLOADを呼び出してLoadData_CallEventLoadへ移行。
-		if (!await callFunction("EVENTLOAD", false, true))
+		if (!callFunction("EVENTLOAD", false, true))
 		{
 			//存在しなければスキップしてTrain_CallEventTrainが終わったことにする。
 			endAutoSave();
@@ -1010,7 +1009,7 @@ internal sealed partial class Process
 		saveGameWaitInputOverwrite();
 	}
 
-	async Task saveGameWaitInputOverwrite()
+	void saveGameWaitInputOverwrite()
 	{
 		if (systemResult == 1)//いいえ
 		{
@@ -1027,7 +1026,7 @@ internal sealed partial class Process
 		}
 		vEvaluator.SAVEDATA_TEXT = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + " ";
 		state.SystemState = SystemStateCode.SaveGame_CallSaveInfo;
-		if (!await callFunction("SAVEINFO", false, false))
+		if (!callFunction("SAVEINFO", false, false))
 			endCallSaveInfo();//存在しなければスキップ
 	}
 

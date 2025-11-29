@@ -4766,7 +4766,8 @@ internal static partial class FunctionMethodCreator
 				return 0;
 			else if ((st.Current == '+' || st.Current == '-') && !char.IsDigit(st.Next))
 				return 0;
-			_ = LexicalAnalyzer.ReadInt64(st, true);
+			if (!LexicalAnalyzer.NumericCheck(st))
+				return (0);
 			if (!st.EOS)
 			{
 				if (st.Current == '.')
@@ -5902,7 +5903,8 @@ internal static partial class FunctionMethodCreator
 				return -1;
 			Color c = img.SpriteGetColor(p.X, p.Y);
 			//Color.ToArgb()はInt32の負の値をとることがあり、Int64にうまく変換できない？（と思ったが気のせいだった
-			return ((long)c.A) << 24 + c.R << 16 + c.G << 8 + c.B;
+			//return ((long)c.A) << 24 + c.R << 16 + c.G << 8 + c.B;
+			return c.ToArgb() & 0xFFFFFFFFL;
 		}
 	}
 

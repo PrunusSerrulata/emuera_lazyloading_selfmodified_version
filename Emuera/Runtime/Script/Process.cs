@@ -68,7 +68,7 @@ internal sealed partial class Process(EmueraConsole view)
 			if (ParserMediator.HasWarning)
 			{
 				ParserMediator.FlushWarningList();
-				if (Dialog.ShowPrompt(trmb.ConfigFileError.Text, trmb.ConfigError.Text))
+				if (Dialog.ShowPrompt(trmb.ConfigError.Text, trmb.ConfigFileError.Text))
 				{
 					console.PrintSystemLine(trsl.SelectExitConfigMB.Text);
 					return false;
@@ -118,7 +118,7 @@ internal sealed partial class Process(EmueraConsole view)
 					if (ParserMediator.HasWarning)
 					{
 						ParserMediator.FlushWarningList();
-						if (Dialog.ShowPrompt(trmb.ReplaceFileError.Text, trmb.ReplaceError.Text))
+						if (Dialog.ShowPrompt(trmb.ReplaceError.Text, trmb.ReplaceFileError.Text))
 						{
 							console.PrintSystemLine(trsl.SelectExitReplaceMB.Text);
 							return false;
@@ -196,11 +196,6 @@ internal sealed partial class Process(EmueraConsole view)
 			PluginManager.GetInstance().SetParent(this, state, exm);
 			PluginManager.GetInstance().LoadPlugins();
 
-			#region FallBackFont
-			if(Config.UsingFallbackFont)
-				console.PrintSystemLine(string.Format(trsl.FontNotFound.Text, Config.ConfigFont));
-			#endregion
-
 			//ERH読込
 			if (!await Task.Run(() => hLoader.LoadHeaderFiles(Program.ErbDir, Config.DisplayReport)))
 			{
@@ -277,13 +272,13 @@ internal sealed partial class Process(EmueraConsole view)
 		}
 	}
 
-	public async Task<bool> ClearCommands()
+	public bool ClearCommands()
 	{
 		coms.Clear();
 		count = 0;
 		isCTrain = false;
 		skipPrint = true;
-		return await callFunction("CALLTRAINEND", false, false);
+		return callFunction("CALLTRAINEND", false, false);
 	}
 	#region EE_INPUTMOUSEKEYのボタン対応
 	// public void InputResult5(int r0, int r1, int r2, int r3, int r4)
@@ -397,7 +392,7 @@ internal sealed partial class Process(EmueraConsole view)
 		string text = string.Format(
 			trmb.TooLongLoop.Text,
 			currentLine.Position.Value.Filename, currentLine.Position.Value.LineNo, state.lineCount, elapsedTime);
-		if (Dialog.ShowPrompt(text, caption))
+		if (Dialog.ShowPrompt(caption, text))
 		{
 			throw new CodeEE(trerror.SelectExitInfiniteLoopMB.Text);
 		}

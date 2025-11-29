@@ -3,5 +3,30 @@
   <PropertyGroup>
     <_LastSelectedProfileId>D:\code\C\lazyloading\Emuera\Properties\PublishProfiles\Release.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Compile Update="UI\Framework\Forms\ClipBoardDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Framework\Forms\ColorBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Framework\Forms\ConfigDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Framework\Forms\DebugConfigDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Framework\Forms\DebugDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Framework\Forms\EraPictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Framework\Forms\MainWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Framework\Forms\RikaiDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
 </Project>

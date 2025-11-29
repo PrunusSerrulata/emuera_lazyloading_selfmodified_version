@@ -24,7 +24,7 @@
         <RootNamespace>MinorShift.Emuera</RootNamespace>
         <ApplicationManifest>emuera.manifest</ApplicationManifest>
         <Version>1.824.0</Version>
-        <InformationalVersion>1.824+v22+EMv18+EEv53</InformationalVersion>
+        <InformationalVersion>1.824+v22+EMv18+EEv53 Lazyloadingv2.4</InformationalVersion>
         <Copyright>Copyright (C) 2008- MinorShift, 妊）|дﾟ)の中の人</Copyright>
     </PropertyGroup>
 
@@ -49,6 +49,24 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release-NAudio' ">
         <Optimize>true</Optimize>
     </PropertyGroup>
+
+	<PropertyGroup Condition="$(Configuration.Contains('NAudio'))">
+		<DefineConstants>NAudio</DefineConstants>
+		<InformationalVersion>$(InformationalVersion) NAudio</InformationalVersion>
+		<!-- <AssemblyName>$(AssemblyName)-NAudio</AssemblyName> -->
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)' == 'x86'">
+		<DefineConstants>x86</DefineConstants>
+		<InformationalVersion>$(InformationalVersion) x86</InformationalVersion>
+		<!-- <AssemblyName>$(AssemblyName)-x86</AssemblyName> -->
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)' == 'x64'">
+		<DefineConstants>x64</DefineConstants>
+		<InformationalVersion>$(InformationalVersion) x64</InformationalVersion>
+		<!-- <AssemblyName>$(AssemblyName)-x64</AssemblyName> -->
+	</PropertyGroup>
 
 
     <Choose>

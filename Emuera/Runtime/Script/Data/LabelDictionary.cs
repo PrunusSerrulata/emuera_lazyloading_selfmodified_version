@@ -54,7 +54,7 @@ internal sealed class LabelDictionary
 
 	Dictionary<string, List<FunctionLabelLine>[]> eventLabelDic = new(Config.Config.StrComper);
 	Dictionary<string, FunctionLabelLine> noneventLabelDic = new(Config.Config.StrComper);
-
+	
 	public void SortLabel(FunctionLabelLine label)
 	{
 		string key = label.LabelName;
@@ -127,15 +127,18 @@ internal sealed class LabelDictionary
 	{
 
 		foreach (KeyValuePair<string, List<FunctionLabelLine>[]> pair in eventLabelDic)
+		foreach (List<FunctionLabelLine> list in pair.Value)
+			list.Clear();
+		eventLabelDic.Clear();
+		noneventLabelDic.Clear();
+	}
+	public void SortLabels()
+	{
+		foreach (KeyValuePair<string, List<FunctionLabelLine>[]> pair in eventLabelDic)
 			foreach (List<FunctionLabelLine> list in pair.Value)
 				list.Clear();
 		eventLabelDic.Clear();
 		noneventLabelDic.Clear();
-	}
-	
-	public void SortLabels()
-	{
-		InitEventLabelDic();
 		foreach (KeyValuePair<string, List<FunctionLabelLine>> pair in labelAtDic)
 		{
 			string key = pair.Key;
@@ -199,7 +202,11 @@ internal sealed class LabelDictionary
 	{
 		Initialized = false;
 		count = 0;
-		InitEventLabelDic();
+		foreach ((_, var array) in eventLabelDic)
+			foreach (var list in array)
+				list.Clear();
+		eventLabelDic.Clear();
+		noneventLabelDic.Clear();
 
 		foreach ((_, var value) in labelAtDic)
 			value.Clear();

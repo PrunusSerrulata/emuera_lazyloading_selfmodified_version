@@ -12,7 +12,6 @@ using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Sub;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
@@ -60,6 +59,28 @@ internal sealed class ErbLoader
 		try
 		{
 			labelDic.RemoveAll();
+			#region EE_ファイル読み込み順拡張
+			foreach (var dir in firstDir)
+			{
+				var firstErbFiles = Config.Config.GetFiles(dir, erbDir, "*.ERB");
+				foreach (var erb in firstErbFiles)
+				{
+
+					string filename = erb.Key;
+					string file = erb.Value;
+					loadedFiles.Add(file);
+
+#if DEBUG
+					if (displayReport)
+						output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
+#else
+					if (displayReport)
+						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
+#endif
+					loadErb(file, filename, isOnlyEvent);
+				};
+			};
+			#endregion
 
 			if (useLazyLoading)
 			{
@@ -74,84 +95,57 @@ internal sealed class ErbLoader
 					output.PrintSystemLine(trsl.LazyLoadingNoTable.Text);
 				}
 			}
-			#region EE_ファイル読み込み順拡張
-			foreach (var dir in firstDir)
-			{
-				var firstErbFiles = Config.Config.GetFiles(dir, erbDir, "*.ERB");
-				foreach (var erb in firstErbFiles)
-				{
-
-					string filename = erb.Key;
-					string file = erb.Value;
-					loadedFiles.Add(file);
-
-// #if DEBUG
-// 					if (displayReport)
-// 						output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
-// #else
-// 					if (displayReport)
-// 						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-// #endif
-				// Lazy Loading 테이블에 있는 파일인 경우 여기서는 패스.
-					if (useLazyLoading && parentProcess.LazyLoadingFiles.Contains(file))
-						continue;
-
-					if (displayReport && Program.AnalysisMode)
-						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-					await Task.Run(() => loadErb(file, filename, isOnlyEvent));
-				};
-			};
-			#endregion
-
 			foreach (var erb in erbFiles)
 			{
 				string filename = erb.Key;
 				string file = erb.Value;
 				if (loadedFiles.Contains(file))
 					continue;
-// #if DEBUG
-// 				if (displayReport)
-// 					output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
-// #else
-// 				if (displayReport)
-// 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-// #endif
+				// #if DEBUG
+				// 				if (displayReport)
+				// 					output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
+				// #else
+				// 				if (displayReport)
+				// 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
+				// #endif
 				// Lazy Loading 테이블에 있는 파일인 경우 여기서는 패스.
 				if (useLazyLoading && parentProcess.LazyLoadingFiles.Contains(file))
 					continue;
 
 				if (displayReport && Program.AnalysisMode)
 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-				await Task.Run(() => loadErb(file, filename, isOnlyEvent));
+				loadErb(file, filename, isOnlyEvent);
 			};
 			ParserMediator.FlushWarningList();
-// #if DEBUG
-// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
-// #endif
+			// #if DEBUG
+			// 			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			// #endif
+			// 			if (displayReport)
+			// 				output.PrintSystemLine(trsl.BuildingUserFunc.Text);
 			if (displayReport)
 				output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugErbTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
 			starttime = DateTime.Now; // 타이머 초기화.
 			if (displayReport)
 				output.PrintSystemLine(trsl.BuildingUserFunc.Text);
-			//setLabelsArg();
+			// setLabelsArg();
 			ParserMediator.FlushWarningList();
 			labelDic.Initialized = true;
-// #if DEBUG
-// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
-// #endif
+			// #if DEBUG
+			// 			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			// #endif
+
 			if (displayReport)
 				output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugLabelsTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
 			starttime = DateTime.Now; // 타이머 초기화.
 			if (displayReport)
 				output.PrintSystemLine(trsl.CheckingSyntax.Text);
-
-			await Task.Run(() => ParseScript());
+			ParseScript();
 
 			ParserMediator.FlushWarningList();
 
-// #if DEBUG
-// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
-// #endif
+			// #if DEBUG
+			// 			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			// #endif
 			if (displayReport)
 					output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugScriptTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
 			if (parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.BuildTable)
@@ -204,9 +198,9 @@ internal sealed class ErbLoader
 		List<string> isOnlyEvent = [];
 		noError = true;
 		labelDic = labelDictionary;
-		labelDic.Initialized = false;
+		// labelDic.Initialized = false;// 이걸 false로 걸어두면 IdentifierDictionary.GetFunctionMethod()에서 문제가 터진다.
 
-		await Task.Run(() =>
+
 		{
 			foreach (var fpath in paths)
 			{
@@ -218,18 +212,18 @@ internal sealed class ErbLoader
 				{
 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, fname));
 				}
-				loadErb(fpath, fname, isOnlyEvent);
+				loadErb(fpath, fname, isOnlyEvent, true);
 			};
-		});
+		};
 		if (Program.AnalysisMode)
 			output.NewLine();
 		ParserMediator.FlushWarningList();
-		//setLabelsArg();
+		// setLabelsArg();
 		ParserMediator.FlushWarningList();
-		//labelDic.Initialized = true;
+		// labelDic.Initialized = true;
 		//Always load function code if its from reloaded files
 		if (parentProcess.getCurrentState.SystemState == SystemStateCode.System_Reloaderb)
-			await Task.Run(() => ParseScript());
+			ParseScript();
 		ParserMediator.FlushWarningList();
 		parentProcess.scaningLine = null;
 		isOnlyEvent.Clear();
@@ -394,8 +388,9 @@ internal sealed class ErbLoader
 	/// ファイル一つを読む
 	/// </summary>
 	/// <param name="filepath"></param>
-	private void loadErb(string filepath, string filename, List<string> isOnlyEvent)
+	private void loadErb(string filepath, string filename, List<string> isOnlyEvent, bool isLazyLoading = false)
 	{
+		//読み込んだファイルのパスを記録
 		//一部ファイルの再読み込み時の処理用
 		labelDic.IfFileLoadClearLabelWithPath(filename);
 		using var eReader = new EraStreamReader(Config.Config.UseRenameFile && ParserMediator.RenameDic != null);
@@ -404,7 +399,8 @@ internal sealed class ErbLoader
 		{
 			output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
 		}
-		var ppstate = new PPState();
+		List<FunctionLabelLine> tempFunctionLabels = [];
+		PPState ppstate = new();
 		LogicalLine nextLine = new NullLine();
 		LogicalLine lastLine = new NullLine();
 		FunctionLabelLine lastLabelLine = null;
@@ -460,13 +456,13 @@ internal sealed class ErbLoader
 					if (label is InvalidLabelLine)
 					{
 						noError = false;
-
 						ParserMediator.Warn(nextLine.ErrMes, position, 2);
 						labelDic.AddInvalidLabel(label);
 					}
 					else// if (label is FunctionLabelLine)
 					{
 						labelDic.AddLabel(label);
+						tempFunctionLabels.Add(label);
 						if (!label.IsEvent && (Config.Config.WarnNormalFunctionOverloading || Program.AnalysisMode))
 						{
 							FunctionLabelLine seniorLabel = labelDic.GetSameNameLabel(label);
@@ -518,8 +514,6 @@ internal sealed class ErbLoader
 				if (lastLabelLine == null)
 					ParserMediator.Warn(trerror.LineBeforeFunc.Text, position, 1);
 				nextLine = LogicalLineParser.ParseLine(st, position, output, lastLabelLine);
-
-
 				if (nextLine == null)
 					continue;
 				if (nextLine is InvalidLine)
@@ -547,12 +541,25 @@ internal sealed class ErbLoader
 				}
 			}
 			nextLine.ParentLabelLine = lastLabelLine;
-
 			lastLine = addLine(nextLine, lastLine);
 		}
 		addLine(new NullLine(), lastLine);
 		position = new ScriptPosition(eReader.Filename, -1);
 		ppstate.FileEnd(position);
+		// 여기서 setLabelsArg()를 처리.
+		foreach(var label in tempFunctionLabels)
+		{
+			setLabelsArg(label);
+			labelDic.SortLabel(label);
+			
+		}
+
+		// 지연로딩으로 부르는 경우에만 여기서 처리하고, 초기 로딩시에는 #FUNCTION 때문에 일괄 처리해야함.
+		if (isLazyLoading)
+		{
+			foreach (var label in tempFunctionLabels)
+				ParseFunctionWithCatch(label);
+		}
 		return;
 	}
 
@@ -565,35 +572,41 @@ internal sealed class ErbLoader
 		return nextLine;
 	}
 
+	private void setLabelsArg(FunctionLabelLine label)
+	{
+		try
+		{
+			if (label.Arg != null)
+				return;
+			parentProcess.scaningLine = label;
+			parseLabel(label);
+		}
+		catch (Exception exc)
+		{
+			System.Media.SystemSounds.Hand.Play();
+			string errmes = exc.Message;
+			if (!(exc is EmueraException))
+				errmes = exc.GetType().ToString() + ":" + errmes;
+			ParserMediator.Warn(string.Format(trerror.FuncArgError.Text, label.LabelName, errmes), label, 2, true, false);
+			label.ErrMes = trerror.CalledFailedFunc.Text;
+			label.IsError = true;
+		}
+		finally
+		{
+			parentProcess.scaningLine = null;
+		}
+	}
+
 	private void setLabelsArg()
 	{
 		List<FunctionLabelLine> labelList = labelDic.GetAllLabels(false);
 		foreach (FunctionLabelLine label in labelList)
 		{
-			try
-			{
-				if (label.Arg != null)
-					continue;
-				parentProcess.scaningLine = label;
-				parseLabel(label);
-			}
-			catch (Exception exc)
-			{
-				System.Media.SystemSounds.Hand.Play();
-				string errmes = exc.Message;
-				if (!(exc is EmueraException))
-					errmes = exc.GetType().ToString() + ":" + errmes;
-				ParserMediator.Warn(string.Format(trerror.FuncArgError.Text, label.LabelName, errmes), label, 2, true, false);
-				label.ErrMes = trerror.CalledFailedFunc.Text;
-				label.IsError = true;
-			}
-			finally
-			{
-				parentProcess.scaningLine = null;
-			}
+			setLabelsArg(label);
 		}
 		labelDic.SortLabels();
 	}
+
 
 	private void parseLabel(FunctionLabelLine label)
 	{
@@ -1583,4 +1596,8 @@ internal sealed class ErbLoader
 		}
 	}
 
+	public static implicit operator bool(ErbLoader v)
+	{
+		throw new NotImplementedException();
+	}
 }

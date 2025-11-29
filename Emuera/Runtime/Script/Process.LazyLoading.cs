@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Loader;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
@@ -14,8 +14,8 @@ namespace MinorShift.Emuera.GameProc;
 internal sealed partial class Process
 {
 	//Main Working Sets
-	private Dictionary<string, List<string>> LazyLoadingTable { get; } = new();
-	private Dictionary<string, long> LazyLoadingFilesTable { get; } = new();
+	private Dictionary<string, List<string>> LazyLoadingTable { get; } = Config.IgnoreCase ? new(StringComparer.OrdinalIgnoreCase) : new();
+	private Dictionary<string, long> LazyLoadingFilesTable { get; } = Config.IgnoreCase ? new(StringComparer.OrdinalIgnoreCase) : new();
 	public HashSet<string> LazyLoadingFiles { get; } = new();
 
 	//For changes in files
@@ -41,7 +41,7 @@ internal sealed partial class Process
 
 	private const char Separator = '\t';
 
-	public async Task<bool> TryLazyLoadErb(string functionName)
+	public bool TryLazyLoadErb(string functionName)
 	{
 		if (!LazyLoadingTable.TryGetValue(functionName, out List<string> value))
 		{
@@ -49,7 +49,7 @@ internal sealed partial class Process
 		}
 
 		var loader = new ErbLoader(console, exm, this);
-		if (await loader.LoadErbList(value, labelDic))
+		if (loader.LoadErbList(value, labelDic).GetAwaiter().GetResult())
 		{
 			if (Program.AnalysisMode)
 			{
