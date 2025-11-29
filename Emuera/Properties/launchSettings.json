@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Emuera": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\code\\C\\lazyloading\\Emuera\\artifacts\\publish\\Release"
+    }
+  }
+}

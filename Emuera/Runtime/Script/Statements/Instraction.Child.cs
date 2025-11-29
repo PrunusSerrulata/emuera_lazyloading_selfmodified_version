@@ -3438,7 +3438,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			SpCallArgment callArg = (SpCallArgment)func.Argument;
 			string labelName = callArg.ConstStr;
-			CalledFunction call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func).GetAwaiter().GetResult();
+			CalledFunction call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func);
 			if ((call == null) && (!func.Function.IsTry()))
 			{
 				FunctionoNotFoundName = labelName;
@@ -3481,7 +3481,7 @@ internal sealed partial class FunctionIdentifier
 			else
 			{
 				labelName = spCallArg.FuncnameTerm.GetStrValue(exm);
-				call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func).GetAwaiter().GetResult();
+				call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func);
 			}
 			if (call == null)
 			{

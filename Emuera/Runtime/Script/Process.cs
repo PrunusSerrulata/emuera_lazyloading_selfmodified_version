@@ -196,11 +196,6 @@ internal sealed partial class Process(EmueraConsole view)
 			PluginManager.GetInstance().SetParent(this, state, exm);
 			PluginManager.GetInstance().LoadPlugins();
 
-			#region FallBackFont
-			if(Config.UsingFallbackFont)
-				console.PrintSystemLine(string.Format(trsl.FontNotFound.Text, Config.ConfigFont));
-			#endregion
-
 			//ERH読込
 			if (!await Task.Run(() => hLoader.LoadHeaderFiles(Program.ErbDir, Config.DisplayReport)))
 			{
@@ -277,13 +272,13 @@ internal sealed partial class Process(EmueraConsole view)
 		}
 	}
 
-	public async Task<bool> ClearCommands()
+	public bool ClearCommands()
 	{
 		coms.Clear();
 		count = 0;
 		isCTrain = false;
 		skipPrint = true;
-		return await callFunction("CALLTRAINEND", false, false);
+		return callFunction("CALLTRAINEND", false, false);
 	}
 	#region EE_INPUTMOUSEKEYのボタン対応
 	// public void InputResult5(int r0, int r1, int r2, int r3, int r4)

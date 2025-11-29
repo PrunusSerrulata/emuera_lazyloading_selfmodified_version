@@ -12,7 +12,6 @@ using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Sub;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
@@ -60,6 +59,28 @@ internal sealed class ErbLoader
 		try
 		{
 			labelDic.RemoveAll();
+			#region EE_ファイル読み込み順拡張
+			foreach (var dir in firstDir)
+			{
+				var firstErbFiles = Config.Config.GetFiles(dir, erbDir, "*.ERB");
+				foreach (var erb in firstErbFiles)
+				{
+
+					string filename = erb.Key;
+					string file = erb.Value;
+					loadedFiles.Add(file);
+
+#if DEBUG
+					if (displayReport)
+						output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
+#else
+					if (displayReport)
+						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
+#endif
+					loadErb(file, filename, isOnlyEvent);
+				};
+			};
+			#endregion
 
 			if (useLazyLoading)
 			{
@@ -74,84 +95,57 @@ internal sealed class ErbLoader
 					output.PrintSystemLine(trsl.LazyLoadingNoTable.Text);
 				}
 			}
-			#region EE_ファイル読み込み順拡張
-			foreach (var dir in firstDir)
-			{
-				var firstErbFiles = Config.Config.GetFiles(dir, erbDir, "*.ERB");
-				foreach (var erb in firstErbFiles)
-				{
-
-					string filename = erb.Key;
-					string file = erb.Value;
-					loadedFiles.Add(file);
-
-// #if DEBUG
-// 					if (displayReport)
-// 						output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
-// #else
-// 					if (displayReport)
-// 						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-// #endif
-				// Lazy Loading 테이블에 있는 파일인 경우 여기서는 패스.
-					if (useLazyLoading && parentProcess.LazyLoadingFiles.Contains(file))
-						continue;
-
-					if (displayReport && Program.AnalysisMode)
-						output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-					await Task.Run(() => loadErb(file, filename, isOnlyEvent));
-				};
-			};
-			#endregion
-
 			foreach (var erb in erbFiles)
 			{
 				string filename = erb.Key;
 				string file = erb.Value;
 				if (loadedFiles.Contains(file))
 					continue;
-// #if DEBUG
-// 				if (displayReport)
-// 					output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
-// #else
-// 				if (displayReport)
-// 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-// #endif
+				// #if DEBUG
+				// 				if (displayReport)
+				// 					output.PrintSystemLine(string.Format(trsl.ElapsedTimeLoad.Text, (DateTime.Now - starttime).TotalMilliseconds, filename));
+				// #else
+				// 				if (displayReport)
+				// 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
+				// #endif
 				// Lazy Loading 테이블에 있는 파일인 경우 여기서는 패스.
 				if (useLazyLoading && parentProcess.LazyLoadingFiles.Contains(file))
 					continue;
 
 				if (displayReport && Program.AnalysisMode)
 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, filename));
-				await Task.Run(() => loadErb(file, filename, isOnlyEvent));
+				loadErb(file, filename, isOnlyEvent);
 			};
 			ParserMediator.FlushWarningList();
-// #if DEBUG
-// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
-// #endif
+			// #if DEBUG
+			// 			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			// #endif
+			// 			if (displayReport)
+			// 				output.PrintSystemLine(trsl.BuildingUserFunc.Text);
 			if (displayReport)
 				output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugErbTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
 			starttime = DateTime.Now; // 타이머 초기화.
 			if (displayReport)
 				output.PrintSystemLine(trsl.BuildingUserFunc.Text);
-			//setLabelsArg();
+			// setLabelsArg();
 			ParserMediator.FlushWarningList();
 			labelDic.Initialized = true;
-// #if DEBUG
-// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
-// #endif
+			// #if DEBUG
+			// 			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			// #endif
+
 			if (displayReport)
 				output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugLabelsTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
 			starttime = DateTime.Now; // 타이머 초기화.
 			if (displayReport)
 				output.PrintSystemLine(trsl.CheckingSyntax.Text);
-
-			await Task.Run(() => ParseScript());
+			ParseScript();
 
 			ParserMediator.FlushWarningList();
 
-// #if DEBUG
-// 				output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
-// #endif
+			// #if DEBUG
+			// 			output.PrintSystemLine(string.Format(trsl.ElapsedTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
+			// #endif
 			if (displayReport)
 					output.PrintSystemLine(string.Format(trsl.LazyLoadingDebugScriptTime.Text, (DateTime.Now - starttime).TotalMilliseconds));
 			if (parentProcess.LazyCurrentLazyStatus == Process.LazyStatus.BuildTable)
@@ -204,9 +198,9 @@ internal sealed class ErbLoader
 		List<string> isOnlyEvent = [];
 		noError = true;
 		labelDic = labelDictionary;
-		labelDic.Initialized = false;
+		// labelDic.Initialized = false;// 이걸 false로 걸어두면 IdentifierDictionary.GetFunctionMethod()에서 문제가 터진다.
 
-		await Task.Run(() =>
+
 		{
 			foreach (var fpath in paths)
 			{
@@ -218,18 +212,18 @@ internal sealed class ErbLoader
 				{
 					output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, fname));
 				}
-				loadErb(fpath, fname, isOnlyEvent);
+				loadErb(fpath, fname, isOnlyEvent, true);
 			};
-		});
+		};
 		if (Program.AnalysisMode)
 			output.NewLine();
 		ParserMediator.FlushWarningList();
-		//setLabelsArg();
+		// setLabelsArg();
 		ParserMediator.FlushWarningList();
-		//labelDic.Initialized = true;
+		// labelDic.Initialized = true;
 		//Always load function code if its from reloaded files
 		if (parentProcess.getCurrentState.SystemState == SystemStateCode.System_Reloaderb)
-			await Task.Run(() => ParseScript());
+			ParseScript();
 		ParserMediator.FlushWarningList();
 		parentProcess.scaningLine = null;
 		isOnlyEvent.Clear();
@@ -394,8 +388,9 @@ internal sealed class ErbLoader
 	/// ファイル一つを読む
 	/// </summary>
 	/// <param name="filepath"></param>
-	private void loadErb(string filepath, string filename, List<string> isOnlyEvent)
+	private void loadErb(string filepath, string filename, List<string> isOnlyEvent, bool isLazyLoading = false)
 	{
+		//読み込んだファイルのパスを記録
 		//一部ファイルの再読み込み時の処理用
 		labelDic.IfFileLoadClearLabelWithPath(filename);
 		using var eReader = new EraStreamReader(Config.Config.UseRenameFile && ParserMediator.RenameDic != null);
@@ -404,155 +399,175 @@ internal sealed class ErbLoader
 		{
 			output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
 		}
-		var ppstate = new PPState();
-		LogicalLine nextLine = new NullLine();
-		LogicalLine lastLine = new NullLine();
-		FunctionLabelLine lastLabelLine = null;
-		CharStream st = null;
-		ScriptPosition? position = null;
-		int funcCount = 0;
-		if (Program.AnalysisMode)
-			output.PrintSystemLine(" ");
-		while ((st = eReader.ReadEnabledLine(ppstate.Disabled)) != null)
+		try
 		{
-			position = new ScriptPosition(eReader.Filename, eReader.LineNo);
-			//rename処理をEraStreamReaderに移管
-			//変換できなかった[[～～]]についてはLexAnalyzerがエラーを投げる
-			if (st.Current == '[' && st.Next != '[')
+			List<FunctionLabelLine> tempFunctionLabels = [];
+			PPState ppstate = new();
+			LogicalLine nextLine = new NullLine();
+			LogicalLine lastLine = new NullLine();
+			FunctionLabelLine lastLabelLine = null;
+			CharStream st = null;
+			ScriptPosition? position = null;
+			int funcCount = 0;
+			if (Program.AnalysisMode)
+				output.PrintSystemLine("　");
+			while ((st = eReader.ReadEnabledLine(ppstate.Disabled)) != null)
 			{
-				st.ShiftNext();
-				string token = LexicalAnalyzer.ReadSingleIdentifier(st);
-				LexicalAnalyzer.SkipWhiteSpace(st);
-				string token2 = LexicalAnalyzer.ReadSingleIdentifier(st);
-				if (string.IsNullOrEmpty(token) || st.Current != ']')
-					ParserMediator.Warn(trerror.InvalidSBrackets.Text, position, 1);
-				ppstate.AddKeyWord(token, token2, position);
-				st.ShiftNext();
-				if (!st.EOS)
-					ParserMediator.Warn(string.Format(trerror.IgnoreAfterPreprosessor.Text, token), position, 1);
-				continue;
-			}
-			//if ((skip) || (Program.DebugMode && ifndebug) || (!Program.DebugMode && ifdebug))
-			//	continue;
-			if (ppstate.Disabled)
-				continue;
-			//ここまでプリプロセッサ
-
-			if (st.Current == '#')
-			{
-				if (lastLine == null || lastLine is not FunctionLabelLine funcLine)
+				position = new ScriptPosition(eReader.Filename, eReader.LineNo);
+				//rename処理をEraStreamReaderに移管
+				//変換できなかった[[～～]]についてはLexAnalyzerがエラーを投げる
+				if (st.Current == '[' && st.Next != '[')
 				{
-					ParserMediator.Warn(trerror.InvalidSharp.Text, position, 1);
+					st.ShiftNext();
+					string token = LexicalAnalyzer.ReadSingleIdentifier(st);
+					LexicalAnalyzer.SkipWhiteSpace(st);
+					string token2 = LexicalAnalyzer.ReadSingleIdentifier(st);
+					if (string.IsNullOrEmpty(token) || st.Current != ']')
+						ParserMediator.Warn(trerror.InvalidSBrackets.Text, position, 1);
+					ppstate.AddKeyWord(token, token2, position);
+					st.ShiftNext();
+					if (!st.EOS)
+						ParserMediator.Warn(string.Format(trerror.IgnoreAfterPreprosessor.Text, token), position, 1);
 					continue;
 				}
-				if (!LogicalLineParser.ParseSharpLine(funcLine, st, position, isOnlyEvent))
-					noError = false;
-				continue;
-			}
-			if (st.Current == '$' || st.Current == '@')
-			{
-				bool isFunction = st.Current == '@';
-				nextLine = LogicalLineParser.ParseLabelLine(st, position, output);
-				if (isFunction)
-				{
-					var label = nextLine as FunctionLabelLine;
-					lastLabelLine = label;
-					if (label is InvalidLabelLine)
-					{
-						noError = false;
+				//if ((skip) || (Program.DebugMode && ifndebug) || (!Program.DebugMode && ifdebug))
+				//	continue;
+				if (ppstate.Disabled)
+					continue;
+				//ここまでプリプロセッサ
 
-						ParserMediator.Warn(nextLine.ErrMes, position, 2);
-						labelDic.AddInvalidLabel(label);
-					}
-					else// if (label is FunctionLabelLine)
+				if (st.Current == '#')
+				{
+						if (lastLine == null || lastLine is not FunctionLabelLine funcLine)
 					{
-						labelDic.AddLabel(label);
-						if (!label.IsEvent && (Config.Config.WarnNormalFunctionOverloading || Program.AnalysisMode))
+						ParserMediator.Warn(trerror.InvalidSharp.Text, position, 1);
+						continue;
+					}
+					if (!LogicalLineParser.ParseSharpLine(funcLine, st, position, isOnlyEvent))
+						noError = false;
+					continue;
+				}
+				if (st.Current == '$' || st.Current == '@')
+				{
+					bool isFunction = st.Current == '@';
+					nextLine = LogicalLineParser.ParseLabelLine(st, position, output);
+					if (isFunction)
+					{
+						var label = nextLine as FunctionLabelLine;
+						lastLabelLine = label;
+						if (label is InvalidLabelLine)
 						{
-							FunctionLabelLine seniorLabel = labelDic.GetSameNameLabel(label);
-							if (seniorLabel != null)
+							noError = false;
+							ParserMediator.Warn(nextLine.ErrMes, position, 2);
+							labelDic.AddInvalidLabel(label);
+						}
+						else// if (label is FunctionLabelLine)
+						{
+							labelDic.AddLabel(label);
+							tempFunctionLabels.Add(label);
+							if (!label.IsEvent && (Config.Config.WarnNormalFunctionOverloading || Program.AnalysisMode))
 							{
-								//output.NewLine();
-								ParserMediator.Warn(string.Format(trerror.FuncIsAlreadyDefined.Text, label.LabelName, seniorLabel.Position.Value.Filename, seniorLabel.Position.Value.LineNo.ToString()), position, 1);
-								funcCount = -1;
+								FunctionLabelLine seniorLabel = labelDic.GetSameNameLabel(label);
+								if (seniorLabel != null)
+								{
+									//output.NewLine();
+									ParserMediator.Warn(string.Format(trerror.FuncIsAlreadyDefined.Text, label.LabelName, seniorLabel.Position.Value.Filename, seniorLabel.Position.Value.LineNo.ToString()), position, 1);
+									funcCount = -1;
+								}
+							}
+							funcCount++;
+							if (Program.AnalysisMode && Config.Config.PrintCPerLine > 0 && funcCount % Config.Config.PrintCPerLine == 0)
+							{
+								output.NewLine();
+								output.PrintSystemLine("　");
 							}
 						}
-						funcCount++;
-						if (Program.AnalysisMode && Config.Config.PrintCPerLine > 0 && funcCount % Config.Config.PrintCPerLine == 0)
+					}
+					else
+					{
+						if (nextLine is GotoLabelLine gotoLabel)
 						{
-							output.NewLine();
-							output.PrintSystemLine(" ");
+							gotoLabel.ParentLabelLine = lastLabelLine;
+							if (lastLabelLine != null && !labelDic.AddLabelDollar(gotoLabel))
+							{
+								ScriptPosition? pos = labelDic.GetLabelDollar(gotoLabel.LabelName, lastLabelLine).Position;
+								ParserMediator.Warn(string.Format(trerror.LabelIsAlreadyDefined.Text, gotoLabel.LabelName, pos.Value.Filename, pos.Value.LineNo.ToString()), position, 2);
+							}
 						}
+					}
+					if (nextLine is InvalidLine)
+					{
+						noError = false;
+						ParserMediator.Warn(nextLine.ErrMes, position, 2);
 					}
 				}
 				else
 				{
-					if (nextLine is GotoLabelLine gotoLabel)
+					//1808alpha006 処理位置変更
+					////全置換はここで対応
+					////1756beta1+++　最初に全置換してしまうと関数定義を_Renameでとか論外なことができてしまうので永久封印した
+					//if (ParserMediator.RenameDic != null && st.CurrentEqualTo("[[") && (rowLine.TrimEnd().IndexOf("]]") == rowLine.TrimEnd().Length - 2))
+					//{
+					//    string replacedLine = st.Substring();
+					//    foreach (KeyValuePair<string, string> pair in ParserMediator.RenameDic)
+					//        replacedLine = replacedLine.Replace(pair.Key, pair.Value);
+					//    st = new StringStream(replacedLine);
+					//}
+					if (lastLabelLine == null)
+						ParserMediator.Warn(trerror.LineBeforeFunc.Text, position, 1);
+					nextLine = LogicalLineParser.ParseLine(st, position, output, lastLabelLine);
+					if (nextLine == null)
+						continue;
+					if (nextLine is InvalidLine)
 					{
-						gotoLabel.ParentLabelLine = lastLabelLine;
-						if (lastLabelLine != null && !labelDic.AddLabelDollar(gotoLabel))
+						noError = false;
+						ParserMediator.Warn(nextLine.ErrMes, position, 2);
+					}
+					else if (JSONConfig.Data.UseNewRandom &&
+											nextLine is InstructionLine instruction)
+					{
+						switch (instruction.FunctionCode)
 						{
-							ScriptPosition? pos = labelDic.GetLabelDollar(gotoLabel.LabelName, lastLabelLine).Position;
-							ParserMediator.Warn(string.Format(trerror.LabelIsAlreadyDefined.Text, gotoLabel.LabelName, pos.Value.Filename, pos.Value.LineNo.ToString()), position, 2);
+							case FunctionCode.RANDOMIZE:
+								ParserMediator.Warn(trerror.IgnoreRandomize.Text, position, 0);
+								break;
+							case FunctionCode.DUMPRAND:
+								ParserMediator.Warn(trerror.CanNotUseDumprand.Text, position, 0);
+								break;
+							case FunctionCode.INITRAND:
+								ParserMediator.Warn(trerror.CanNotUseInitrand.Text, position, 0);
+								break;
+							default:
+								break;
 						}
 					}
 				}
-				if (nextLine is InvalidLine)
-				{
-					noError = false;
-					ParserMediator.Warn(nextLine.ErrMes, position, 2);
-				}
+				nextLine.ParentLabelLine = lastLabelLine;
+				lastLine = addLine(nextLine, lastLine);
 			}
-			else
+			addLine(new NullLine(), lastLine);
+			position = new ScriptPosition(eReader.Filename, -1);
+			ppstate.FileEnd(position);
+			
+			// 여기서 setLabelsArg()를 처리.
+			foreach(var label in tempFunctionLabels)
 			{
-				//1808alpha006 処理位置変更
-				////全置換はここで対応
-				////1756beta1+++ 最初に全置換してしまうと関数定義を_Renameでとか論外なことができてしまうので永久封印した
-				//if (ParserMediator.RenameDic != null && st.CurrentEqualTo("[[") && (rowLine.TrimEnd().IndexOf("]]") == rowLine.TrimEnd().Length - 2))
-				//{
-				//    string replacedLine = st.Substring();
-				//    foreach (KeyValuePair<string, string> pair in ParserMediator.RenameDic)
-				//        replacedLine = replacedLine.Replace(pair.Key, pair.Value);
-				//    st = new StringStream(replacedLine);
-				//}
-				if (lastLabelLine == null)
-					ParserMediator.Warn(trerror.LineBeforeFunc.Text, position, 1);
-				nextLine = LogicalLineParser.ParseLine(st, position, output, lastLabelLine);
-
-
-				if (nextLine == null)
-					continue;
-				if (nextLine is InvalidLine)
-				{
-					noError = false;
-					ParserMediator.Warn(nextLine.ErrMes, position, 2);
-				}
-				else if (JSONConfig.Data.UseNewRandom &&
-										nextLine is InstructionLine instruction)
-				{
-					switch (instruction.FunctionCode)
-					{
-						case FunctionCode.RANDOMIZE:
-							ParserMediator.Warn(trerror.IgnoreRandomize.Text, position, 0);
-							break;
-						case FunctionCode.DUMPRAND:
-							ParserMediator.Warn(trerror.CanNotUseDumprand.Text, position, 0);
-							break;
-						case FunctionCode.INITRAND:
-							ParserMediator.Warn(trerror.CanNotUseInitrand.Text, position, 0);
-							break;
-						default:
-							break;
-					}
-				}
+				setLabelsArg(label);
+				labelDic.SortLabel(label);
+				
 			}
-			nextLine.ParentLabelLine = lastLabelLine;
 
-			lastLine = addLine(nextLine, lastLine);
+			// 지연로딩으로 부르는 경우에만 여기서 처리하고, 초기 로딩시에는 #FUNCTION 때문에 일괄 처리해야함.
+			if (isLazyLoading)
+			{
+				foreach (var label in tempFunctionLabels)
+					ParseFunctionWithCatch(label);
+			}
 		}
-		addLine(new NullLine(), lastLine);
-		position = new ScriptPosition(eReader.Filename, -1);
-		ppstate.FileEnd(position);
+		finally
+		{
+			eReader.Close();
+		}
 		return;
 	}
 
@@ -565,35 +580,41 @@ internal sealed class ErbLoader
 		return nextLine;
 	}
 
+	private void setLabelsArg(FunctionLabelLine label)
+	{
+		try
+		{
+			if (label.Arg != null)
+				return;
+			parentProcess.scaningLine = label;
+			parseLabel(label);
+		}
+		catch (Exception exc)
+		{
+			System.Media.SystemSounds.Hand.Play();
+			string errmes = exc.Message;
+			if (!(exc is EmueraException))
+				errmes = exc.GetType().ToString() + ":" + errmes;
+			ParserMediator.Warn(string.Format(trerror.FuncArgError.Text, label.LabelName, errmes), label, 2, true, false);
+			label.ErrMes = trerror.CalledFailedFunc.Text;
+			label.IsError = true;
+		}
+		finally
+		{
+			parentProcess.scaningLine = null;
+		}
+	}
+
 	private void setLabelsArg()
 	{
 		List<FunctionLabelLine> labelList = labelDic.GetAllLabels(false);
 		foreach (FunctionLabelLine label in labelList)
 		{
-			try
-			{
-				if (label.Arg != null)
-					continue;
-				parentProcess.scaningLine = label;
-				parseLabel(label);
-			}
-			catch (Exception exc)
-			{
-				System.Media.SystemSounds.Hand.Play();
-				string errmes = exc.Message;
-				if (!(exc is EmueraException))
-					errmes = exc.GetType().ToString() + ":" + errmes;
-				ParserMediator.Warn(string.Format(trerror.FuncArgError.Text, label.LabelName, errmes), label, 2, true, false);
-				label.ErrMes = trerror.CalledFailedFunc.Text;
-				label.IsError = true;
-			}
-			finally
-			{
-				parentProcess.scaningLine = null;
-			}
+			setLabelsArg(label);
 		}
 		labelDic.SortLabels();
 	}
+
 
 	private void parseLabel(FunctionLabelLine label)
 	{
@@ -1583,4 +1604,8 @@ internal sealed class ErbLoader
 		}
 	}
 
+	public static implicit operator bool(ErbLoader v)
+	{
+		throw new NotImplementedException();
+	}
 }

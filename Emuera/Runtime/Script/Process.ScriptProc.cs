@@ -10,7 +10,6 @@ using MinorShift.Emuera.UI.Game;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading.Tasks;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
 namespace MinorShift.Emuera.GameProc;
@@ -136,7 +135,7 @@ internal sealed partial class Process
 					str = bArg.PrintStrTerm.GetStrValue(exm);
 					//ボタン処理に絡んで表示がおかしくなるため、PRINTBUTTONでの改行コードはオミット
 					str = str.Replace("\n", "");
-					bool isRight = func.FunctionCode == FunctionCode.PRINTBUTTONC;
+					bool isRight = (func.FunctionCode == FunctionCode.PRINTBUTTONC);
 					if (bArg.ButtonWord.GetOperandType() == typeof(long))
 						exm.Console.PrintButtonC(str, bArg.ButtonWord.GetIntValue(exm), isRight);
 					else
@@ -804,7 +803,7 @@ internal sealed partial class Process
 
 	#region flow control
 
-	async Task<bool> doFlowControlFunction(InstructionLine func)
+	bool doFlowControlFunction(InstructionLine func)
 	{
 		switch (func.FunctionCode)
 		{
@@ -844,7 +843,7 @@ internal sealed partial class Process
 
 						cfa = (SpCallArgment)iLine.Argument;
 						funcName = cfa.FuncnameTerm.GetStrValue(exm);
-						callto = await CalledFunction.CallFunction(this, funcName, func.JumpTo);
+						callto = CalledFunction.CallFunction(this, funcName, func.JumpTo);
 						if (callto == null)
 							continue;
 						callto.IsJump = func.Function.IsJump();

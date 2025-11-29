@@ -9,7 +9,6 @@ using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
 namespace MinorShift.Emuera.Runtime.Script;
@@ -107,7 +106,7 @@ internal sealed class CalledFunction
 		return called;
 	}
 
-	public static async Task<CalledFunction> CallFunction(Process parent, string label, LogicalLine retAddress)
+	public static CalledFunction CallFunction(Process parent, string label, LogicalLine retAddress)
 	{
 		CalledFunction called = new(label)
 		{
@@ -118,7 +117,7 @@ internal sealed class CalledFunction
 		// Lazy Loading Table에서 가져오기 시도
 		if (labelline == null)
 		{
-			if (await parent.TryLazyLoadErb(label))
+			if (parent.TryLazyLoadErb(label))
 				labelline = parent.LabelDictionary.GetNonEventLabel(label);
 		}
 
