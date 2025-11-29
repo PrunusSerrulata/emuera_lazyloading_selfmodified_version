@@ -1,4 +1,5 @@
 ﻿using MinorShift.Emuera.Runtime.Utils.PluginSystem;
+using System.Windows;
 using System.Windows.Forms;
 
 //Plugin must be a part of Emuera solution to be able to reference it
