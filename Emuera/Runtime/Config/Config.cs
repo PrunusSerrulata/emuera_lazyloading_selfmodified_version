@@ -337,7 +337,7 @@ internal static class Config
 		#endregion
 		if (!existGlobal && savFiles.Length == 0)
 			return;
-		var result = Dialog.ShowPrompt(trmb.SavFolderCreated.Text, trmb.DataTransfer.Text);
+		var result = Dialog.ShowPrompt(trmb.DataTransfer.Text, trmb.SavFolderCreated.Text);
 		if (result == false)
 			return;
 		//ダイアログが開いている間にフォルダを消してしまうような邪悪なユーザーがいるかもしれない

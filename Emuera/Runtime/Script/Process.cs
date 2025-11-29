@@ -68,7 +68,7 @@ internal sealed partial class Process(EmueraConsole view)
 			if (ParserMediator.HasWarning)
 			{
 				ParserMediator.FlushWarningList();
-				if (Dialog.ShowPrompt(trmb.ConfigFileError.Text, trmb.ConfigError.Text))
+				if (Dialog.ShowPrompt(trmb.ConfigError.Text, trmb.ConfigFileError.Text))
 				{
 					console.PrintSystemLine(trsl.SelectExitConfigMB.Text);
 					return false;
@@ -118,7 +118,7 @@ internal sealed partial class Process(EmueraConsole view)
 					if (ParserMediator.HasWarning)
 					{
 						ParserMediator.FlushWarningList();
-						if (Dialog.ShowPrompt(trmb.ReplaceFileError.Text, trmb.ReplaceError.Text))
+						if (Dialog.ShowPrompt(trmb.ReplaceError.Text, trmb.ReplaceFileError.Text))
 						{
 							console.PrintSystemLine(trsl.SelectExitReplaceMB.Text);
 							return false;
@@ -392,7 +392,7 @@ internal sealed partial class Process(EmueraConsole view)
 		string text = string.Format(
 			trmb.TooLongLoop.Text,
 			currentLine.Position.Value.Filename, currentLine.Position.Value.LineNo, state.lineCount, elapsedTime);
-		if (Dialog.ShowPrompt(text, caption))
+		if (Dialog.ShowPrompt(caption, text))
 		{
 			throw new CodeEE(trerror.SelectExitInfiniteLoopMB.Text);
 		}
