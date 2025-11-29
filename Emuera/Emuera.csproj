@@ -59,7 +59,7 @@
 	<PropertyGroup Condition="'$(Platform)' == 'x86'">
 		<DefineConstants>x86</DefineConstants>
 		<InformationalVersion>$(InformationalVersion) x86</InformationalVersion>
-		<AssemblyName>$(AssemblyName)-x86</AssemblyName>
+		<!-- <AssemblyName>$(AssemblyName)-x86</AssemblyName> -->
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Platform)' == 'x64'">
