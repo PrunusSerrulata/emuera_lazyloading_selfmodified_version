@@ -89,7 +89,7 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 		static ExpressionMediator exm;
 		internal PluginAPICharContext(long charId)
 		{
-			// this.charId = charId;
+			this.charId = charId;
 			BASE = new CharInt1dWrapper(charId, _BASE, exm, VariableCode.BASE);
 			MAXBASE = new CharInt1dWrapper(charId, _MAXBASE, exm, VariableCode.MAXBASE);
 			ABL = new CharInt1dWrapper(charId, _ABL, exm, VariableCode.ABL);
@@ -156,6 +156,6 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 
 		public CharInt2dWrapper CDFLAG;
 
-		// long charId;
+		long charId;
 	}
 }

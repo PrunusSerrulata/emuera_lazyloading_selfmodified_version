@@ -20,7 +20,7 @@
 
     <PropertyGroup>
         <Product>Emuera</Product>
-        <AssemblyName>LazyloadingV2.4-Snake-EM53</AssemblyName>
+        <AssemblyName>LazyloadingV2.4-Snake-EEv53</AssemblyName>
         <RootNamespace>MinorShift.Emuera</RootNamespace>
         <ApplicationManifest>emuera.manifest</ApplicationManifest>
         <Version>1.824.0</Version>
@@ -54,6 +54,18 @@
 		<DefineConstants>NAudio</DefineConstants>
 		<InformationalVersion>$(InformationalVersion) NAudio</InformationalVersion>
 		<AssemblyName>$(AssemblyName)-NAudio</AssemblyName>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)' == 'x86'">
+		<DefineConstants>x86</DefineConstants>
+		<InformationalVersion>$(InformationalVersion) x86</InformationalVersion>
+		<AssemblyName>$(AssemblyName)-x86</AssemblyName>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Platform)' == 'x64'">
+		<DefineConstants>x64</DefineConstants>
+		<InformationalVersion>$(InformationalVersion) x64</InformationalVersion>
+		<AssemblyName>$(AssemblyName)-x64</AssemblyName>
 	</PropertyGroup>
 
 

@@ -242,6 +242,28 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 			return new PluginAPICharContext(charId);
 		}
 
+
+		/// <summary>
+		/// Returns call stacktrace from emuera/ERB side
+		/// </summary>
+		public IEnumerable<String> GetStackTrace(){
+			LogicalLine parent;
+			List<String> stackTraceCollecter = [];
+			int depth = 0;
+
+			// add initial caller
+			stackTraceCollecter.Add(this.processState.CurrentLine.Position.Value.Filename + ":" + this.processState.CurrentLine.Position.Value.LineNo.ToString() + "@" +  this.processState.CurrentLine.ParentLabelLine.LabelName);
+			// loop call stack
+			while ((parent = this.processState.GetReturnAddressSequensial(depth++)) != null)
+			{
+				if (parent.Position != null)
+				{
+					stackTraceCollecter.Add(parent.Position.Value.Filename + ":" + parent.Position.Value.LineNo.ToString() + "@" + parent.ParentLabelLine.LabelName);
+				}
+			}
+			return stackTraceCollecter;
+		}
+
 		/// <summary>
 		/// Load all DLL plugins from Plugins directory of the game
 		/// </summary>
@@ -352,6 +374,7 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 			RESULTS = new GlobalString1dWrapper(expressionMediator.VEvaluator.VariableData.GetVarTokenDic()["RESULTS"], expressionMediator, VariableCode.RESULTS);
 			GLOBALS = new GlobalString1dWrapper(expressionMediator.VEvaluator.VariableData.GetVarTokenDic()["GLOBALS"], expressionMediator, VariableCode.GLOBALS);
 
+			NO = new GlobalConstInt1dWrapper(expressionMediator.VEvaluator.VariableData.GetVarTokenDic()["NO"], expressionMediator, VariableCode.NO);
 			ITEMPRICE = new GlobalConstInt1dWrapper(expressionMediator.VEvaluator.VariableData.GetVarTokenDic()["ITEMPRICE"], expressionMediator, VariableCode.ITEMPRICE);
 
 			ABLNAME = new GlobalConstString1dWrapper(expressionMediator.VEvaluator.VariableData.GetVarTokenDic()["ABLNAME"], expressionMediator, VariableCode.ABLNAME);
@@ -437,7 +460,8 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 		public GlobalString1dWrapper STR;
 		public GlobalString1dWrapper RESULTS;
 		public GlobalString1dWrapper GLOBALS;
-
+		
+		public GlobalConstInt1dWrapper NO;
 		public GlobalConstInt1dWrapper ITEMPRICE;
 
 		public GlobalConstString1dWrapper ABLNAME;

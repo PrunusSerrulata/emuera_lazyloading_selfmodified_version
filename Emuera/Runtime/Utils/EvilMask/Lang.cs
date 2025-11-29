@@ -1088,10 +1088,6 @@ internal sealed partial class Lang
 		[Managed] public static TranslatableString CanNotOmitMacroArg { get; } = new TranslatableString("関数形式のマクロ{0}の引数を省略することはできません");
 		[Managed] public static TranslatableString NotFoundCorresponding { get; } = new TranslatableString("\'{0}\'が使われましたが対応する\'{1}\'が見つかりません");
 		[Managed] public static TranslatableString OoRSumArray { get; } = new TranslatableString("命令ARRAYSORTの第３引数({0})と第4変数({1})の和が配列\"{2}\"の範囲を超えています");
-		//[Managed] public static TranslatableString { get; } = new TranslatableString("");
-		//[Managed] public static TranslatableString { get; } = new TranslatableString("");
-		//[Managed] public static TranslatableString { get; } = new TranslatableString("");
-		//[Managed] public static TranslatableString { get; } = new TranslatableString("");
 		[Managed] public static TranslatableString CannotRecommendCallLocalVar { get; } = new TranslatableString("コード中でローカル変数を@付きで呼ぶことは推奨されません(代わりに*.ERHファイルの利用を検討してください)");
 
 		[Managed] public static TranslatableString LabelNameMissing { get; } = new TranslatableString("ラベル名がありません");

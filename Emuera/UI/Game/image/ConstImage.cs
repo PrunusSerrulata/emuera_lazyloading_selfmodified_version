@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Text.Json;
 
 namespace MinorShift.Emuera.UI.Game.Image;
 
@@ -19,23 +21,21 @@ internal sealed class ConstImage : AbstractImage
 	{
 		if (RealBitmap != null || !string.IsNullOrEmpty(Filepath))
 			throw new Exception();
-		//呼び出し元でファイルチェックはしてるから大丈夫だと思う……一応1000回上限
-		int i = 0;
-		while (i++ < 1000)
+
+		try
 		{
-			try
-			{
-				RealBitmap = bmp;
-				Filepath = filepath;
-				Width = RealBitmap.Width;
-				Height = RealBitmap.Height;
+			RealBitmap = bmp;
+			Filepath = filepath;
+			Width = RealBitmap.Width;
+			Height = RealBitmap.Height;
+			lock (AppContents.tempLoadedConstImages)
 				AppContents.tempLoadedConstImages.Add(this);
-				RealIsCreated = true;
-				return;
-			}
-			catch
-			{
-			}
+			RealIsCreated = true;
+			return;
+		}
+		catch (Exception e)
+		{
+			File.WriteAllText("img_err.log", e.ToString());
 		}
 		return;
 	}
@@ -51,7 +51,8 @@ internal sealed class ConstImage : AbstractImage
 			{
 				return;
 			}
-			AppContents.tempLoadedConstImages.Add(this);
+			lock (AppContents.tempLoadedConstImages)
+				AppContents.tempLoadedConstImages.Add(this);
 		}
 		catch
 		{

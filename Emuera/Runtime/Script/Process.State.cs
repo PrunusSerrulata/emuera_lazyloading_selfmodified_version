@@ -435,8 +435,13 @@ internal sealed class ProcessState
 		else if (Program.DebugMode)
 		{
 			FunctionLabelLine label = called.CurrentLabel;
-			long line = currentLine.Position.Value.LineNo;
-			console.DebugAddTraceLog(string.Format(trsl.DebugTraceCall.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo, line));
+			long currentLineNo = -1; // 默认值
+			// 添加空值检查
+			if (currentLine != null && currentLine.Position.HasValue) // 使用 HasValue 检查 ScriptPosition?
+			{
+				currentLineNo = currentLine.Position.Value.LineNo;
+			}
+			console.DebugAddTraceLog(string.Format(trsl.DebugTraceCall.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo, currentLineNo));
 		}
 		lineCount++;
 		//ShfitNextLine();
@@ -458,25 +463,34 @@ internal sealed class ProcessState
 		{
 			FunctionLabelLine label = call.CurrentLabel;
 			if (exm != null)
-			{
-				long line = exm.Process.getCurrentLine.Position.Value.LineNo;
-				if (call.IsJump)
-					console.DebugAddTraceLog(string.Format(trsl.DebugTraceJump2.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo, line));
-				else
-					console.DebugAddTraceLog(string.Format(trsl.DebugTraceCall2.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo, line));
-			}
-			else
-			{
-				if (call.IsJump)
-					console.DebugAddTraceLog(string.Format(trsl.DebugTraceJump.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo));
-				else
 				{
-					string trace = $"CALL @{label.LabelName}:{label.Position.Value.Filename}:{label.Position.Value.LineNo}";
-					if (call.ReturnAddress != null)
-						trace += $" at @{call.ReturnAddress.ParentLabelLine.LabelName}:{call.ReturnAddress.ParentLabelLine.Position.Value.Filename}:{call.ReturnAddress.Position.Value.LineNo}";
-					console.DebugAddTraceLog(trace);
+					long callingLineNo = -1; // 默认值，表示无法获取
+					// 添加空值检查：确保 exm.Process、exm.Process.getCurrentLine、
+					// currentProcLine.Position 及其 Value 都不为 null
+					LogicalLine currentProcLine = exm.Process.getCurrentLine;
+					if (currentProcLine != null && currentProcLine.Position.HasValue) // 使用 HasValue 检查 ScriptPosition?
+					{
+						callingLineNo = currentProcLine.Position.Value.LineNo;
+					}
+
+					if (call.IsJump)
+						console.DebugAddTraceLog(string.Format(trsl.DebugTraceJump2.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo, callingLineNo));
+					else
+						console.DebugAddTraceLog(string.Format(trsl.DebugTraceCall2.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo, callingLineNo));
 				}
-			}
+				else // 这个 else 分支也需要检查 call.ReturnAddress.ParentLabelLine.Position
+				{
+					if (call.IsJump)
+						console.DebugAddTraceLog(string.Format(trsl.DebugTraceJump.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo));
+					else
+					{
+						string trace = $"CALL @{label.LabelName}:{label.Position.Value.Filename}:{label.Position.Value.LineNo}";
+						// 同样为 call.ReturnAddress.ParentLabelLine.Position 添加空值检查
+						if (call.ReturnAddress != null && call.ReturnAddress.ParentLabelLine != null && call.ReturnAddress.ParentLabelLine.Position.HasValue) // 使用 HasValue
+							trace += $" at @{call.ReturnAddress.ParentLabelLine.LabelName}:{call.ReturnAddress.ParentLabelLine.Position.Value.Filename}:{call.ReturnAddress.Position.Value.LineNo}";
+						console.DebugAddTraceLog(trace);
+					}
+				}
 		}
 		if (srcArgs != null)
 		{
