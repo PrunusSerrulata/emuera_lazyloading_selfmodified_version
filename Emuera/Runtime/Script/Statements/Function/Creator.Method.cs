@@ -320,22 +320,41 @@ internal static partial class FunctionMethodCreator
 		public ExistVarMethod()
 		{
 			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int}, OmitStart = 1 },
+				];
 			CanRestructure = true;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			VariableToken token = GlobalStatic.IdentifierDictionary.GetVariableToken(arguments[0].GetStrValue(exm), null, true);
-			if (token != null)
+			long mode = (arguments.Count > 1 && arguments[1] != null) ? arguments[1].GetIntValue(exm) : 0;
+			if (mode == 0)
 			{
-				long res = 0;
-				if (token.IsInteger) res |= 1;
-				if (token.IsString) res |= 2;
-				if (token.IsConst) res |= 4;
-				if (token.IsArray2D) res |= 8;
-				if (token.IsArray3D) res |= 16;
-				return res;
+				if (token != null)
+				{
+					long res = 0;
+					if (token.IsInteger) res |= 1;
+					if (token.IsString) res |= 2;
+					if (token.IsConst) res |= 4;
+					if (token.IsArray2D) res |= 8;
+					if (token.IsArray3D) res |= 16;
+					return res;
+				}
+			}
+			else
+			{
+				try
+				{
+					WordCollection temp_wc = LexicalAnalyzer.Analyse(new CharStream(arguments[0].GetStrValue(exm)), LexEndWith.EoL, LexAnalyzeFlag.None);
+					AExpression temp_term = ExpressionParser.ReduceExpressionTerm(temp_wc, TermEndWith.EoL);
+					return 1;
+				}
+				catch
+				{
+					return 0;
+				}
 			}
 			return 0;
 		}
