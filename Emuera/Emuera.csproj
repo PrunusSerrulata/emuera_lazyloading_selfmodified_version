@@ -38,6 +38,7 @@
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <TieredCompilation>false</TieredCompilation>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug-NAudio' ">
@@ -84,8 +85,6 @@
         </When>
         <Otherwise>
             <ItemGroup>
-                <Compile Remove="Runtime/Utils/Sound.NAudio.cs" />
-                <Compile Remove="Runtime/Utils/NAudio_LoopStream.cs" />
                 <COMReference Include="WMPLib">
                     <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
                     <VersionMajor>1</VersionMajor>
@@ -104,6 +103,8 @@
       <EmbeddedResource Remove="artifacts\**" />
       <None Remove="artifacts\**" />
       <Page Remove="artifacts\**" />
+      <Compile Remove="Runtime\Utils\Sound.WMP.cs" />
+      <Content Include="icon.ico" />
       <EmbeddedResource Include="Properties\lang\emuera-eng.xml" />
       <EmbeddedResource Include="Properties\lang\emuera-zhs.xml" />
     </ItemGroup>
@@ -151,9 +152,10 @@
     </Choose>
     
     <ItemGroup>
-      <PackageReference Include="Enums.NET" Version="4.0.2" />
+      <PackageReference Include="Enums.NET" Version="5.0.0" />
       <PackageReference Include="NAudio" Version="2.2.1" />
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+      <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
+      <PackageReference Include="System.CommandLine" Version="2.0.3" />
     </ItemGroup>
 
 

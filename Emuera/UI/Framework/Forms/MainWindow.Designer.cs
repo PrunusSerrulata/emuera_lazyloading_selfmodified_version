@@ -32,10 +32,12 @@ partial class MainWindow
 	private void InitializeComponent()
 	{
 		components = new System.ComponentModel.Container();
+		System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
 		vScrollBar = new System.Windows.Forms.VScrollBar();
 		menuStrip = new System.Windows.Forms.MenuStrip();
 		fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 		rebootToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+		デバッグモードで再起動ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 		ログを保存するSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 		ログをクリップボードにコピーToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 		タイトルへ戻るTToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -95,7 +97,6 @@ partial class MainWindow
 		timerKeyMacroChanged = new System.Windows.Forms.Timer(components);
 		labelMacroGroupChanged = new System.Windows.Forms.Label();
 		mainPicBox = new EraPictureBox();
-		デバッグモードで再起動ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 		menuStrip.SuspendLayout();
 		AutoVerbMenu.SuspendLayout();
 		((System.ComponentModel.ISupportInitialize)mainPicBox).BeginInit();
@@ -115,10 +116,11 @@ partial class MainWindow
 		// 
 		// menuStrip
 		// 
+		menuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
 		menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { fileToolStripMenuItem, デバッグToolStripMenuItem, ツールToolStripMenuItem, ヘルプHToolStripMenuItem, EmuVerToolStripTextBox, LanguageToolStripMenuItem });
 		menuStrip.Location = new System.Drawing.Point(0, 0);
 		menuStrip.Name = "menuStrip";
-		menuStrip.Size = new System.Drawing.Size(657, 24);
+		menuStrip.Size = new System.Drawing.Size(657, 30);
 		menuStrip.TabIndex = 3;
 		menuStrip.Text = "menuStrip1";
 		// 
@@ -126,76 +128,76 @@ partial class MainWindow
 		// 
 		fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { rebootToolStripMenuItem, デバッグモードで再起動ToolStripMenuItem, ログを保存するSToolStripMenuItem, ログをクリップボードにコピーToolStripMenuItem, タイトルへ戻るTToolStripMenuItem, コードを読み直すcToolStripMenuItem, フォルダを読み直すFToolStripMenuItem, ファイルを読み直すFToolStripMenuItem, リソースフォルダを読み直すToolStripMenuItem, exitToolStripMenuItem });
 		fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-		fileToolStripMenuItem.Size = new System.Drawing.Size(70, 20);
+		fileToolStripMenuItem.Size = new System.Drawing.Size(101, 26);
 		fileToolStripMenuItem.Text = "ファイル(&F)";
 		// 
 		// rebootToolStripMenuItem
 		// 
 		rebootToolStripMenuItem.Name = "rebootToolStripMenuItem";
-		rebootToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		rebootToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		rebootToolStripMenuItem.Text = "再起動(&R)";
 		rebootToolStripMenuItem.Click += rebootToolStripMenuItem_Click;
 		// 
 		// デバッグモードで再起動ToolStripMenuItem
 		// 
 		デバッグモードで再起動ToolStripMenuItem.Name = "デバッグモードで再起動ToolStripMenuItem";
-		デバッグモードで再起動ToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		デバッグモードで再起動ToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		デバッグモードで再起動ToolStripMenuItem.Text = "デバッグモードで再起動";
 		デバッグモードで再起動ToolStripMenuItem.Click += デバッグモードで再起動ToolStripMenuItem_Click;
 		// 
 		// ログを保存するSToolStripMenuItem
 		// 
 		ログを保存するSToolStripMenuItem.Name = "ログを保存するSToolStripMenuItem";
-		ログを保存するSToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		ログを保存するSToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		ログを保存するSToolStripMenuItem.Text = "ログを保存する...(&S)";
 		ログを保存するSToolStripMenuItem.Click += ログを保存するSToolStripMenuItem_Click;
 		// 
 		// ログをクリップボードにコピーToolStripMenuItem
 		// 
 		ログをクリップボードにコピーToolStripMenuItem.Name = "ログをクリップボードにコピーToolStripMenuItem";
-		ログをクリップボードにコピーToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		ログをクリップボードにコピーToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		ログをクリップボードにコピーToolStripMenuItem.Text = "ログをクリップボードにコピー(&C)";
 		ログをクリップボードにコピーToolStripMenuItem.Click += ログをクリップボードにコピーToolStripMenuItem_Click;
 		// 
 		// タイトルへ戻るTToolStripMenuItem
 		// 
 		タイトルへ戻るTToolStripMenuItem.Name = "タイトルへ戻るTToolStripMenuItem";
-		タイトルへ戻るTToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		タイトルへ戻るTToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		タイトルへ戻るTToolStripMenuItem.Text = "タイトル画面へ戻る(&T)";
 		タイトルへ戻るTToolStripMenuItem.Click += タイトルへ戻るTToolStripMenuItem_Click;
 		// 
 		// コードを読み直すcToolStripMenuItem
 		// 
 		コードを読み直すcToolStripMenuItem.Name = "コードを読み直すcToolStripMenuItem";
-		コードを読み直すcToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		コードを読み直すcToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		コードを読み直すcToolStripMenuItem.Text = "全コードを読み直す(&C)";
 		コードを読み直すcToolStripMenuItem.Click += コードを読み直すcToolStripMenuItem_Click;
 		// 
 		// フォルダを読み直すFToolStripMenuItem
 		// 
 		フォルダを読み直すFToolStripMenuItem.Name = "フォルダを読み直すFToolStripMenuItem";
-		フォルダを読み直すFToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		フォルダを読み直すFToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		フォルダを読み直すFToolStripMenuItem.Text = "フォルダを読み直す(&F)";
 		フォルダを読み直すFToolStripMenuItem.Click += フォルダを読み直すFToolStripMenuItem_Click;
 		// 
 		// ファイルを読み直すFToolStripMenuItem
 		// 
 		ファイルを読み直すFToolStripMenuItem.Name = "ファイルを読み直すFToolStripMenuItem";
-		ファイルを読み直すFToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		ファイルを読み直すFToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		ファイルを読み直すFToolStripMenuItem.Text = "ファイルを読み直す(&A)";
 		ファイルを読み直すFToolStripMenuItem.Click += ファイルを読み直すFToolStripMenuItem_Click;
 		// 
 		// リソースフォルダを読み直すToolStripMenuItem
 		// 
 		リソースフォルダを読み直すToolStripMenuItem.Name = "リソースフォルダを読み直すToolStripMenuItem";
-		リソースフォルダを読み直すToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		リソースフォルダを読み直すToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		リソースフォルダを読み直すToolStripMenuItem.Text = "リソースフォルダを読み直す(&R)";
 		リソースフォルダを読み直すToolStripMenuItem.Click += リソースフォルダを読み直すToolStripMenuItem_Click;
 		// 
 		// exitToolStripMenuItem
 		// 
 		exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-		exitToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+		exitToolStripMenuItem.Size = new System.Drawing.Size(322, 26);
 		exitToolStripMenuItem.Text = "終了(&X)";
 		exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
 		// 
@@ -203,7 +205,7 @@ partial class MainWindow
 		// 
 		デバッグToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { デバッグウインドウを開くToolStripMenuItem, デバッグ情報の更新ToolStripMenuItem });
 		デバッグToolStripMenuItem.Name = "デバッグToolStripMenuItem";
-		デバッグToolStripMenuItem.Size = new System.Drawing.Size(75, 20);
+		デバッグToolStripMenuItem.Size = new System.Drawing.Size(104, 26);
 		デバッグToolStripMenuItem.Text = "デバッグ(&D)";
 		デバッグToolStripMenuItem.Visible = false;
 		// 
@@ -211,7 +213,7 @@ partial class MainWindow
 		// 
 		デバッグウインドウを開くToolStripMenuItem.Name = "デバッグウインドウを開くToolStripMenuItem";
 		デバッグウインドウを開くToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D;
-		デバッグウインドウを開くToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
+		デバッグウインドウを開くToolStripMenuItem.Size = new System.Drawing.Size(329, 26);
 		デバッグウインドウを開くToolStripMenuItem.Text = "デバッグウインドウを開く";
 		デバッグウインドウを開くToolStripMenuItem.Click += デバッグウインドウを開くToolStripMenuItem_Click;
 		// 
@@ -219,7 +221,7 @@ partial class MainWindow
 		// 
 		デバッグ情報の更新ToolStripMenuItem.Name = "デバッグ情報の更新ToolStripMenuItem";
 		デバッグ情報の更新ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R;
-		デバッグ情報の更新ToolStripMenuItem.Size = new System.Drawing.Size(234, 22);
+		デバッグ情報の更新ToolStripMenuItem.Size = new System.Drawing.Size(329, 26);
 		デバッグ情報の更新ToolStripMenuItem.Text = "デバッグ情報の更新";
 		デバッグ情報の更新ToolStripMenuItem.Click += デバッグ情報の更新ToolStripMenuItem_Click;
 		// 
@@ -228,13 +230,13 @@ partial class MainWindow
 		ツールToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { ウィンドウ幅のロックToolStripMenuItem, クリップボードにコピーToolStripMenuItem });
 		ツールToolStripMenuItem.ForeColor = System.Drawing.SystemColors.MenuText;
 		ツールToolStripMenuItem.Name = "ツールToolStripMenuItem";
-		ツールToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+		ツールToolStripMenuItem.Size = new System.Drawing.Size(68, 26);
 		ツールToolStripMenuItem.Text = "ツール";
 		// 
 		// ウィンドウ幅のロックToolStripMenuItem
 		// 
 		ウィンドウ幅のロックToolStripMenuItem.Name = "ウィンドウ幅のロックToolStripMenuItem";
-		ウィンドウ幅のロックToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+		ウィンドウ幅のロックToolStripMenuItem.Size = new System.Drawing.Size(272, 26);
 		ウィンドウ幅のロックToolStripMenuItem.Text = "ウィンドウ幅のロック変更";
 		ウィンドウ幅のロックToolStripMenuItem.Click += ウィンドウ幅のロック変更ToolStripMenuItem_Click;
 		// 
@@ -242,22 +244,21 @@ partial class MainWindow
 		// 
 		クリップボードにコピーToolStripMenuItem.CheckOnClick = true;
 		クリップボードにコピーToolStripMenuItem.Name = "クリップボードにコピーToolStripMenuItem";
-		クリップボードにコピーToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+		クリップボードにコピーToolStripMenuItem.Size = new System.Drawing.Size(272, 26);
 		クリップボードにコピーToolStripMenuItem.Text = "クリップボードにコピー";
-		クリップボードにコピーToolStripMenuItem.Checked = Config.CBUseClipboard;
 		クリップボードにコピーToolStripMenuItem.Click += クリップボードにコピーToolStripMenuItem_Click_1;
 		// 
 		// ヘルプHToolStripMenuItem
 		// 
 		ヘルプHToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { コンフィグCToolStripMenuItem });
 		ヘルプHToolStripMenuItem.Name = "ヘルプHToolStripMenuItem";
-		ヘルプHToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
+		ヘルプHToolStripMenuItem.Size = new System.Drawing.Size(90, 26);
 		ヘルプHToolStripMenuItem.Text = "ヘルプ(&H)";
 		// 
 		// コンフィグCToolStripMenuItem
 		// 
 		コンフィグCToolStripMenuItem.Name = "コンフィグCToolStripMenuItem";
-		コンフィグCToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+		コンフィグCToolStripMenuItem.Size = new System.Drawing.Size(142, 26);
 		コンフィグCToolStripMenuItem.Text = "設定(&C)";
 		コンフィグCToolStripMenuItem.Click += コンフィグCToolStripMenuItem_Click;
 		// 
@@ -270,7 +271,7 @@ partial class MainWindow
 		EmuVerToolStripTextBox.Margin = new System.Windows.Forms.Padding(1, 0, 3, 0);
 		EmuVerToolStripTextBox.Name = "EmuVerToolStripTextBox";
 		EmuVerToolStripTextBox.ShortcutsEnabled = false;
-		EmuVerToolStripTextBox.Size = new System.Drawing.Size(270, 20);
+		EmuVerToolStripTextBox.Size = new System.Drawing.Size(250, 26);
 		EmuVerToolStripTextBox.Text = "Emuera Ver. 0.000+v00.0";
 		EmuVerToolStripTextBox.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 		// 
@@ -278,13 +279,13 @@ partial class MainWindow
 		// 
 		LanguageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { JapaneseToolStripMenuItem });
 		LanguageToolStripMenuItem.Name = "LanguageToolStripMenuItem";
-		LanguageToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
+		LanguageToolStripMenuItem.Size = new System.Drawing.Size(75, 26);
 		LanguageToolStripMenuItem.Text = "言語 (&L)";
 		// 
 		// JapaneseToolStripMenuItem
 		// 
 		JapaneseToolStripMenuItem.Name = "JapaneseToolStripMenuItem";
-		JapaneseToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+		JapaneseToolStripMenuItem.Size = new System.Drawing.Size(137, 26);
 		JapaneseToolStripMenuItem.Text = "日本語";
 		JapaneseToolStripMenuItem.Click += JapaneseToolStripMenuItem_Click;
 		// 
@@ -319,24 +320,25 @@ partial class MainWindow
 		// 
 		// AutoVerbMenu
 		// 
+		AutoVerbMenu.ImageScalingSize = new System.Drawing.Size(20, 20);
 		AutoVerbMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { マクロToolStripMenuItem, マクログループToolStripMenuItem, toolStripSeparator1, 切り取り, コピー, 貼り付け, 削除, toolStripSeparator2, 実行 });
 		AutoVerbMenu.Name = "AutoVerbMenu";
 		AutoVerbMenu.ShowImageMargin = false;
-		AutoVerbMenu.Size = new System.Drawing.Size(136, 170);
+		AutoVerbMenu.Size = new System.Drawing.Size(170, 184);
 		AutoVerbMenu.Opened += AutoVerbMenu_Opened;
 		// 
 		// マクロToolStripMenuItem
 		// 
 		マクロToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { マクロ01ToolStripMenuItem, マクロ02ToolStripMenuItem, マクロ03ToolStripMenuItem, マクロ04ToolStripMenuItem, マクロ05ToolStripMenuItem, マクロ06ToolStripMenuItem, マクロ07ToolStripMenuItem, マクロ08ToolStripMenuItem, マクロ09ToolStripMenuItem, マクロ10ToolStripMenuItem, マクロ11ToolStripMenuItem, マクロ12ToolStripMenuItem });
 		マクロToolStripMenuItem.Name = "マクロToolStripMenuItem";
-		マクロToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+		マクロToolStripMenuItem.Size = new System.Drawing.Size(169, 24);
 		マクロToolStripMenuItem.Text = "マクロ";
 		// 
 		// マクロ01ToolStripMenuItem
 		// 
 		マクロ01ToolStripMenuItem.Name = "マクロ01ToolStripMenuItem";
 		マクロ01ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
-		マクロ01ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ01ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ01ToolStripMenuItem.Tag = "";
 		マクロ01ToolStripMenuItem.Text = "マクロ01";
 		// 
@@ -344,90 +346,90 @@ partial class MainWindow
 		// 
 		マクロ02ToolStripMenuItem.Name = "マクロ02ToolStripMenuItem";
 		マクロ02ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F2;
-		マクロ02ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ02ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ02ToolStripMenuItem.Text = "マクロ02";
 		// 
 		// マクロ03ToolStripMenuItem
 		// 
 		マクロ03ToolStripMenuItem.Name = "マクロ03ToolStripMenuItem";
 		マクロ03ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F3;
-		マクロ03ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ03ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ03ToolStripMenuItem.Text = "マクロ03";
 		// 
 		// マクロ04ToolStripMenuItem
 		// 
 		マクロ04ToolStripMenuItem.Name = "マクロ04ToolStripMenuItem";
 		マクロ04ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F4;
-		マクロ04ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ04ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ04ToolStripMenuItem.Text = "マクロ04";
 		// 
 		// マクロ05ToolStripMenuItem
 		// 
 		マクロ05ToolStripMenuItem.Name = "マクロ05ToolStripMenuItem";
 		マクロ05ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F5;
-		マクロ05ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ05ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ05ToolStripMenuItem.Text = "マクロ05";
 		// 
 		// マクロ06ToolStripMenuItem
 		// 
 		マクロ06ToolStripMenuItem.Name = "マクロ06ToolStripMenuItem";
 		マクロ06ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F6;
-		マクロ06ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ06ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ06ToolStripMenuItem.Text = "マクロ06";
 		// 
 		// マクロ07ToolStripMenuItem
 		// 
 		マクロ07ToolStripMenuItem.Name = "マクロ07ToolStripMenuItem";
 		マクロ07ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F7;
-		マクロ07ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ07ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ07ToolStripMenuItem.Text = "マクロ07";
 		// 
 		// マクロ08ToolStripMenuItem
 		// 
 		マクロ08ToolStripMenuItem.Name = "マクロ08ToolStripMenuItem";
 		マクロ08ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F8;
-		マクロ08ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ08ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ08ToolStripMenuItem.Text = "マクロ08";
 		// 
 		// マクロ09ToolStripMenuItem
 		// 
 		マクロ09ToolStripMenuItem.Name = "マクロ09ToolStripMenuItem";
 		マクロ09ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F9;
-		マクロ09ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ09ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ09ToolStripMenuItem.Text = "マクロ09";
 		// 
 		// マクロ10ToolStripMenuItem
 		// 
 		マクロ10ToolStripMenuItem.Name = "マクロ10ToolStripMenuItem";
 		マクロ10ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F10;
-		マクロ10ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ10ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ10ToolStripMenuItem.Text = "マクロ10";
 		// 
 		// マクロ11ToolStripMenuItem
 		// 
 		マクロ11ToolStripMenuItem.Name = "マクロ11ToolStripMenuItem";
 		マクロ11ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F11;
-		マクロ11ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ11ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ11ToolStripMenuItem.Text = "マクロ11";
 		// 
 		// マクロ12ToolStripMenuItem
 		// 
 		マクロ12ToolStripMenuItem.Name = "マクロ12ToolStripMenuItem";
 		マクロ12ToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F12;
-		マクロ12ToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+		マクロ12ToolStripMenuItem.Size = new System.Drawing.Size(190, 26);
 		マクロ12ToolStripMenuItem.Text = "マクロ12";
 		// 
 		// マクログループToolStripMenuItem
 		// 
 		マクログループToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { グループ0ToolStripMenuItem, グループ1ToolStripMenuItem, グループ2ToolStripMenuItem, グループ3ToolStripMenuItem, グループ4ToolStripMenuItem, グループ5ToolStripMenuItem, グループ6ToolStripMenuItem, グループ7ToolStripMenuItem, グループ8ToolStripMenuItem, グループ9ToolStripMenuItem });
 		マクログループToolStripMenuItem.Name = "マクログループToolStripMenuItem";
-		マクログループToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+		マクログループToolStripMenuItem.Size = new System.Drawing.Size(169, 24);
 		マクログループToolStripMenuItem.Text = "マクログループ";
 		// 
 		// グループ0ToolStripMenuItem
 		// 
 		グループ0ToolStripMenuItem.Name = "グループ0ToolStripMenuItem";
-		グループ0ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ0ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ0ToolStripMenuItem.Tag = "0";
 		グループ0ToolStripMenuItem.Text = "グループ0";
 		グループ0ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -435,7 +437,7 @@ partial class MainWindow
 		// グループ1ToolStripMenuItem
 		// 
 		グループ1ToolStripMenuItem.Name = "グループ1ToolStripMenuItem";
-		グループ1ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ1ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ1ToolStripMenuItem.Tag = "1";
 		グループ1ToolStripMenuItem.Text = "グループ1";
 		グループ1ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -443,7 +445,7 @@ partial class MainWindow
 		// グループ2ToolStripMenuItem
 		// 
 		グループ2ToolStripMenuItem.Name = "グループ2ToolStripMenuItem";
-		グループ2ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ2ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ2ToolStripMenuItem.Tag = "2";
 		グループ2ToolStripMenuItem.Text = "グループ2";
 		グループ2ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -451,7 +453,7 @@ partial class MainWindow
 		// グループ3ToolStripMenuItem
 		// 
 		グループ3ToolStripMenuItem.Name = "グループ3ToolStripMenuItem";
-		グループ3ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ3ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ3ToolStripMenuItem.Tag = "3";
 		グループ3ToolStripMenuItem.Text = "グループ3";
 		グループ3ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -459,7 +461,7 @@ partial class MainWindow
 		// グループ4ToolStripMenuItem
 		// 
 		グループ4ToolStripMenuItem.Name = "グループ4ToolStripMenuItem";
-		グループ4ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ4ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ4ToolStripMenuItem.Tag = "4";
 		グループ4ToolStripMenuItem.Text = "グループ4";
 		グループ4ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -467,7 +469,7 @@ partial class MainWindow
 		// グループ5ToolStripMenuItem
 		// 
 		グループ5ToolStripMenuItem.Name = "グループ5ToolStripMenuItem";
-		グループ5ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ5ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ5ToolStripMenuItem.Tag = "5";
 		グループ5ToolStripMenuItem.Text = "グループ5";
 		グループ5ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -475,7 +477,7 @@ partial class MainWindow
 		// グループ6ToolStripMenuItem
 		// 
 		グループ6ToolStripMenuItem.Name = "グループ6ToolStripMenuItem";
-		グループ6ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ6ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ6ToolStripMenuItem.Tag = "6";
 		グループ6ToolStripMenuItem.Text = "グループ6";
 		グループ6ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -483,7 +485,7 @@ partial class MainWindow
 		// グループ7ToolStripMenuItem
 		// 
 		グループ7ToolStripMenuItem.Name = "グループ7ToolStripMenuItem";
-		グループ7ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ7ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ7ToolStripMenuItem.Tag = "7";
 		グループ7ToolStripMenuItem.Text = "グループ7";
 		グループ7ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -491,7 +493,7 @@ partial class MainWindow
 		// グループ8ToolStripMenuItem
 		// 
 		グループ8ToolStripMenuItem.Name = "グループ8ToolStripMenuItem";
-		グループ8ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ8ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ8ToolStripMenuItem.Tag = "8";
 		グループ8ToolStripMenuItem.Text = "グループ8";
 		グループ8ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -499,7 +501,7 @@ partial class MainWindow
 		// グループ9ToolStripMenuItem
 		// 
 		グループ9ToolStripMenuItem.Name = "グループ9ToolStripMenuItem";
-		グループ9ToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+		グループ9ToolStripMenuItem.Size = new System.Drawing.Size(161, 26);
 		グループ9ToolStripMenuItem.Tag = "9";
 		グループ9ToolStripMenuItem.Text = "グループ9";
 		グループ9ToolStripMenuItem.Click += グループToolStripMenuItem_Click;
@@ -507,14 +509,14 @@ partial class MainWindow
 		// toolStripSeparator1
 		// 
 		toolStripSeparator1.Name = "toolStripSeparator1";
-		toolStripSeparator1.Size = new System.Drawing.Size(132, 6);
+		toolStripSeparator1.Size = new System.Drawing.Size(166, 6);
 		// 
 		// 切り取り
 		// 
 		切り取り.Enabled = false;
 		切り取り.Name = "切り取り";
 		切り取り.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X;
-		切り取り.Size = new System.Drawing.Size(135, 22);
+		切り取り.Size = new System.Drawing.Size(169, 24);
 		切り取り.Text = "切り取り";
 		切り取り.Click += 切り取り_Click;
 		// 
@@ -523,7 +525,7 @@ partial class MainWindow
 		コピー.Enabled = false;
 		コピー.Name = "コピー";
 		コピー.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C;
-		コピー.Size = new System.Drawing.Size(135, 22);
+		コピー.Size = new System.Drawing.Size(169, 24);
 		コピー.Text = "コピー";
 		コピー.Click += コピー_Click;
 		// 
@@ -532,7 +534,7 @@ partial class MainWindow
 		貼り付け.Enabled = false;
 		貼り付け.Name = "貼り付け";
 		貼り付け.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V;
-		貼り付け.Size = new System.Drawing.Size(135, 22);
+		貼り付け.Size = new System.Drawing.Size(169, 24);
 		貼り付け.Text = "貼り付け";
 		貼り付け.Click += 貼り付け_Click;
 		// 
@@ -541,20 +543,20 @@ partial class MainWindow
 		削除.Enabled = false;
 		削除.Name = "削除";
 		削除.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-		削除.Size = new System.Drawing.Size(135, 22);
+		削除.Size = new System.Drawing.Size(169, 24);
 		削除.Text = "削除";
 		削除.Click += 削除_Click;
 		// 
 		// toolStripSeparator2
 		// 
 		toolStripSeparator2.Name = "toolStripSeparator2";
-		toolStripSeparator2.Size = new System.Drawing.Size(132, 6);
+		toolStripSeparator2.Size = new System.Drawing.Size(166, 6);
 		// 
 		// 実行
 		// 
 		実行.Enabled = false;
 		実行.Name = "実行";
-		実行.Size = new System.Drawing.Size(135, 22);
+		実行.Size = new System.Drawing.Size(169, 24);
 		実行.Text = "実行";
 		実行.Click += 実行_Click;
 		// 
@@ -569,7 +571,7 @@ partial class MainWindow
 		labelMacroGroupChanged.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 		labelMacroGroupChanged.Location = new System.Drawing.Point(0, 448);
 		labelMacroGroupChanged.Name = "labelMacroGroupChanged";
-		labelMacroGroupChanged.Size = new System.Drawing.Size(40, 17);
+		labelMacroGroupChanged.Size = new System.Drawing.Size(55, 22);
 		labelMacroGroupChanged.TabIndex = 5;
 		labelMacroGroupChanged.Text = "label1";
 		labelMacroGroupChanged.Visible = false;
@@ -613,6 +615,7 @@ partial class MainWindow
 		Controls.Add(menuStrip);
 		DoubleBuffered = true;
 		ForeColor = System.Drawing.SystemColors.HighlightText;
+		Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
 		MainMenuStrip = menuStrip;
 		Name = "MainWindow";
 		SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;

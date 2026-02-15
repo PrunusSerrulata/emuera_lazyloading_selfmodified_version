@@ -6082,6 +6082,10 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int } },
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int } },
+					// 新增：支持8个参数，最后两个为 destWidth, destHeight
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int } },
+					// 10参数: 截取 + 偏移 + 缩放 (SrcRect + Pos + DestSize)
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int } },
 				];
 			CanRestructure = false;
 		}
@@ -6129,22 +6133,46 @@ internal static partial class FunctionMethodCreator
 				return 0;
 
 			Rectangle rect = new(0, 0, g.Width, g.Height);
-			if (arguments.Count == 6)
+			Point pos = new Point(0, 0);
+			Size destSize = new Size(g.Width, g.Height);
+			
+			if (arguments.Count >= 6)
 			{//四角形は正でも負でもよいが親画像の外を指してはいけない
 				rect = ReadRectangle(Name, exm, arguments, 2);
+				// 默认情况下，目标尺寸 = 源矩形尺寸
+				destSize = rect.Size;
 				#region EM_私家版_SPRITECREATE範囲制限緩和
 				//if (rect.X + rect.Width < 0 || rect.X + rect.Width > g.Width || rect.Y + rect.Height < 0 || rect.Y + rect.Height > g.Height)
 				//	throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
-
 				if (!rect.IntersectsWith(new Rectangle(0, 0, g.Width, g.Height)))
 					// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
 					throw new CodeEE(string.Format(trerror.ImgRefOutOfRange.Text, Name));
 				#endregion
 			}
-			AppContents.CreateSpriteG(imgname, g, rect);
+			// 处理偏移坐标 (PosX, PosY) - 参数索引 6, 7
+			if (arguments.Count >= 8)
+			{
+				int px = (int)arguments[6].GetIntValue(exm);
+				int py = (int)arguments[7].GetIntValue(exm);
+				pos = new Point(px, py);
+			}
+
+			// 处理目标尺寸 (DestW, DestH) - 参数索引 8, 9
+			if (arguments.Count == 10)
+			{
+				int dw = (int)arguments[8].GetIntValue(exm);
+				int dh = (int)arguments[9].GetIntValue(exm);
+				// 保持正数（虽然负数在某些绘图逻辑里可能意味着翻转，但在 Emuera CSV 解析里通常取绝对值或报错，这里做个绝对值处理比较安全）
+				if (dw < 0) dw = -dw;
+				if (dh < 0) dh = -dh;
+				destSize = new Size(dw, dh);
+			}
+			// 调用更新后的 CreateSpriteG
+			AppContents.CreateSpriteG(imgname, g, rect, pos, destSize);
 			return 1;
 		}
 	}
+
 
 	public sealed class SpriteDisposeMethod : FunctionMethod
 	{
@@ -7246,12 +7274,34 @@ internal static partial class FunctionMethodCreator
 			if (arguments.Count == 1 || arguments[1].GetIntValue(exm) == 0)
 			{
 				FunctionLabelLine func;
+				string searchKey = Config.StringComparison == StringComparison.OrdinalIgnoreCase ? functionname.ToUpper(CultureInfo.InvariantCulture) : functionname;
 				if (Config.StringComparison == StringComparison.OrdinalIgnoreCase)
 					func = GlobalStatic.LabelDictionary.GetNonEventLabel(functionname.ToUpper(CultureInfo.InvariantCulture));
 				else
 					func = GlobalStatic.LabelDictionary.GetNonEventLabel(functionname);
 				if (func == null)
+				{
+					// 调用公开方法 TryLazyLoadErb
+					// 这个方法会：
+					// a. 检查 private LazyLoadingTable
+					// b. 如果找到，加载文件并注册到 LabelDictionary
+					// c. 返回 true (找到) 或 false (没找到)
+					bool existsInLazyTable = GlobalStatic.Process.TryLazyLoadErb(searchKey);
+					if (existsInLazyTable)
+					{
+						func = GlobalStatic.LabelDictionary.GetNonEventLabel(searchKey);
+						if (func.IsMethod)
+						{
+							if (func.MethodType == typeof(string))
+								return 3;
+							else if (func.MethodType == typeof(long))
+								return 2;
+
+						}
+						return 1; 
+					}
 					return 0;
+				}
 				if (func.IsMethod)
 				{
 					if (func.MethodType == typeof(string))

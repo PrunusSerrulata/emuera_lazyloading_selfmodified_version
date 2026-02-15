@@ -80,13 +80,21 @@ static class AppContents
 		}
 	}
 
-	static public void CreateSpriteG(string imgName, GraphicsImage parent, Rectangle rect)
+	static public void CreateSpriteG(string imgName, GraphicsImage parent, Rectangle rect, Point pos, Size destSize)
 	{
 		if (string.IsNullOrEmpty(imgName))
 			throw new ArgumentOutOfRangeException();
-		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
-		SpriteG newCImg = new(imgName, parent, rect);
+		imgName = imgName.ToUpper();
+		// 调用新的 SpriteG 构造函数
+		SpriteG newCImg = new(imgName, parent, rect, pos, destSize);
 		imageDictionary[imgName] = newCImg;
+	}
+
+	// 兼容旧代码的重载（如果项目其他地方只传了3个参数）
+	static public void CreateSpriteG(string imgName, GraphicsImage parent, Rectangle rect)
+	{
+		// 默认 Pos=(0,0), DestSize=Rect.Size
+		CreateSpriteG(imgName, parent, rect, Point.Empty, rect.Size);
 	}
 
 	internal static void CreateSpriteAnime(string imgName, int w, int h)

@@ -1781,7 +1781,7 @@ internal sealed class ConstantData
 			aliases[targetIndex] = [];
 		}
 		Dictionary<string, int> target = aliases[targetIndex];
-		HashSet<int> defined = [];
+		// HashSet<int> defined = []; // 不再检查 ID 是否重复
 		EraStreamReader eReader = new(false);
 		if (!eReader.Open(aliasPath) && output != null)
 		{
@@ -1806,9 +1806,18 @@ internal sealed class ConstantData
 					ParserMediator.Warn(trerror.FirstValueCanNotConvertToInt.Text, position, 1);
 					continue;
 				}
-				if (!defined.Add(index))
-					ParserMediator.Warn(string.Format(trerror.VarKeyAreadyDefined.Text, index.ToString()), position, 1);
-				target.Add(tokens[1], index);
+
+				// 这里不再检查 ID (index) 是否重复
+				// 而是检查 名字 (tokens[1]) 是否重复
+				string aliasName = tokens[1].Trim();
+				if (target.ContainsKey(aliasName))
+				{
+					// 如果名字重复了（比如定义了两次"ムード"），报个警告并跳过，防止崩溃
+					ParserMediator.Warn(string.Format("别名\"{0}\"已被定义", aliasName), position, 1);
+					continue;
+				}
+				// 【直接添加】允许不同的名字对应同一个 index
+				target.Add(aliasName, index);
 			}
 		}
 		catch
@@ -1824,8 +1833,6 @@ internal sealed class ConstantData
 		{
 			eReader.Close();
 		}
-
-
 	}
 }
 
