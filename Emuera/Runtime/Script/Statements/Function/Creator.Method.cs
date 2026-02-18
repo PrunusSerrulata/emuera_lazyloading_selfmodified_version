@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Parser;
@@ -23,7 +23,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
-
+// using MinorShift.Emuera.GameProc.Function;
 namespace MinorShift.Emuera.GameData.Function;
 
 internal static partial class FunctionMethodCreator
@@ -7715,5 +7715,282 @@ internal static partial class FunctionMethodCreator
 		}
 
 	}
-		#endregion
+	#endregion 
+
+	#region 尊尼获加荣誉出品
+	private sealed class GetSoundOrBgmInfoMethod : FunctionMethod
+	{
+		public GetSoundOrBgmInfoMethod()
+		{
+			ReturnType = typeof(long); 
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = { ArgType.Int, ArgType.Int }, OmitStart = 1 },
+				];
+			CanRestructure = false;
+		}    
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			int channelId = (int)arguments[0].GetIntValue(exm);
+			
+			// 获取目标 Sound 对象
+			Sound targetSound = null;
+			if (channelId == -1)
+			{
+				targetSound = GlobalStatic.Bgm;
+			}
+			else if (channelId >= 0 && channelId < GlobalStatic.Sound.Length)
+			{
+				if (GlobalStatic.Sound[channelId] == null)
+					GlobalStatic.Sound[channelId] = new Sound();
+				targetSound = GlobalStatic.Sound[channelId];
+			}
+
+			if (targetSound == null) return 0;
+
+			// 如果省略了第二个参数，则返回所有值到 RESULT_ARRAY
+			if (arguments.Count < 2 || arguments[1] == null)
+			{
+				// RESULT:0 = 总长度 (毫秒)
+				exm.VEvaluator.RESULT_ARRAY[0] = (long)(targetSound.GetTotalTime() * 1000);
+				// RESULT:1 = 当前时间 (毫秒)
+				exm.VEvaluator.RESULT_ARRAY[1] = (long)(targetSound.GetCurrentTime() * 1000);
+				// RESULT:2 = 播放状态 (0=已暂停, 1=播放中)
+				exm.VEvaluator.RESULT_ARRAY[2] = targetSound.isPlaying() ? 1L : 0L;
+				// RESULT:3 = 通道音量 (0-100)
+				exm.VEvaluator.RESULT_ARRAY[3] = targetSound.getVolume();
+				// RESULT:4 = 播放速度 (百分比，100为正常速度)
+				exm.VEvaluator.RESULT_ARRAY[4] = (long)(targetSound.getSpeed() * 100);
+				
+				// 返回总长度作为函数返回值
+				return exm.VEvaluator.RESULT_ARRAY[0];
+			}
+			else
+			{
+				// 根据第二个参数返回特定值
+				int infoType = (int)arguments[1].GetIntValue(exm);
+				switch (infoType)
+				{
+					case 1: // 总长度 (毫秒)
+						return (long)(targetSound.GetTotalTime() * 1000);
+					case 2: // 当前时间 (毫秒)
+						return (long)(targetSound.GetCurrentTime() * 1000);
+					case 3: // 播放状态 (0=已暂停, 1=播放中)
+						return targetSound.isPlaying() ? 1L : 0L;
+					case 4: // 通道音量 (0-100)
+						return targetSound.getVolume();
+					case 5: // 播放速度 (百分比，100为正常速度)
+						return (long)(targetSound.getSpeed() * 100);
+					default:
+						return 0;
+				}
+			}
+		}
 	}
+
+	private sealed class IsPlayingSoundMethod : FunctionMethod
+	{
+		public IsPlayingSoundMethod()
+		{
+			ReturnType = typeof(long); 
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = { ArgType.Int }, OmitStart = 0 },
+				];
+			CanRestructure = false;
+		}	
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			// 从 arguments 列表中获取参数
+			int channelId = (int)arguments[0].GetIntValue(exm);
+			// 检查通道索引是否有效
+			if (channelId < 0 || channelId >= GlobalStatic.Sound.Length)
+			{
+				return -1;
+			}
+			if (arguments[0] == null)
+			{
+			    for (int i = channelId ; channelId < GlobalStatic.Sound.Length; i++)
+			    {
+			        if (GlobalStatic.Sound[i] != null && GlobalStatic.Sound[i].isPlaying())
+			        {
+			            return i;
+			        }
+			    }
+				return -1;
+			}
+			else
+			{
+				// 检查通道是否存在且正在播放
+				if (GlobalStatic.Sound[channelId] != null && GlobalStatic.Sound[channelId].isPlaying())
+				{
+					return channelId;
+				}
+				else
+				{
+					return -1;
+				}
+			}
+		}
+	}
+	private sealed class SoundControlMethod : FunctionMethod
+	{
+		public SoundControlMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = {ArgType.Int , ArgType.Int } },
+					new ArgTypeList { ArgTypes = {ArgType.Int , ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			// 获取第一个参数：音频通道号
+			int channelId = (int)arguments[0].GetIntValue(exm);
+			// 获取第二个参数：控制行为 (0=暂停, 1=恢复, 2=变速)
+			int action = (int)arguments[1].GetIntValue(exm);
+			
+			// 检查通道号是否有效
+			if (channelId < 0 || channelId >= GlobalStatic.Sound.Length)
+			{
+				return -1; // 无效通道号
+			}
+			
+			// 确保通道已初始化
+			if (GlobalStatic.Sound[channelId] == null)
+			{
+				GlobalStatic.Sound[channelId] = new Sound();
+			}
+			
+			// 根据控制行为执行相应操作
+			if (arguments.Count == 2)
+			{
+				switch (action)
+				{
+					case 0: // 暂停
+						GlobalStatic.Sound[channelId].pause();
+						return 1;
+						
+					case 1: // 恢复播放
+						GlobalStatic.Sound[channelId].resume();
+						return 1;
+					default: // 无效的控制行为
+						return -2;
+				}
+			}
+			else
+			{
+				switch(action)
+				{
+					case 2: // 变速
+						// 获取第三个参数：变速倍率
+						// 修改：使用GetIntValue获取整数值，然后转换为float
+						float speed = (float)arguments[2].GetIntValue(exm) / 100.0f;
+						// 获取第四个参数：是否保持音调 (0=改变音调, 1=保持音调)
+						// 如果没有提供第四个参数，默认保持音调不变
+						bool preservePitch = true;
+						// 存在第四个不为0的参数，音调改变
+						if (arguments.Count >= 4 && arguments[3] != null)
+						{
+							preservePitch = false;
+						}
+						// 设置音调保持模式
+						GlobalStatic.Sound[channelId].SetPreservePitch(preservePitch);
+						// 调用Sound类的setSpeed方法
+						GlobalStatic.Sound[channelId].setSpeed(speed);
+						return 1;
+						
+					default:
+						return -2; // 无效的控制行为
+				}
+			}
+		}
+	}
+	private sealed class IsPlayingBgmMethod : FunctionMethod
+	{
+		public IsPlayingBgmMethod()
+		{
+			ReturnType = typeof(long); 
+			argumentTypeArray = [];
+			CanRestructure = false;
+		}	
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			// 检查通道是否存在且正在播放
+			if (GlobalStatic.Bgm != null && GlobalStatic.Bgm.isPlaying())
+			{
+				return 1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	}
+	private sealed class BgmControlMethod : FunctionMethod
+	{
+		public BgmControlMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = {ArgType.Int } },
+					new ArgTypeList { ArgTypes = {ArgType.Int , ArgType.Int, ArgType.Int }, OmitStart = 2 },
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			// 获取第一个参数：控制行为 (0=暂停, 1=恢复, 2=变速)
+			int action = (int)arguments[0].GetIntValue(exm);
+			// 确保通道已初始化
+			if (GlobalStatic.Bgm == null)
+			{
+				GlobalStatic.Bgm = new Sound();
+			}
+			
+			// 根据控制行为执行相应操作
+			if (arguments.Count == 1)
+			{
+				switch (action)
+				{
+					case 0: // 暂停
+						GlobalStatic.Bgm.pause();
+						return 1;
+						
+					case 1: // 恢复播放
+						GlobalStatic.Bgm.resume();
+						return 1;
+						
+					default:
+						return -2; // 无效的控制行为
+				}
+			}
+			else
+			{
+			    switch (action)
+			    {
+			        case 2: // 变速
+						// 获取第三个参数：变速倍率
+						// 修改：使用GetIntValue获取整数值，然后转换为float
+						float speed = (float)arguments[2].GetIntValue(exm) / 100.0f;
+						// 获取第四个参数：是否保持音调 (0=改变音调, 1=保持音调)
+						// 如果没有提供第四个参数，默认保持音调不变
+						bool preservePitch = true;
+						// 存在第四个不为0的参数，音调改变
+						if (arguments.Count >= 4 && arguments[3] != null)
+						{
+							preservePitch = false;
+						}
+						// 设置音调保持模式
+						GlobalStatic.Bgm.SetPreservePitch(preservePitch);
+						// 调用Sound类的setSpeed方法
+						GlobalStatic.Bgm.setSpeed(speed);
+						return 1;
+						
+					default:
+						return -2; // 无效的控制行为
+				}
+			}
+		}
+	}
+	#endregion
+}

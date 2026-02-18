@@ -2686,8 +2686,8 @@ internal sealed partial class FunctionIdentifier
 	}
 	//ここからEnter版
 	#region EE
-	public static Sound[] sound = new Sound[10];
-	public static Sound bgm = new();
+	// public static Sound[] sound = new Sound[10];
+	// public static Sound bgm = new();
 	private sealed class PLAYSOUND_Instruction : AInstruction
 	{
 
@@ -2711,19 +2711,19 @@ internal sealed partial class FunctionIdentifier
 				if (File.Exists(filepath))
 				{
 					int i;
-					for (i = 0; i < sound.Length; i++)
+					for (i = 0; i < GlobalStatic.Sound.Length; i++)
 					{
-						if (sound[i] == null)
-							sound[i] = new Sound();
+						if (GlobalStatic.Sound[i] == null)
+							GlobalStatic.Sound[i] = new Sound();
 						//未使用もしくは再生完了してる要素を使う
-						if (!sound[i].isPlaying())
+						if (!GlobalStatic.Sound[i].isPlaying())
 							break;
 					}
 					// if no available sounds were found use sound 0
-					if (i >= sound.Length)
+					if (i >= GlobalStatic.Sound.Length)
 						i = 0;
 
-					sound[i].play(filepath, repeat);
+					GlobalStatic.Sound[i].play(filepath, repeat);
 				}
 			}
 			catch
@@ -2742,12 +2742,12 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			for (int i = 0; i < sound.Length; i++)
+			for (int i = 0; i < GlobalStatic.Sound.Length; i++)
 			{
-				if (sound[i] == null)
-					sound[i] = new Sound();
-				if (sound[i].isPlaying())
-					sound[i].stop();
+				if (GlobalStatic.Sound[i] == null)
+					GlobalStatic.Sound[i] = new Sound();
+				if (GlobalStatic.Sound[i].isPlaying())
+					GlobalStatic.Sound[i].stop();
 			}
 		}
 	}
@@ -2773,7 +2773,7 @@ internal sealed partial class FunctionIdentifier
 			try
 			{
 				if (File.Exists(filepath))
-					bgm.play(filepath, -1); // -1 means repeat indefinitely
+					GlobalStatic.Bgm.play(filepath, -1); // -1 means repeat indefinitely
 			}
 			catch
 			{
@@ -2791,7 +2791,7 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			bgm.stop();
+			GlobalStatic.Bgm.stop();
 		}
 	}
 
@@ -2806,11 +2806,11 @@ internal sealed partial class FunctionIdentifier
 		{
 			ExpressionArgument intExpArg = (ExpressionArgument)func.Argument;
 			int vol = (int)intExpArg.Term.GetIntValue(exm);
-			for (int i = 0; i < sound.Length; i++)
+			for (int i = 0; i < GlobalStatic.Sound.Length; i++)
 			{
-				if (sound[i] == null)
-					sound[i] = new Sound();
-				sound[i].setVolume(vol);
+				if (GlobalStatic.Sound[i] == null)
+					GlobalStatic.Sound[i] = new Sound();
+				GlobalStatic.Sound[i].setVolume(vol);
 			}
 		}
 	}
@@ -2825,7 +2825,7 @@ internal sealed partial class FunctionIdentifier
 		{
 			ExpressionArgument intExpArg = (ExpressionArgument)func.Argument;
 			int vol = (int)intExpArg.Term.GetIntValue(exm);
-			bgm.setVolume(vol);
+			GlobalStatic.Bgm.setVolume(vol);
 		}
 	}
 

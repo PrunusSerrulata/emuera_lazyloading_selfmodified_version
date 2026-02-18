@@ -47,8 +47,8 @@ Global
 		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release|x64.Build.0 = Release|x64
 		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release|x86.ActiveCfg = Release|x86
 		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release|x86.Build.0 = Release|x86
-		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release-NAudio|x64.ActiveCfg = Release-NAudio|x64
-		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release-NAudio|x64.Build.0 = Release-NAudio|x64
+		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release-NAudio|x64.ActiveCfg = Release|x64
+		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release-NAudio|x64.Build.0 = Release|x64
 		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release-NAudio|x86.ActiveCfg = Release-NAudio|x86
 		{15231603-A955-4AD7-8102-7F9C1B1BA3A3}.Release-NAudio|x86.Build.0 = Release-NAudio|x86
 	EndGlobalSection

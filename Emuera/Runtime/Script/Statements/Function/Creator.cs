@@ -349,6 +349,14 @@ internal static partial class FunctionMethodCreator
 			//HOTKEY STATE
 			["HOTKEY_STATE"] = new HotkeyStateMethod(),
 			["HOTKEY_STATE_INIT"] = new HotkeyStateInitMethod(),
+
+			#region 尊尼获加荣誉出品
+			["GETSOUNDORBGMINFO"] = new GetSoundOrBgmInfoMethod(),
+			["ISPLAYINGSOUND"] = new IsPlayingSoundMethod(),
+			["SOUNDCONTROL"] = new SoundControlMethod(),
+			["ISPLAYINGBGM"] = new IsPlayingBgmMethod(),
+			["BGMCONTROL"] = new BgmControlMethod(),
+			#endregion
 		};
 
 

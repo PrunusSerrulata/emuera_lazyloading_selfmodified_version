@@ -53,6 +53,10 @@ internal static class GlobalStatic
 #if DEBUG
 	public static List<FunctionLabelLine> StackList = [];
 #endif
+	#region 尊尼获加荣誉出品
+	public static Sound[] Sound = new Sound[10];
+	public static Sound Bgm = new();
+	#endregion
 	public static void Reset()
 	{
 		Process = null;
@@ -66,5 +70,23 @@ internal static class GlobalStatic
 		LabelDictionary = null;
 		IdentifierDictionary = null;
 		tempDic.Clear();
+		if (Sound != null)
+		{
+			for (int i = 0; i < Sound.Length; i++)
+			{
+				if (Sound[i] != null)
+				{
+					Sound[i].stop(); // 确保调用 stop 释放资源
+					Sound[i] = null; // 清空引用
+				}
+			}
+		}
+
+		// 清理 BGM
+		if (Bgm != null)
+		{
+			Bgm.stop();
+			Bgm = null;
+		}
 	}
 }

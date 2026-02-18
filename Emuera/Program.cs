@@ -141,11 +141,11 @@ static partial class Program
 		ConfigData.Instance.LoadConfig();
 		JSONConfig.Load();
 
-		//WMPも終了しておく
-		FunctionIdentifier.bgm.close();
-		for (int i = 0; i < FunctionIdentifier.sound.Length; i++)
+		//Naudioも終了しておく
+		GlobalStatic.Bgm.close();
+		for (int i = 0; i < GlobalStatic.Sound.Length; i++)
 		{
-			if (FunctionIdentifier.sound[i] != null) FunctionIdentifier.sound[i].close();
+			if (GlobalStatic.Sound[i] != null) GlobalStatic.Sound[i].close();
 		}
 
 		#region EM_私家版_Emuera多言語化改造

@@ -7,7 +7,7 @@ using NAudio.CoreAudioApi;
 using NAudio.Extras;
 using NAudio.Vorbis;
 using NAudio.CoreAudioApi.Interfaces;
-
+using VarispeedDemo.SoundTouch;
 namespace MinorShift.Emuera.Runtime.Utils
 {
 	internal class AudioDeviceTracker : IMMNotificationClient
@@ -336,11 +336,42 @@ namespace MinorShift.Emuera.Runtime.Utils
 	internal class Sound : ISampleProvider
 	{
 		private float volume = 1.0f;
-
-		private WaveStream stream;
+		private bool paused = false;  // 新增：暂停状态标志
+		private long savedPosition = 0; // 新增：保存暂停时的位置
+		private VarispeedSampleProvider varispeedProvider; // 新增：用于控制播放速度的 VarispeedSampleProvider
+		private bool preservePitch = true; // 新增：默认保持音调不变
+		private WaveStream stream; // 确保这个字段保留对原始流的引用
 		private VolumeSampleProvider volumeProvider;
 		public volatile bool Playing = false;
 		public WaveFormat WaveFormat { get => volumeProvider.WaveFormat; }
+	
+		// 新增：获取当前播放时间（秒）
+		public double GetCurrentTime()
+		{
+			if (stream == null || volumeProvider == null) return 0;
+			
+			// 注意：这里读取的是原始流的位置。
+			// 如果使用了 WdlResamplingSampleProvider，原始流的位置和实际播放位置会有偏差（重采样导致采样点数变化）。
+			// 但对于简单的进度显示，这通常是可以接受的近似值。
+			
+			// 计算公式：字节位置 / (采样率 * 声道数 * 每个采样的字节数)
+			// 假设最终输出是 IEEE Float (32bit)，即 4 字节
+			long bytesPerSecond = stream.WaveFormat.SampleRate * stream.WaveFormat.Channels * 4;
+			if (bytesPerSecond == 0) return 0;
+			
+			return (double)stream.Position / bytesPerSecond;
+		}
+
+		// 新增：获取音频总长度（秒）
+		public double GetTotalTime()
+		{
+			if (stream == null || volumeProvider == null) return 0;
+			
+			long bytesPerSecond = stream.WaveFormat.SampleRate * stream.WaveFormat.Channels * 4;
+			if (bytesPerSecond == 0) return 0;
+			
+			return (double)stream.Length / bytesPerSecond;
+		}
 
 		public int Read(float[] buffer, int offset, int count)
 		{
@@ -382,22 +413,57 @@ namespace MinorShift.Emuera.Runtime.Utils
 			// volumeProvider = new VolumeSampleProvider(resampler.ToSampleProvider());
 
 			ISampleProvider sampleProvider = _stream.ToSampleProvider();
+			// 1. 先进行重采样
 			if (sampleProvider.WaveFormat.SampleRate != SoundMixer.SampleRate)
 				sampleProvider = new WdlResamplingSampleProvider(sampleProvider, SoundMixer.SampleRate);
+			// 2. 单声道转立体声
 			if (sampleProvider.WaveFormat.Channels == 1)
 				sampleProvider = sampleProvider.ToStereo();
-			volumeProvider = new VolumeSampleProvider(sampleProvider);
-
+			// 3. 添加变速处理（在重采样之后）
+			varispeedProvider = new VarispeedSampleProvider(sampleProvider, 100, 
+				new SoundTouchProfile(preservePitch, true)); // 使用可配置的 preservePitch，默认为 true，使用抗锯齿
+			// 4. 最后添加音量控制
+			volumeProvider = new VolumeSampleProvider(varispeedProvider);
 			volumeProvider.Volume = volume;
 
 			SoundMixer.PlaySound(this);
 		}
-
+		// 新增：暂停方法
+		public void pause()
+		{
+			if (!SoundMixer.Initialized || !Playing)
+				return;
+				 // 保存当前流位置
+			if (stream != null)
+				savedPosition = stream.Position;
+			
+    		// 清除 SoundTouch 缓冲区
+			if (varispeedProvider != null)
+				varispeedProvider.Reposition(); // 保存当前播放位置
+			paused = true;
+			SoundMixer.StopSound(this);  // 从混音器中移除
+		}
+		// 新增：恢复方法
+		public void resume()
+		{
+			if (!SoundMixer.Initialized || !paused)
+				return;
+			
+			paused = false;
+			// 恢复位置
+			if (stream != null && savedPosition > 0)
+			{
+				stream.Position = savedPosition;
+			}
+			SoundMixer.PlaySound(this);  // 重新添加到混音器
+		}
 		public void stop()
 		{
 			if (SoundMixer.Initialized)
-				SoundMixer.StopSound(this);
-
+			{
+			    SoundMixer.StopSound(this);
+			}
+			paused = false;  // 重置暂停状态
 			// don't try to reuse the stream because repositioning a MediaFoundationReader to the beginning sometimes causes WasapiOut to hang when the stream is next read (observed with a 48khz 24 bit FLAC file)
 			if (stream != null)
 			{
@@ -414,7 +480,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 
 		public bool isPlaying()
 		{
-			return Playing;
+			return Playing && !paused;
 		}
 
 		public void setVolume(int volume)
@@ -422,6 +488,91 @@ namespace MinorShift.Emuera.Runtime.Utils
 			this.volume = Math.Clamp(volume, 0, 100) / 100.0f;
 			if (volumeProvider != null)
 				volumeProvider.Volume = this.volume;
+		}
+		public int getVolume()
+		{
+			return (int)(volume * 100);
+		}
+		// 添加变速方法
+		public void setSpeed(float speed)
+		{
+			if (varispeedProvider != null)
+			{
+				// 限制变速范围在 0.1x 到 10x 之间
+				float clampedSpeed = Math.Clamp(speed, 0.1f, 10.0f);
+				varispeedProvider.PlaybackRate = clampedSpeed;
+			}
+		}
+
+		public double getSpeed()
+		{
+			return varispeedProvider?.PlaybackRate ?? 1.0;
+		}
+		/// <summary>
+		/// 跳转到指定时间位置（秒）
+		/// </summary>
+		public void Seek(double timeInSeconds)
+		{
+			if (stream == null || volumeProvider == null)
+				return;
+			
+			// 计算目标字节位置
+			long bytesPerSecond = stream.WaveFormat.SampleRate * stream.WaveFormat.Channels * 4;
+			long targetPosition = (long)(timeInSeconds * bytesPerSecond);
+			
+			// 确保位置在有效范围内
+			targetPosition = Math.Clamp(targetPosition, 0, stream.Length);
+			
+			// 设置流位置
+			stream.Position = targetPosition;
+			
+			// 清除 SoundTouch 缓冲区
+			if (varispeedProvider != null)
+				varispeedProvider.Reposition();
+		}
+		/// <summary>
+		/// 相对当前位置跳转（秒）
+		/// </summary>
+		public void SeekRelative(double offsetInSeconds)
+		{
+			if (stream == null || volumeProvider == null)
+				return;
+			
+			// 计算当前时间
+			double currentTime = GetCurrentTime();
+			
+			// 计算目标时间
+			double targetTime = currentTime + offsetInSeconds;
+			
+			// 调用绝对跳转
+			Seek(targetTime);
+		}
+		/// <summary>
+		/// 跳转到指定百分比位置（0.0-1.0）
+		/// </summary>
+		public void SeekPercentage(double percentage)
+		{
+			if (stream == null || volumeProvider == null)
+				return;
+			
+			// 确保百分比在有效范围内
+			percentage = Math.Clamp(percentage, 0.0, 1.0);
+			
+			// 计算目标时间
+			double totalTime = GetTotalTime();
+			double targetTime = totalTime * percentage;
+			
+			// 调用绝对跳转
+			Seek(targetTime);
+		}
+		// 添加设置音调保持的方法
+		public void SetPreservePitch(bool preserve)
+		{
+			preservePitch = preserve;
+			if (varispeedProvider != null)
+			{
+				varispeedProvider.SetSoundTouchProfile(new SoundTouchProfile(preserve, true));
+			}
 		}
 	}
 }
