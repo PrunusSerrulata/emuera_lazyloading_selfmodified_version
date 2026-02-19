@@ -7869,9 +7869,11 @@ internal static partial class FunctionMethodCreator
 					case 0: // 暂停
 						GlobalStatic.Sound[channelId].pause();
 						return 1;
-						
 					case 1: // 恢复播放
 						GlobalStatic.Sound[channelId].resume();
+						return 1;
+					case 2: // 停止播放
+						GlobalStatic.Sound[channelId].stop();
 						return 1;
 					default: // 无效的控制行为
 						return -2;
@@ -7881,7 +7883,7 @@ internal static partial class FunctionMethodCreator
 			{
 				switch(action)
 				{
-					case 2: // 变速
+					case 3: // 变速
 						// 获取第三个参数：变速倍率
 						// 修改：使用GetIntValue获取整数值，然后转换为float
 						float speed = (float)arguments[2].GetIntValue(exm) / 100.0f;
@@ -7959,7 +7961,9 @@ internal static partial class FunctionMethodCreator
 					case 1: // 恢复播放
 						GlobalStatic.Bgm.resume();
 						return 1;
-						
+					case 2: // 停止播放
+						GlobalStatic.Bgm.stop();
+						return 1;
 					default:
 						return -2; // 无效的控制行为
 				}
@@ -7968,7 +7972,7 @@ internal static partial class FunctionMethodCreator
 			{
 			    switch (action)
 			    {
-			        case 2: // 变速
+			        case 3: // 变速
 						// 获取第三个参数：变速倍率
 						// 修改：使用GetIntValue获取整数值，然后转换为float
 						float speed = (float)arguments[2].GetIntValue(exm) / 100.0f;
