@@ -7941,7 +7941,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			// 获取第一个参数：控制行为 (0=暂停, 1=恢复, 2=变速)
+			// 获取第一个参数：控制行为 (0=暂停, 1=恢复, 2=停止, 3=变速)
 			int action = (int)arguments[0].GetIntValue(exm);
 			// 确保通道已初始化
 			if (GlobalStatic.Bgm == null)
@@ -7950,7 +7950,7 @@ internal static partial class FunctionMethodCreator
 			}
 			
 			// 根据控制行为执行相应操作
-			if (arguments.Count == 1)
+			if (arguments.Count == 0)
 			{
 				switch (action)
 				{
@@ -7975,12 +7975,12 @@ internal static partial class FunctionMethodCreator
 			        case 3: // 变速
 						// 获取第三个参数：变速倍率
 						// 修改：使用GetIntValue获取整数值，然后转换为float
-						float speed = (float)arguments[2].GetIntValue(exm) / 100.0f;
+						float speed = (float)arguments[1].GetIntValue(exm) / 100.0f;
 						// 获取第四个参数：是否保持音调 (0=改变音调, 1=保持音调)
 						// 如果没有提供第四个参数，默认保持音调不变
 						bool preservePitch = true;
 						// 存在第四个不为0的参数，音调改变
-						if (arguments.Count >= 4 && arguments[3] != null)
+						if (arguments.Count >= 3 && arguments[2] != null)
 						{
 							preservePitch = false;
 						}
