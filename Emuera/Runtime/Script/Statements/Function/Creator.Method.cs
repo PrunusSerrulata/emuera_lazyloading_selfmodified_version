@@ -7891,7 +7891,7 @@ internal static partial class FunctionMethodCreator
 						// 如果没有提供第四个参数，默认保持音调不变
 						bool preservePitch = true;
 						// 存在第四个不为0的参数，音调改变
-						if (arguments.Count >= 4 && arguments[3] != null)
+						if (arguments.Count >= 4 && arguments[3].GetIntValue(exm) != 0)
 						{
 							preservePitch = false;
 						}
@@ -7950,7 +7950,7 @@ internal static partial class FunctionMethodCreator
 			}
 			
 			// 根据控制行为执行相应操作
-			if (arguments.Count == 0)
+			if (arguments.Count == 1)
 			{
 				switch (action)
 				{
@@ -7973,14 +7973,14 @@ internal static partial class FunctionMethodCreator
 			    switch (action)
 			    {
 			        case 3: // 变速
-						// 获取第三个参数：变速倍率
+						// 获取第二个参数：变速倍率
 						// 修改：使用GetIntValue获取整数值，然后转换为float
 						float speed = (float)arguments[1].GetIntValue(exm) / 100.0f;
-						// 获取第四个参数：是否保持音调 (0=改变音调, 1=保持音调)
-						// 如果没有提供第四个参数，默认保持音调不变
+						// 获取第三个参数：是否保持音调 (0=改变音调, 1=保持音调)
+						// 如果没有提供第三个参数，默认保持音调不变
 						bool preservePitch = true;
-						// 存在第四个不为0的参数，音调改变
-						if (arguments.Count >= 3 && arguments[2] != null)
+						// 存在第三个不为0的参数，音调改变
+						if (arguments.Count >= 3 && arguments[2].GetIntValue(exm) != 0)
 						{
 							preservePitch = false;
 						}
