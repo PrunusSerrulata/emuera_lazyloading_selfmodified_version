@@ -14,6 +14,7 @@
     <tr id="UI.MainWindow.File.ReloadFolder"><![CDATA[重新载入文件夹(&F)]]></tr>
     <tr id="UI.MainWindow.File.ReloadScriptFile"><![CDATA[重新载入脚本文件(&A)]]></tr>
     <tr id="UI.MainWindow.File.Exit"><![CDATA[退出(&X)]]></tr>
+	<tr id="UI.MainWindow.File.ReloadResource"><![CDATA[重新载入Resource文件夹(&R)]]></tr>
     <tr id="UI.MainWindow.Debug"><![CDATA[调试(&D)]]></tr>
     <tr id="UI.MainWindow.Debug.OpenDebugWindow"><![CDATA[打开调试窗口]]></tr>
     <tr id="UI.MainWindow.Debug.UpdateDebugInfo"><![CDATA[更新调试信息]]></tr>
@@ -100,11 +101,12 @@
     <tr id="UI.ConfigDialog.System.SystemFuncOverrideWarn"><![CDATA[系统函数被覆盖时发出警告]]></tr>
     <tr id="UI.ConfigDialog.System.DuplicateFuncWarn"><![CDATA[定义了多个同名的非事件函数时发出警告]]></tr>
     <tr id="UI.ConfigDialog.System.WSIncludesFullWidth"><![CDATA[全角空格视为普通空格]]></tr>
-    <tr id="UI.ConfigDialog.System.ANSI"><![CDATA[程序的非Unicode的言]]></tr>
+    <tr id="UI.ConfigDialog.System.ANSI"><![CDATA[读取非UTF-8文件时的默认编码]]></tr>
     <tr id="UI.ConfigDialog.System2"><![CDATA[系统2]]></tr>
     <tr id="UI.ConfigDialog.System2.IgnoreTripleSymbol"><![CDATA[不展开FORM中的三联符号]]></tr>
     <tr id="UI.ConfigDialog.System2.SaveInBinary"><![CDATA[存档以二进制的形式保存]]></tr>
     <tr id="UI.ConfigDialog.System2.SaveInUTF8"><![CDATA[存档以UTF-8的形式保存(仅非二进制时)]]></tr>
+    <tr id="UI.ConfigDialog.System2.FilesInUTF8"><![CDATA[存档以UTF-8的形式保存]]></tr>
     <tr id="UI.ConfigDialog.System2.CompressSave"><![CDATA[存档以压缩的形式保存(仅二进制时)]]></tr>
     <tr id="UI.ConfigDialog.System2.NoAutoCompleteCVar"><![CDATA[不自动补完角色变量的参数]]></tr>
     <tr id="UI.ConfigDialog.System2.DisallowUpdateCheck"><![CDATA[禁止UPDATECHECK]]></tr>
@@ -130,6 +132,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="UI.ConfigDialog.Debug"><![CDATA[解析调试]]></tr>
     <tr id="UI.ConfigDialog.Debug.CompatibilityWarn"><![CDATA[与eramaker不兼容时发出警告]]></tr>
     <tr id="UI.ConfigDialog.Debug.LoadingReport"><![CDATA[读取脚本时显示报告]]></tr>
+    <tr id="UI.ConfigDialog.Debug.CheckDuplicateIdentifier"><![CDATA[检查局域变量与ERD标识符的命名冲突]]></tr>
     <tr id="UI.ConfigDialog.Debug.IgnoreUnusedFuncs"><![CDATA[忽略没有被调用的函数]]></tr>
     <tr id="UI.ConfigDialog.Debug.FuncNotFoundWarn"><![CDATA[找不到函数时的警告处理]]></tr>
     <tr id="UI.ConfigDialog.Debug.UnusedFuncWarn"><![CDATA[函数没有被调用时的警告处理]]></tr>
@@ -211,8 +214,8 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.CannotGetKeyNotExistRunningFunction"><![CDATA[不存在执行中的函数，因此无法获取或更改"{0}"]]></tr>
     <tr id="Error.UsedAtForGlobalVar"><![CDATA[对非本地变量的{0}使用了@符号]]></tr>
     <tr id="Error.InvalidAt"><![CDATA[@符号的非法用法]]></tr>
-    <tr id="Error.CallfNonMethodFunc"><![CDATA[对为被标记为#FUNCTION的函数"@{0}"使用了CALLF系列的命令进行调用]]></tr>
-    <tr id="Error.UsedNonMethodFunc"><![CDATA[对为被标记为#FUNCTION的函数({0}:第{1}行)进行了行内函数形式的调用]]></tr>
+    <tr id="Error.CallfNonMethodFunc"><![CDATA[对未被标记为#FUNCTION的函数"@{0}"使用了CALLF系列的命令进行调用]]></tr>
+    <tr id="Error.UsedNonMethodFunc"><![CDATA[对未被标记为#FUNCTION的函数({0}:第{1}行)进行了行内函数形式的调用]]></tr>
     <tr id="Error.DeclaringDisable"><![CDATA[{0}已被标记为#DISABLE]]></tr>
     <tr id="Error.VarNotDefinedThisFunc"><![CDATA[变量"{0}"未在此函数中定义]]></tr>
     <tr id="Error.IllegalUseReservedWord"><![CDATA[非法使用了Emuera的保留字"{0}"]]></tr>
@@ -953,7 +956,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="MessageBox.FolderCreationFailure"><![CDATA[创建文件夹失败]]></tr>
     <tr id="MessageBox.FailedCreateSavFolder"><![CDATA[创建sav文件夹失败]]></tr>
     <tr id="MessageBox.SavFolderCreated"><![CDATA[已创建sav文件夹
-讲现在的数据移动到sav文件夹中吗？]]></tr>
+将现在的数据移动到sav文件夹中吗？]]></tr>
     <tr id="MessageBox.DataTransfer"><![CDATA[数据移动]]></tr>
     <tr id="MessageBox.MissingSavFolder"><![CDATA[创建了sav文件夹但没有找到
 将其删除吗？]]></tr>
@@ -1037,5 +1040,5 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="SystemLine.ReloadingErb"><![CDATA[重新载入ERB文件中……]]></tr>
     <tr id="SystemLine.ReloadCompleted"><![CDATA[重新载入完毕]]></tr>
     <tr id="SystemLine.LogFileHasBeenCreated"><![CDATA[※※※已创建Log文件{0}※※※]]></tr>
-    <tr id="SystemLine.MinusWontWork"><![CDATA[对整型最小值({0})进行-操作其值也不对发生变化]]></tr>
+    <tr id="SystemLine.MinusWontWork"><![CDATA[对整型最小值({0})进行-操作其值也不会发生变化]]></tr>
 </lang>
