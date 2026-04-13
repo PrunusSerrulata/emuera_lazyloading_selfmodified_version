@@ -105,6 +105,7 @@ namespace MinorShift.Emuera.Forms
 			checkBox7.Text = Lang.UI.ConfigDialog.Environment.AutoSave.Text;
 			checkBox24.Text = Lang.UI.ConfigDialog.Environment.UseSaveFolder.Text;
 			checkBox33.Text = Lang.UI.ConfigDialog.Environment.EnglishConfigOutput.Text;
+			checkBox27.Text = Lang.UI.ConfigDialog.Environment.UseCtrlZUndo.Text;
 			label6.Text = Lang.UI.ConfigDialog.Environment.MaxLog.Text;
 			label17.Text = Lang.UI.ConfigDialog.Environment.InfiniteLoopAlertTime.Text;
 			label20.Text = Lang.UI.ConfigDialog.Environment.SaveDataPerPage.Text;
@@ -166,6 +167,7 @@ namespace MinorShift.Emuera.Forms
 			checkBox31.Text = Lang.UI.ConfigDialog.System2.UseERD.Text;
 			checkBox34.Text = Lang.UI.ConfigDialog.System2.VarsizeDimConfig.Text;
 			label25.Text = Lang.UI.ConfigDialog.System2.SaveLoadExt.Text;
+			label35.Text = Lang.UI.ConfigDialog.System2.LineJoinNewlineReplace.Text;
 
 			tabPageCompati.Text = Lang.UI.ConfigDialog.Compatibility.Text;
 			label30.Text = Lang.UI.ConfigDialog.Compatibility.Warning.Text;
