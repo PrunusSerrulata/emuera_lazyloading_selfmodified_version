@@ -1,8 +1,17 @@
 2026年4月13日
 新增命令：CALLSTR, JUMPSTR, TRYCALLSTR, TRYJUMPSTR, TRYCCALLSTR, TRYCJUMPSTR
+见下文。
 
-API
-Erb
+修复 XML_ADDNODE 在匹配多个节点时只插入最后一次的 Bug
+	在 .NET 的 XmlDocument 体系中，一个 XmlNode 实例只能拥有一个父节点。在旧代码中，当 `doSetAll` 为真且匹配到多个目标节点时，循环使用的是同一个 newChild 实例。这导致该节点在 DOM 树中不断被移动，最终只有最后一个目标节点成功添加了该子节点/属性。
+	修复：
+	引入了本地函数 `GetNewChild()`。
+	- 对于节点 (Node) 操作，使用 `doc.ImportNode(sourceNodeForCopy, true)` 每次生成一个带有正确 OwnerDocument 的深拷贝克隆节点。
+	- 对于属性 (Attribute) 操作，每次循环都调用 `doc.CreateAttribute` 创建全新的属性实例。
+	确保在批量插入时，每个目标节点都能获得独立的子节点/属性对象。
+修复遗漏的本地化条目
+
+CALLSTR, JUMPSTR, TRYCALLSTR, TRYJUMPSTR, TRYCCALLSTR, TRYCJUMPSTR
 命令名称	参数	        返回值
 CALLSTR	        stringVariable	无
 JUMPSTR	        stringVariable	无
@@ -37,20 +46,20 @@ Example
 MAIN.ERB
 
 @SYSTEM_TITLE
-    #DIMS DYNAMIC COMMAND
-    ; 动态构造调用字符串
-    COMMAND '= "TEST_FUNC" + "(100, 200)"
-    CALLSTR COMMAND
-    
-    ; 直接传递包含参数的字符串
-    LOCALS = SHOW_STATUS, 1, "READY"
-    TRYCALLSTR LOCALS
+	#DIMS DYNAMIC COMMAND
+	; 动态构造调用字符串
+	COMMAND '= "TEST_FUNC" + "(100, 200)"
+	CALLSTR COMMAND
+	
+	; 直接传递包含参数的字符串
+	LOCALS = SHOW_STATUS, 1, "READY"
+	TRYCALLSTR LOCALS
 
 @TEST_FUNC(ARG:0, ARG:1)
-    PRINTFORML 接收到的参数为: {ARG:0} 和 {ARG:1}
+	PRINTFORML 接收到的参数为: {ARG:0} 和 {ARG:1}
 
 @SHOW_STATUS(ARG, ARGS)
-    PRINTFORML ID:{ARG} 模式:%ARGS%
+	PRINTFORML ID:{ARG} 模式:%ARGS%
 
 Result
 接收到的参数为: 100 和 200
@@ -220,7 +229,7 @@ SOUNDCONTROL(新增):
 控制SOUND通道的音频播放情况
 
 输入：  ① int, int
-        ② int, int, int, int（可省略）
+		② int, int, int, int（可省略）
 返回：int
 注释：
 
@@ -258,7 +267,7 @@ BGMCONTROL(新增)：
 控制BGM通道的音频播放情况
 
 输入：  ① int
-        ② int, int, int（可省略）
+		② int, int, int（可省略）
 返回：int
 注释：
 

@@ -908,9 +908,15 @@ internal static partial class FunctionMethodCreator
 	private sealed class XmlAddNodeMethod : FunctionMethod
 	{
 		public enum Operation { Node, Attribute };
+		private Operation op;
+		private bool byName;
+
 		public XmlAddNodeMethod(Operation op)
 		{
 			ReturnType = typeof(long);
+			this.op = op;
+			CanRestructure = false;
+
 			if (op == Operation.Node)
 				argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 3 },
@@ -921,9 +927,8 @@ internal static partial class FunctionMethodCreator
 						new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 3 },
 						new ArgTypeList{ ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 3 }
 					];
-			CanRestructure = false;
-			this.op = op;
 		}
+
 		public XmlAddNodeMethod(Operation op, bool byname) : this(op)
 		{
 			byName = byname;
@@ -936,50 +941,75 @@ internal static partial class FunctionMethodCreator
 						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 3 },
 					];
 		}
-		private bool byName;
-		Operation op;
-		bool Insert(XmlNode node, XmlNode child, int method)
+
+		bool Insert(XmlNode targetNode, XmlNode newChild, int method)
 		{
 			if (op == Operation.Node)
 			{
 				switch (method)
 				{
-					case 0: node.AppendChild(child); break;
-					case 1:
-						if (node.ParentNode == null) return false;
-						node.ParentNode.InsertBefore(child, node);
+					case 0: // Append
+						targetNode.AppendChild(newChild); 
 						break;
-					case 2:
-						if (node.ParentNode == null) return false;
-						node.ParentNode.InsertAfter(child, node);
+					case 1: // InsertBefore
+						if (targetNode.ParentNode == null) return false;
+						targetNode.ParentNode.InsertBefore(newChild, targetNode);
 						break;
+					case 2: // InsertAfter
+						if (targetNode.ParentNode == null) return false;
+						targetNode.ParentNode.InsertAfter(newChild, targetNode);
+						break;
+					default: return false;
 				}
 				return true;
 			}
-			else
+			else // Operation.Attribute
 			{
-				if (child is XmlAttribute newAttr)
+				if (newChild is XmlAttribute newAttr)
 				{
-					XmlAttribute attr;
-					if (method > 0 && !(node is XmlAttribute)) return false;
-					attr = method == 0 ? null : node as XmlAttribute;
+					// 如果 method > 0，目标必须是属性节点，因为要插在属性前后
+					if (method > 0 && !(targetNode is XmlAttribute)) return false;
+					
 					switch (method)
 					{
-						case 0: node.Attributes.Append(newAttr); break;
-						case 1: attr.OwnerElement.Attributes.InsertBefore(newAttr, attr); break;
-						case 2: attr.OwnerElement.Attributes.InsertAfter(newAttr, attr); break;
+						case 0: // Append to Element
+							if (targetNode is XmlElement elem)
+								elem.Attributes.Append(newAttr);
+							else
+								return false; // 无法给非Element节点追加属性
+							break;
+						case 1: // InsertBefore Attribute
+							if (targetNode is XmlAttribute attrBefore)
+								attrBefore.OwnerElement.Attributes.InsertBefore(newAttr, attrBefore);
+							break;
+						case 2: // InsertAfter Attribute
+							if (targetNode is XmlAttribute attrAfter)
+								attrAfter.OwnerElement.Attributes.InsertAfter(newAttr, attrAfter);
+							break;
+						default: return false;
 					}
 					return true;
 				}
 			}
 			return false;
 		}
+
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			XmlDocument doc;
+			
+			// 1. 解析参数位置
+			// Node模式: XML, XPath, NewNodeXml, Method, SetAll
+			// Attr模式: XML, XPath, Name, Value, Method, SetAll
 			int methodPos = op == Operation.Node ? 4 : 5;
+			int setAllPos = op == Operation.Node ? 5 : 6;
+
 			int method = arguments.Count >= methodPos ? (int)arguments[methodPos - 1].GetIntValue(exm) : 0;
 			if (method > 2 || method < 0) method = 0;
+			
+			bool setAllNodes = arguments.Count == setAllPos ? arguments[setAllPos - 1].GetIntValue(exm) != 0 : false;
+
+			// 2. 加载 XML 文档
 			bool saveToArg0 = true;
 			if (arguments[0].GetOperandType() == typeof(long) || (byName && arguments[0].GetOperandType() == typeof(string)))
 			{
@@ -991,18 +1021,19 @@ internal static partial class FunctionMethodCreator
 			}
 			else
 			{
-				string xml = arguments[0].GetStrValue(exm);
+				string xmlStr = arguments[0].GetStrValue(exm);
 				doc = new XmlDocument();
 				try
 				{
-					doc.LoadXml(xml);
+					doc.LoadXml(xmlStr);
 				}
 				catch (XmlException e)
 				{
-					throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message));
+					throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xmlStr, e.Message));
 				}
 			}
 
+			// 3. 搜索目标节点
 			string path = arguments[1].GetStrValue(exm);
 			XmlNodeList nodes;
 			try
@@ -1013,50 +1044,83 @@ internal static partial class FunctionMethodCreator
 			{
 				throw new CodeEE(string.Format(trerror.XmlXPathParseError.Text, Name, path, e.Message));
 			}
+
+			// 4. 执行添加逻辑
 			if (nodes.Count > 0)
 			{
-				int setAllPos = op == Operation.Node ? 5 : 6;
-				bool setAllNodes = arguments.Count == setAllPos ? arguments[setAllPos - 1].GetIntValue(exm) != 0 : false;
-				XmlNode child;
+				// 4.1 准备源数据（避免在循环中重复解析字符串）
+				XmlNode sourceNodeForCopy = null; // 用于 Node 模式
+				string attrName = null;           // 用于 Attribute 模式
+				string attrValue = null;          // 用于 Attribute 模式
+
 				if (op == Operation.Node)
 				{
-					var childNode = new XmlDocument();
-					var xml = arguments[2].GetStrValue(exm);
+					var childNodeDoc = new XmlDocument();
+					var xmlContent = arguments[2].GetStrValue(exm);
 					try
 					{
-						childNode.LoadXml(xml);
+						childNodeDoc.LoadXml(xmlContent);
 					}
 					catch (XmlException e)
 					{
-						throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xml, e.Message));
+						throw new CodeEE(string.Format(trerror.XmlParseError.Text, Name, xmlContent, e.Message));
 					}
-					var newNode = childNode.DocumentElement;
-					child = doc.CreateNode(newNode.NodeType, newNode.Name, newNode.NamespaceURI);
-					for (int i = 0; i < newNode.Attributes.Count; i++)
-					{
-						var xattr = newNode.Attributes[i];
-						var attr = doc.CreateAttribute(xattr.Name);
-						attr.Value = xattr.Value;
-						child.Attributes.Append(attr);
-					}
-					child.InnerXml = newNode.InnerXml;
+					sourceNodeForCopy = childNodeDoc.DocumentElement;
 				}
 				else
 				{
-					child = doc.CreateAttribute(arguments[2].GetStrValue(exm));
-					if (arguments.Count >= 4) child.Value = arguments[3].GetStrValue(exm);
+					attrName = arguments[2].GetStrValue(exm);
+					if (arguments.Count >= 4) attrValue = arguments[3].GetStrValue(exm);
 				}
-				if (nodes.Count != 1)
+
+				// 定义一个本地函数来获取新的子节点副本
+				// 核心修复点：每次调用都生成一个新的 XmlNode/XmlAttribute 对象
+				XmlNode GetNewChild()
 				{
-					if (setAllNodes)
-						for (int i = 0; i < nodes.Count; i++) Insert(nodes[i], child, method);
+					if (op == Operation.Node)
+					{
+						// ImportNode(..., true) 会深拷贝并正确处理 OwnerDocument
+						return doc.ImportNode(sourceNodeForCopy, true);
+					}
+					else
+					{
+						var attr = doc.CreateAttribute(attrName);
+						if (attrValue != null) attr.Value = attrValue;
+						return attr;
+					}
 				}
-				else if (!Insert(nodes[0], child, method) && method > 0) return 0;
+
+				// 4.2 循环或单次执行
+				if (nodes.Count == 1)
+				{
+					// 单个节点，直接执行
+					// 如果 method > 0 但插入失败（例如试图给 Attribute 插入子节点），返回 0
+					if (!Insert(nodes[0], GetNewChild(), method) && method > 0) return 0;
+				}
+				else
+				{
+					// 多个节点
+					if (setAllNodes)
+					{
+						// 核心修复点：循环调用 GetNewChild()，保证每个目标节点都得到一个独立的新对象
+						for (int i = 0; i < nodes.Count; i++)
+						{
+							Insert(nodes[i], GetNewChild(), method);
+						}
+					}
+					else
+					{
+						// setAllNodes 为 0 且匹配多个时，什么都不做（符合文档描述）
+					}
+				}
+
+				// 5. 如果是字符串模式，回写结果
 				if (saveToArg0)
 				{
 					(arguments[0] as VariableTerm).SetValue(doc.OuterXml, exm);
 				}
 			}
+
 			return nodes.Count;
 		}
 	}
