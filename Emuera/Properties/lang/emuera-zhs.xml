@@ -1080,17 +1080,17 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
 	<tr id="SystemLine.CreateFromCSV"><![CDATA[从文件「{0}」生成拼接图索引「{1}」……]]></tr>
 	<tr id="SystemLine.Variant"><![CDATA[# 变体]]></tr>
 	<tr id="SystemLine.NotDefinedGameBase"><![CDATA[未定义GameBase]]></tr>
-	<tr id="SystemLine.LazyLoadingNoConfigFile"><![CDATA[懒加载配置文件未找到，因此跳过表格构建]]></tr>
+	<tr id="SystemLine.LazyLoadingNoConfigFile"><![CDATA[懒加载配置文件未找到，因此跳过索引表构建]]></tr>
 	<tr id="SystemLine.LazyLoadingConfigError"><![CDATA[懒加载配置文件读取失败。消息：{0}]]></tr>
-	<tr id="SystemLine.LazyLoadingTableReadError"><![CDATA[懒加载表格读取失败。消息：{0}]]></tr>
+	<tr id="SystemLine.LazyLoadingTableReadError"><![CDATA[懒加载索引表读取失败。消息：{0}]]></tr>
 	<tr id="SystemLine.LazyLoadingNoValidFiles"><![CDATA[没有可用于懒加载的有效文件。]]></tr>
-	<tr id="SystemLine.LazyLoadingTableCount"><![CDATA[已记录 {0} 个文件到懒加载表格中]]></tr>
-	<tr id="SystemLine.LazyLoadingNoTable"><![CDATA[未找到懒加载表格文件，将在全部文件加载完成后重新生成]]></tr>
+	<tr id="SystemLine.LazyLoadingTableCount"><![CDATA[已记录 {0} 个文件到懒加载索引表中]]></tr>
+	<tr id="SystemLine.LazyLoadingNoTable"><![CDATA[未找到懒加载索引表文件，将在全部文件加载完成后重新生成]]></tr>
 	<tr id="SystemLine.LazyLoadingFileFunctionExcluded"><![CDATA[文件：{0} 的函数：{1} 已声明 #FUNCTION，因此该文件不参与懒加载]]></tr>
 	<tr id="SystemLine.LazyLoadingFileEventExcluded"><![CDATA[文件：{0} 中定义了事件函数：{1}，因此该文件不参与懒加载]]></tr>
-	<tr id="SystemLine.LazyLoadingTableCreationSuccess"><![CDATA[懒加载表格创建成功]]></tr>
-	<tr id="SystemLine.LazyLoadingCreationError"><![CDATA[懒加载表格创建失败]]></tr>
-	<tr id="SystemLine.LazyLoadingTableSaveError"><![CDATA[懒加载表格文件保存失败。消息：{0}]]></tr>
+	<tr id="SystemLine.LazyLoadingTableCreationSuccess"><![CDATA[懒加载索引表创建成功]]></tr>
+	<tr id="SystemLine.LazyLoadingCreationError"><![CDATA[懒加载索引表创建失败]]></tr>
+	<tr id="SystemLine.LazyLoadingTableSaveError"><![CDATA[懒加载索引表文件保存失败。消息：{0}]]></tr>
 	<tr id="SystemLine.LazyLoadingTime"><![CDATA[文件读取完成。耗时：{0:0.00} 秒]]></tr>
 	<tr id="SystemLine.LazyLoadingContinue"><![CDATA[按 Enter 键或点击鼠标继续]]></tr>
 	<tr id="SystemLine.LazyLoadingErbFileNotFound"><![CDATA[函数：{0} 所属的 ERB 文件懒加载失败]]></tr>
@@ -1100,7 +1100,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
 	<tr id="SystemLine.LazyLoadingDebugScriptTime"><![CDATA[checkScript() 处理完成。耗时：{0}ms]]></tr>
 	<tr id="SystemLine.LazyLoadingFilesModified"><![CDATA[已修改的文件：]]></tr>
 	<tr id="SystemLine.LazyLoadingFilesDeleted"><![CDATA[已删除的文件：]]></tr>
-	<tr id="SystemLine.LazyLoadingTableUpdated"><![CDATA[已更新 LazyLoading 表格]]></tr>
+	<tr id="SystemLine.LazyLoadingTableUpdated"><![CDATA[已更新 LazyLoading 索引表]]></tr>
 	<tr id="SystemLine.FontNotFound"><![CDATA[字体 "{0}" 未找到，正在使用后备字体]]></tr>
 
 	<!-- ========================================== -->
