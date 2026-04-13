@@ -1155,6 +1155,8 @@ internal sealed class ErbLoader
 				case FunctionCode.TRYCGOTOFORM:
 				case FunctionCode.TRYCJUMPFORM:
 				case FunctionCode.TRYCCALLFORM:
+				case FunctionCode.TRYCJUMPSTR:
+				case FunctionCode.TRYCCALLSTR:
 				case FunctionCode.DO:
 					nestStack.Push(func);
 					break;
@@ -1317,7 +1319,9 @@ internal sealed class ErbLoader
 						&& pairLine.FunctionCode != FunctionCode.TRYCJUMP
 						&& pairLine.FunctionCode != FunctionCode.TRYCGOTOFORM
 						&& pairLine.FunctionCode != FunctionCode.TRYCCALLFORM
-						&& pairLine.FunctionCode != FunctionCode.TRYCJUMPFORM)
+						&& pairLine.FunctionCode != FunctionCode.TRYCJUMPFORM
+						&& pairLine.FunctionCode != FunctionCode.TRYCJUMPSTR
+						&& pairLine.FunctionCode != FunctionCode.TRYCCALLSTR)
 					{
 						ParserMediator.Warn(trerror.MissingTryc.Text, func, 2, true, false);
 						break;

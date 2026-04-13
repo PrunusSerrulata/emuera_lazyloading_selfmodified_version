@@ -348,6 +348,12 @@ internal sealed partial class FunctionIdentifier
 		addFunction(FunctionCode.TRYCCALL, new CALL_Instruction(false, false, true, true), EXTENDED);
 		addFunction(FunctionCode.TRYCJUMPFORM, new CALL_Instruction(true, true, true, true), EXTENDED);
 		addFunction(FunctionCode.TRYCCALLFORM, new CALL_Instruction(true, false, true, true), EXTENDED);
+		addFunction(FunctionCode.JUMPSTR, new CALLS_Instruction(true, false, false));
+		addFunction(FunctionCode.CALLSTR, new CALLS_Instruction(false, false, false));
+		addFunction(FunctionCode.TRYJUMPSTR, new CALLS_Instruction(true, true, false), EXTENDED);
+		addFunction(FunctionCode.TRYCALLSTR, new CALLS_Instruction(false, true, false), EXTENDED);
+		addFunction(FunctionCode.TRYCJUMPSTR, new CALLS_Instruction(true, true, true), EXTENDED);
+		addFunction(FunctionCode.TRYCCALLSTR, new CALLS_Instruction(false, true, true), EXTENDED);
 		addFunction(FunctionCode.CALLEVENT, new CALLEVENT_Instruction());
 		addFunction(FunctionCode.CALLF, new CALLF_Instruction(false));
 		addFunction(FunctionCode.CALLFORMF, new CALLF_Instruction(true));
@@ -468,6 +474,8 @@ internal sealed partial class FunctionIdentifier
 		funcMatch[FunctionCode.TRYCGOTOFORM] = "CATCH";
 		funcMatch[FunctionCode.TRYCJUMPFORM] = "CATCH";
 		funcMatch[FunctionCode.TRYCCALLFORM] = "CATCH";
+		funcMatch[FunctionCode.TRYCJUMPSTR] = "CATCH";
+		funcMatch[FunctionCode.TRYCCALLSTR] = "CATCH";
 		funcMatch[FunctionCode.CATCH] = "ENDCATCH";
 		funcMatch[FunctionCode.DO] = "LOOP";
 		funcMatch[FunctionCode.PRINTDATA] = "ENDDATA";

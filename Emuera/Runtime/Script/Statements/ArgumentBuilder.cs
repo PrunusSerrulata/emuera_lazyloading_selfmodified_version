@@ -183,6 +183,7 @@ internal static partial class ArgumentParser
 		argb[FunctionArgType.INT_EXPRESSION_NULLABLE] = new INT_EXPRESSION_ArgumentBuilder(true);
 		argb[FunctionArgType.STR_EXPRESSION] = new STR_EXPRESSION_ArgumentBuilder(false);
 		argb[FunctionArgType.STR_EXPRESSION_NULLABLE] = new STR_EXPRESSION_ArgumentBuilder(true);
+		argb[FunctionArgType.SP_CALLS] = new STR_EXPRESSION_ArgumentBuilder(false);
 		argb[FunctionArgType.STR] = new STR_ArgumentBuilder(false);
 		argb[FunctionArgType.STR_NULLABLE] = new STR_ArgumentBuilder(true);
 		argb[FunctionArgType.FORM_STR] = new FORM_STR_ArgumentBuilder(false);
