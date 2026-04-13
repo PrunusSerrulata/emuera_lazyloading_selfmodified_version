@@ -3699,6 +3699,124 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
+	private sealed class CALLS_Instruction : AInstruction
+	{
+		public CALLS_Instruction(bool isJump, bool isTry, bool isTryCatch)
+		{
+			// 使用 STR_EXPRESSION 确保解析器将其作为一个字符串表达式来处理
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.STR_EXPRESSION);
+			
+			flag = FLOW_CONTROL | FORCE_SETARG;
+			if (isJump) flag |= IS_JUMP;
+			if (isTry) flag |= IS_TRY;
+			if (isTryCatch) flag |= IS_TRYC | PARTIAL;
+			this.isJump = isJump;
+			this.isTry = isTry;
+		}
+
+		readonly bool isJump;
+		readonly bool isTry;
+
+		public override void SetJumpTo(ref bool useCallForm, InstructionLine func, int currentDepth, ref string FunctionoNotFoundName)
+		{
+			useCallForm = true;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			// 1. 获取运行时字符串
+			// 修复 GetStrValue 找不到的问题：需要判断是否是常量，或者转换为 ExpressionArgument
+			string scriptLine;
+			if (func.Argument.IsConst)
+				scriptLine = func.Argument.ConstStr;
+			else
+				scriptLine = ((ExpressionArgument)func.Argument).Term.GetStrValue(exm);
+
+			if (string.IsNullOrWhiteSpace(scriptLine)) return;
+
+			// 2. 构造流 (CharStream)
+			CharStream st = new CharStream(scriptLine);
+
+			// 3. 仿照 SP_CALL: 先读取函数名
+			string labelNameRaw = LexicalAnalyzer.ReadString(st, StrEndWith.LeftParenthesis_Bracket_Comma_Semicolon);
+			string labelName = labelNameRaw.Trim();
+
+			// 4. 偷看下一个字符，决定解析策略
+			char cur = st.Current;
+
+			// 5. 对剩余部分进行词法分析
+			WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+			
+			if (!wc.EOL) 
+			{
+				wc.ShiftNext();
+			}
+
+			List<AExpression> parsedArgs = null;
+
+			// 6. 核心分支：括号 vs 逗号
+			try 
+			{
+				if (cur == '(')
+				{
+					parsedArgs = ExpressionParser.ReduceArguments(wc, ArgsEndWith.RightParenthesis, false);
+				}
+				else 
+				{
+					parsedArgs = ExpressionParser.ReduceArguments(wc, ArgsEndWith.EoL, false);
+				}
+			}
+			catch (EmueraException e)
+			{
+				if (!isTry) throw e;
+				if (func.JumpToEndCatch != null) state.JumpTo(func.JumpToEndCatch);
+				return;
+			}
+
+			// ==========================================================
+			// 7. 获取目标函数
+			// ==========================================================
+			CalledFunction call = CalledFunction.CallFunction(GlobalStatic.Process, labelName, func);
+
+			if (call == null)
+			{
+				// 使用 Emuera 内置的本地化错误文本替代硬编码中文
+				if (!isTry) throw new CodeEE(string.Format(trerror.NotDefinedFunc.Text, labelName));
+				if (func.JumpToEndCatch != null) state.JumpTo(func.JumpToEndCatch);
+				return;
+			}
+
+			call.IsJump = isJump;
+
+			// ==========================================================
+			// 8. 转换参数 (修复 IOperandTerm 丢失的问题)
+			// ==========================================================
+			// 确保 realArgs 是一个 List<AExpression>
+			List<AExpression> realArgs = parsedArgs != null ? parsedArgs : new List<AExpression>();
+			for (int i = 0; i < realArgs.Count; i++)
+			{
+				if (realArgs[i] != null)
+				{
+					realArgs[i] = realArgs[i].Restructure(exm);
+				}
+			}
+
+			string errMes;
+			// 传入 List<AExpression>
+			UserDefinedFunctionArgument arg = call.ConvertArg(realArgs, out errMes);
+			
+			if (arg == null)
+			{
+				if (!isTry) throw new CodeEE(errMes);
+				if (func.JumpToEndCatch != null) state.JumpTo(func.JumpToEndCatch);
+				return;
+			}
+
+			// 9. 进入函数
+			state.IntoFunction(call, arg, exm);
+		}
+	}
+
 	private sealed class CALLEVENT_Instruction : AInstruction
 	{
 		public CALLEVENT_Instruction()
