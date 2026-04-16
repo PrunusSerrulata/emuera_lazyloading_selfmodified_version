@@ -1,6 +1,12 @@
+2026年4月16日
+新增命令：EVAL/EVALS，动态求值，动态解析表达式函数语句
+见手册
+
+修复比较运算符GreaterEqualStrStr 和 LessEqualStrStr 类在字符串上的错误逻辑
+
 2026年4月13日
-新增命令：CALLSTR, JUMPSTR, TRYCALLSTR, TRYJUMPSTR, TRYCCALLSTR, TRYCJUMPSTR
-见下文。
+新增命令：CALLSTR, JUMPSTR, TRYCALLSTR, TRYJUMPSTR, TRYCCALLSTR, TRYCJUMPSTR，动态执行命令式函数语句
+见手册
 
 修复 XML_ADDNODE 在匹配多个节点时只插入最后一次的 Bug
 	在 .NET 的 XmlDocument 体系中，一个 XmlNode 实例只能拥有一个父节点。在旧代码中，当 `doSetAll` 为真且匹配到多个目标节点时，循环使用的是同一个 newChild 实例。这导致该节点在 DOM 树中不断被移动，最终只有最后一个目标节点成功添加了该子节点/属性。
@@ -11,59 +17,6 @@
 	确保在批量插入时，每个目标节点都能获得独立的子节点/属性对象。
 修复遗漏的本地化条目
 
-CALLSTR, JUMPSTR, TRYCALLSTR, TRYJUMPSTR, TRYCCALLSTR, TRYCJUMPSTR
-命令名称	参数	        返回值
-CALLSTR	        stringVariable	无
-JUMPSTR	        stringVariable	无
-TRYCALLSTR	stringVariable	无
-TRYJUMPSTR	stringVariable	无
-TRYCCALLSTR	stringVariable	无
-TRYCJUMPSTR	stringVariable	无
-
-API
-Erb
-CALLSTR stringVariable
-JUMPSTR stringVariable
-TRYCALLSTR stringVariable
-TRYJUMPSTR stringVariable
-TRYCCALLSTR stringVariable
-TRYCJUMPSTR stringVariable
-与 CALL、JUMP 及其 TRY 系统类似，但允许通过一个字符串表达式来指定完整的函数调用行（包括函数名和参数）。
-与 CALLFORM 的区别在于：CALLFORM 的参数结构在编译时必须固定，而 CALLSTR 系列是在运行时解析整个字符串。这意味着可以动态地改变传递给函数的参数数量或类型。
-该命令支持以下两种解析格式：
-函数式写法："FUNC_NAME(ARG1, ARG2)"
-逗号分隔写法："FUNC_NAME, ARG1, ARG2"
-详细说明：
-TRYCALLSTR / TRYJUMPSTR：如果字符串中指定的函数名不存在，程序不会报错，而是直接跳过执行。
-TRYCCALLSTR / TRYCJUMPSTR：属于 TRYC 系统，如果指定的函数存在则执行；如果不存在，则执行随后的 CATCH 分句。
-参数解析：字符串内的参数会根据当前的执行上下文进行解析。例如，如果字符串为 "MY_FUNC(LOCAL)"，则在执行时会读取当前函数内 LOCAL 变量的值。
-Hint
-仅作为语句（Statement）使用。
-由于该命令涉及运行时的词法分析与语法解析，其执行效率略低于静态的 CALL 或 CALLFORM。在对性能要求极高的超大型循环中应谨慎使用。
-字符串内的语法错误（如括号不匹配）将在运行时触发 CodeEE 报错。
-接受INPUTS系指令的RESULTS作为参数时需要注意，由控制台输入的部分字符需要'\'转义，这就包括小括号。
-Example
-MAIN.ERB
-
-@SYSTEM_TITLE
-	#DIMS DYNAMIC COMMAND
-	; 动态构造调用字符串
-	COMMAND '= "TEST_FUNC" + "(100, 200)"
-	CALLSTR COMMAND
-	
-	; 直接传递包含参数的字符串
-	LOCALS = SHOW_STATUS, 1, "READY"
-	TRYCALLSTR LOCALS
-
-@TEST_FUNC(ARG:0, ARG:1)
-	PRINTFORML 接收到的参数为: {ARG:0} 和 {ARG:1}
-
-@SHOW_STATUS(ARG, ARGS)
-	PRINTFORML ID:{ARG} 模式:%ARGS%
-
-Result
-接收到的参数为: 100 和 200
-ID:1 模式:READY
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 2025年12月29日
