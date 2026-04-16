@@ -356,6 +356,8 @@ internal static partial class FunctionMethodCreator
 			["SOUNDCONTROL"] = new SoundControlMethod(),
 			["ISPLAYINGBGM"] = new IsPlayingBgmMethod(),
 			["BGMCONTROL"] = new BgmControlMethod(),
+			["EVAL"] = new EvalMethod(),
+			["EVALS"] = new EvalSMethod(),
 			#endregion
 		};
 

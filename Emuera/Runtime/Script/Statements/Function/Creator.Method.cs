@@ -8060,5 +8060,99 @@ internal static partial class FunctionMethodCreator
 			}
 		}
 	}
+
+	/// <summary>
+	/// int EVAL(string expression, int defaultValue = 0)
+	/// 将字符串作为 ERB 整数表达式进行动态求值。如果解析或执行失败，返回默认值。
+	/// </summary>
+	private sealed class EvalMethod : FunctionMethod
+	{
+		public EvalMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
+			];
+			CanRestructure = false; // 运行时动态解析，绝对不能在编译期 Restructure
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string expressionStr = arguments[0].GetStrValue(exm);
+			// 获取第二个参数作为默认值，如果省略则默认为 0
+			long defaultValue = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetIntValue(exm) : 0;
+
+			if (string.IsNullOrWhiteSpace(expressionStr))
+				return defaultValue;
+
+			try
+			{
+				CharStream st = new CharStream(expressionStr);
+				WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+				AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
+
+				if (term == null) return defaultValue;
+
+				// 绑定当前上下文 (极其重要，解析 LOCAL 等变量)
+				term = term.Restructure(exm);
+
+				if (term.IsInteger)
+					return term.GetIntValue(exm);
+				else
+					return defaultValue; // 类型不匹配，返回默认值
+			}
+			catch (EmueraException)
+			{
+				// 捕获所有解析或运行时错误（如变量不存在、语法错误等），安全返回默认值
+				return defaultValue;
+			}
+		}
+	}
+
+	/// <summary>
+	/// string EVALS(string expression, string defaultValue = "")
+	/// 将字符串作为 ERB 字符串表达式进行动态求值。如果解析或执行失败，返回默认值。
+	/// </summary>
+	private sealed class EvalSMethod : FunctionMethod
+	{
+		public EvalSMethod()
+		{
+			ReturnType = typeof(string);
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String }, OmitStart = 1 },
+			];
+			CanRestructure = false;
+		}
+
+		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string expressionStr = arguments[0].GetStrValue(exm);
+			// 获取第二个参数作为默认值，如果省略则默认为空字符串
+			string defaultValue = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetStrValue(exm) : "";
+
+			if (string.IsNullOrWhiteSpace(expressionStr))
+				return defaultValue;
+
+			try
+			{
+				CharStream st = new CharStream(expressionStr);
+				WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+				AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
+
+				if (term == null) return defaultValue;
+
+				term = term.Restructure(exm);
+
+				if (term.IsString)
+					return term.GetStrValue(exm);
+				else
+					return defaultValue;
+			}
+			catch (EmueraException)
+			{
+				return defaultValue;
+			}
+		}
+	}
 	#endregion
 }
