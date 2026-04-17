@@ -36,6 +36,7 @@ namespace MinorShift.Emuera.GameData.Function
         private const int MAX_CACHE_SIZE = 200; // 最大缓存数量(可根据需要调整)
         private static Dictionary<string, long> _spriteLru = new Dictionary<string, long>();
         private static Dictionary<string, List<int>> _spriteToGids = new Dictionary<string, List<int>>(); // 记录 Sprite 依赖了哪些 G_ID
+        private static Dictionary<int, int> _gidRefCount = new Dictionary<int, int>(); // G_ID 引用计数
 
         // 1. 初始化二进制索引
         public static bool InitializeIndex()
@@ -152,7 +153,10 @@ namespace MinorShift.Emuera.GameData.Function
         private static int GetOrLoadGraphic(string src)
         {
             if (_pathToGid.TryGetValue(src, out int existingGid))
+            {
+                _gidRefCount[existingGid]++;
                 return existingGid;
+            }
 
             string fullPath = Path.Combine(Program.ExeDir, "resources", src);
             if (!File.Exists(fullPath)) return 0;
@@ -168,6 +172,7 @@ namespace MinorShift.Emuera.GameData.Function
             if (g.IsCreated)
             {
                 _pathToGid[src] = newGid;
+                _gidRefCount[newGid] = 1;
                 return newGid;
             }
             return 0;
@@ -222,15 +227,23 @@ namespace MinorShift.Emuera.GameData.Function
                 AppContents.SpriteDispose(resourceName);
                 _spriteLru.Remove(resourceName);
 
-                // 2. 释放关联的 Graphics
+                // 2. 释放关联的 Graphics (考虑引用计数)
                 if (_spriteToGids.TryGetValue(resourceName, out var gids))
                 {
                     foreach (int gid in gids)
                     {
-                        AppContents.GetGraphics(gid).GDispose();
-                        // 从路径映射中移除
-                        var item = _pathToGid.FirstOrDefault(kvp => kvp.Value == gid);
-                        if (item.Key != null) _pathToGid.Remove(item.Key);
+                        if (_gidRefCount.ContainsKey(gid))
+                        {
+                            _gidRefCount[gid]--;
+                            if (_gidRefCount[gid] <= 0)
+                            {
+                                AppContents.GetGraphics(gid).GDispose();
+                                _gidRefCount.Remove(gid);
+                                // 从路径映射中移除
+                                var item = _pathToGid.FirstOrDefault(kvp => kvp.Value == gid);
+                                if (item.Key != null) _pathToGid.Remove(item.Key);
+                            }
+                        }
                     }
                     _spriteToGids.Remove(resourceName);
                 }
@@ -245,6 +258,9 @@ namespace MinorShift.Emuera.GameData.Function
                 ReleaseResource(key);
             }
             _nextGid = 10000000;
+            _gidRefCount.Clear();
+            _pathToGid.Clear();
+            _spriteToGids.Clear();
         }
 
 		// 存在性检测

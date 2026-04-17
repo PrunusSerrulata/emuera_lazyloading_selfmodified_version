@@ -11,6 +11,13 @@
 修复SqlManager.CloseAll()未集成到全局重置机制的Bug
 	在GlobalStatic.Reset()中添加了SqlManager.CloseAll()调用，确保游戏重置时正确释放所有数据库连接和读取器资源
 
+新增资源管理系统 (ResourceManager)：
+	1. 引入二进制索引 (resources.idx) 加速（图像、动画）资源的元数据读取。
+	2. 实现 LRU (Least Recently Used) 缓存淘汰机制，默认限制内存中同时存在的 Sprite 数量为 200，超过时自动释放最旧资源。
+	3. 完善 G_ID 引用计数管理，支持多个 Sprite 安全共享同一个底层 Graphic 资源。
+	4. 集成到 GlobalStatic.Reset()，确保游戏重置时彻底释放图像资源。
+	5. 新增命令：RM_RESOURCECHECK_LOAD, RM_RELEASE_ALL, RM_RESOURCE_EXIST。见手册。
+
 2026年4月16日
 新增命令：EVAL/EVALS，动态求值，动态解析表达式函数语句
 见手册

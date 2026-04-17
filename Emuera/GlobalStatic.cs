@@ -92,5 +92,8 @@ internal static class GlobalStatic
 
 		// 清理数据库资源
 		SqlManager.CloseAll();
+
+		// 清理资源管理器缓存
+		ResourceManager.ReleaseAll();
 	}
 }
