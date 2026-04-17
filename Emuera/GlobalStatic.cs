@@ -1,10 +1,11 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameProc;
 using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.GameData.Function;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Text;
@@ -88,5 +89,8 @@ internal static class GlobalStatic
 			Bgm.stop();
 			Bgm = null;
 		}
+
+		// 清理数据库资源
+		SqlManager.CloseAll();
 	}
 }

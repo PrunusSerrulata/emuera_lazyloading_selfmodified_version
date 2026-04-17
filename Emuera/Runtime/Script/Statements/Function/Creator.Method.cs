@@ -8209,5 +8209,156 @@ internal static partial class FunctionMethodCreator
 			return ResourceManager.CheckResourceExists(name) ? 1 : 0;
 		}
 	}
+	private sealed class SqlConnectMethod : FunctionMethod
+	{
+		public SqlConnectMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = new[] { new ArgTypeList { ArgTypes = { ArgType.String, ArgType.String }, OmitStart = 1 } };
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string dbName = arguments[0].GetStrValue(exm);
+			// 如果省略连接字符串，默认使用内存数据库
+			string connStr = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetStrValue(exm) : "Data Source=:memory:";
+			return SqlManager.Connect(dbName, connStr) ? 1 : 0;
+		}
+	}
+
+	private sealed class SqlDisconnectMethod : FunctionMethod
+	{
+		public SqlDisconnectMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			SqlManager.Disconnect(arguments[0].GetStrValue(exm));
+			return 1;
+		}
+	}
+
+	private sealed class SqlExecuteNonQueryMethod : FunctionMethod
+	{
+		public SqlExecuteNonQueryMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ExecuteNonQuery(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlExecuteReaderMethod : FunctionMethod
+	{
+		public SqlExecuteReaderMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ExecuteReader(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlReaderReadMethod : FunctionMethod
+	{
+		public SqlReaderReadMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ReaderRead(arguments[0].GetIntValue(exm));
+		}
+	}
+
+	private sealed class SqlReaderGetLongMethod : FunctionMethod
+	{
+		public SqlReaderGetLongMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long), typeof(long) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ReaderGetLong(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
+		}
+	}
+
+	private sealed class SqlReaderGetStringMethod : FunctionMethod
+	{
+		public SqlReaderGetStringMethod() { ReturnType = typeof(string); argumentTypeArray = new[] { typeof(long), typeof(long) }; CanRestructure = false; }
+		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ReaderGetString(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
+		}
+	}
+
+	private sealed class SqlReaderIsNullMethod : FunctionMethod
+	{
+		public SqlReaderIsNullMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long), typeof(long) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ReaderIsNull(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
+		}
+	}
+
+	private sealed class SqlReaderCloseMethod : FunctionMethod
+	{
+		public SqlReaderCloseMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			SqlManager.ReaderClose(arguments[0].GetIntValue(exm));
+			return 1;
+		}
+	}
+	private sealed class SqlExecuteScalarLongMethod : FunctionMethod
+	{
+		public SqlExecuteScalarLongMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ExecuteScalarLong(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlExecuteScalarStringMethod : FunctionMethod
+	{
+		public SqlExecuteScalarStringMethod() { ReturnType = typeof(string); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ExecuteScalarString(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
+		}
+	}
+	private sealed class SqlImportMapXmlMethod : FunctionMethod
+	{
+		public SqlImportMapXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ImportMapXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlImportDtXmlMethod : FunctionMethod
+	{
+		public SqlImportDtXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ImportDtXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm), arguments[3].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlExportMapXmlMethod : FunctionMethod
+	{
+		public SqlExportMapXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ExportMapXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlExportDtXmlMethod : FunctionMethod
+	{
+		public SqlExportDtXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ExportDtXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm), arguments[3].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlImportXmlCustomMethod : FunctionMethod
+	{
+		public SqlImportXmlCustomMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ImportXmlCustom(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm), arguments[3].GetStrValue(exm), arguments[4].GetStrValue(exm));
+		}
+	}
 	#endregion
 }

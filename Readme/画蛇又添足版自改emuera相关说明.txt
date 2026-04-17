@@ -1,3 +1,16 @@
+2026年4月18日
+新增命令：SQL_CONNECT, SQL_DISCONNECT, SQL_EXECUTE_NONQUERY, SQL_EXECUTE_READER, SQL_READER_READ, SQL_READER_GET_LONG, SQL_READER_GET_STRING, SQL_READER_ISNULL, SQL_READER_CLOSE, SQL_EXECUTE_SCALAR_LONG, SQL_EXECUTE_SCALAR_STRING, SQL_IMPORT_MAP_XML, SQL_IMPORT_DT_XML, SQL_EXPORT_MAP_XML, SQL_EXPORT_DT_XML, SQL_IMPORT_XML_CUSTOM，SQL数据库操作函数集
+见手册
+
+重构 SqlManager：
+	1. 引入流式 XML 解析（XmlReader/XmlWriter），支持 GB 级别的 MAP 和 DataTable 数据导入导出而无需占用大量内存。
+	2. 优化 SQL 导入逻辑，自动建立 PRIMARY KEY 索引，提升后续懒加载查询性能。
+	3. 实现了 SQL 与 XML 的深度交互，允许将 SQL 数据库作为大规模 XML 数据集的“后端索引层”。
+	4. 新增 `SQL_IMPORT_XML_CUSTOM`，支持通过 XPath 映射将嵌套或不规则的 XML（如 MOD 扩展表）导入数据库，支持属性读取和 InnerXml 保留。
+
+修复SqlManager.CloseAll()未集成到全局重置机制的Bug
+	在GlobalStatic.Reset()中添加了SqlManager.CloseAll()调用，确保游戏重置时正确释放所有数据库连接和读取器资源
+
 2026年4月16日
 新增命令：EVAL/EVALS，动态求值，动态解析表达式函数语句
 见手册

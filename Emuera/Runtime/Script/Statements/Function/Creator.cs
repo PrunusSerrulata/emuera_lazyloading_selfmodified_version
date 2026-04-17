@@ -361,6 +361,23 @@ internal static partial class FunctionMethodCreator
 			["RM_RESOURCECHECK_LOAD"] = new RmResourceCheckLoadMethod(),
 			["RM_RELEASE_ALL"] = new RmReleaseAllMethod(),
 			["RM_RESOURCE_EXIST"] = new RmResourceExistMethod(),
+			// SQL 扩展
+			["SQL_CONNECT"] = new SqlConnectMethod(),
+			["SQL_DISCONNECT"] = new SqlDisconnectMethod(),
+			["SQL_EXECUTE_NONQUERY"] = new SqlExecuteNonQueryMethod(),
+			["SQL_EXECUTE_READER"] = new SqlExecuteReaderMethod(),
+			["SQL_READER_READ"] = new SqlReaderReadMethod(),
+			["SQL_READER_GET_LONG"] = new SqlReaderGetLongMethod(),
+			["SQL_READER_GET_STRING"] = new SqlReaderGetStringMethod(),
+			["SQL_READER_ISNULL"] = new SqlReaderIsNullMethod(),
+			["SQL_READER_CLOSE"] = new SqlReaderCloseMethod(),
+			["SQL_EXECUTE_SCALAR_LONG"] = new SqlExecuteScalarLongMethod(),
+			["SQL_EXECUTE_SCALAR_STRING"] = new SqlExecuteScalarStringMethod(),
+			["SQL_IMPORT_MAP_XML"] = new SqlImportMapXmlMethod(),
+			["SQL_IMPORT_DT_XML"] = new SqlImportDtXmlMethod(),
+			["SQL_EXPORT_MAP_XML"] = new SqlExportMapXmlMethod(),
+			["SQL_EXPORT_DT_XML"] = new SqlExportDtXmlMethod(),
+			["SQL_IMPORT_XML_CUSTOM"] = new SqlImportXmlCustomMethod(),
 			#endregion
 		};
 
