@@ -8154,5 +8154,60 @@ internal static partial class FunctionMethodCreator
 			}
 		}
 	}
+	/// <summary>
+	/// int RM_RESOURCECHECK_LOAD(string name)
+	/// 检查并加载资源，如果成功返回1，否则返回0。内部自动处理 LRU 缓存。
+	/// </summary>
+	private sealed class RmResourceCheckLoadMethod : FunctionMethod
+	{
+		public RmResourceCheckLoadMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = new Type[] { typeof(string) };
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string name = arguments[0].GetStrValue(exm);
+			return ResourceManager.LoadResource(name) ? 1 : 0;
+		}
+	}
+
+	/// <summary>
+	/// int RM_RELEASE_ALL()
+	/// 手动清空所有由 RM 加载的缓存图像
+	/// </summary>
+	private sealed class RmReleaseAllMethod : FunctionMethod
+	{
+		public RmReleaseAllMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = new Type[0];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			ResourceManager.ReleaseAll();
+			return 1;
+		}
+	}
+	/// <summary>
+	/// int RM_RESOURCE_EXIST(string name)
+	/// 存在性检测，检查索引字典
+	/// </summary>
+	private sealed class RmResourceExistMethod : FunctionMethod
+	{
+		public RmResourceExistMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = new Type[] { typeof(string) };
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string name = arguments[0].GetStrValue(exm);
+			return ResourceManager.CheckResourceExists(name) ? 1 : 0;
+		}
+	}
 	#endregion
 }

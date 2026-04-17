@@ -358,6 +358,9 @@ internal static partial class FunctionMethodCreator
 			["BGMCONTROL"] = new BgmControlMethod(),
 			["EVAL"] = new EvalMethod(),
 			["EVALS"] = new EvalSMethod(),
+			["RM_RESOURCECHECK_LOAD"] = new RmResourceCheckLoadMethod(),
+			["RM_RELEASE_ALL"] = new RmReleaseAllMethod(),
+			["RM_RESOURCE_EXIST"] = new RmResourceExistMethod(),
 			#endregion
 		};
 

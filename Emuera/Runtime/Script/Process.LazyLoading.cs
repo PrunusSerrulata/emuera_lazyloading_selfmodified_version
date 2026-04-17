@@ -22,10 +22,14 @@ internal sealed partial class Process
 	public readonly HashSet<string> DeletedFiles = new();
 	public readonly HashSet<string> ChangedFiles = new();
 
-	//Paths
-	static readonly string LazyLoadingDataFilePath = Path.Join(Program.WorkingDir, "lazyloading.dat");
-	static readonly string LazyLoadingFilesFilePath = Path.Join(Program.WorkingDir, "lazyloadingfiles.dat");
+	//Paths (修改扩展名为 .bin 以区分旧的明文格式)
+	static readonly string LazyLoadingDataFilePath = Path.Join(Program.WorkingDir, "lazyloading.bin");
+	static readonly string LazyLoadingFilesFilePath = Path.Join(Program.WorkingDir, "lazyloadingfiles.bin");
 	static readonly string LazyLoadingConfigFilePath = Path.Join(Program.WorkingDir, "lazyloading.cfg");
+	
+	// 版本魔数，用于防止读取旧版或损坏的文件
+	private const uint LAZY_MAGIC_NUMBER = 0x4C415A59; // "LAZY"
+	private const uint LAZY_VERSION = 1;
 	
 	public enum LazyStatus
 	{
@@ -38,8 +42,6 @@ internal sealed partial class Process
 	}
 
 	public LazyStatus LazyCurrentLazyStatus = LazyStatus.Disabled;
-
-	private const char Separator = '\t';
 
 	public bool TryLazyLoadErb(string functionName)
 	{
@@ -107,75 +109,87 @@ internal sealed partial class Process
 		
 		try
 		{
-			using var reader = new StreamReader(LazyLoadingDataFilePath, Encoding.UTF8);
-			using var metareader = new StreamReader(LazyLoadingFilesFilePath, Encoding.UTF8);
-
 			var files = GetLazyFiles(erbFiles);
 
-			string line;
-			string[] tokens;
-
-			while ((line = metareader.ReadLine()) != null)
+			// =================================================================
+			// 1. 读取文件元数据 (lazyloadingfiles.bin)
+			// =================================================================
+			using (var fsMeta = new FileStream(LazyLoadingFilesFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536))
+			using (var metaReader = new BinaryReader(fsMeta, Encoding.UTF8))
 			{
-				tokens = line.Split(Separator, 2);
-
-				var name = tokens[0];
-				long fLastWrite;
-				try
+				// 校验魔数和版本
+				if (metaReader.ReadUInt32() != LAZY_MAGIC_NUMBER || metaReader.ReadUInt32() != LAZY_VERSION)
 				{
-					//Try to parse the Windows File Time
-					fLastWrite = long.Parse(tokens[1]);
-				}
-				catch (Exception)
-				{
-					//This would probably happen on old setups
-					//or the file was edited manually
 					LazyCurrentLazyStatus = LazyStatus.BuildTable;
 					return;
 				}
-				
-				var path = ErbPath(name);
 
-				if (File.Exists(path))
+				int fileCount = metaReader.ReadInt32();
+				for (int i = 0; i < fileCount; i++)
 				{
-					if (File.GetLastWriteTime(path).ToFileTimeUtc() != fLastWrite)
+					string name = metaReader.ReadString();
+					long fLastWrite = metaReader.ReadInt64();
+					
+					var path = ErbPath(name);
+
+					if (File.Exists(path))
 					{
-						ChangedFiles.Add(name);
+						if (File.GetLastWriteTime(path).ToFileTimeUtc() != fLastWrite)
+						{
+							ChangedFiles.Add(name);
+						}
+						else
+						{
+							LazyLoadingFilesTable.Add(name, fLastWrite);
+						}
 					}
 					else
 					{
-						LazyLoadingFilesTable.Add(name, fLastWrite);
+						DeletedFiles.Add(name);
 					}
-				}
-				else
-				{
-					DeletedFiles.Add(name);
 				}
 			}
 
 			files.ExceptWith(LazyLoadingFilesTable.Keys);
 			ChangedFiles.UnionWith(files);
 
-			while ((line = reader.ReadLine()) != null)
+			// =================================================================
+			// 2. 读取函数映射数据 (lazyloading.bin)
+			// =================================================================
+			using (var fsData = new FileStream(LazyLoadingDataFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536))
+			using (var dataReader = new BinaryReader(fsData, Encoding.UTF8))
 			{
-				tokens = line.Split(Separator, 2);
+				// 校验魔数和版本
+				if (dataReader.ReadUInt32() != LAZY_MAGIC_NUMBER || dataReader.ReadUInt32() != LAZY_VERSION)
+				{
+					LazyCurrentLazyStatus = LazyStatus.BuildTable;
+					return;
+				}
 
-				if (ChangedFiles.Contains(tokens[1]) || DeletedFiles.Contains(tokens[1]))
-					continue;
+				int funcCount = dataReader.ReadInt32();
+				for (int i = 0; i < funcCount; i++)
+				{
+					string funcName = dataReader.ReadString();
+					string fileName = dataReader.ReadString();
 
-				if (!LazyLoadingTable.ContainsKey(tokens[0]))
-					LazyLoadingTable.Add(tokens[0], []);
+					if (ChangedFiles.Contains(fileName) || DeletedFiles.Contains(fileName))
+						continue;
 
-				string path = Program.ErbDir + tokens[1];
-				if (!LazyLoadingFiles.Add(path))
-					path = LazyLoadingFiles.First(x => x == path);
-				LazyLoadingTable[tokens[0]].Add(path); // 로딩할때 써야 하므로 상위경로를 넣어줘야 함.
+					if (!LazyLoadingTable.ContainsKey(funcName))
+						LazyLoadingTable.Add(funcName, new List<string>());
+
+					string path = Program.ErbDir + fileName;
+					if (!LazyLoadingFiles.Add(path))
+						path = LazyLoadingFiles.First(x => x == path);
+					LazyLoadingTable[funcName].Add(path);
+				}
 			}
 		}
 		catch (Exception e)
 		{
 			console.PrintSystemLine(string.Format(trsl.LazyLoadingTableReadError.Text, e.Message));
-			LazyCurrentLazyStatus = LazyStatus.Error;
+			// 如果读取二进制文件失败（可能是旧版明文文件残留），强制重新构建
+			LazyCurrentLazyStatus = LazyStatus.BuildTable; 
 			return;
 		}
 		LazyCurrentLazyStatus = ChangedFiles.Count != 0 || DeletedFiles.Count != 0 ? LazyStatus.UpdateTable : LazyStatus.Loaded;
@@ -183,17 +197,13 @@ internal sealed partial class Process
 
 	private HashSet<string> GetLazyFiles(IEnumerable<KeyValuePair<string, string>> erbFiles)
 	{
-		// 지연로딩 대상 폴더 목록을 읽고, 파일이 없거나 읽는 데 실패했다면 리턴.
 		var paths = LoadLazyLoadingFolders();
 		if (paths == null)
 			return new HashSet<string>();
 
-		// 전체 파일 리스트에서 설정된 폴더 내에 있는 파일만 뽑아낸다.
-		// erbFiles.key에는 ERB 폴더에서 시작하는 상대경로가 들어있으므로 이 값과 설정된 경로를 비교하면 된다.
-		// https://stackoverflow.com/questions/4230313/linq-to-sql-join-and-contains-operators
 		var ret = from pair in erbFiles
 			from path in paths
-			where pair.Key.StartsWith(path) //Substring(0, path.Length) == path 
+			where pair.Key.StartsWith(path) 
 			select pair.Key;
 		HashSet<string> files = new(ret);
 		return files;
@@ -209,13 +219,10 @@ internal sealed partial class Process
 			return;
 		}
 
-		// 메소드(#FUNCTION으로 정의되는) 함수와 이벤트 함수가 하나라도 있는 파일을 리스트에서 제외한다.
 		foreach (FunctionLabelLine label in labels)
 		{
 			if (!files.Contains(label.Position.Value.Filename))
-			{
 				continue;
-			}
 
 			if (label.IsMethod)
 			{
@@ -234,25 +241,56 @@ internal sealed partial class Process
 			}
 		}
 
-		// 모든 함수에 대해 리스트에 있는 파일에 속해 있을 경우 리스트에 추가하고 저장한다.
-
-		var metafiles = new HashSet<string>();
-		using var writer = new StreamWriter(LazyLoadingDataFilePath, false, Encoding.UTF8, 65536);
-		using var metawriter = new StreamWriter(LazyLoadingFilesFilePath, false, Encoding.UTF8, 65536);
 		try
 		{
+			// =================================================================
+			// 1. 收集需要写入的数据
+			// =================================================================
+			var validLabels = new List<FunctionLabelLine>();
+			var metafiles = new HashSet<string>();
+			
 			foreach (FunctionLabelLine label in labels)
 			{
-				if (!files.Contains(label.Position.Value.Filename))
-					continue;
+				if (files.Contains(label.Position.Value.Filename))
+				{
+					validLabels.Add(label);
+					metafiles.Add(label.Position.Value.Filename);
+				}
+			}
 
-				writer.WriteLine(SerializeData(label.LabelName, label.Position.Value.Filename));
+			// =================================================================
+			// 2. 写入函数映射数据 (lazyloading.bin)
+			// =================================================================
+			using (var fsData = new FileStream(LazyLoadingDataFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 65536))
+			using (var dataWriter = new BinaryWriter(fsData, Encoding.UTF8))
+			{
+				dataWriter.Write(LAZY_MAGIC_NUMBER);
+				dataWriter.Write(LAZY_VERSION);
+				dataWriter.Write(validLabels.Count); // 写入总数，方便读取时预分配内存
 
-				if (!metafiles.Add(label.Position.Value.Filename))
-					continue;
+				foreach (var label in validLabels)
+				{
+					dataWriter.Write(label.LabelName);
+					dataWriter.Write(label.Position.Value.Filename);
+				}
+			}
 
-				var lastWrite = File.GetLastWriteTime(ErbPath(label.Position.Value.Filename)).ToFileTimeUtc();
-				metawriter.WriteLine(SerializeData(label.Position.Value.Filename, lastWrite.ToString()));
+			// =================================================================
+			// 3. 写入文件元数据 (lazyloadingfiles.bin)
+			// =================================================================
+			using (var fsMeta = new FileStream(LazyLoadingFilesFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 65536))
+			using (var metaWriter = new BinaryWriter(fsMeta, Encoding.UTF8))
+			{
+				metaWriter.Write(LAZY_MAGIC_NUMBER);
+				metaWriter.Write(LAZY_VERSION);
+				metaWriter.Write(metafiles.Count);
+
+				foreach (var name in metafiles)
+				{
+					var lastWrite = File.GetLastWriteTime(ErbPath(name)).ToFileTimeUtc();
+					metaWriter.Write(name);
+					metaWriter.Write(lastWrite);
+				}
 			}
 		}
 		catch (Exception e)
@@ -264,9 +302,8 @@ internal sealed partial class Process
 
 	public bool SavePartialLazyLoadingList(List<FunctionLabelLine> labels)
 	{
-
 		var temp_labels = new List<FunctionLabelLine>();
-		var lines = new StringBuilder();
+		var validLabelsToAppend = new List<FunctionLabelLine>();
 		var labelFiles = new HashSet<string>();
 		
 		foreach (var file in ChangedFiles.ToList())
@@ -305,7 +342,7 @@ internal sealed partial class Process
 			{
 				foreach (var label in temp_labels)
 				{
-					lines.Append(SerializeData(label.LabelName, label.Position.Value.Filename) + '\n');
+					validLabelsToAppend.Add(label);
 					labelFiles.Add(label.Position.Value.Filename);
 				}
 			}
@@ -323,41 +360,75 @@ internal sealed partial class Process
 		if(DeletedFiles.Count != 0)
 			console.PrintSystemLine(trsl.LazyLoadingFilesDeleted.Text + DeletedFiles.Count);
 		
-		using var writer = new StreamWriter(LazyLoadingDataFilePath, false, Encoding.UTF8, 65536);
-		using var metawriter = new StreamWriter(LazyLoadingFilesFilePath, false, Encoding.UTF8, 65536);
-
-		writer.Write(lines.ToString());
-
-		foreach (var name in labelFiles)
+		try
 		{
-			var lastWrite = File.GetLastWriteTime(ErbPath(name)).ToFileTimeUtc();
-			metawriter.WriteLine(SerializeData(name, lastWrite.ToString()));
+			// =================================================================
+			// 1. 更新函数映射数据 (lazyloading.bin)
+			// =================================================================
+			using (var fsData = new FileStream(LazyLoadingDataFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 65536))
+			using (var dataWriter = new BinaryWriter(fsData, Encoding.UTF8))
+			{
+				dataWriter.Write(LAZY_MAGIC_NUMBER);
+				dataWriter.Write(LAZY_VERSION);
+				
+				// 计算总数: 新增/修改的标签数 + 内存中未改变的标签数
+				int totalFuncs = validLabelsToAppend.Count + LazyLoadingTable.Sum(x => x.Value.Count);
+				dataWriter.Write(totalFuncs);
+
+				// 写入新增/修改的
+				foreach (var label in validLabelsToAppend)
+				{
+					dataWriter.Write(label.LabelName);
+					dataWriter.Write(label.Position.Value.Filename);
+				}
+
+				// 写入内存中未改变的
+				foreach (var item in LazyLoadingTable)
+				{
+					// 注意：内存里的路径是完整路径，需要截取掉 Program.ErbDir 部分
+					string relPath = item.Value[0][Program.ErbDir.Length..];
+					dataWriter.Write(item.Key);
+					dataWriter.Write(relPath);
+				}
+			}
+
+			// =================================================================
+			// 2. 更新文件元数据 (lazyloadingfiles.bin)
+			// =================================================================
+			using (var fsMeta = new FileStream(LazyLoadingFilesFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 65536))
+			using (var metaWriter = new BinaryWriter(fsMeta, Encoding.UTF8))
+			{
+				metaWriter.Write(LAZY_MAGIC_NUMBER);
+				metaWriter.Write(LAZY_VERSION);
+				
+				int totalFiles = labelFiles.Count + LazyLoadingFilesTable.Count;
+				metaWriter.Write(totalFiles);
+
+				// 写入新增/修改的文件
+				foreach (var name in labelFiles)
+				{
+					var lastWrite = File.GetLastWriteTime(ErbPath(name)).ToFileTimeUtc();
+					metaWriter.Write(name);
+					metaWriter.Write(lastWrite);
+				}
+
+				// 写入内存中未改变的文件
+				foreach (var item in LazyLoadingFilesTable)
+				{
+					metaWriter.Write(item.Key);
+					metaWriter.Write(item.Value);
+				}
+			}
 		}
-
-		foreach (var item in LazyLoadingTable)
+		catch (Exception e)
 		{
-			writer.WriteLine(SerializeData(item.Key, item.Value[0][Program.ErbDir.Length..]));
-		}
-
-		foreach (var item in LazyLoadingFilesTable)
-		{
-			metawriter.WriteLine(SerializeData(item.Key, item.Value.ToString()));
+			console.PrintSystemLine(string.Format(trsl.LazyLoadingTableSaveError.Text, e.Message));
+			LazyCurrentLazyStatus = LazyStatus.Error;
+			return false;
 		}
 
 		LazyCurrentLazyStatus = LazyStatus.Loaded;
 		return true;
-	}
-
-	static string SerializeData(string a, string b)
-	{
-		return string.Create(a.Length + b.Length + 1, (a, b), (span, tuple) =>
-		{
-			tuple.a.AsSpan().CopyTo(span);
-			span = span[tuple.a.Length..];
-			span[0] = Separator;
-			span = span[1..];
-			tuple.b.AsSpan().CopyTo(span);
-		});
 	}
 
 	static string ErbPath(string a)
