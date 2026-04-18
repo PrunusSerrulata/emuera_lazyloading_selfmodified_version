@@ -1,5 +1,6 @@
-﻿using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.UI;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -253,7 +254,7 @@ internal static class Config
 		instance.SaveConfig();
 	}
 	#region FontFallback
-	public static Font Font;
+	public static SKFont Font;
 	public static string ConfigFont;
 	private const string FallbackFont = "BIZ UDGothic";
 	
@@ -293,7 +294,7 @@ internal static class Config
 	#endregion
 	#endregion
 
-	public static Font DefaultFont { get { return FontFactory.GetFont("", FontStyle.Regular); } }
+	public static SKFont DefaultFont { get { return FontFactory.GetFont("", FontStyle.Regular); } }
 
 
 	/// <summary>

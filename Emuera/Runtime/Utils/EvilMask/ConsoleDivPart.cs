@@ -6,6 +6,9 @@ using System.Drawing.Drawing2D;
 using System.Text;
 using static MinorShift.Emuera.Runtime.Utils.EvilMask.Shape;
 using static MinorShift.Emuera.Runtime.Utils.EvilMask.Utils;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
+
 
 namespace MinorShift.Emuera.Runtime.Utils.EvilMask;
 
@@ -142,21 +145,22 @@ class ConsoleDivPart : AConsoleDisplayNode
 		}
 		return pointing;
 	}
-	public override void DrawTo(Graphics graph, int pointY, bool isSelecting, bool isBackLog, bool isFocus, TextDrawingMode mode, bool isButton = false)
+	public override void DrawTo(SKCanvas graph, SKPoint point, bool isSelecting, bool isBackLog, bool isFocus, TextDrawingMode mode, bool isButton = false)
 	{
 		if (GlobalStatic.EMediator.Console.Window == null) return;
-		var rect = IsRelative ? new Rectangle(PointX + xOffset, pointY + PointY, width + 2, Height)
+		var rect = IsRelative ? new Rectangle(PointX + xOffset, (int)point.Y + PointY, width + 2, Height)
 			: new Rectangle(xOffset, GlobalStatic.EMediator.Console.Window.MainPicBox.Height - PointY - Height, width + 2, Height); // 何故か+2pxが必要，なぞ
 
 		if (margin != null)
 			rect = new Rectangle(rect.X + margin[Direction.Left], rect.Y + margin[Direction.Top],
 				 rect.Width - margin[Direction.Left] - margin[Direction.Right], rect.Height - margin[Direction.Top] - margin[Direction.Bottom]);
-		graph.SetClip(rect, CombineMode.Replace);
+		//graph.SetClip(rect, CombineMode.Replace);
+		graph.ClipRect(new SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom));
 
-		var pxMode = graph.PixelOffsetMode;
-		graph.PixelOffsetMode = PixelOffsetMode.HighQuality; // ここを高品質にしておく、全体的高品質してもいいかな？
-		BoxBorder.DrawBorder(graph, rect, border, radius, borderColors, backgroundColor);
-		graph.PixelOffsetMode = pxMode;
+		//var pxMode = graph.PixelOffsetMode;
+		//graph.PixelOffsetMode = PixelOffsetMode.HighQuality; // ここを高品質にしておく、全体的高品質してもいいかな？
+		//BoxBorder.DrawBorder(graph, rect, border, radius, borderColors, backgroundColor);
+		//graph.PixelOffsetMode = pxMode;
 
 		if (border != null)
 			rect = new Rectangle(rect.X + border[Direction.Left], rect.Y + border[Direction.Top],
@@ -166,15 +170,17 @@ class ConsoleDivPart : AConsoleDisplayNode
 			rect = new Rectangle(rect.X + padding[Direction.Left], rect.Y + padding[Direction.Top],
 				 rect.Width - padding[Direction.Left] - padding[Direction.Right], rect.Height - padding[Direction.Top] - padding[Direction.Bottom]);
 
-		graph.SetClip(rect, CombineMode.Replace);
+		//graph.SetClip(rect, CombineMode.Replace);
+		graph.ClipRect(new SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom));
 
-		pointY = rect.Y;
+		point.Y = rect.Y;
 		foreach (var child in children)
 		{
-			child.DrawTo(graph, pointY, isBackLog, true, mode);
-			pointY += Config.Config.LineHeight;
+			child.DrawTo(graph, (int)point.Y, isBackLog, true, mode);
+			point.Y += Config.Config.LineHeight;
 		}
-		graph.ResetClip();
+		//graph.ResetClip();
+		graph.Restore();
 	}
 
     private void ShiftChildrenX(int diff)

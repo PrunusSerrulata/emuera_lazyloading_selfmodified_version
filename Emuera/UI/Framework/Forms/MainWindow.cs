@@ -6,6 +6,9 @@ using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using MinorShift.Emuera.UI;
 using MinorShift.Emuera.UI.Game;
+using MinorShift.Emuera.UI.Framework.Forms;
+using SkiaSharp.Views.Desktop;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,7 +37,7 @@ namespace MinorShift.Emuera.Forms
 			SetLanguageOptions();
 			#endregion
 
-			mainPicBox.SetStyle();
+			//mainPicBox.SetStyle();
 			initControlSizeAndLocation();
 			richTextBox1.ForeColor = Config.ForeColor;
 			richTextBox1.BackColor = Config.BackColor;
@@ -44,7 +47,7 @@ namespace MinorShift.Emuera.Forms
 
 			BackColor = Config.BackColor;
 
-			richTextBox1.Font = Config.DefaultFont;
+			//richTextBox1.Font = Config.DefaultFont;
 			richTextBox1.LanguageOption = RichTextBoxLanguageOptions.UIFonts;
 			folderSelectDialog.SelectedPath = Program.ErbDir;
 			folderSelectDialog.ShowNewFolderButton = false;
@@ -86,7 +89,7 @@ namespace MinorShift.Emuera.Forms
 
 			#region EM_私家版_Emuera多言語化改造
 			labelMacroGroupChanged.Font = new Font(Lang.MFont, 24F, FontStyle.Regular, GraphicsUnit.Point, 128);
-			richTextBox1.Font = new Font(Config.DefaultFont.FontFamily, Config.FontSize, FontStyle.Regular, GraphicsUnit.Pixel);
+			//richTextBox1.Font = new Font(Config.DefaultFont.FontFamily, Config.FontSize, FontStyle.Regular, GraphicsUnit.Pixel);
 			#endregion
 
 			#region EM_textbox位置指定拡張
@@ -99,7 +102,7 @@ namespace MinorShift.Emuera.Forms
 		}
 		private ToolStripMenuItem[] macroMenuItems = new ToolStripMenuItem[KeyMacro.MaxFkey];
 		//private System.Diagnostics.FileVersionInfo emueraVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
-		public PictureBox MainPicBox { get { return mainPicBox; } }
+		public EraPictureBox MainPicBox { get { return mainPicBox; } }
 		public VScrollBar ScrollBar { get { return vScrollBar; } }
 		public RichTextBox TextBox { get { return richTextBox1; } }
 		public ToolTip ToolTip { get { return toolTipButton; } }
@@ -588,6 +591,8 @@ namespace MinorShift.Emuera.Forms
 		bool changeTextbyMouse;
 		private void mainPicBox_MouseDown(object sender, MouseEventArgs e)
 		{
+			richTextBox1.Focus();//画面をクリックしてもテキストボックスからフォーカスが外れないようにする
+
 			if (!Config.UseMouse)
 				return;
 			if (console == null || console.IsInProcess)
@@ -930,11 +935,11 @@ namespace MinorShift.Emuera.Forms
 
 		}
 
-		private void mainPicBox_Paint(object sender, PaintEventArgs e)
+		private void mainPicBox_Paint(object sender, SKPaintGLSurfaceEventArgs e)
 		{
 			if (console == null)
 				return;
-			console.OnPaint(e.Graphics);
+			console.OnPaint(e.Surface.Canvas);
 		}
 
 		private void ログを保存するSToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1459,7 +1464,7 @@ namespace MinorShift.Emuera.Forms
 
 		private void toolTipButton_Popup(object sender, PopupEventArgs e)
 		{
-			_tooltipFont ??= new Font(Config.DefaultFont.FontFamily, Config.DefaultFont.Size * 0.6f);
+			_tooltipFont ??= new Font(Config.DefaultFont.Typeface.FamilyName, Config.DefaultFont.Size * 0.6f);
 
 			var toolTip = (ToolTip)sender;
 			e.ToolTipSize = TextRenderer.MeasureText(toolTip.GetToolTip(e.AssociatedControl), _tooltipFont);

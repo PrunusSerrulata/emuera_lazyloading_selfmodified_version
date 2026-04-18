@@ -1,6 +1,7 @@
 ﻿using MinorShift.Emuera.Runtime.Config;
 using System.Drawing;
 using System.Text;
+using SkiaSharp;
 
 namespace MinorShift.Emuera.UI.Game;
 
@@ -23,8 +24,11 @@ abstract class AConsoleDisplayNode
 	public virtual int Top { get { return 0; } }
 	public virtual int Bottom { get { return Config.FontSize; } }
 	public abstract bool CanDivide { get; }
+	public SKSize? Size;
+	public SKPoint? Point;
 
-	public abstract void DrawTo(Graphics graph, int pointY, bool isSelecting, bool isFocus, bool isBackLog, TextDrawingMode mode, bool isButton = false);
+
+	public abstract void DrawTo(SKCanvas graph, SKPoint point, bool isSelecting, bool isFocus, bool isBackLog, TextDrawingMode mode, bool isButton = false);
 
 	public abstract void SetWidth(StringMeasure sm, float subPixel);
 	public override string ToString()

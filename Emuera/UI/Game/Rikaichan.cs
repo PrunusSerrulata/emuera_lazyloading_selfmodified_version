@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Forms;
+using MinorShift.Emuera.Forms;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.UI.Game;
 using System;
@@ -7,6 +7,8 @@ using System.Drawing;
 using System.IO; //for File
 using System.Text;
 using System.Windows.Forms; //for TextRenderer
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 
 namespace MinorShift.Emuera.GameView;
 
@@ -33,6 +35,7 @@ partial class Rikaichan
 	public int longestResult;
 
 	SolidBrush blueBrush;
+	static readonly SKPaint measurePaint = new SKPaint();
 
 	public void ReceiveIndex(byte[] edictind)
 	{
@@ -643,7 +646,7 @@ partial class Rikaichan
 		return s.Length * 16;
 	}
 
-	public void OnPaint(Graphics graph, StringMeasure stringMeasure, int screenWidth)
+	public void OnPaint(SKCanvas graph, StringMeasure stringMeasure, int screenWidth)
 	{
 		if (!enabled) return;
 
@@ -713,10 +716,16 @@ partial class Rikaichan
 		}
 
 		//Drawing line above selected word
-		graph.FillRectangle(blueBrush, x, y - 4, xend - x + 4, 2);
+		var paint = new SKPaint
+		{
+			Color = blueBrush.Color.ToSKColor()
+		};
+		//graph.FillRectangle(blueBrush, x, y - 4, xend - x + 4, 2);
+		graph.DrawRect(x, y - 4, xend - x + 4, 2, paint);
 
 		//Drawing line below selected word
-		graph.FillRectangle(blueBrush, x, y + Config.LineHeight + 2, xend - x + 4, 2);
+		//graph.FillRectangle(blueBrush, x, y + Config.LineHeight + 2, xend - x + 4, 2);
+		graph.DrawRect(x, y + Config.LineHeight + 2, xend - x + 4, 2, paint);
 
 		y -= 30;
 
@@ -795,50 +804,57 @@ partial class Rikaichan
 		foreach (var output2 in outputList)
 		{
 			string s = output2;
-			string sprev = s;
-			int len;
-		do_it_again:
-			len = stringMeasure.GetDisplayLength(s, Config.DefaultFont);
-			if (len > screenWidth - 32)
+		string sprev = s;
+		int len;
+		SKPaint measurePaint = null;
+		do
+		{
+			//len = stringMeasure.GetDisplayLength(s, Config.DefaultFont);
+			measurePaint = new SKPaint();
+			measurePaint.Typeface = Config.DefaultFont.Typeface;
+			measurePaint.TextSize = Config.DefaultFont.Size;
+			len = (int)measurePaint.MeasureText(s);
+			measurePaint.Dispose();
+			if (len <= screenWidth - 32)
+				break;
+			
+			int split;
+			while (true)
 			{
-				int split;
-				while (true)
-				{
-					split = s.LastIndexOf(' ');
-					s = s.Substring(0, split);
-					len = stringMeasure.GetDisplayLength(s, Config.DefaultFont);
-					if (len > screenWidth - 32)
-					{
-						continue;
-					}
-					else
-					{
-						outputList2.Add(s);
-						lengths.Add(len);
-
-						linesPerBox[currentBoxIndex]++;
-						currentBoxLine++;
-
-						if (len > length_max) length_max = len;
-						s = "      " + sprev.Substring(s.Length + 1);
-						sprev = s;
-						goto do_it_again;
-					}
-				}
+				split = s.LastIndexOf(' ');
+				s = s.Substring(0, split);
+				//len = stringMeasure.GetDisplayLength(s, Config.DefaultFont);
+				SKPaint measurePaint2 = new SKPaint();
+				measurePaint2.Typeface = Config.DefaultFont.Typeface;
+				measurePaint2.TextSize = Config.DefaultFont.Size;
+				len = (int)measurePaint2.MeasureText(s);
+				measurePaint2.Dispose();
+				if (len <= screenWidth - 32)
+					break;
 			}
-			else
-			{
-				outputList2.Add(s);
-				lengths.Add(len);
-				if (len > length_max) length_max = len;
-			};
-
+			
+			outputList2.Add(s);
+			lengths.Add(len);
+			
+			linesPerBox[currentBoxIndex]++;
 			currentBoxLine++;
-			if (currentBoxIndex < linesPerBox.Count && currentBoxLine > linesPerBox[currentBoxIndex])
-			{
-				currentBoxLine = 1;
-				currentBoxIndex++;
-			}
+			
+			if (len > length_max) length_max = len;
+			s = "      " + sprev.Substring(s.Length + 1);
+			sprev = s;
+		} while (true);
+		
+		outputList2.Add(s);
+		lengths.Add(len);
+		
+		if (len > length_max) length_max = len;
+		
+		currentBoxLine++;
+		if (currentBoxIndex < linesPerBox.Count && currentBoxLine > linesPerBox[currentBoxIndex])
+		{
+			currentBoxLine = 1;
+			currentBoxIndex++;
+		}
 		}
 
 		int x_offset = x - length_max / 2;
@@ -868,7 +884,8 @@ partial class Rikaichan
 					i++;
 				}
 				y -= 20 * linenum; //LATER: use proper line height
-				graph.FillRectangle(blueBrush, x_offset, y, box_length_max, 20 * linenum);
+								   //graph.FillRectangle(blueBrush, x_offset, y, box_length_max, 20 * linenum);
+				graph.DrawRect(x_offset, y, box_length_max, 20 * linenum, paint);
 			}
 		}
 		else
@@ -879,8 +896,8 @@ partial class Rikaichan
 				linesTotal += linenum;
 				y -= 20 * linenum;
 			}
-			graph.FillRectangle(blueBrush, x_offset, y, length_max, 20 * linesTotal);
-
+			//graph.FillRectangle(blueBrush, x_offset, y, length_max, 20 * linesTotal);
+			graph.DrawRect(x_offset, y, length_max, 20 * linesTotal, paint);
 		}
 
 		y = oldy;
@@ -893,7 +910,18 @@ partial class Rikaichan
 			while (j != 0)
 			{
 				var line = outputList2[firstlineind + j - 1];
-				TextRenderer.DrawText(graph, line, Config.DefaultFont, new Point(x_offset, y), Config.RikaiColorText, TextFormatFlags.NoPrefix);
+				//TextRenderer.DrawText(graph, line, Config.DefaultFont, new Point(x_offset, y), Config.RikaiColorText, TextFormatFlags.NoPrefix);
+				var pt = new SKPaint
+				{
+					Color = Config.RikaiColorText.ToSKColor(),
+				};
+				var point = new SKPoint
+				{
+					X = x_offset,
+					Y = y
+				};
+				point.Offset(0, -Config.DefaultFont.Metrics.Top);
+				graph.DrawText(line, point.X, point.Y, Config.DefaultFont, pt);
 				j--;
 				i++;
 				y -= 20;

@@ -1,4 +1,4 @@
-﻿//using System.Drawing.Imaging;
+//using System.Drawing.Imaging;
 using MinorShift.Emuera.Forms;
 //using MinorShift.Emuera.GameData;
 using MinorShift.Emuera.GameProc.Function;
@@ -30,6 +30,9 @@ using System.Windows.Forms;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 using trmb = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.MessageBox;
 using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
+
 
 
 namespace MinorShift.Emuera.GameView;
@@ -268,7 +271,7 @@ internal sealed partial class EmueraConsole : IDisposable
 	public readonly ClipboardProcessor CBProc;
 	#endregion
 	private List<KeyValuePair<long, ConsoleBackground>> backgroundList = [];
-	private Bitmap bakedBackground;
+	private SKBitmap bakedBackground;
 
 	GameProc.Process process;
 	// ConsoleState state = ConsoleState.Initializing;
@@ -688,7 +691,6 @@ internal sealed partial class EmueraConsole : IDisposable
 		backgroundList.Sort((v1, v2) => (v1.Key >= v2.Key) ? -1 : 1);
 		BakeBackground();
 	}
-
 	public void ClearBackgroundImage()
 	{
 		backgroundList.Clear();
@@ -704,13 +706,13 @@ internal sealed partial class EmueraConsole : IDisposable
 	{
 		if (bakedBackground == null)
 		{
-			bakedBackground = new Bitmap(width, height);
+			bakedBackground = new SKBitmap(width, height);
 			BakeBackground();
 		}
 		else if (bakedBackground.Width != width || bakedBackground.Height != height)
 		{
 			bakedBackground.Dispose();
-			bakedBackground = new Bitmap(width, height);
+			bakedBackground = new SKBitmap(width, height);
 			BakeBackground();
 		}
 	}
@@ -720,20 +722,20 @@ internal sealed partial class EmueraConsole : IDisposable
 		{
 			return;
 		}
-		var graph = Graphics.FromImage(bakedBackground);
-		graph.Clear(Color.Transparent);
+		var graph = new SKCanvas(bakedBackground);
+		graph.Clear(Color.Transparent.ToSKColor());
 		foreach (var pair in backgroundList)
 		{
 			var bg = pair.Value.bgImage;
-			var scaleW = bakedBackground.Width / (float)bg.BaseImage.Bitmap.Width;
-			var scaleH = bakedBackground.Height / (float)bg.BaseImage.Bitmap.Height;
-			var cropHorizontally = bg.BaseImage.Bitmap.Height * scaleW < bakedBackground.Height;
-			var newWidth = bg.BaseImage.Bitmap.Width * (cropHorizontally ? scaleH : scaleW);
-			var newHeight = bg.BaseImage.Bitmap.Height * (cropHorizontally ? scaleH : scaleW);
+			var scaleW = bakedBackground.Width / (float)bg.BaseImage.SKBitmap.Width;
+			var scaleH = bakedBackground.Height / (float)bg.BaseImage.SKBitmap.Height;
+			var cropHorizontally = bg.BaseImage.SKBitmap.Height * scaleW < bakedBackground.Height;
+			var newWidth = bg.BaseImage.SKBitmap.Width * (cropHorizontally ? scaleH : scaleW);
+			var newHeight = bg.BaseImage.SKBitmap.Height * (cropHorizontally ? scaleH : scaleW);
 			var paddingX = (int)((bakedBackground.Width - newWidth) / 2);
-			var attributes = new ImageAttributes();
-			attributes.SetColorMatrix(pair.Value.GetColorMatrix(), ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-			bg.GraphicsDraw(graph, new Rectangle(paddingX, 0, (int)newWidth, (int)newHeight), attributes);
+			//SKColorFilter attributes = new();
+			//attributes.SetColorMatrix(pair.Value.GetColorMatrix(), ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+			bg.GraphicsDraw(graph, new Rectangle(paddingX, 0, (int)newWidth, (int)newHeight));
 		}
 	}
 	/// <summary>
@@ -1132,7 +1134,7 @@ internal sealed partial class EmueraConsole : IDisposable
 			mapPoint.Y = clientPoint.Y + cbgButtonMap.Height;
 			if (mapPoint.X >= 0 && mapPoint.Y >= 0 && mapPoint.X < cbgButtonMap.Width && mapPoint.Y < cbgButtonMap.Height)
 			{
-				Color c = cbgButtonMap.Bitmap.GetPixel(mapPoint.X, mapPoint.Y);
+				Color c = cbgButtonMap.SKBitmap.GetPixel(mapPoint.X, mapPoint.Y).ToDrawingColor();
 				if (c.A == 255)
 				{
 					buttonNum = c.ToArgb() & 0xFFFFFF;
@@ -1617,7 +1619,7 @@ internal sealed partial class EmueraConsole : IDisposable
 					Application.DoEvents();
 				}
 			}
-			window.TextBox.BackColor = bgColor;
+			window.TextBox.BackColor = bgColor.ToDrawingColor();
 
 			_drawStopwatch.Restart();
 		}
@@ -1625,6 +1627,7 @@ internal sealed partial class EmueraConsole : IDisposable
 		{
 			verticalScrollBarUpdate();
 			window.Refresh();//OnPaint発行
+			//window.MainPicBox.Refresh();
 		});
 	}
 
@@ -1653,7 +1656,7 @@ internal sealed partial class EmueraConsole : IDisposable
 	/// 全面Clear法のみにしたのでさっぱりした。ダブルバッファリングはOnPaintが勝手にやるはず
 	/// </summary>
 	/// <param name="graph"></param>
-	public void OnPaint(Graphics graph)
+	public void OnPaint(SKCanvas graph)
 	{
 		//デバッグ用。描画が超重い環境を想定1
 		//System.Threading.Thread.Sleep(100);
@@ -1680,11 +1683,12 @@ internal sealed partial class EmueraConsole : IDisposable
 		}
 		else
 		{
-			ValidateBackground((int)graph.ClipBounds.Width, (int)graph.ClipBounds.Height);
+			
+			ValidateBackground((int)graph.LocalClipBounds.Width, (int)graph.LocalClipBounds.Height);
 			graph.Clear(bgColor);
 			if (bakedBackground != null)
 			{
-				graph.DrawImage(bakedBackground, 0, 0);
+				graph.DrawBitmap(bakedBackground, 0, 0);
 			}
 
 			//1823 cbg追加
@@ -1859,9 +1863,16 @@ internal sealed partial class EmueraConsole : IDisposable
 			var g = GameData.Function.FunctionMethodCreator.ReadGraphics(i);
 			if (g.IsCreated)
 			{
-				Image img = g.Bitmap;
-				e.Graphics.DrawImage(img, 0, 0);
-				return;
+				SKBitmap img = g.SKBitmap;
+				try
+				{
+					e.Graphics.DrawImage(img.ToBitmap(), 0, 0);
+					return;
+				}
+				catch (Exception)
+				{
+					// Fall through to default tooltip handling if conversion fails
+				}
 			}
 
 		}
@@ -2212,7 +2223,7 @@ internal sealed partial class EmueraConsole : IDisposable
 			mapPoint.Y = mapPoint.Y + cbgButtonMap.Height;
 			if (mapPoint.X >= 0 && mapPoint.Y >= 0 && mapPoint.X < cbgButtonMap.Width && mapPoint.Y < cbgButtonMap.Height)
 			{
-				Color c = cbgButtonMap.Bitmap.GetPixel(mapPoint.X, mapPoint.Y);
+				Color c = cbgButtonMap.SKBitmap.GetPixel(mapPoint.X, mapPoint.Y).ToDrawingColor();
 				if (c.A == 255)
 				{
 					buttonNum = c.ToArgb() & 0xFFFFFF;

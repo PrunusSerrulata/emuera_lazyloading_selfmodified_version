@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 using static MinorShift.Emuera.Runtime.Utils.EvilMask.Shape;
 using static MinorShift.Emuera.Runtime.Utils.EvilMask.Utils;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
@@ -242,6 +243,23 @@ internal static class HtmlManager
 		public bool PointXisLocked;
 	}
 
+	class DivState
+	{
+		public bool IsDiv;//divタグの解析中
+		public int PosX;
+		public int PosY;
+		public DisplayMode Display;
+		public Color? BackgroundColor;
+
+		public int Width = -1;
+		public int Height = -1;
+
+		public bool HasBorder = false;
+		public int BorderWidth;
+		public Color BorderColor;
+		public Padding? Padding;
+	}
+
 	private sealed class HtmlAnalzeState
 	{
 		public bool LineHead = true;//行頭フラグ。一度もテキストが出てきてない状態
@@ -275,6 +293,8 @@ internal static class HtmlManager
 		#endregion
 		public bool FlagBr;//<br>による強制改行の予約
 		public bool FlagButton;//<button></button>によるボタン化の予約
+
+		public DivState DivState;
 
 		public StringStyle GetSS()
 		{
@@ -495,7 +515,7 @@ internal static class HtmlManager
 		while (!st.EOS)
 		{
 			found = st.Find('<');
-			if (hasReturn)
+			if (state.DivState == null && hasReturn)
 			{
 				int rFound = st.Find('\n');
 				if (rFound >= 0 && (found > rFound || found < 0))
@@ -592,7 +612,7 @@ internal static class HtmlManager
 				}
 				#endregion
 			}
-			if (state.FlagBr)
+			if (state.DivState == null && state.FlagBr)
 			{
 				state.LastButtonTag = state.CurrentButtonTag;
 				if (cssList.Count > 0)

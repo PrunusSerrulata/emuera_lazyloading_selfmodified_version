@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -6,6 +6,7 @@ using System.Linq;
 using MinorShift.Emuera.UI.Game.Image;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using SkiaSharp;
 
 namespace MinorShift.Emuera.GameData.Function
 {
@@ -165,8 +166,13 @@ namespace MinorShift.Emuera.GameData.Function
             Bitmap bmp = Utils.LoadImage(fullPath); // 假设你之前用了 WebP 支持的 LoadImage
             if (bmp == null) return 0;
 
+            using var ms = new MemoryStream();
+            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            ms.Seek(0, SeekOrigin.Begin);
+            using var skbmp = SKBitmap.Decode(ms);
+
             var g = AppContents.GetGraphics(newGid);
-            g.GCreateFromF(bmp, false);
+            g.GCreateFromF(skbmp, false);
             bmp.Dispose();
 
             if (g.IsCreated)

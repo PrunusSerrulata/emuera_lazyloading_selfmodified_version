@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
+using SkiaSharp;
 
 namespace MinorShift.Emuera.UI.Game;
 
@@ -548,7 +549,7 @@ internal sealed class PrintStringBuffer
 		int widthLimit = divWidth - css.PointX;
 		#endregion
 		string str = css.Text;
-		Font font = css.Font;
+		SKFont font = css.Font;
 
 		//最適なサイズを二分探索する
 		var span = str.AsSpan();
@@ -563,7 +564,7 @@ internal sealed class PrintStringBuffer
 			if (middle == smallestNotFitting) break;
 
 			test = span[..middle];
-			if (sm.GetDisplayLength(test, font) <= widthLimit)
+			if (StringMeasure.GetDisplayLength(test, font) <= widthLimit)
 			{
 				biggestFitting = middle;
 			}

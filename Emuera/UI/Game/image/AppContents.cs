@@ -1,6 +1,7 @@
 ﻿using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using SkiaSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -270,18 +271,19 @@ static class AppContents
 		if (!resourceDic.TryGetValue(parentName, out AbstractImage value))
 		{
 			string filepath = parentName;
-			Bitmap bmp;
+			SKBitmap bmp;
+			var skbitmap = SKBitmap.Decode(filepath);
 			#region EM_私家版_webp
 			// Bitmap bmp = new Bitmap(filepath);
-			var webpbmp = Utils.LoadImage(filepath);
+			//var webpbmp = Utils.LoadImage(filepath);
 			#endregion
-			if (webpbmp == null)
+			if (skbitmap == null)
 			{
 				ParserMediator.Warn(string.Format(trerror.FailedLoadFile.Text, arg2), sp, 1);
 				return null;
 			}
 
-			bmp = webpbmp;
+			bmp = skbitmap;
 
 			if (bmp.Width > AbstractImage.MAX_IMAGESIZE || bmp.Height > AbstractImage.MAX_IMAGESIZE)
 			{
@@ -306,7 +308,8 @@ static class AppContents
 			ParserMediator.Warn(string.Format(trerror.SpriteCreateFromFailedResource.Text, arg2), sp, 1);
 			return null;
 		}
-		Rectangle rect = new(0, 0, parentImage.Width, parentImage.Height);
+		//Rectangle rect = new(0, 0, parentImage.Width, parentImage.Height);
+		var rect = new Rectangle(new Point(0, 0), new Size(parentImage.SKBitmap.Width, parentImage.SKBitmap.Height));
 		Size size = rect.Size;
 		Point pos = new();
 		int delay = 1000;

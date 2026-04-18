@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Text.Json;
+using SkiaSharp;
 
 namespace MinorShift.Emuera.UI.Game.Image;
 
@@ -11,13 +12,13 @@ internal sealed class ConstImage : AbstractImage
 	{ Name = name; RealIsCreated = false; }
 
 	public readonly string Name;
-	public Bitmap RealBitmap;
+	public SKBitmap RealBitmap;
 	public string Filepath;
 	public int Width;
 	public int Height;
 	public bool RealIsCreated;
 
-	internal void CreateFrom(Bitmap bmp, string filepath, bool useGDI)
+	internal void CreateFrom(SKBitmap bmp, string filepath, bool useGDI)
 	{
 		if (RealBitmap != null || !string.IsNullOrEmpty(Filepath))
 			throw new Exception();
@@ -46,7 +47,7 @@ internal sealed class ConstImage : AbstractImage
 			return;
 		try
 		{
-			RealBitmap = ImgUtils.LoadImage(Filepath);
+			RealBitmap = SKBitmap.Decode(Filepath);
 			if (RealBitmap == null)
 			{
 				return;
@@ -70,8 +71,8 @@ internal sealed class ConstImage : AbstractImage
 	//		if (useGDI)
 	//		{
 	//			hBitmap = Bitmap.GetHbitmap();
-	//			g = Graphics.FromImage(Bitmap);
-	//			GDIhDC = g.GetHdc();
+	//			canvas = Graphics.FromImage(Bitmap);
+	//			GDIhDC = canvas.GetHdc();
 	//			hDefaultImg = GDI.SelectObject(GDIhDC, hBitmap);
 	//		}
 	//		Loaded = true;
@@ -88,10 +89,10 @@ internal sealed class ConstImage : AbstractImage
 	{
 		if (RealBitmap == null || !RealIsCreated)
 			return;
-		if (g != null)
+		if (canvas != null)
 		{
-			g.Dispose();
-			g = null;
+			canvas.Dispose();
+			canvas = null;
 		}
 		if (RealBitmap != null)
 		{
@@ -113,8 +114,7 @@ internal sealed class ConstImage : AbstractImage
 			return RealIsCreated;
 		}
 	}
-
-	public override Bitmap Bitmap
+	public override SKBitmap SKBitmap
 	{
 		set
 		{

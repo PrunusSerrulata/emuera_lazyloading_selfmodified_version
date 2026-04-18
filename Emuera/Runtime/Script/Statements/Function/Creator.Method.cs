@@ -8,8 +8,11 @@ using MinorShift.Emuera.Runtime.Script.Statements.Function;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using MinorShift.Emuera.UI;
 using MinorShift.Emuera.UI.Game;
 using MinorShift.Emuera.UI.Game.Image;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -2692,7 +2695,7 @@ internal static partial class FunctionMethodCreator
 		readonly bool defaultColor;
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			Color color = defaultColor ? Config.BackColor : GlobalStatic.Console.bgColor;
+			Color color = defaultColor ? Config.BackColor : GlobalStatic.Console.bgColor.ToDrawingColor();
 			return color.ToArgb() & 0xFFFFFF;
 		}
 	}
@@ -5468,7 +5471,7 @@ internal static partial class FunctionMethodCreator
 			Point p = ReadPoint(Name, exm, arguments, 1);
 			if (p.X < 0 || p.X >= g.Width || p.X < 0 || p.Y >= g.Height)
 				return -1;
-			Color c = g.GGetColor(p.X, p.Y);
+			var c = g.GGetColor(p.X, p.Y).ToDrawingColor();
 			//Color.ToArgb()はInt32の負の値をとることがあり、Int64にうまく変換できない?（と思ったが気のせいだった
 			return c.ToArgb() & 0xFFFFFFFFL;
 		}
@@ -5565,7 +5568,7 @@ internal static partial class FunctionMethodCreator
 					fs |= FontStyle.Underline;
 			}
 
-			Font styledFont;
+			SKFont styledFont;
 			try
 			{
 				#region EE_フォントファイル対応
@@ -5573,12 +5576,13 @@ internal static partial class FunctionMethodCreator
 				{
 					if (ff.Name == fontname)
 					{
-						styledFont = new Font(ff, fontsize, fs, GraphicsUnit.Pixel);
+						styledFont = new SKFont(SKTypeface.FromFamilyName(ff.Name), fontsize);
 						goto foundfont;
 					}
 				}
 				// styledFont = new Font(fontname, fontsize, FontStyle.Regular, GraphicsUnit.Pixel);
-				styledFont = new Font(fontname, fontsize, fs, GraphicsUnit.Pixel);
+				styledFont = FontFactory.GetFont(fontname, fs, fontsize);
+				
 			}
 			catch
 			{
@@ -5586,7 +5590,7 @@ internal static partial class FunctionMethodCreator
 			}
 		foundfont:
 			#endregion
-			// g.GSetFont(styledFont);
+			// canvas.GSetFont(styledFont);
 			g.GSetFont(styledFont, fs);
 			return 1;
 		}
@@ -5696,21 +5700,31 @@ internal static partial class FunctionMethodCreator
 				g.GDrawString(text, p.X, p.Y);
 			}
 			//生成する画像のサイズを取得
-			var bitmap = new Bitmap(16, 16);
+			var bitmap = new SKBitmap(16, 16);
 			//Graphics canvas = Graphics.FromImage(bitmap);
-			var graphics = Graphics.FromImage(bitmap);
-			Font font = g.Fnt;
+			var graphics = new SKCanvas(bitmap);
+			SKFont font = g.Fnt;
+			var paint = new SKPaint();
 			if (font == null)
-				font = new Font(Config.FontName, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
-			var size = graphics.MeasureString(text, font, int.MaxValue, StringFormat.GenericTypographic);
+			{
+				//font = new Font(Config.FontName, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
+				paint.Typeface = SKTypeface.FromFamilyName(Config.FontName);
+				paint.TextSize = Config.FontSize;
+				paint.Style = (SKPaintStyle)GlobalStatic.Console.StringStyle.FontStyle;
+			}
+			else
+			{
+				paint.Typeface = font.Typeface;
+				paint.TextSize = font.Size;
+				paint.Style = (SKPaintStyle)g.Fontstyle;
+			}
+			
 
-			//TextRenderer
-			//Size tsize = TextRenderer.MeasureText(canvas, text, g.Fnt,
-			//    new Size(2000, 2000), TextFormatFlags.NoPadding);
-			//test用
+			var size = paint.MeasureText(text);
+
 			long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
-			resultArray[1] = (long)size.Width;
-			resultArray[2] = (long)size.Height;
+			resultArray[1] = (long)size;
+			resultArray[2] = (long)paint.TextSize;
 			return 1;
 		}
 	}
@@ -5795,20 +5809,20 @@ internal static partial class FunctionMethodCreator
 	//	{
 	//		if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 	//			throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
-	//		GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-	//		if (!g.IsCreated)
+	//		GraphicsImage canvas = ReadGraphics(Name, exm, arguments, 0);
+	//		if (!canvas.IsCreated)
 	//			return 0;
 	//		Int64 angle = arguments[1].GetIntValue(exm);
 
 	//		//座標省略してたらx/2,y/2で渡す
 	//		if (arguments.Count == 2)
 	//		{
-	//			g.GRotate(angle, g.Width / 2, g.Height / 2);
+	//			canvas.GRotate(angle, canvas.Width / 2, canvas.Height / 2);
 	//		}
 	//		else
 	//		{
 	//			Point p = ReadPoint(Name, exm, arguments, 2);
-	//			g.GRotate(angle, p.X, p.Y);
+	//			canvas.GRotate(angle, p.X, p.Y);
 	//		}
 	//		return 1;
 	//	}
@@ -5850,12 +5864,12 @@ internal static partial class FunctionMethodCreator
 			//座標省略してたらx/2,y/2で渡す
 			if (arguments.Count == 3)
 			{
-				dest.GDrawGWithRotate(src, angle, src.Width / 2, src.Height / 2);
+				dest.GDrawGWithRotate(src.RealBitmap, angle, src.Width / 2, src.Height / 2);
 			}
 			else
 			{
 				Point p = ReadPoint(Name, exm, arguments, 3);
-				dest.GDrawGWithRotate(src, angle, p.X, p.Y);
+				dest.GDrawGWithRotate(src.RealBitmap, angle, p.X, p.Y);
 			}
 			return 1;
 		}
@@ -5875,7 +5889,7 @@ internal static partial class FunctionMethodCreator
 		public override Int64 GetIntValue(ExpressionMediator exm, IOperandTerm[] arguments)
 		{
 			Color c = 
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+			GraphicsImage canvas = ReadGraphics(Name, exm, arguments, 0);
 			return (SolidBrush());
 		}
 	}
@@ -5984,10 +5998,9 @@ internal static partial class FunctionMethodCreator
 				return -1;
 			if (p.Y < 0 || p.Y >= img.DestBaseSize.Height)
 				return -1;
-			Color c = img.SpriteGetColor(p.X, p.Y);
+			var c = img.SpriteGetColor(p.X, p.Y);
 			//Color.ToArgb()はInt32の負の値をとることがあり、Int64にうまく変換できない？（と思ったが気のせいだった
-			//return ((long)c.A) << 24 + c.R << 16 + c.G << 8 + c.B;
-			return c.ToArgb() & 0xFFFFFFFFL;
+			return (((long)c.Alpha) << 24 + c.Red << 16 + c.Green << 8 + c.Blue) & 0xFFFFFFFFL;
 		}
 	}
 
@@ -6074,7 +6087,7 @@ internal static partial class FunctionMethodCreator
 			if (arguments.Count > 2)
 				isRelative = arguments[2].GetIntValue(exm) != 0;
 
-			Bitmap bmp = null;
+			SKBitmap bmp = null;
 			try
 			{
 				string filepath = filename;
@@ -6088,8 +6101,8 @@ internal static partial class FunctionMethodCreator
 				if (!File.Exists(filepath))
 					return 0;
 				#region EM_私家版_webp
-				// bmp = new Bitmap(filepath);
-				bmp = Utils.LoadImage(filepath);
+				bmp = SKBitmap.Decode(filepath);
+				//bmp = Utils.LoadImage(filepath);
 				if (bmp == null) return 0;
 				#endregion
 				if (bmp.Width > AbstractImage.MAX_IMAGESIZE || bmp.Height > AbstractImage.MAX_IMAGESIZE)
@@ -6206,7 +6219,7 @@ internal static partial class FunctionMethodCreator
 				// 默认情况下，目标尺寸 = 源矩形尺寸
 				destSize = rect.Size;
 				#region EM_私家版_SPRITECREATE範囲制限緩和
-				//if (rect.X + rect.Width < 0 || rect.X + rect.Width > g.Width || rect.Y + rect.Height < 0 || rect.Y + rect.Height > g.Height)
+				//if (rect.X + rect.Width < 0 || rect.X + rect.Width > canvas.Width || rect.Y + rect.Height < 0 || rect.Y + rect.Height > canvas.Height)
 				//	throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
 				if (!rect.IntersectsWith(new Rectangle(0, 0, g.Width, g.Height)))
 					// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
@@ -6752,7 +6765,7 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
 
 			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated || g.Bitmap == null)
+			if (!g.IsCreated || g.SKBitmap == null)
 				return 0;
 			Point p = ReadPoint(Name, exm, arguments, 1);
 			long z64 = arguments[3].GetIntValue(exm);
@@ -6783,7 +6796,7 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
 
 			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated || g.Bitmap == null)
+			if (!g.IsCreated || g.SKBitmap == null)
 				return 0;
 			exm.Console.CBG_SetButtonMap(g);
 			return 1;
@@ -7233,7 +7246,7 @@ internal static partial class FunctionMethodCreator
 			try
 			{
 				Config.CreateSavDir();
-				g.Bitmap.Save(filepath);
+				g.SKBitmap.ToBitmap().Save(filepath);
 			}
 			catch
 			{
@@ -7267,14 +7280,14 @@ internal static partial class FunctionMethodCreator
 				return 0;
 
 			string filepath = GetSaveDataPathGraphics((int)i64);
-			Bitmap bmp = null;
+			SKBitmap bmp = null;
 			try
 			{
 				if (!File.Exists(filepath))
 					return 0;
 				#region EM_私家版_webp
-				// bmp = new Bitmap(filepath);
-				bmp = Utils.LoadImage(filepath);
+				bmp = SKBitmap.Decode(filepath);
+				//bmp = Utils.LoadImage(filepath);
 				if (bmp == null) return 0;
 				#endregion
 				if (bmp.Width > AbstractImage.MAX_IMAGESIZE || bmp.Height > AbstractImage.MAX_IMAGESIZE)

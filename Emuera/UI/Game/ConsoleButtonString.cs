@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using SkiaSharp;
 
 namespace MinorShift.Emuera.UI.Game;
 
@@ -107,7 +108,7 @@ internal sealed class ConsoleButtonString
 	}
 
 	//Bitmap Cache
-	public Bitmap bitmapCache;
+	public SKBitmap bitmapCache;
 
 	ConsoleImagePart mask;
 	#endregion
@@ -273,7 +274,7 @@ internal sealed class ConsoleButtonString
 			css.PointX += shiftX;
 	}
 
-	public void DrawTo(Graphics graph, int pointY, bool isBackLog, TextDrawingMode mode)
+	public void DrawTo(SKCanvas graph, SKPoint point, bool isBackLog, TextDrawingMode mode)
 	{
 		bool isFocus = IsButton && parent.ButtonIsSelected(this);
 		bool isSelecting = IsButton && parent.ButtonIsPointing(this);
@@ -290,8 +291,8 @@ internal sealed class ConsoleButtonString
 				//^ Without +1, some things get cropped. I don't know why, probably a bug somewhere.
 				//TODO
 				int height = Config.FontSize;
-				bitmapCache = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-				Graphics g = Graphics.FromImage(bitmapCache);
+				bitmapCache = new SKBitmap(width, height);//, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+				var g = new SKCanvas(bitmapCache);
 
 				int xOffset = 0;
 				foreach (AConsoleDisplayNode css in strArray)
@@ -315,24 +316,29 @@ internal sealed class ConsoleButtonString
 				GlobalStatic.Console.bitmapCacheArrayIndex = index;
 
 			}
-			graph.DrawImageUnscaled(bitmapCache, PointX, pointY);
+			//graph.DrawImageUnscaled(bitmapCache, PointX, pointY);
+			graph.DrawBitmap(bitmapCache, PointX, point.Y);
 			return;
 		}
 
-		foreach (AConsoleDisplayNode css in strArray)
+		foreach (var css in strArray)
 		{
-			if (css is ConsoleDivPart div) continue;
-			css.DrawTo(graph, pointY, isSelecting, isFocus, isBackLog, mode, IsButton);
+			if (css is ConsoleDivPart) continue;
+			css.DrawTo(graph, point, isSelecting, isFocus, isBackLog, mode, IsButton);
+			if (point.X != -1)
+			{
+				point.Offset(css.Width, 0);
+			}
 		}
 		#endregion
 	}
 
 	#region EM_私家版_描画拡張
-	public void DrawPartTo(Graphics graph, AConsoleDisplayNode css, int pointY, bool isBackLog, TextDrawingMode mode)
+	public void DrawPartTo(SKCanvas graph, AConsoleDisplayNode css, int pointY, bool isBackLog, TextDrawingMode mode)
 	{
 		bool isFocus = IsButton && parent.ButtonIsSelected(this);
 		bool isSelecting = IsButton && parent.ButtonIsPointing(this);
-		css.DrawTo(graph, pointY, isSelecting, isFocus, isBackLog, mode);
+		css.DrawTo(graph, new SKPoint(-1, pointY), isSelecting, isFocus, isBackLog, mode);
 	}
 	#endregion
 

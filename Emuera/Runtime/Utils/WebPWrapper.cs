@@ -1412,7 +1412,7 @@ internal sealed partial class UnsafeNativeMethods
 	private static extern void WebPFree_x64(nint p);
 
 	/// <summary>Get the WebP version library</summary>
-	/// <returns>8bits for each of major/minor/revision packet in integer. E.g: v2.5.7 is 0x020507</returns>
+	/// <returns>8bits for each of major/minor/revision packet in integer. E.canvas: v2.5.7 is 0x020507</returns>
 	internal static int WebPGetDecoderVersion()
 	{
 		switch (nint.Size)
@@ -1725,7 +1725,7 @@ internal struct WebPPicture
 	public uint error_code;
 	/// <summary>If not NULL, report progress during encoding</summary>
 	public nint progress_hook;
-	/// <summary>This field is free to be set to any value and used during callbacks (like progress-report e.g.)</summary>
+	/// <summary>This field is free to be set to any value and used during callbacks (like progress-report e.canvas.)</summary>
 	public nint user_data;
 	/// <summary>Padding for later use</summary>
 	[MarshalAs(UnmanagedType.ByValArray, SizeConst = 13, ArraySubType = UnmanagedType.U4)]

@@ -1,6 +1,7 @@
 ﻿using MinorShift.Emuera.Runtime.Config;
 using System.Drawing;
 using System.Text;
+using SkiaSharp;
 
 namespace MinorShift.Emuera.UI.Game;
 
@@ -139,10 +140,10 @@ internal sealed class ConsoleDisplayLine
 	//	return null;
 	//}
 
-	public void DrawTo(Graphics graph, int pointY, bool isBackLog, bool force, TextDrawingMode mode)
+	public void DrawTo(SKCanvas graph, int pointY, bool isBackLog, bool force, TextDrawingMode mode)
 	{
 		foreach (ConsoleButtonString button in buttons)
-			button.DrawTo(graph, pointY, isBackLog, mode);
+			button.DrawTo(graph, new SKPoint(-1, pointY), isBackLog, mode);
 	}
 
 	readonly static StringBuilder builder = new();

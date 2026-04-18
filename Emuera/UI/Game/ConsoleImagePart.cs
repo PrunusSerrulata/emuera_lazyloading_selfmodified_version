@@ -1,5 +1,7 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.UI.Game.Image;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 using System;
 using System.Drawing;
 using System.Text;
@@ -152,7 +154,7 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 		}
 		if (cImage != null)
 			return;
-		Width = sm.GetDisplayLength(Text, Config.DefaultFont);
+		Width = StringMeasure.GetDisplayLength(Text, Config.DefaultFont);
 		XsubPixel = subPixel;
 	}
 
@@ -186,13 +188,13 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 			else return 0;
 			pointX = pointX * spriteSize.Width / destRect.Width;
 			pointY = pointY * spriteSize.Height / destRect.Height;
-			var c = cImageM.SpriteGetColor(pointX, pointY);
+			var c = cImageM.SpriteGetColor(pointX, pointY).ToDrawingColor();
 			return c.ToArgb() & 0xFFFFFF;
 		}
 		return 0;
 	}
 	#endregion
-	public override void DrawTo(Graphics graph, int pointY, bool isSelecting, bool isFocus, bool isBackLog, TextDrawingMode mode, bool isButton = false)
+	public override void DrawTo(SKCanvas graph, SKPoint point, bool isSelecting, bool isFocus, bool isBackLog, TextDrawingMode mode, bool isButton = false)
 	{
 		if (Error)
 			return;
@@ -205,15 +207,13 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 			Rectangle rect = destRect;
 			//PointX微調整
 			rect.X = destRect.X + PointX + Config.DrawingParam_ShapePositionShift;
-			rect.Y = destRect.Y + pointY;
+			rect.Y = destRect.Y + (int)point.Y;
 			img.GraphicsDraw(graph, rect);
 		}
 		else
 		{
-			if (mode == TextDrawingMode.GRAPHICS)
-				graph.DrawString(AltText, Config.DefaultFont, new SolidBrush(Config.ForeColor), new Point(PointX, pointY));
-			else
-				System.Windows.Forms.TextRenderer.DrawText(graph, AltText.AsSpan(), Config.DefaultFont, new Point(PointX, pointY), Config.ForeColor, System.Windows.Forms.TextFormatFlags.NoPrefix);
+			var textPaint = new SKPaint { Color = Config.ForeColor.ToSKColor(), TextAlign = SKTextAlign.Left };
+			graph.DrawText(AltText, PointX, (float)point.Y, new SKFont(), textPaint);
 		}
 	}
 }

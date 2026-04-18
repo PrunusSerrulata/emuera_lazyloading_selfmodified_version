@@ -15,7 +15,7 @@ namespace MinorShift.Emuera.Forms
 				ClientSize = new Size(Config.WindowX, 480);
 				textBox1.Width = Config.WindowX;
 			}
-			textBox1.Font = Config.DefaultFont;
+			//textBox1.Font = Config.DefaultFont;
 		}
 
 		public void Setup(EmueraConsole console)
