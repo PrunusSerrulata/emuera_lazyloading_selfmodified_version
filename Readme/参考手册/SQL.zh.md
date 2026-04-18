@@ -11,7 +11,6 @@
 | **SQL_READER_GET_STRING** | long readerId, int columnIndex | string |
 | **SQL_READER_ISNULL** | long readerId, int columnIndex | int |
 | **SQL_READER_CLOSE** | long readerId | int |
-
 | **SQL_IMPORT_MAP_XML** | string dbName, string tableName, string filePath | int |
 | **SQL_IMPORT_DT_XML** | string dbName, string tableName, string schemaPath, string dataPath | int |
 | **SQL_EXPORT_MAP_XML** | string dbName, string tableName, string filePath | int |
