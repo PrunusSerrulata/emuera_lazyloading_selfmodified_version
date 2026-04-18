@@ -202,58 +202,50 @@ namespace MinorShift.Emuera.GameData.Function
 			}
 		}
 
-        // 12. [流式导入] 将 MAP 格式的 XML 直接导入到 SQLite (内存占用极低)
+        // 12. [流式导入] 将 MAP 格式的 XML 直接导入到 SQLite
         public static long ImportMapXml(string dbName, string tableName, string filePath)
         {
             if (!_connections.TryGetValue(dbName, out var conn)) return 0;
             
-            string fullPath = Path.Combine(Program.ExeDir, filePath);
-            if (!File.Exists(fullPath)) return 0;
+            string fullPath = Path.Combine(Program.WorkingDir, filePath);
+            if (!File.Exists(fullPath)) fullPath = Path.Combine(Program.ExeDir, filePath);
+            if (!File.Exists(fullPath)) throw new CodeEE($"SQL_IMPORT_MAP_XML: 找不到文件 '{filePath}'");
 
             try
             {
+                // 使用 XmlDocument 确保 100% 兼容各种缩进和换行的 XML
+                XmlDocument doc = new XmlDocument();
+                doc.Load(fullPath);
+
                 using var trans = conn.BeginTransaction();
                 
                 using (var cmd = conn.CreateCommand())
                 {
+                    cmd.Transaction = trans;
                     cmd.CommandText = $"CREATE TABLE IF NOT EXISTS {tableName} (k TEXT PRIMARY KEY, v TEXT);";
                     cmd.ExecuteNonQuery();
                 }
 
                 using (var cmd = conn.CreateCommand())
                 {
+                    cmd.Transaction = trans;
                     cmd.CommandText = $"INSERT OR REPLACE INTO {tableName} (k, v) VALUES (@k, @v);";
                     var pK = cmd.Parameters.Add("@k", SqliteType.Text);
                     var pV = cmd.Parameters.Add("@v", SqliteType.Text);
 
-                    // 使用 XmlReader 流式读取，不加载整个文档到内存
-                    using (XmlReader reader = XmlReader.Create(fullPath))
+                    XmlNodeList nodes = doc.SelectNodes("/map/p");
+                    if (nodes != null)
                     {
-                        while (reader.Read())
+                        foreach (XmlNode node in nodes)
                         {
-                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "p")
+                            var keyNode = node.SelectSingleNode("./k");
+                            var valNode = node.SelectSingleNode("./v");
+                            
+                            if (keyNode != null && valNode != null)
                             {
-                                string currentK = null;
-                                string currentV = null;
-                                
-                                using (XmlReader pReader = reader.ReadSubtree())
-                                {
-                                    while (pReader.Read())
-                                    {
-                                        if (pReader.NodeType == XmlNodeType.Element)
-                                        {
-                                            if (pReader.Name == "k") currentK = pReader.ReadElementContentAsString();
-                                            else if (pReader.Name == "v") currentV = pReader.ReadInnerXml();
-                                        }
-                                    }
-                                }
-
-                                if (currentK != null)
-                                {
-                                    pK.Value = currentK;
-                                    pV.Value = (object)currentV ?? DBNull.Value;
-                                    cmd.ExecuteNonQuery();
-                                }
+                                pK.Value = keyNode.InnerText;
+                                pV.Value = valNode.InnerXml; // 保持内部 XML 标签(如果有的话)
+                                cmd.ExecuteNonQuery();
                             }
                         }
                     }
@@ -263,28 +255,30 @@ namespace MinorShift.Emuera.GameData.Function
             }
             catch (Exception ex)
             {
-                throw new CodeEE($"流式导入 MAP XML 失败: {ex.Message}");
+                throw new CodeEE($"导入 MAP XML 失败: {ex.Message}");
             }
         }
-
         // 13. [流式导入] 将 DT 格式的 XML 导入到 SQLite
         public static long ImportDtXml(string dbName, string tableName, string schemaPath, string dataPath)
         {
             if (!_connections.TryGetValue(dbName, out var conn)) return 0;
 
-            string fullSchema = Path.Combine(Program.ExeDir, schemaPath);
-            string fullData = Path.Combine(Program.ExeDir, dataPath);
-            if (!File.Exists(fullSchema) || !File.Exists(fullData)) return 0;
+            string fullSchema = Path.Combine(Program.WorkingDir, schemaPath);
+            if (!File.Exists(fullSchema)) fullSchema = Path.Combine(Program.ExeDir, schemaPath);
+            
+            string fullData = Path.Combine(Program.WorkingDir, dataPath);
+            if (!File.Exists(fullData)) fullData = Path.Combine(Program.ExeDir, dataPath);
+
+            if (!File.Exists(fullSchema)) throw new CodeEE($"SQL_IMPORT_DT_XML: 找不到架构文件 '{schemaPath}'");
+            if (!File.Exists(fullData)) throw new CodeEE($"SQL_IMPORT_DT_XML: 找不到数据文件 '{dataPath}'");
 
             try
             {
-                // Schema 通常很小，可以用 DataTable 读取来确定结构
                 DataTable schemaDt = new DataTable(tableName);
                 schemaDt.ReadXmlSchema(fullSchema);
 
                 using var trans = conn.BeginTransaction();
 
-                // 1. 建表
                 List<string> columns = new List<string>();
                 foreach (DataColumn col in schemaDt.Columns)
                 {
@@ -294,30 +288,29 @@ namespace MinorShift.Emuera.GameData.Function
                 }
                 using (var cmd = conn.CreateCommand())
                 {
+                    cmd.Transaction = trans;
                     cmd.CommandText = $"CREATE TABLE IF NOT EXISTS {tableName} ({string.Join(", ", columns)});";
                     cmd.ExecuteNonQuery();
                 }
 
-                // 2. 流式插入数据
                 string colNames = string.Join(", ", schemaDt.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
                 string paramNames = string.Join(", ", schemaDt.Columns.Cast<DataColumn>().Select(c => "@" + c.ColumnName));
                 
                 using (var cmd = conn.CreateCommand())
                 {
+                    cmd.Transaction = trans;
                     cmd.CommandText = $"INSERT OR REPLACE INTO {tableName} ({colNames}) VALUES ({paramNames});";
                     foreach (DataColumn col in schemaDt.Columns)
                         cmd.Parameters.Add("@" + col.ColumnName, (col.DataType == typeof(long) || col.DataType == typeof(int)) ? SqliteType.Integer : SqliteType.Text);
 
                     using (XmlReader reader = XmlReader.Create(fullData))
                     {
-                        // 寻找与表名对应的节点 (DataTable XML 默认结构)
                         while (reader.Read())
                         {
                             if (reader.NodeType == XmlNodeType.Element && reader.Name == tableName)
                             {
                                 using (XmlReader rowReader = reader.ReadSubtree())
                                 {
-                                    // 清除上一行参数
                                     foreach (SqliteParameter p in cmd.Parameters) p.Value = DBNull.Value;
 
                                     while (rowReader.Read())
