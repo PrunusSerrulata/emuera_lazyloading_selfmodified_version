@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Statements;
@@ -7,6 +7,7 @@ using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using MinorShift.Emuera.UI;
 using MinorShift.Emuera.UI.Game;
 using MinorShift.Emuera.UI.Framework.Forms;
+using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
 using System;
@@ -27,6 +28,9 @@ namespace MinorShift.Emuera.Forms
 		{
 			InitializeComponent();
 			_args = args;
+
+			// 检查OpenGL是否可用，如果不可用则切换到SKControl
+			CheckOpenGLCompatibility();
 
 			if (Program.DebugMode)
 			{
@@ -100,9 +104,77 @@ namespace MinorShift.Emuera.Forms
 			vScrollBar.ValueChanged += new EventHandler(textBoxHandleScrollValueChanged);
 			#endregion
 		}
+
+		// 检查OpenGL兼容性并在必要时切换到SKControl
+		private void CheckOpenGLCompatibility()
+		{
+			try
+			{
+				// 尝试创建一个临时的SKGLControl来测试OpenGL是否可用
+				using (var testControl = new SKGLControl())
+				{
+					// 尝试初始化OpenGL
+					testControl.CreateControl();
+					// 如果没有抛出异常，则OpenGL可用
+					EraPictureBox.UseOpenGL = true;
+				}
+			}
+			catch (Exception)
+			{
+				// OpenGL不可用，切换到SKControl
+				EraPictureBox.UseOpenGL = false;
+				
+				// 移除现有的mainPicBox并替换为SKControl
+				Controls.Remove(mainPicBox);
+				mainPicBox.Dispose();
+				
+				// 创建新的SKControl实例
+				var newControl = EraPictureBox.CreateInstance();
+				newControl.Name = "mainPicBox";
+				newControl.Location = new System.Drawing.Point(0, 24);
+				newControl.Size = new System.Drawing.Size(640, 480);
+				newControl.TabIndex = 0;
+				// 补上丢失的布局属性，确保窗口拉伸正常
+				newControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+				newControl.BackColor = Color.Black;
+				newControl.Margin = new Padding(0);
+				
+				// 添加新控件到表单
+				Controls.Add(newControl);
+				Controls.SetChildIndex(newControl, 0);
+				
+				// 更新mainPicBox引用
+				mainPicBox = (SKControl)newControl;
+				
+				// 重新绑定鼠标事件
+				mainPicBox.MouseWheel += new MouseEventHandler(richTextBox1_MouseWheel);
+				mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
+				mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
+				mainPicBox.MouseDown += mainPicBox_MouseDown;
+				mainPicBox.MouseLeave += mainPicBox_MouseLeave;
+				mainPicBox.MouseMove += mainPicBox_MouseMove;
+			}
+			
+			// 根据控件类型绑定正确的Paint事件
+			if (mainPicBox is SKGLControl glControl)
+			{
+				glControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
+			}
+			else if (mainPicBox is SKControl skControl)
+			{
+				skControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
+			}
+		}
+		
+		// 通用的渲染方法
+		private void RenderConsole(SKCanvas canvas)
+		{
+			if (console == null) return;
+			console.OnPaint(canvas);
+		}
 		private ToolStripMenuItem[] macroMenuItems = new ToolStripMenuItem[KeyMacro.MaxFkey];
 		//private System.Diagnostics.FileVersionInfo emueraVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
-		public EraPictureBox MainPicBox { get { return mainPicBox; } }
+		public Control MainPicBox { get { return mainPicBox; } }
 		public VScrollBar ScrollBar { get { return vScrollBar; } }
 		public RichTextBox TextBox { get { return richTextBox1; } }
 		public ToolTip ToolTip { get { return toolTipButton; } }
@@ -933,13 +1005,6 @@ namespace MinorShift.Emuera.Forms
 				return;
 			await ReloadErb();
 
-		}
-
-		private void mainPicBox_Paint(object sender, SKPaintGLSurfaceEventArgs e)
-		{
-			if (console == null)
-				return;
-			console.OnPaint(e.Surface.Canvas);
 		}
 
 		private void ログを保存するSToolStripMenuItem_Click(object sender, EventArgs e)

@@ -1,4 +1,6 @@
 ﻿using MinorShift.Emuera.Runtime.Utils;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 using System.Drawing;
 using System.IO;
 
@@ -12,27 +14,19 @@ static class ImgUtils
 		{
 			return null;
 		}
-		Bitmap bmp = null;
-
-		if (Path.GetExtension(filepath).ToUpperInvariant() == ".WEBP")
+		
+		try
 		{
-			using (WebP webp = new())
-				bmp = webp.Load(filepath);
-
-			if (bmp == null)
+			using var skbmp = SKBitmap.Decode(filepath);
+			if (skbmp != null)
 			{
-				return null;
+				return skbmp.ToBitmap();
 			}
+			return new Bitmap(filepath);
 		}
-		else
+		catch
 		{
-			bmp = new Bitmap(filepath);
-			if (bmp == null)
-			{
-				return null;
-			}
+			return null;
 		}
-
-		return bmp;
 	}
 }

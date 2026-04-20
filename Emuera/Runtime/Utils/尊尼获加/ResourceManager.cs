@@ -163,17 +163,12 @@ namespace MinorShift.Emuera.GameData.Function
             if (!File.Exists(fullPath)) return 0;
 
             int newGid = _nextGid++;
-            Bitmap bmp = Utils.LoadImage(fullPath); // 假设你之前用了 WebP 支持的 LoadImage
-            if (bmp == null) return 0;
-
-            using var ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            ms.Seek(0, SeekOrigin.Begin);
-            using var skbmp = SKBitmap.Decode(ms);
+            // ✅ SkiaSharp 直接解码 WebP
+            using var skbmp = SKBitmap.Decode(fullPath);
+            if (skbmp == null) return 0;
 
             var g = AppContents.GetGraphics(newGid);
             g.GCreateFromF(skbmp, false);
-            bmp.Dispose();
 
             if (g.IsCreated)
             {

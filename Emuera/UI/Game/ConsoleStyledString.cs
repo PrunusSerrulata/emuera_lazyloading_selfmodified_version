@@ -196,54 +196,55 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 					!string.IsNullOrWhiteSpace(Text))
 				{
 					backcolor = SKColors.Gray;
-				}
-			}
-			color = ButtonColor;
-		}
-		else if (isBackLog && !colorChanged)
-		{
-			color = Config.LogColor;
-		}
-
-		#region EM_私家版_描画拡張
-		var paint = new SKPaint
-		{
-			Color = color.ToSKColor(),
-			IsAntialias = false,
-			TextAlign = SKTextAlign.Left
-		};
-
-		var point = new SKPoint(PointX, origin.Y);
-		if (origin.X == -1)//旧来の位置決め方式
-		{
-			point.X = PointX;
-		}
-		Point = point;
-
-		if (backcolor.HasValue)
-		{
-			var size = new SKSize(Width, Font.Size);
-			graph.DrawRect(SKRect.Create(point, size), new SKPaint() { Color = backcolor.Value });
-		}
-
-		if (_texts == null)
-		{
-			point.Offset(0, Math.Abs(Font.Metrics.Top));
-			graph.DrawText(Text, point.X, point.Y, Font, paint);
-		}
-		else
-		{
-			foreach (var text in _texts)
-			{
-				var offsetPoint = point with { Y = point.Y + Math.Abs(text.Font.Metrics.Top) };
-				graph.DrawText(text.Text, offsetPoint.X, offsetPoint.Y, text.Font, paint);
-
-				point.Offset(text.Width, 0);
 			}
 		}
-
-		#endregion
+		color = ButtonColor;
 	}
+	else if (isBackLog && !colorChanged)
+	{
+		color = Config.LogColor;
+	}
+
+	#region EM_私家版_描画拡張
+	using var paint = new SKPaint
+	{
+		Color = color.ToSKColor(),
+		IsAntialias = true,
+		TextAlign = SKTextAlign.Left
+	};
+
+	var point = new SKPoint(PointX, origin.Y);
+	if (origin.X == -1)//旧来の位置決め方式
+	{
+		point.X = PointX;
+	}
+	Point = point;
+
+	if (backcolor.HasValue)
+	{
+		var size = new SKSize(Width, Font.Size);
+		using var backPaint = new SKPaint() { Color = backcolor.Value };
+		graph.DrawRect(SKRect.Create(point, size), backPaint);
+	}
+
+	if (_texts == null)
+	{
+		point.Offset(0, -Font.Metrics.Ascent);
+		graph.DrawText(Text, point.X, point.Y, Font, paint);
+	}
+	else
+	{
+		foreach (var text in _texts)
+		{
+			var offsetPoint = point with { Y = point.Y - text.Font.Metrics.Ascent };
+			graph.DrawText(text.Text, offsetPoint.X, offsetPoint.Y, text.Font, paint);
+
+			point.Offset(text.Width, 0);
+		}
+	}
+
+	#endregion
+}
 
 	//Bitmap Cache
 	public void DrawToBitmap(SKCanvas graph, bool isSelecting, bool isBackLog, TextDrawingMode mode, int xOffset)
@@ -257,15 +258,15 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			color = Config.LogColor;
 
 		#region EM_私家版_描画拡張
-		/*
-		if (mode == TextDrawingMode.GRAPHICS)
-			graph.DrawString(Text, Font, new SolidBrush(color), new Point(xOffset, 0));
-		else
-			// TextRenderer.DrawText(graph, Text, Font, new Point(PointX, pointY), color, TextFormatFlags.NoPrefix);
-			TextRenderer.DrawText(graph, Text.AsSpan(), Font, new Point(xOffset, 0), color, TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping);
-		*/
-		var bitmapPaint = new SKPaint { TextAlign = SKTextAlign.Left };
-		graph.DrawText(AltText, xOffset, 0f, new SKFont(), bitmapPaint);
-		#endregion
-	}
+	/*
+	if (mode == TextDrawingMode.GRAPHICS)
+		graph.DrawString(Text, Font, new SolidBrush(color), new Point(xOffset, 0));
+	else
+		// TextRenderer.DrawText(graph, Text, Font, new Point(PointX, pointY), color, TextFormatFlags.NoPrefix);
+		TextRenderer.DrawText(graph, Text.AsSpan(), Font, new Point(xOffset, 0), color, TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping);
+	*/
+	using var bitmapPaint = new SKPaint { TextAlign = SKTextAlign.Left };
+	graph.DrawText(AltText, xOffset, 0f, new SKFont(), bitmapPaint);
+	#endregion
+}
 }

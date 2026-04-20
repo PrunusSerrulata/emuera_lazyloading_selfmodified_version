@@ -806,15 +806,16 @@ partial class Rikaichan
 			string s = output2;
 		string sprev = s;
 		int len;
-		SKPaint measurePaint = null;
+		// 提取到循环外部复用
+		using var measurePaint = new SKPaint
+		{
+			Typeface = Config.DefaultFont.Typeface,
+			TextSize = Config.DefaultFont.Size
+		};
 		do
 		{
 			//len = stringMeasure.GetDisplayLength(s, Config.DefaultFont);
-			measurePaint = new SKPaint();
-			measurePaint.Typeface = Config.DefaultFont.Typeface;
-			measurePaint.TextSize = Config.DefaultFont.Size;
 			len = (int)measurePaint.MeasureText(s);
-			measurePaint.Dispose();
 			if (len <= screenWidth - 32)
 				break;
 			
@@ -824,11 +825,8 @@ partial class Rikaichan
 				split = s.LastIndexOf(' ');
 				s = s.Substring(0, split);
 				//len = stringMeasure.GetDisplayLength(s, Config.DefaultFont);
-				SKPaint measurePaint2 = new SKPaint();
-				measurePaint2.Typeface = Config.DefaultFont.Typeface;
-				measurePaint2.TextSize = Config.DefaultFont.Size;
-				len = (int)measurePaint2.MeasureText(s);
-				measurePaint2.Dispose();
+				// 直接复用，无需重新new
+				len = (int)measurePaint.MeasureText(s);
 				if (len <= screenWidth - 32)
 					break;
 			}

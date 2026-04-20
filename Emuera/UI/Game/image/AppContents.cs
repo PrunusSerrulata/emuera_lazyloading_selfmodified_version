@@ -187,6 +187,9 @@ static class AppContents
 		foreach (var graph in gList.Values)
 			graph.GDispose();
 		gList.Clear();
+        
+		// 新增：清理动画缓存
+		AnimatedImageHelper.ClearCache();
 	}
 
 	//タイトルに戻る時用（コードの変更はないので、動的に作られた分だけ削除）
@@ -371,6 +374,33 @@ static class AppContents
 			}
 			return null;
 		}
+
+		// 新增：检测是否为动态 WebP/GIF
+		var animFrames = AnimatedImageHelper.Decode(parentName);
+		if (animFrames != null)
+		{
+			// 自动转换为 SpriteAnime
+			SpriteAnime anime = new SpriteAnime(name, size);
+			int frameIndex = 0;
+			foreach (var frame in animFrames)
+			{
+				string frameName = $"{parentName}_f{frameIndex}";
+				
+				// 使用 GetOrAdd 保证多线程并发加载时的绝对安全
+				var frameValue = resourceDic.GetOrAdd(frameName, _ => {
+					ConstImage frameImg = new ConstImage(frameName);
+					// 必须复制 Bitmap 以防被外部 Dispose 破坏缓存
+					frameImg.CreateFrom(frame.Bitmap.Copy(), parentName, false);
+					return frameImg;
+				});
+				
+				// 自动应用 CSV 中定义的裁剪(rect)、偏移(pos)
+				anime.AddFrame(frameValue, rect, pos, frame.Delay);
+				frameIndex++;
+			}
+			return anime;
+		}
+		// 新增结束
 
 		//新規スプライト定義
 		ASprite image = new SpriteF(name, parentImage, rect, pos, size);

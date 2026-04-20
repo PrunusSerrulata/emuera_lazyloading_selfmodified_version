@@ -152,7 +152,7 @@ internal sealed class ConsoleRectangleShapePart : ConsoleShapePart
 		targetRect.Y = targetRect.Y + (int)point.Y;
 		Color dcolor = isSelecting ? ButtonColor : Color;
 
-		var paint = new SKPaint
+		using var paint = new SKPaint
 		{
 			Style = SKPaintStyle.Fill,
 			Color = dcolor.ToSKColor()
@@ -201,7 +201,8 @@ internal sealed class ConsoleErrorShapePart : ConsoleShapePart
 
 	public override void DrawTo(SKCanvas graph, SKPoint point, bool isSelecting, bool isFocus, bool isBackLog, TextDrawingMode mode, bool isButton = false)
 	{
-		graph.DrawText(Text, 0f, 0f, Config.DefaultFont, new SKPaint() { Color = Config.ForeColor.ToSKColor() });
+		using var paint = new SKPaint() { Color = Config.ForeColor.ToSKColor() };
+		graph.DrawText(Text, 0f, 0f, Config.DefaultFont, paint);
 	}
 	public override void SetWidth(StringMeasure sm, float subPixel)
 	{

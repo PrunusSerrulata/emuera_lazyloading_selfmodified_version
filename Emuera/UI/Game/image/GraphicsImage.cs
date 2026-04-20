@@ -151,17 +151,14 @@ internal sealed class GraphicsImage : AbstractImage
 		//gp.AddString(text, usingFont.FontFamily, (int)usingFont.Style, emSize, new Point(x, y), format);
 		//canvas.SmoothingMode = SmoothingMode.AntiAlias;
 		using var paint = new SKPaint();
-		var b = new SolidBrush(Config.ForeColor);
-		if (brush != null)
-			b = (SolidBrush)brush;
-		//paint.Color = new SKColor((uint)b.Color.ToArgb());
-		paint.Color = b.Color.ToSKColor();
+		Color textColor = brush != null ? ((SolidBrush)brush).Color : Config.ForeColor;
+		paint.Color = textColor.ToSKColor();
 		var point = new SKPoint
 		{
 			X = x,
 			Y = y
 		};
-		point.Offset(0, -usingFont.Metrics.Top);
+		point.Offset(0, -usingFont.Metrics.Ascent);
 		canvas.DrawText(text, point.X, point.Y, usingFont, paint);
 		if (pen != null)
 		{
@@ -253,7 +250,7 @@ internal sealed class GraphicsImage : AbstractImage
 		if (brush != null)
 		{
 			//canvas.FillRectangle(brush, rect);
-			var paint = new SKPaint();
+			using var paint = new SKPaint();
 			var b = (SolidBrush)brush;
 			paint.Color = b.Color.ToSKColor();
 			canvas.DrawRect(rect.ToSKRect(), paint);
@@ -262,7 +259,7 @@ internal sealed class GraphicsImage : AbstractImage
 		{
 			//using var b = new SolidBrush(Config.BackColor);
 			//canvas.FillRectangle(b, rect);
-			var paint = new SKPaint
+			using var paint = new SKPaint
 			{
 				Color = Config.BackColor.ToSKColor()
 			};
@@ -408,59 +405,20 @@ internal sealed class GraphicsImage : AbstractImage
 
 		drawImgList = null;
 
-		var destImg = GetBitmap().ToBitmap();
-		byte[] srcBytes = BytesFromBitmap(srcGra.GetBitmap().ToBitmap());
-		byte[] srcMaskBytes = BytesFromBitmap(maskGra.GetBitmap().ToBitmap());
-		Rectangle destRect = new(destPoint.X, destPoint.Y, srcGra.Width, srcGra.Height);
+		// Create a temporary offscreen surface to handle the mask
+		using var surface = SKSurface.Create(new SKImageInfo(srcGra.Width, srcGra.Height));
+		var tempCanvas = surface.Canvas;
 
-		BitmapData bmpData =
-			destImg.LockBits(new Rectangle(0, 0, destImg.Width, destImg.Height),
-			ImageLockMode.ReadWrite,
-			PixelFormat.Format32bppArgb);
-		try
-		{
-			nint ptr = bmpData.Scan0;
-			byte[] pixels = new byte[bmpData.Stride * destImg.Height];
-			Marshal.Copy(ptr, pixels, 0, pixels.Length);
+		// 1. Draw the source image
+		tempCanvas.DrawBitmap(srcGra.GetBitmap(), 0, 0);
 
+		// 2. Draw the mask using DstIn blend mode (preserves areas where both mask and source are opaque)
+		using var maskPaint = new SKPaint { BlendMode = SKBlendMode.DstIn };
+		tempCanvas.DrawBitmap(maskGra.GetBitmap(), 0, 0, maskPaint);
 
-			for (int y = 0; y < srcGra.Height; y++)
-			{
-
-				int destIndex = ((destPoint.Y + y) * destImg.Width + destPoint.X) * 4;
-				int srcIndex = ((0 + y) * srcGra.Width + 0) * 4;
-				for (int x = 0; x < srcGra.Width; x++)
-				{
-					if (srcMaskBytes[srcIndex] == 255)//完全不透明
-					{
-						pixels[destIndex++] = srcBytes[srcIndex++];
-						pixels[destIndex++] = srcBytes[srcIndex++];
-						pixels[destIndex++] = srcBytes[srcIndex++];
-						pixels[destIndex++] = srcBytes[srcIndex++];
-					}
-					else if (srcMaskBytes[srcIndex] == 0)//完全透明
-					{
-						destIndex += 4;
-						srcIndex += 4;
-					}
-					else//半透明 alpha/255ではなく（alpha+1）/256で計算しているがたぶん誤差
-					{
-						int mask = srcMaskBytes[srcIndex]; mask++;
-						pixels[destIndex] = (byte)(srcBytes[srcIndex] * mask + pixels[destIndex] * (256 - mask) >> 8); srcIndex++; destIndex++;
-						pixels[destIndex] = (byte)(srcBytes[srcIndex] * mask + pixels[destIndex] * (256 - mask) >> 8); srcIndex++; destIndex++;
-						pixels[destIndex] = (byte)(srcBytes[srcIndex] * mask + pixels[destIndex] * (256 - mask) >> 8); srcIndex++; destIndex++;
-						pixels[destIndex] = (byte)(srcBytes[srcIndex] * mask + pixels[destIndex] * (256 - mask) >> 8); srcIndex++; destIndex++;
-					}
-				}
-			}
-
-			// Bitmapへコピー
-			Marshal.Copy(pixels, 0, ptr, pixels.Length);
-		}
-		finally
-		{
-			destImg.UnlockBits(bmpData);
-		}
+		// 3. Draw the result to the target canvas
+		using var resultImage = surface.Snapshot();
+		canvas.DrawImage(resultImage, destPoint.X, destPoint.Y);
 	}
 
 	#region EE_GDRAWGWITHROTATE
@@ -509,7 +467,7 @@ internal sealed class GraphicsImage : AbstractImage
 
 		if (pen != null)
 		{
-			var paint = new SKPaint
+			using var paint = new SKPaint
 			{
 				Color = pen.Color.ToSKColor(),
 				StrokeWidth = pen.Width
@@ -542,16 +500,17 @@ internal sealed class GraphicsImage : AbstractImage
 					ds = SKPathEffect.CreateDash([pen.Width*3, pen.Width, pen.Width, pen.Width], 0);
 					break;
 				case DashStyle.DashDotDot:
-					ds = SKPathEffect.CreateDash([pen.Width*3, pen.Width, pen.Width, pen.Width, pen.Width, pen.Width], 0);
-					break;
-			}
-			//paint.PathEffect = SKPathEffect.CreateSum(cap, ds);
-			//canvas.DrawLine(pen, fromX, fromY, destX, destY);
-			canvas.DrawLine(fromX, fromY, destX, destY, paint);
+						ds = SKPathEffect.CreateDash([pen.Width*3, pen.Width, pen.Width, pen.Width, pen.Width, pen.Width], 0);
+						break;
+				}
+				// 将计算好的虚线效果赋值给画笔
+				paint.PathEffect = ds;
+				//canvas.DrawLine(pen, fromX, fromY, destX, destY);
+				canvas.DrawLine(fromX, fromY, destX, destY, paint);
 		}
 		else
 		{
-			var paint = new SKPaint
+			using var paint = new SKPaint
 			{
 				Color = Config.ForeColor.ToSKColor()
 			};

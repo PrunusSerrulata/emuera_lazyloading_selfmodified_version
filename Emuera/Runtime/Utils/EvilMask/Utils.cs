@@ -1,4 +1,6 @@
-﻿using MinorShift.Emuera.UI.Game;
+using MinorShift.Emuera.UI.Game;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -240,18 +242,15 @@ internal sealed class Utils
 		try
 		{
 			/*				fs = new FileStream(filepath, FileMode.Open);
-							var factory = new ImageProcessor.ImageFactory();
-							factory.Load(fs);
-							bmp = (Bitmap)factory.Image;*/
-			if (Path.GetExtension(filepath).ToLower() == ".webp")
+					var factory = new ImageProcessor.ImageFactory();
+					factory.Load(fs);
+					bmp = (Bitmap)factory.Image;*/
+			using var skbmp = SKBitmap.Decode(filepath);
+			if (skbmp != null)
 			{
-				using WebP webp = new();
-				bmp = webp.Load(filepath);
+				return skbmp.ToBitmap();
 			}
-			else
-			{
-				bmp = new Bitmap(filepath);
-			}
+			return new Bitmap(filepath);
 		}
 		catch { }
 		return bmp;

@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.UI.Game;
 using System;
 using System.Drawing;
@@ -150,6 +150,9 @@ class ConsoleDivPart : AConsoleDisplayNode
 		if (GlobalStatic.EMediator.Console.Window == null) return;
 		var rect = IsRelative ? new Rectangle(PointX + xOffset, (int)point.Y + PointY, width + 2, Height)
 			: new Rectangle(xOffset, GlobalStatic.EMediator.Console.Window.MainPicBox.Height - PointY - Height, width + 2, Height); // 何故か+2pxが必要，なぞ
+
+		// Save the current canvas state before clipping
+		graph.Save();
 
 		if (margin != null)
 			rect = new Rectangle(rect.X + margin[Direction.Left], rect.Y + margin[Direction.Top],

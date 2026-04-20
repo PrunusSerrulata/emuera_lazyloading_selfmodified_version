@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.UI.Framework.Forms;
 using SkiaSharp.Views.Desktop;
 
@@ -583,15 +583,14 @@ partial class MainWindow
 		mainPicBox.Location = new System.Drawing.Point(0, 24);
 		mainPicBox.Margin = new System.Windows.Forms.Padding(0);
 		mainPicBox.Name = "mainPicBox";
-		mainPicBox.Size = new System.Drawing.Size(640, 480);
-		mainPicBox.TabIndex = 0;
-		mainPicBox.TabStop = false;
-		mainPicBox.PaintSurface += mainPicBox_Paint;
-		mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
-		mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
-		mainPicBox.MouseDown += mainPicBox_MouseDown;
-		mainPicBox.MouseLeave += mainPicBox_MouseLeave;
-		mainPicBox.MouseMove += mainPicBox_MouseMove;
+			mainPicBox.Size = new System.Drawing.Size(640, 480);
+			mainPicBox.TabIndex = 0;
+			mainPicBox.TabStop = false;
+			mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
+			mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
+			mainPicBox.MouseDown += mainPicBox_MouseDown;
+			mainPicBox.MouseLeave += mainPicBox_MouseLeave;
+			mainPicBox.MouseMove += mainPicBox_MouseMove;
 		// 
 		// デバッグモードで再起動ToolStripMenuItem
 		//
@@ -644,7 +643,7 @@ partial class MainWindow
 	private System.Windows.Forms.ToolStripMenuItem コードを読み直すcToolStripMenuItem;
 	private System.Windows.Forms.ToolStripMenuItem ログを保存するSToolStripMenuItem;
 	private System.Windows.Forms.SaveFileDialog saveFileDialog;
-	private EraPictureBox mainPicBox;
+	private System.Windows.Forms.Control mainPicBox;
 	private System.Windows.Forms.ToolStripMenuItem ログをクリップボードにコピーToolStripMenuItem;
 	private System.Windows.Forms.ToolStripMenuItem ファイルを読み直すFToolStripMenuItem;
 	private System.Windows.Forms.ToolStripMenuItem フォルダを読み直すFToolStripMenuItem;
@@ -673,28 +672,28 @@ partial class MainWindow
 	private System.Windows.Forms.ToolStripMenuItem マクロ10ToolStripMenuItem;
 	private System.Windows.Forms.ToolStripMenuItem マクロ11ToolStripMenuItem;
 	private System.Windows.Forms.ToolStripMenuItem マクロ12ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem 削除;
-	private System.Windows.Forms.ToolTip toolTipButton;
-	private System.Windows.Forms.Timer timerKeyMacroChanged;
-	private System.Windows.Forms.Label labelMacroGroupChanged;
-	private System.Windows.Forms.ToolStripMenuItem マクログループToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ0ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ1ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ2ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ3ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ4ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ5ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ6ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ7ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ8ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem グループ9ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripTextBox EmuVerToolStripTextBox;
-	private System.Windows.Forms.ToolStripMenuItem リソースフォルダを読み直すToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem ツールToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem ウィンドウ幅のロックToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem デバッグモードで再起動ToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem クリップボードにコピーToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem LanguageToolStripMenuItem;
-	private System.Windows.Forms.ToolStripMenuItem JapaneseToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem 削除;
+		private System.Windows.Forms.ToolTip toolTipButton;
+		private System.Windows.Forms.Timer timerKeyMacroChanged;
+		private System.Windows.Forms.Label labelMacroGroupChanged;
+		private System.Windows.Forms.ToolStripMenuItem マクログループToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ0ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ1ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ2ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ3ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ4ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ5ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ6ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ7ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ8ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem グループ9ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripTextBox EmuVerToolStripTextBox;
+		private System.Windows.Forms.ToolStripMenuItem リソースフォルダを読み直すToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem ツールToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem ウィンドウ幅のロックToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem デバッグモードで再起動ToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem クリップボードにコピーToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem LanguageToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem JapaneseToolStripMenuItem;
 }
 
