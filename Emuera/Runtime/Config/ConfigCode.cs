@@ -1,4 +1,4 @@
-﻿namespace MinorShift.Emuera.Runtime.Config;
+namespace MinorShift.Emuera.Runtime.Config;
 
 internal enum DisplayWarningFlag
 {
@@ -20,6 +20,30 @@ internal enum TextDrawingMode
 	GRAPHICS = 0,
 	TEXTRENDERER = 1,
 	WINAPI = 2,
+	SKIASHARP = 3,
+}
+
+internal enum SkiaSharpImageQuality
+{
+	None = 0,
+	Low = 1,
+	Medium = 2,
+	High = 3,
+}
+
+internal enum SkiaSharpFontHinting
+{
+	None = 0,
+	Slight = 1,
+	Normal = 2,
+	Full = 3,
+}
+
+internal enum SkiaSharpFontEdging
+{
+	Alias = 0,
+	AntiAlias = 1,
+	SubpixelAntiAlias = 2,
 }
 
 internal enum UseLanguage
@@ -121,6 +145,12 @@ internal enum ConfigCode
 	SystemNoTarget,
 	SystemIgnoreStringSet,
 	UseLazyLoading,
+
+	#region EM_尊尼获加_SkiaSharp渲染设置
+	SkiaSharpImageQuality,
+	SkiaSharpFontHinting,
+	SkiaSharpFontEdging,
+	#endregion
 
 	MoneyLabel = 100,
 	MoneyFirst = 101,

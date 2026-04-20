@@ -5,7 +5,9 @@ using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.UI.Game.Image;
 using MinorShift.Emuera.GameData.Function;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Text;
@@ -47,6 +49,10 @@ internal static class GlobalStatic
 	#endregion
 	#region EE_フォントファイル対応
 	public static PrivateFontCollection Pfc = new();
+	#endregion
+
+	#region EM_私家版_SkiaSharp字体回退
+	public static List<SKTypeface> CustomTypefaces = new();
 	#endregion
 
 	public static CtrlZ ctrlZ = new();
@@ -94,6 +100,6 @@ internal static class GlobalStatic
 		SqlManager.CloseAll();
 
 		// 清理资源管理器缓存
-		ResourceManager.ReleaseAll();
+		AppContents.SpriteDisposeAll(true);
 	}
 }

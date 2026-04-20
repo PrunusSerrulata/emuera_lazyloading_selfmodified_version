@@ -614,17 +614,18 @@ namespace MinorShift.Emuera.Forms
 
 			//EmuVerToolStripTextBox.Location = new Point(Config.WindowX - vScrollBar.Width - EmuVerToolStripTextBox.Width, 3);
 
-			mainPicBox.Location = new Point(0, menuHeight);
-			mainPicBox.Size = new Size(Config.WindowX, winHeight - menuHeight - Config.LineHeight);
+			int textBoxHeight = Config.LineHeight + 4;
+				mainPicBox.Location = new Point(0, menuHeight);
+				mainPicBox.Size = new Size(Config.WindowX, winHeight - menuHeight - textBoxHeight);
 
-			richTextBox1.Location = new Point(0, winHeight - Config.LineHeight);
-			richTextBox1.Size = new Size(Config.WindowX, Config.LineHeight);
-			vScrollBar.Location = new Point(winWidth - vScrollBar.Size.Width, menuHeight);
-			vScrollBar.Size = new Size(vScrollBar.Size.Width, winHeight - menuHeight);
+				richTextBox1.Location = new Point(0, winHeight - textBoxHeight);
+				richTextBox1.Size = new Size(Config.WindowX, textBoxHeight);
+				vScrollBar.Location = new Point(winWidth - vScrollBar.Size.Width, menuHeight);
+				vScrollBar.Size = new Size(vScrollBar.Size.Width, winHeight - menuHeight);
 
-			int minimamY = 100;
-			if (minimamY < menuHeight + Config.LineHeight * 2)
-				minimamY = menuHeight + Config.LineHeight * 2;
+				int minimamY = 100;
+				if (minimamY < menuHeight + textBoxHeight + Config.LineHeight)
+					minimamY = menuHeight + textBoxHeight + Config.LineHeight;
 			if (minimamY > Height)
 				minimamY = Height;
 			int maximamY = 2560;

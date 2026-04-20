@@ -311,6 +311,8 @@ internal sealed partial class EmueraConsole : IDisposable
 		{
 			if (state == ConsoleState.Initializing)
 				return true;
+			if (state == ConsoleState.WaitInput)
+				return false;
 			return state == ConsoleState.Running || runningERBfromMemory;
 		}
 	}
@@ -331,6 +333,8 @@ internal sealed partial class EmueraConsole : IDisposable
 				return true;
 			if (state == ConsoleState.Sleep)
 				return true;
+			if (state == ConsoleState.WaitInput)
+				return false;
 			if (inProcess)
 				return true;
 			return state == ConsoleState.Running || runningERBfromMemory;
@@ -742,6 +746,8 @@ internal sealed partial class EmueraConsole : IDisposable
 	/// INPUT中のアニメーション用タイマー
 	/// </summary>
 	Timer redrawTimer;
+
+	public int AnimeTimer => redrawTimer.Enabled ? (int)redrawTimer.Interval : 0;
 
 	private void tickRedrawTimer(object sender, EventArgs e)
 	{
@@ -1605,24 +1611,30 @@ internal sealed partial class EmueraConsole : IDisposable
 				return;
 		}
 		if (forceTextBoxColor)
+	{
+		var sec = _genericTimerStopwatch.ElapsedMilliseconds;
+		//色変化が速くなりすぎないように一定時間以内の再呼び出しは強制待ちにする
+		if (_drawStopwatch == null)
 		{
-			var sec = _genericTimerStopwatch.ElapsedMilliseconds;
-			//色変化が速くなりすぎないように一定時間以内の再呼び出しは強制待ちにする
-			if (_drawStopwatch == null)
-			{
-				_drawStopwatch = Stopwatch.StartNew();
-			}
-			else
-			{
-				while (_drawStopwatch.ElapsedMilliseconds < msPerFrame)
-				{
-					Application.DoEvents();
-				}
-			}
-			window.TextBox.BackColor = bgColor.ToDrawingColor();
-
-			_drawStopwatch.Restart();
+			_drawStopwatch = Stopwatch.StartNew();
 		}
+		else
+		{
+			while (_drawStopwatch.ElapsedMilliseconds < msPerFrame)
+			{
+				Application.DoEvents();
+			}
+		}
+		window.TextBox.BackColor = bgColor.ToDrawingColor();
+		window.TextBox.ForeColor = Config.ForeColor;
+		try
+		{
+			window.TextBox.Font = new Font(Config.FontName, Config.FontSize, FontStyle.Regular, GraphicsUnit.Pixel);
+		}
+		catch { }
+
+		_drawStopwatch.Restart();
+	}
 		window.Invoke(() =>
 		{
 			verticalScrollBarUpdate();

@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Config;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -92,12 +93,15 @@ internal abstract class ASpriteSingle : ASprite
 		BaseImage = null;
 	}
 
-	SKPaint _paint = new();
+	SKPaint _paint = new() {
+		FilterQuality = (SKFilterQuality)Config.ImageQuality
+	};
 
 	public override void GraphicsDraw(SKCanvas g, Point offset)
 	{
 		offset.Offset(DestBasePosition);
 		//canvas.DrawImage(Bitmap, new Rectangle(offset, DestBaseSize), SrcRectangle, GraphicsUnit.Pixel);
+		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
 		g.DrawBitmap(Bitmap, SrcRectangle.ToSKRect(), SKRect.Create(offset.ToSKPoint(), SrcRectangle.Size.ToSKSize()), _paint);
 	}
 	public override void GraphicsDraw(SKCanvas g, Rectangle destRect)
@@ -110,6 +114,7 @@ internal abstract class ASpriteSingle : ASprite
 			destRect.Height = destRect.Height * SrcRectangle.Height / DestBaseSize.Height;
 		}
 		//canvas.DrawImage(Bitmap, destRect, SrcRectangle, GraphicsUnit.Pixel);
+		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
 		g.DrawBitmap(Bitmap, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
 	}
 
@@ -124,6 +129,7 @@ internal abstract class ASpriteSingle : ASprite
 		}
 		//canvas.DrawImage(Bitmap, destRect, SrcRectangle, GraphicsUnit.Pixel, attr);←このパターンがない
 		//canvas.DrawImage(Bitmap, destRect, SrcRectangle.X, SrcRectangle.Y, SrcRectangle.Width, SrcRectangle.Height, GraphicsUnit.Pixel, attr);
+		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
 		_paint.ColorFilter = attr;
 		g.DrawBitmap(Bitmap, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
 		_paint.ColorFilter = null;
@@ -311,40 +317,45 @@ internal sealed class SpriteAnime : ASprite
 	public override void GraphicsDraw(SKCanvas g, Point offset)
 	{
 		AnimeFrame frame = GetCurrentFrame();
-		if (frame == null || frame.BaseImage == null || !frame.BaseImage.IsCreated)// || frame.BaseImage.Bitmap == null)
+		if (frame == null || frame.BaseImage == null || !frame.BaseImage.IsCreated)
 			return;
 		offset.Offset(DestBasePosition);
 		offset.Offset(frame.Offset);
 		Rectangle destRect = new(offset, frame.SrcRectangle.Size);
-		//canvas.DrawImage(frame.BaseImage.Bitmap, destRect, frame.SrcRectangle, GraphicsUnit.Pixel);
-		g.DrawBitmap(frame.BaseImage.SKBitmap, new SKPoint(0, 0));
-		return;
+		using SKPaint paint = new() { FilterQuality = (SKFilterQuality)Config.ImageQuality };
+		g.DrawBitmap(frame.BaseImage.SKBitmap, frame.SrcRectangle.ToSKRect(), 
+			SKRect.Create(offset.ToSKPoint(), frame.SrcRectangle.Size.ToSKSize()), paint);
 	}
 
 	public override void GraphicsDraw(SKCanvas g, Rectangle destRect)
 	{
 		AnimeFrame frame = GetCurrentFrame();
-		if (frame == null || frame.BaseImage == null || !frame.BaseImage.IsCreated)// || frame.BaseImage.Bitmap == null)
+		if (frame == null || frame.BaseImage == null || !frame.BaseImage.IsCreated)
 			return;
-		destRect.X = destRect.X + (DestBasePosition.X + frame.Offset.X) * destRect.Width / DestBaseSize.Width;
-		destRect.Y = destRect.Y + (DestBasePosition.Y + frame.Offset.Y) * destRect.Height / DestBaseSize.Height;
-		destRect.Width = frame.SrcRectangle.Width * destRect.Width / DestBaseSize.Width;
-		destRect.Height = frame.SrcRectangle.Height * destRect.Height / DestBaseSize.Height;
-		//canvas.DrawImage(frame.BaseImage.Bitmap, destRect, frame.SrcRectangle, GraphicsUnit.Pixel);
-		g.DrawBitmap(frame.BaseImage.SKBitmap, new SKPoint(0, 0));
+		if (!DestBasePosition.IsEmpty)
+		{
+			destRect.X = destRect.X + (DestBasePosition.X + frame.Offset.X) * destRect.Width / DestBaseSize.Width;
+			destRect.Y = destRect.Y + (DestBasePosition.Y + frame.Offset.Y) * destRect.Height / DestBaseSize.Height;
+			destRect.Width = frame.SrcRectangle.Width * destRect.Width / DestBaseSize.Width;
+			destRect.Height = frame.SrcRectangle.Height * destRect.Height / DestBaseSize.Height;
+		}
+		using SKPaint paint = new() { FilterQuality = (SKFilterQuality)Config.ImageQuality };
+		g.DrawBitmap(frame.BaseImage.SKBitmap, frame.SrcRectangle.ToSKRect(), destRect.ToSKRect(), paint);
 	}
 
 	public override void GraphicsDraw(SKCanvas g, Rectangle destRect, SKColorFilter attr)
 	{
 		AnimeFrame frame = GetCurrentFrame();
-		if (frame == null || frame.BaseImage == null || !frame.BaseImage.IsCreated)// || frame.BaseImage.Bitmap == null)
+		if (frame == null || frame.BaseImage == null || !frame.BaseImage.IsCreated)
 			return;
-		destRect.X = destRect.X + (DestBasePosition.X + frame.Offset.X) * destRect.Width / DestBaseSize.Width;
-		destRect.Y = destRect.Y + (DestBasePosition.Y + frame.Offset.Y) * destRect.Height / DestBaseSize.Height;
-		destRect.Width = frame.SrcRectangle.Width * destRect.Width / DestBaseSize.Width;
-		destRect.Height = frame.SrcRectangle.Height * destRect.Height / DestBaseSize.Height;
-		//canvas.DrawImage(frame.BaseImage.Bitmap, destRect, SrcRectangle, GraphicsUnit.Pixel, attr);←このパターンがない
-		//canvas.DrawImage(frame.BaseImage.Bitmap, destRect, frame.SrcRectangle.X, frame.SrcRectangle.Y, frame.SrcRectangle.Width, frame.SrcRectangle.Height, GraphicsUnit.Pixel, attr);
-		g.DrawBitmap(frame.BaseImage.SKBitmap, new SKPoint(0, 0));
+		if (!DestBasePosition.IsEmpty)
+		{
+			destRect.X = destRect.X + (DestBasePosition.X + frame.Offset.X) * destRect.Width / DestBaseSize.Width;
+			destRect.Y = destRect.Y + (DestBasePosition.Y + frame.Offset.Y) * destRect.Height / DestBaseSize.Height;
+			destRect.Width = frame.SrcRectangle.Width * destRect.Width / DestBaseSize.Width;
+			destRect.Height = frame.SrcRectangle.Height * destRect.Height / DestBaseSize.Height;
+		}
+		using SKPaint paint = new() { FilterQuality = (SKFilterQuality)Config.ImageQuality, ColorFilter = attr };
+		g.DrawBitmap(frame.BaseImage.SKBitmap, frame.SrcRectangle.ToSKRect(), destRect.ToSKRect(), paint);
 	}
 }

@@ -6,104 +6,65 @@ namespace MinorShift.Emuera.UI.Game.Image
 {
     public static class AnimatedImageHelper
     {
-        // 缓存已解码的动画帧，避免同一个文件在 CSV 中被多次引用时重复解码
-        private static Dictionary<string, List<(SKBitmap Bitmap, int Delay)>> _cache = new(System.StringComparer.OrdinalIgnoreCase);
-
         public static List<(SKBitmap Bitmap, int Delay)> Decode(string filepath)
         {
-            // 1. 检查缓存 (线程安全)
-            lock (_cache)
-            {
-                if (_cache.TryGetValue(filepath, out var cachedFrames)) 
-                    return cachedFrames;
-            }
-
             if (!File.Exists(filepath)) return null;
 
             using var codec = SKCodec.Create(filepath);
-            if (codec == null || codec.FrameCount <= 1) 
-                return null; // 不是动画文件（单帧）
+            if (codec == null || codec.FrameCount <= 1)
+                return null;
 
             var frames = new List<(SKBitmap, int)>();
             var info = new SKImageInfo(codec.Info.Width, codec.Info.Height);
-            
-            // 必须使用一个虚拟画布来合成帧，因为 WebP/GIF 通常存储的是差异帧 (Delta)
-            using var canvasBitmap = new SKBitmap(info);
-            using var canvas = new SKCanvas(canvasBitmap);
-            canvas.Clear(SKColors.Transparent);
 
-            SKBitmap previousFrame = null;
+            // 用于保存已解码的完整帧，供后续帧作为 RequiredFrame 依赖使用
+            var decodedFrames = new SKBitmap[codec.FrameCount];
+
+            // 唯一的工作缓冲区，SkCodec 会直接在这个缓冲区上进行增量绘制和混合
+            using var bitmap = new SKBitmap(info);
+            var ptr = bitmap.GetPixels();
 
             for (int i = 0; i < codec.FrameCount; i++)
             {
                 var frameInfo = codec.FrameInfo[i];
                 int delay = frameInfo.Duration > 0 ? frameInfo.Duration : 100;
 
-                // 1. 处理上一帧的清理模式 (DisposalMethod)
-                if (i > 0)
+                // 获取当前帧依赖的前置帧（SkiaSharp 已经帮我们算好了 RestorePrevious 等复杂逻辑）
+                int reqFrame = frameInfo.RequiredFrame;
+                if (reqFrame != -1 && decodedFrames[reqFrame] != null)
                 {
-                    var prevFrameInfo = codec.FrameInfo[i - 1];
-                    if (prevFrameInfo.DisposalMethod == SKCodecAnimationDisposalMethod.RestoreBackgroundColor)
+                    // 将依赖帧的画面拷贝到工作缓冲区
+                    using var canvas = new SKCanvas(bitmap);
+                    using var copyPaint = new SKPaint { BlendMode = SKBlendMode.Src };
+                    canvas.DrawBitmap(decodedFrames[reqFrame], 0, 0, copyPaint);
+
+                    // 如果依赖帧的处置方式是恢复背景色，我们需要在解码当前帧前，把依赖帧的区域擦除透明
+                    var reqFrameInfo = codec.FrameInfo[reqFrame];
+                    if (reqFrameInfo.DisposalMethod == SKCodecAnimationDisposalMethod.RestoreBackgroundColor)
                     {
                         using var clearPaint = new SKPaint { BlendMode = SKBlendMode.Src, Color = SKColors.Transparent };
-                        // 使用整个画布大小，因为当前SkiaSharp版本不支持FrameRect
-                        canvas.DrawRect(0, 0, info.Width, info.Height, clearPaint);
-                    }
-                    else if (prevFrameInfo.DisposalMethod == SKCodecAnimationDisposalMethod.RestorePrevious)
-                    {
-                        if (previousFrame != null)
-                        {
-                            canvas.Clear(SKColors.Transparent);
-                            canvas.DrawBitmap(previousFrame, 0, 0);
-                        }
+                        var rect = SKRect.Create(reqFrameInfo.FrameRect.Left, reqFrameInfo.FrameRect.Top, reqFrameInfo.FrameRect.Width, reqFrameInfo.FrameRect.Height);
+                        canvas.DrawRect(rect, clearPaint);
                     }
                 }
-
-                // 2. 如果当前帧需要 RestorePrevious，则备份当前画布状态
-                if (frameInfo.DisposalMethod == SKCodecAnimationDisposalMethod.RestorePrevious)
+                else
                 {
-                    previousFrame?.Dispose();
-                    previousFrame = canvasBitmap.Copy();
+                    // 如果没有依赖帧（如第0帧），清空工作缓冲区
+                    bitmap.Erase(SKColors.Transparent);
                 }
 
-                // 3. 提取当前帧的原始像素
-                using var frameBmp = new SKBitmap(info);
-                var result = codec.GetPixels(info, frameBmp.GetPixels(), new SKCodecOptions(i));
-                
-                if (result == SKCodecResult.Success || result == SKCodecResult.IncompleteInput)
-                {
-                    // 4. 使用默认的混合模式，因为当前SkiaSharp版本不支持Blend属性
-                    using var blendPaint = new SKPaint { BlendMode = SKBlendMode.SrcOver };
-                    canvas.DrawBitmap(frameBmp, 0, 0, blendPaint);
-                }
+                // 核心优化：传入 reqFrame，告诉 SkCodec 缓冲区里已经准备好了前置画面
+                // SkCodec 会自动处理增量解码和 BlendMode 混合，耗时降至 O(1)
+                var options = reqFrame == -1 ? new SKCodecOptions(i) : new SKCodecOptions(i, reqFrame);
+                codec.GetPixels(info, ptr, options);
 
-                // 5. 保存合成后的最终帧 (必须 Copy，否则会被下一帧覆盖)
-                frames.Add((canvasBitmap.Copy(), delay));
+                // 拷贝出最终合成的当前帧画面并保存
+                var frameCopy = bitmap.Copy();
+                decodedFrames[i] = frameCopy;
+                frames.Add((frameCopy, delay));
             }
 
-            previousFrame?.Dispose();
-            
-            // 存入缓存
-            lock (_cache)
-            {
-                _cache[filepath] = frames;
-            }
             return frames;
-        }
-
-        public static void ClearCache()
-        {
-            lock (_cache)
-            {
-                foreach (var frames in _cache.Values)
-                {
-                    foreach (var frame in frames)
-                    {
-                        frame.Bitmap?.Dispose();
-                    }
-                }
-                _cache.Clear();
-            }
         }
     }
 }

@@ -36,8 +36,6 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	private ConsoleStyledString() { }
 	public ConsoleStyledString(string str, StringStyle style)
 	{
-		//if ((StaticConfig.TextDrawingMode != TextDrawingMode.GRAPHICS) && (str.IndexOf('\t') >= 0))
-		//    str = str.Replace("\t", "");
 		Text = str;
 		StringStyle = style;
 		Font = FontFactory.GetFont(style.Fontname, style.FontStyle);
@@ -48,27 +46,30 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		}
 		if (!Font.ContainsGlyphs(Text))
 		{
-			_fallbackFont = FontFactory.GetFont(Config.DefaultFont.Typeface.FamilyName, style.FontStyle);
-			var isFallbackFont = true;
-			var builder = new StringBuilder();
-			_texts = [];
+			var textsWithFontList = new List<TextsWithFont>();
+			var currentText = new StringBuilder();
+			SKFont currentFont = null;
 			foreach (var @char in Text)
 			{
-				if ((!isFallbackFont && Font.ContainsGlyph(@char)) ||
-					(isFallbackFont && !Font.ContainsGlyph(@char)))
+				var glyphFont = FindFontForChar(@char, style.FontStyle);
+				if (currentFont == null)
+					currentFont = glyphFont;
+				if (glyphFont != currentFont)
 				{
-					_texts.Add(CreateTextWithFont(isFallbackFont, builder.ToString()));
-					builder.Clear();
-					
-					isFallbackFont = !isFallbackFont;
+					if (currentText.Length > 0)
+					{
+						textsWithFontList.Add(CreateTextWithFont(currentFont, currentText.ToString()));
+						currentText.Clear();
+					}
+					currentFont = glyphFont;
 				}
-
-				builder.Append(@char);
+				currentText.Append(@char);
 			}
-			if (builder.Length > 0)
+			if (currentText.Length > 0)
 			{
-				_texts.Add(CreateTextWithFont(isFallbackFont, builder.ToString()));
+				textsWithFontList.Add(CreateTextWithFont(currentFont, currentText.ToString()));
 			}
+			_texts = textsWithFontList;
 		}
 		Color = style.Color;
 		ButtonColor = style.ButtonColor;
@@ -77,27 +78,32 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			colorChanged = true;
 		PointX = -1;
 		Width = -1;
+	}
 
-		TextsWithFont CreateTextWithFont(bool isFallbackFont, string t)
+	private SKFont FindFontForChar(char c, FontStyle style)
+	{
+		if (Font != null && Font.ContainsGlyph(c))
+			return Font;
+		var fallbackTypeface = FontFactory.GetFallbackTypefaceForChar(c);
+		return new SKFont(fallbackTypeface, Config.FontSize)
 		{
-			var textsWithFont = new TextsWithFont()
-			{
-				Text = t
-			};
-			if (isFallbackFont)
-			{
-				textsWithFont.Font = Font;
-			}
-			else
-			{
-				textsWithFont.Font = _fallbackFont;
-			}
-			using var paint = new SKPaint();
-			paint.Typeface = textsWithFont.Font.Typeface;
-			paint.TextSize = textsWithFont.Font.Size;
-			textsWithFont.Width = paint.MeasureText(textsWithFont.Text);
-			return textsWithFont;
-		}
+			Hinting = (SKFontHinting)Config.FontHinting,
+			Edging = (SKFontEdging)Config.FontEdging
+		};
+	}
+
+	TextsWithFont CreateTextWithFont(SKFont font, string t)
+	{
+		var textsWithFont = new TextsWithFont()
+		{
+			Text = t,
+			Font = font
+		};
+		using var paint = new SKPaint();
+		paint.Typeface = font.Typeface;
+		paint.TextSize = font.Size;
+		textsWithFont.Width = paint.MeasureText(textsWithFont.Text);
+		return textsWithFont;
 	}
 	public SKFont Font { get; private set; }
 	SKFont _fallbackFont;
@@ -196,10 +202,10 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 					!string.IsNullOrWhiteSpace(Text))
 				{
 					backcolor = SKColors.Gray;
+				}
 			}
+			color = ButtonColor;
 		}
-		color = ButtonColor;
-	}
 	else if (isBackLog && !colorChanged)
 	{
 		color = Config.LogColor;
@@ -265,8 +271,24 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		// TextRenderer.DrawText(graph, Text, Font, new Point(PointX, pointY), color, TextFormatFlags.NoPrefix);
 		TextRenderer.DrawText(graph, Text.AsSpan(), Font, new Point(xOffset, 0), color, TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping);
 	*/
-	using var bitmapPaint = new SKPaint { TextAlign = SKTextAlign.Left };
-	graph.DrawText(AltText, xOffset, 0f, new SKFont(), bitmapPaint);
+	using var bitmapPaint = new SKPaint { 
+		TextAlign = SKTextAlign.Left,
+		Color = color.ToSKColor()
+	};
+
+	if (_texts == null)
+	{
+		graph.DrawText(Text, xOffset, -Font.Metrics.Ascent, Font, bitmapPaint);
+	}
+	else
+	{
+		float currentX = xOffset;
+		foreach (var text in _texts)
+		{
+			graph.DrawText(text.Text, currentX, -text.Font.Metrics.Ascent, text.Font, bitmapPaint);
+			currentX += text.Width;
+		}
+	}
 	#endregion
-}
+	}
 }

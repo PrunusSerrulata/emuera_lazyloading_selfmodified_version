@@ -144,42 +144,57 @@ internal sealed class GraphicsImage : AbstractImage
 
 		drawImgList = null;
 
-		SKFont usingFont = font;
-		//var fn = SKTypeface.FromFamilyName(Config.FontName);//, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
-		//一部のフォントで描画がずれる問題修正
-		//float emSize = (float)usingFont.Height * usingFont.FontFamily.GetEmHeight(usingFont.Style) / usingFont.FontFamily.GetLineSpacing(usingFont.Style);
-		//gp.AddString(text, usingFont.FontFamily, (int)usingFont.Style, emSize, new Point(x, y), format);
-		//canvas.SmoothingMode = SmoothingMode.AntiAlias;
+		SKFont usingFont = font ?? Config.DefaultFont;
+		
 		using var paint = new SKPaint();
 		Color textColor = brush != null ? ((SolidBrush)brush).Color : Config.ForeColor;
 		paint.Color = textColor.ToSKColor();
-		var point = new SKPoint
-		{
-			X = x,
-			Y = y
-		};
+		
+		var point = new SKPoint { X = x, Y = y };
 		point.Offset(0, -usingFont.Metrics.Ascent);
-		canvas.DrawText(text, point.X, point.Y, usingFont, paint);
+
+		float currentX = point.X;
+		var currentText = new System.Text.StringBuilder();
+		SKTypeface currentTypeface = usingFont.Typeface;
+
+		foreach (char c in text)
+		{
+			SKTypeface charTypeface = currentTypeface;
+			
+			if (!charTypeface.ContainsGlyph(c))
+			{
+				charTypeface = FontFactory.GetFallbackTypefaceForChar(c) ?? usingFont.Typeface;
+			}
+
+			if (charTypeface != currentTypeface && currentText.Length > 0)
+			{
+				using var tempFont = new SKFont(currentTypeface, usingFont.Size) { Hinting = usingFont.Hinting, Edging = usingFont.Edging };
+				canvas.DrawText(currentText.ToString(), currentX, point.Y, tempFont, paint);
+				
+				using var measurePaint = new SKPaint { Typeface = currentTypeface, TextSize = usingFont.Size };
+				currentX += measurePaint.MeasureText(currentText.ToString());
+				
+				currentText.Clear();
+			}
+			
+			currentTypeface = charTypeface;
+			currentText.Append(c);
+		}
+
+		if (currentText.Length > 0)
+		{
+			using var tempFont = new SKFont(currentTypeface, usingFont.Size) { Hinting = usingFont.Hinting, Edging = usingFont.Edging };
+			canvas.DrawText(currentText.ToString(), currentX, point.Y, tempFont, paint);
+		}
+
 		if (pen != null)
 		{
 			paint.Style = SKPaintStyle.Stroke;
 			paint.StrokeWidth = pen.Width;
 			paint.Color = pen.Color.ToSKColor();
-
+			
 			canvas.DrawText(text, point.X, point.Y, usingFont, paint);
 		}
-		/*
-		if (brush != null)
-			canvas.FillPath(brush, gp);
-		else
-			canvas.FillPath(new SolidBrush(Config.ForeColor), gp);
-
-		if (pen != null)
-			canvas.DrawPath(pen, gp);
-		else
-			canvas.DrawPath(new Pen(Config.ForeColor), gp);
-
-		*/
 	}
 	#endregion
 

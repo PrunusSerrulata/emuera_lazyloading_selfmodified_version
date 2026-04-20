@@ -5930,20 +5930,23 @@ internal static partial class FunctionMethodCreator
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			string imgname = arguments[0].GetStrValue(exm);
-			ASprite img = AppContents.GetSprite(imgname);
-			if (img == null || !img.IsCreated)
-				return 0;
 			switch (Name)
 			{
 				case "SPRITECREATED":
-					return 1;
+					return AppContents.GetSprite_OnlyCheckExists(imgname) ? 1 : 0;
 				case "SPRITEWIDTH":
-					return img.DestBaseSize.Width;
 				case "SPRITEHEIGHT":
-					return img.DestBaseSize.Height;
 				case "SPRITEPOSX":
-					return img.DestBasePosition.X;
 				case "SPRITEPOSY":
+					ASprite img = AppContents.GetSprite(imgname);
+					if (img == null || !img.IsCreated)
+						return 0;
+					if (Name == "SPRITEWIDTH")
+						return img.DestBaseSize.Width;
+					if (Name == "SPRITEHEIGHT")
+						return img.DestBaseSize.Height;
+					if (Name == "SPRITEPOSX")
+						return img.DestBasePosition.X;
 					return img.DestBasePosition.Y;
 			}
 			throw new ExeEE("SpriteStateMethod:" + Name + ":異常な分岐");
@@ -6247,6 +6250,55 @@ internal static partial class FunctionMethodCreator
 			// 调用更新后的 CreateSpriteG
 			AppContents.CreateSpriteG(imgname, g, rect, pos, destSize);
 			return 1;
+		}
+	}
+
+	public sealed class SpriteCreateFromFileMethod : FunctionMethod
+	{
+		public SpriteCreateFromFileMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }, OmitStart = 2 }
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
+				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
+			string imgname = arguments[0].GetStrValue(exm);
+			if (string.IsNullOrEmpty(imgname))
+				return 0;
+
+			string filename = arguments[1].GetStrValue(exm);
+			bool isRelative = false;
+			if (arguments.Count > 2)
+				isRelative = arguments[2].GetIntValue(exm) != 0;
+
+			try
+			{
+				string filepath = filename;
+				if (!Path.IsPathRooted(filepath))
+				{
+					if (isRelative)
+						filepath = filename;
+					else
+						filepath = Program.ContentDir + filename;
+				}
+				if (!File.Exists(filepath))
+					return 0;
+
+				if (AppContents.CreateSpriteFromFileDynamic(imgname, filepath))
+					return 1;
+			}
+			catch (Exception e)
+			{
+				if (e is CodeEE)
+					throw;
+				return 0;
+			}
+			return 0;
 		}
 	}
 
@@ -7008,6 +7060,20 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, i64, int.MinValue, int.MaxValue));
 			exm.Console.setRedrawTimer((int)i64);
 			return 1;
+		}
+	}
+
+	private sealed class GetAnimeTimerMethod : FunctionMethod
+	{
+		public GetAnimeTimerMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = [];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return exm.Console.AnimeTimer;
 		}
 	}
 
@@ -8167,61 +8233,7 @@ internal static partial class FunctionMethodCreator
 			}
 		}
 	}
-	/// <summary>
-	/// int RM_RESOURCECHECK_LOAD(string name)
-	/// 检查并加载资源，如果成功返回1，否则返回0。内部自动处理 LRU 缓存。
-	/// </summary>
-	private sealed class RmResourceCheckLoadMethod : FunctionMethod
-	{
-		public RmResourceCheckLoadMethod()
-		{
-			ReturnType = typeof(long);
-			argumentTypeArray = new Type[] { typeof(string) };
-			CanRestructure = false;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			string name = arguments[0].GetStrValue(exm);
-			return ResourceManager.LoadResource(name) ? 1 : 0;
-		}
-	}
 
-	/// <summary>
-	/// int RM_RELEASE_ALL()
-	/// 手动清空所有由 RM 加载的缓存图像
-	/// </summary>
-	private sealed class RmReleaseAllMethod : FunctionMethod
-	{
-		public RmReleaseAllMethod()
-		{
-			ReturnType = typeof(long);
-			argumentTypeArray = new Type[0];
-			CanRestructure = false;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			ResourceManager.ReleaseAll();
-			return 1;
-		}
-	}
-	/// <summary>
-	/// int RM_RESOURCE_EXIST(string name)
-	/// 存在性检测，检查索引字典
-	/// </summary>
-	private sealed class RmResourceExistMethod : FunctionMethod
-	{
-		public RmResourceExistMethod()
-		{
-			ReturnType = typeof(long);
-			argumentTypeArray = new Type[] { typeof(string) };
-			CanRestructure = false;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			string name = arguments[0].GetStrValue(exm);
-			return ResourceManager.CheckResourceExists(name) ? 1 : 0;
-		}
-	}
 	private sealed class SqlConnectMethod : FunctionMethod
 	{
 		public SqlConnectMethod()

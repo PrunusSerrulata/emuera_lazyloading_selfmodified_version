@@ -66,6 +66,13 @@ internal static class Config
 		FontName = instance.GetConfigValue<string>(ConfigCode.FontName);
 		LineHeight = instance.GetConfigValue<int>(ConfigCode.LineHeight);
 		FPS = instance.GetConfigValue<int>(ConfigCode.FPS);
+
+		#region EM_尊尼获加_SkiaSharp渲染设置
+		ImageQuality = instance.GetConfigValue<SkiaSharpImageQuality>(ConfigCode.SkiaSharpImageQuality);
+		FontHinting = instance.GetConfigValue<SkiaSharpFontHinting>(ConfigCode.SkiaSharpFontHinting);
+		FontEdging = instance.GetConfigValue<SkiaSharpFontEdging>(ConfigCode.SkiaSharpFontEdging);
+		#endregion
+
 		//SkipFrame = instance.GetConfigValue<int>(ConfigCode.SkipFrame);
 		ScrollHeight = instance.GetConfigValue<int>(ConfigCode.ScrollHeight);
 		InfiniteLoopAlertTime = instance.GetConfigValue<int>(ConfigCode.InfiniteLoopAlertTime);
@@ -224,9 +231,9 @@ internal static class Config
 		}
 
 		DrawingParam_ShapePositionShift = 0;
-		if (TextDrawingMode != TextDrawingMode.WINAPI)
+		if (TextDrawingMode != TextDrawingMode.WINAPI && TextDrawingMode != TextDrawingMode.SKIASHARP)
 			DrawingParam_ShapePositionShift = Math.Max(2, FontSize / 6);
-		DrawableWidth = WindowX - DrawingParam_ShapePositionShift;
+		DrawableWidth = WindowX - Math.Max(2, FontSize / 6);
 		#region eee_カレントディレクトリー
 		// ForceSavDir = Program.ExeDir + "sav\\";
 		ForceSavDir = Program.ExeDir + "sav" + Path.DirectorySeparatorChar;
@@ -520,6 +527,13 @@ internal static class Config
 	public static string FontName { get; private set; }
 	public static int LineHeight { get; private set; }
 	public static int FPS { get; private set; }
+
+	#region EM_尊尼获加_SkiaSharp渲染设置
+	public static SkiaSharpImageQuality ImageQuality { get; private set; }
+	public static SkiaSharpFontHinting FontHinting { get; private set; }
+	public static SkiaSharpFontEdging FontEdging { get; private set; }
+	#endregion
+
 	//public static int SkipFrame { get; private set; }
 	public static int ScrollHeight { get; private set; }
 	public static int InfiniteLoopAlertTime { get; private set; }

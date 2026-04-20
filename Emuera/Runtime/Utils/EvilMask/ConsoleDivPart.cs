@@ -160,10 +160,41 @@ class ConsoleDivPart : AConsoleDisplayNode
 		//graph.SetClip(rect, CombineMode.Replace);
 		graph.ClipRect(new SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom));
 
-		//var pxMode = graph.PixelOffsetMode;
-		//graph.PixelOffsetMode = PixelOffsetMode.HighQuality; // ここを高品質にしておく、全体的高品質してもいいかな？
-		//BoxBorder.DrawBorder(graph, rect, border, radius, borderColors, backgroundColor);
-		//graph.PixelOffsetMode = pxMode;
+		// 绘制背景色
+		if (backgroundColor != Color.Transparent)
+		{
+			using var backPaint = new SKPaint { Color = backgroundColor.ToSKColor() };
+			graph.DrawRect(new SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom), backPaint);
+		}
+
+		// 绘制边框
+		if (border != null && borderColors != null)
+		{
+			// 绘制上边框
+			if (border[Direction.Top] > 0 && borderColors[Direction.Top] != Color.Transparent)
+			{
+				using var borderPaint = new SKPaint { Color = borderColors[Direction.Top].ToSKColor() };
+				graph.DrawRect(new SKRect(rect.Left, rect.Top, rect.Right, rect.Top + border[Direction.Top]), borderPaint);
+			}
+			// 绘制右边框
+			if (border[Direction.Right] > 0 && borderColors[Direction.Right] != Color.Transparent)
+			{
+				using var borderPaint = new SKPaint { Color = borderColors[Direction.Right].ToSKColor() };
+				graph.DrawRect(new SKRect(rect.Right - border[Direction.Right], rect.Top, rect.Right, rect.Bottom), borderPaint);
+			}
+			// 绘制下边框
+			if (border[Direction.Bottom] > 0 && borderColors[Direction.Bottom] != Color.Transparent)
+			{
+				using var borderPaint = new SKPaint { Color = borderColors[Direction.Bottom].ToSKColor() };
+				graph.DrawRect(new SKRect(rect.Left, rect.Bottom - border[Direction.Bottom], rect.Right, rect.Bottom), borderPaint);
+			}
+			// 绘制左边框
+			if (border[Direction.Left] > 0 && borderColors[Direction.Left] != Color.Transparent)
+			{
+				using var borderPaint = new SKPaint { Color = borderColors[Direction.Left].ToSKColor() };
+				graph.DrawRect(new SKRect(rect.Left, rect.Top, rect.Left + border[Direction.Left], rect.Bottom), borderPaint);
+			}
+		}
 
 		if (border != null)
 			rect = new Rectangle(rect.X + border[Direction.Left], rect.Y + border[Direction.Top],

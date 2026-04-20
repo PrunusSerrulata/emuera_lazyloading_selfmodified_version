@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements.Function;
 using MinorShift.Emuera.Runtime.Utils;
@@ -190,6 +190,7 @@ internal static partial class FunctionMethodCreator
 			["GSETPEN"] = new GraphicsSetPenMethod(),
 
 			["SPRITECREATE"] = new SpriteCreateMethod(),
+			["SPRITECREATEFROMFILE"] = new SpriteCreateFromFileMethod(),
 			["SPRITEDISPOSE"] = new SpriteDisposeMethod(),
 
 			["CBGSETG"] = new CBGSetGraphicsMethod(),
@@ -209,6 +210,7 @@ internal static partial class FunctionMethodCreator
 			["SPRITEANIMECREATE"] = new SpriteAnimeCreateMethod(),
 			["SPRITEANIMEADDFRAME"] = new SpriteAnimeAddFrameMethod(),
 			["SETANIMETIMER"] = new SetAnimeTimerMethod(),
+			["GETANIMETIMER"] = new GetAnimeTimerMethod(),
 
 			#region EE_OUTPUTLOG拡張
 			["OUTPUTLOG"] = new OutputlogMethod(),
@@ -358,9 +360,6 @@ internal static partial class FunctionMethodCreator
 			["BGMCONTROL"] = new BgmControlMethod(),
 			["EVAL"] = new EvalMethod(),
 			["EVALS"] = new EvalSMethod(),
-			["RM_RESOURCECHECK_LOAD"] = new RmResourceCheckLoadMethod(),
-			["RM_RELEASE_ALL"] = new RmReleaseAllMethod(),
-			["RM_RESOURCE_EXIST"] = new RmResourceExistMethod(),
 			// SQL 扩展
 			["SQL_CONNECT"] = new SqlConnectMethod(),
 			["SQL_DISCONNECT"] = new SqlDisconnectMethod(),

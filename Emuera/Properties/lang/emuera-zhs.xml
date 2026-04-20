@@ -65,6 +65,9 @@
     <tr id="UI.ConfigDialog.Environment.TextEditorCommandline.UserSetting"><![CDATA[用户设置]]></tr>
     <tr id="UI.ConfigDialog.Display"><![CDATA[显示]]></tr>
     <tr id="UI.ConfigDialog.Display.TextDrawingMode"><![CDATA[渲染API]]></tr>
+    <tr id="UI.ConfigDialog.Display.SkiaImageQuality"><![CDATA[图像缩放质量]]></tr>
+    <tr id="UI.ConfigDialog.Display.SkiaFontHinting"><![CDATA[字体微调]]></tr>
+    <tr id="UI.ConfigDialog.Display.SkiaFontEdging"><![CDATA[字体边缘渲染]]></tr>
     <tr id="UI.ConfigDialog.Display.FPS"><![CDATA[FPS]]></tr>
     <tr id="UI.ConfigDialog.Display.PrintCPerLine"><![CDATA[PRINTC的每行项目数]]></tr>
     <tr id="UI.ConfigDialog.Display.PrintCLength"><![CDATA[PRINTC项目的文字长度]]></tr>

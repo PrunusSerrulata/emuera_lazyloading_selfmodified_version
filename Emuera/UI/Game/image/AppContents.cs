@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using SkiaSharp;
@@ -9,31 +9,54 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.Data.Sqlite;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
 namespace MinorShift.Emuera.UI.Game.Image;
 
 static class AppContents
 {
-	static ConcurrentDictionary<string, AbstractImage> resourceDic = new(Config.StrComper);
-	static ConcurrentDictionary<string, ASprite> imageDictionary = new(Config.StrComper);
 	static ConcurrentDictionary<int, GraphicsImage> gList = [];
-	static ConcurrentDictionary<string, ASprite> resourceImageDictionary = new(Config.StrComper);
 
-	// the ConstImages that has been loaded into memory. will free them in every SetBegin(BeginType.SHOP)
+	private static readonly int MAX_LRU_CAPACITY = 800;
+	private static LinkedList<string> fileLruList = new LinkedList<string>();
+	private static Dictionary<string, LinkedListNode<string>> fileLruNodes = new();
+	private static ConcurrentDictionary<string, LoadedFileInfo> fileLruCache = new();
+	private static ConcurrentDictionary<string, string> spriteToFilepath = new(Config.StrComper);
+
+	private static SqliteConnection metaDb;
+
 	public static HashSet<ConstImage> tempLoadedConstImages = [];
 	public static HashSet<GraphicsImage> tempLoadedGraphicsImages = [];
 
+	private class LoadedFileInfo
+	{
+		public SKBitmap Bitmap;
+		public List<(SKBitmap Bitmap, int Delay)> AnimFrames;
+		public HashSet<string> SpriteNames = new();
+		public int RefCount => SpriteNames.Count;
+	}
 
-	//static public T GetContent<T>(string name)where T :AContentItem
-	//{
-	//	if (name == null)
-	//		return null;
-	//	name = name.ToUpper(CultureInfo.InvariantCulture);
-	//	if (!itemDic.ContainsKey(name))
-	//		return null;
-	//	return itemDic[name] as T;
-	//}
+	static AppContents()
+	{
+		metaDb = new SqliteConnection("Data Source=:memory:");
+		metaDb.Open();
+		using var cmd = metaDb.CreateCommand();
+		cmd.CommandText = @"
+			CREATE TABLE SpriteMeta (
+				Name TEXT,
+				FrameIndex INTEGER,
+				FilePath TEXT,
+				RectX INTEGER, RectY INTEGER, RectW INTEGER, RectH INTEGER,
+				PosX INTEGER, PosY INTEGER,
+				Delay INTEGER,
+				DestW INTEGER, DestH INTEGER,
+				IsAnime INTEGER,
+				PRIMARY KEY (Name, FrameIndex)
+			)";
+		cmd.ExecuteNonQuery();
+	}
+
 	static public GraphicsImage GetGraphics(int i)
 	{
 		if (gList.TryGetValue(i, out GraphicsImage value))
@@ -45,66 +68,396 @@ static class AppContents
 
 	static public ASprite GetSprite(string name)
 	{
-		if (name == null)
+		if (string.IsNullOrEmpty(name))
 			return null;
 		name = name.ToUpper(CultureInfo.InvariantCulture);
-		if (!imageDictionary.TryGetValue(name, out ASprite value))
-			return null;
-		return value;
-	}
 
-	static public void SpriteDispose(string name)
-	{
-		if (name == null)
-			return;
-		name = name.ToUpper(CultureInfo.InvariantCulture);
-		if (!imageDictionary.TryGetValue(name, out ASprite value))
-			return;
-		value.Dispose();
-		imageDictionary.TryRemove(name, out _);
-	}
-
-	static public long SpriteDisposeAll(bool delCsvImage)
-	{
-		int sprites = imageDictionary.Count;
-		int csprites = resourceImageDictionary.Count;
-		if (delCsvImage)
+		if (activeSprites.TryGetValue(name, out ASprite sprite))
 		{
-			imageDictionary.Clear();
-			resourceImageDictionary.Clear();
-			return sprites;
+			if (spriteToFilepath.TryGetValue(name, out string filepath))
+				UpdateFileLRU(filepath);
+			return sprite;
 		}
+
+		return LoadSpriteFromMeta(name);
+	}
+
+	private static void UpdateFileLRU(string filepath)
+	{
+		if (string.IsNullOrEmpty(filepath))
+			return;
+		lock (fileLruList)
+		{
+			if (fileLruNodes.TryGetValue(filepath, out var node))
+			{
+				if (node.List != null)
+					fileLruList.Remove(node);
+				fileLruList.AddLast(node);
+			}
+			else
+			{
+				node = fileLruList.AddLast(filepath);
+				fileLruNodes[filepath] = node;
+			}
+		}
+	}
+
+	private static void EnforceFileLRUCapacity()
+	{
+		lock (fileLruList)
+		{
+			while (fileLruList.Count > MAX_LRU_CAPACITY)
+			{
+				var oldestNode = fileLruList.First;
+				string oldest = oldestNode.Value;
+				fileLruList.RemoveFirst();
+				fileLruNodes.Remove(oldest);
+
+				if (fileLruCache.TryRemove(oldest, out LoadedFileInfo info))
+				{
+					info.Bitmap?.Dispose();
+					if (info.AnimFrames != null)
+					{
+						foreach (var frame in info.AnimFrames)
+						{
+							frame.Bitmap?.Dispose();
+						}
+					}
+					foreach (var spriteName in info.SpriteNames)
+					{
+						activeSprites.TryRemove(spriteName, out _);
+						spriteToFilepath.TryRemove(spriteName, out _);
+					}
+				}
+			}
+		}
+	}
+
+	private static List<(SKBitmap Bitmap, int Delay)> LoadOrGetAnimFrames(string filepath)
+	{
+		if (string.IsNullOrEmpty(filepath) || !File.Exists(filepath))
+			return null;
+
+		if (fileLruCache.TryGetValue(filepath, out LoadedFileInfo info))
+		{
+			if (info.AnimFrames != null)
+				return info.AnimFrames;
+		}
+
+		var animFrames = AnimatedImageHelper.Decode(filepath);
+		if (animFrames == null)
+			return null;
+
+		if (!fileLruCache.TryGetValue(filepath, out info))
+		{
+			info = new LoadedFileInfo { SpriteNames = new HashSet<string>() };
+			fileLruCache[filepath] = info;
+		}
+		info.AnimFrames = animFrames;
+		return animFrames;
+	}
+
+	private class MetaRow
+	{
+		public string FilePath;
+		public Rectangle Rect;
+		public Point Pos;
+		public int Delay;
+		public Size DestSize;
+		public bool IsAnimeHeader;
+	}
+
+	private static ASprite LoadSpriteFromMeta(string name)
+	{
+		using var cmd = metaDb.CreateCommand();
+		cmd.CommandText = "SELECT * FROM SpriteMeta WHERE Name = @name ORDER BY FrameIndex ASC";
+		cmd.Parameters.AddWithValue("@name", name);
+
+		using var reader = cmd.ExecuteReader();
+		List<MetaRow> rows = new List<MetaRow>();
+		while (reader.Read())
+		{
+			rows.Add(new MetaRow
+			{
+				FilePath = reader.GetString(2),
+				Rect = new Rectangle(reader.GetInt32(3), reader.GetInt32(4), reader.GetInt32(5), reader.GetInt32(6)),
+				Pos = new Point(reader.GetInt32(7), reader.GetInt32(8)),
+				Delay = reader.GetInt32(9),
+				DestSize = new Size(reader.GetInt32(10), reader.GetInt32(11)),
+				IsAnimeHeader = reader.GetInt32(12) == 1
+			});
+		}
+		reader.Close();
+
+		if (rows.Count == 0)
+			return null;
+
+		ASprite newSprite = null;
+		string primaryFilepath = rows[0].FilePath;
+
+		// 模式1：旧版多行 ANIME 定义 (第一行是 Header)
+		if (rows[0].IsAnimeHeader)
+		{
+			Size destSize = rows[0].DestSize;
+			SpriteAnime anime = new SpriteAnime(name, destSize);
+			
+			for (int i = 1; i < rows.Count; i++)
+			{
+				var r = rows[i];
+				if (!File.Exists(r.FilePath)) continue;
+				
+				SKBitmap bmp = LoadOrGetFileBitmap(r.FilePath);
+				if (bmp == null) continue;
+
+				ConstImage img = new ConstImage($"{name}_F{i}");
+				img.CreateFrom(bmp.Copy(), r.FilePath, false);
+				
+				Rectangle fRect = r.Rect.Width == 0 ? new Rectangle(0, 0, bmp.Width, bmp.Height) : r.Rect;
+				anime.AddFrame(img, fRect, r.Pos, r.Delay);
+				
+				// 注册 LRU 依赖
+				if (fileLruCache.TryGetValue(r.FilePath, out LoadedFileInfo info))
+					info.SpriteNames.Add(name);
+				UpdateFileLRU(r.FilePath);
+			}
+			newSprite = anime;
+		}
+		// 模式2 & 模式3：单行定义（可能是静态图，也可能是单文件 WebP/GIF 动图）
 		else
 		{
-			imageDictionary = new ConcurrentDictionary<string, ASprite>(resourceImageDictionary);
-			return sprites - csprites;
+			var r = rows[0];
+			if (!File.Exists(r.FilePath)) return null;
+
+			// 尝试作为动图解码
+			var animFrames = LoadOrGetAnimFrames(r.FilePath);
+			
+			// 模式2：单文件多帧动图 (WebP/GIF)
+			if (animFrames != null && animFrames.Count > 1)
+			{
+				// 使用CSV中定义的画框宽度和高度，如果没有定义则使用裁剪区域的大小或动图帧大小
+				Size destSize;
+				if (r.DestSize.Width > 0 && r.DestSize.Height > 0)
+				{
+					destSize = r.DestSize;
+				}
+				else if (r.Rect.Width > 0)
+				{
+					destSize = r.Rect.Size;
+				}
+				else
+				{
+					destSize = new Size(animFrames[0].Bitmap.Width, animFrames[0].Bitmap.Height);
+				}
+				SpriteAnime anime = new SpriteAnime(name, destSize);
+				
+				for (int i = 0; i < animFrames.Count; i++)
+				{
+					var frame = animFrames[i];
+					ConstImage frameImg = new ConstImage($"{name}_F{i}");
+					frameImg.CreateFrom(frame.Bitmap.Copy(), r.FilePath, false);
+					
+					// 如果 CSV 定义了裁剪，应用到每一帧；否则使用整帧尺寸
+					Rectangle fRect = r.Rect.Width == 0 ? new Rectangle(0, 0, frame.Bitmap.Width, frame.Bitmap.Height) : r.Rect;
+					int fDelay = r.Delay > 0 ? r.Delay : frame.Delay;
+					
+					anime.AddFrame(frameImg, fRect, r.Pos, fDelay);
+				}
+				newSprite = anime;
+			}
+			// 模式3：普通单帧静态图
+			else
+			{
+				SKBitmap fileBitmap = LoadOrGetFileBitmap(r.FilePath);
+				if (fileBitmap != null)
+				{
+					ConstImage img = new ConstImage(name + "_BASE");
+					img.CreateFrom(fileBitmap.Copy(), r.FilePath, false);
+					Rectangle fRect = r.Rect.Width == 0 ? new Rectangle(0, 0, fileBitmap.Width, fileBitmap.Height) : r.Rect;
+					// 使用CSV中定义的画框宽度和高度，如果没有定义则使用裁剪区域的大小
+					Size destSize = (r.DestSize.Width > 0 && r.DestSize.Height > 0) ? r.DestSize : fRect.Size;
+					newSprite = new SpriteF(name, img, fRect, r.Pos, destSize);
+				}
+			}
+
+			// 注册 LRU 依赖
+			if (newSprite != null)
+			{
+				if (fileLruCache.TryGetValue(r.FilePath, out LoadedFileInfo info))
+					info.SpriteNames.Add(name);
+				UpdateFileLRU(r.FilePath);
+			}
 		}
+
+		if (newSprite != null)
+		{
+			activeSprites[name] = newSprite;
+			spriteToFilepath[name] = primaryFilepath;
+			EnforceFileLRUCapacity();
+		}
+
+		return newSprite;
+	}
+
+	private static SKBitmap LoadOrGetFileBitmap(string filepath)
+	{
+		if (string.IsNullOrEmpty(filepath) || !File.Exists(filepath))
+			return null;
+
+		if (fileLruCache.TryGetValue(filepath, out LoadedFileInfo info))
+		{
+			if (info.Bitmap != null)
+				return info.Bitmap;
+		}
+
+		var skbmp = SKBitmap.Decode(filepath);
+		if (skbmp == null)
+			return null;
+
+		if (!fileLruCache.TryGetValue(filepath, out info))
+		{
+			info = new LoadedFileInfo { SpriteNames = new HashSet<string>() };
+			fileLruCache[filepath] = info;
+		}
+
+		info.Bitmap = skbmp;
+		return info.Bitmap;
 	}
 
 	static public void CreateSpriteG(string imgName, GraphicsImage parent, Rectangle rect, Point pos, Size destSize)
 	{
 		if (string.IsNullOrEmpty(imgName))
-			throw new ArgumentOutOfRangeException();
-		imgName = imgName.ToUpper();
-		// 调用新的 SpriteG 构造函数
-		SpriteG newCImg = new(imgName, parent, rect, pos, destSize);
-		imageDictionary[imgName] = newCImg;
+			return;
+		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
+		SpriteG newSprite = new SpriteG(imgName, parent, rect, pos, destSize);
+		activeSprites[imgName] = newSprite;
 	}
 
-	// 兼容旧代码的重载（如果项目其他地方只传了3个参数）
-	static public void CreateSpriteG(string imgName, GraphicsImage parent, Rectangle rect)
-	{
-		// 默认 Pos=(0,0), DestSize=Rect.Size
-		CreateSpriteG(imgName, parent, rect, Point.Empty, rect.Size);
-	}
-
-	internal static void CreateSpriteAnime(string imgName, int w, int h)
+	static public void CreateSpriteAnime(string imgName, int w, int h)
 	{
 		if (string.IsNullOrEmpty(imgName))
-			throw new ArgumentOutOfRangeException();
+			return;
 		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
-		SpriteAnime newCImg = new(imgName, new Size(w, h));
-		imageDictionary[imgName] = newCImg;
+		SpriteAnime anime = new SpriteAnime(imgName, new Size(w, h));
+		activeSprites[imgName] = anime;
+	}
+
+	public static bool CreateSpriteFromFileDynamic(string name, string filepath)
+	{
+		if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(filepath))
+			return false;
+		name = name.ToUpper(CultureInfo.InvariantCulture);
+
+		if (activeSprites.TryGetValue(name, out _))
+			return true;
+
+		if (!File.Exists(filepath))
+			return false;
+
+		ASprite newSprite = null;
+		var animFrames = LoadOrGetAnimFrames(filepath);
+		if (animFrames != null && animFrames.Count > 1)
+		{
+			Size animeSize = new Size(animFrames[0].Bitmap.Width, animFrames[0].Bitmap.Height);
+			SpriteAnime anime = new SpriteAnime(name, animeSize);
+			for (int i = 0; i < animFrames.Count; i++)
+			{
+				var frame = animFrames[i];
+				ConstImage frameImg = new ConstImage($"{name}_F{i}");
+				frameImg.CreateFrom(frame.Bitmap.Copy(), filepath, false);
+				Rectangle fRect = new Rectangle(0, 0, frame.Bitmap.Width, frame.Bitmap.Height);
+				anime.AddFrame(frameImg, fRect, Point.Empty, frame.Delay);
+			}
+			newSprite = anime;
+		}
+		else
+		{
+			SKBitmap fileBitmap = LoadOrGetFileBitmap(filepath);
+			if (fileBitmap == null)
+				return false;
+			if (fileBitmap.Width > AbstractImage.MAX_IMAGESIZE || fileBitmap.Height > AbstractImage.MAX_IMAGESIZE)
+				return false;
+
+			ConstImage img = new ConstImage(name + "_DYN");
+			img.CreateFrom(fileBitmap.Copy(), filepath, false);
+			newSprite = new SpriteF(name, img, new Rectangle(0, 0, fileBitmap.Width, fileBitmap.Height), Point.Empty, new Size(fileBitmap.Width, fileBitmap.Height));
+		}
+
+		if (newSprite != null)
+		{
+			activeSprites[name] = newSprite;
+			spriteToFilepath[name] = filepath;
+
+			if (fileLruCache.TryGetValue(filepath, out LoadedFileInfo info))
+			{
+				info.SpriteNames.Add(name);
+			}
+
+			UpdateFileLRU(filepath);
+			EnforceFileLRUCapacity();
+			return true;
+		}
+		return false;
+	}
+
+	static public bool GetSprite_OnlyCheckExists(string name)
+	{
+		if (string.IsNullOrEmpty(name))
+			return false;
+		name = name.ToUpper(CultureInfo.InvariantCulture);
+
+		if (activeSprites.ContainsKey(name))
+			return true;
+
+		using var cmd = metaDb.CreateCommand();
+		cmd.CommandText = "SELECT Name FROM SpriteMeta WHERE Name = @name";
+		cmd.Parameters.AddWithValue("@name", name);
+		using var reader = cmd.ExecuteReader();
+		return reader.Read();
+	}
+
+	static public void SpriteDispose(string name)
+	{
+		if (string.IsNullOrEmpty(name))
+			return;
+		name = name.ToUpper(CultureInfo.InvariantCulture);
+		if (activeSprites.TryRemove(name, out ASprite sprite))
+		{
+			sprite.Dispose();
+
+			if (spriteToFilepath.TryRemove(name, out string filepath))
+			{
+				if (fileLruCache.TryGetValue(filepath, out LoadedFileInfo info))
+				{
+					info.SpriteNames.Remove(name);
+				}
+			}
+		}
+	}
+
+	static public long SpriteDisposeAll(bool delCsvImage)
+	{
+		int sprites = activeSprites.Count;
+		foreach (var s in activeSprites.Values)
+			s.Dispose();
+		activeSprites.Clear();
+		spriteToFilepath.Clear();
+
+		foreach (var info in fileLruCache.Values)
+		{
+			info.Bitmap?.Dispose();
+			if (info.AnimFrames != null)
+			{
+				foreach (var f in info.AnimFrames) f.Bitmap?.Dispose();
+			}
+			info.SpriteNames.Clear();
+		}
+		fileLruCache.Clear();
+		lock (fileLruList)
+		{
+			fileLruList.Clear();
+			fileLruNodes.Clear();
+		}
+		return sprites;
 	}
 
 	static public Exception LoadContents(bool reload)
@@ -113,77 +466,146 @@ static class AppContents
 			return null;
 		try
 		{
-			//resourcesフォルダ内の全てのcsvファイルを探索する
-			var csvFiles = Directory.EnumerateFiles(Program.ContentDir, "*.csv", SearchOption.AllDirectories);
-			foreach (var filepath in csvFiles)
+			if (reload)
 			{
-				if (reload)
+				using var clearCmd = metaDb.CreateCommand();
+				clearCmd.CommandText = "DELETE FROM SpriteMeta";
+				clearCmd.ExecuteNonQuery();
+
+				foreach (var s in activeSprites.Values)
+					s.Dispose();
+				activeSprites.Clear();
+				spriteToFilepath.Clear();
+
+				foreach (var info in fileLruCache.Values)
 				{
-					foreach (string key in resourceImageDictionary.Keys)
+					info.Bitmap?.Dispose();
+					if (info.AnimFrames != null)
 					{
-						imageDictionary.TryRemove(key, out _);
+						foreach (var f in info.AnimFrames) f.Bitmap?.Dispose();
 					}
-					resourceImageDictionary.Clear();
-					foreach (var img in resourceDic.Values)
-						img.Dispose();
-					resourceDic.Clear();
+					info.SpriteNames.Clear();
+				}
+				fileLruCache.Clear();
+				lock (fileLruList)
+				{
+					fileLruList.Clear();
+					fileLruNodes.Clear();
 				}
 			}
-			csvFiles.AsParallel()
-				.Where(path => Path.GetExtension(path).Equals(".csv", StringComparison.OrdinalIgnoreCase))
-				.ForAll(path =>
-				{
-					//アニメスプライト宣言。nullでないとき、フレーム追加モード
-					SpriteAnime currentAnime = null;
-					string directory = Path.GetDirectoryName(path) + "\\";
-					string filename = Path.GetFileName(path);
-					string[] lines = File.ReadAllLines(path, EncodingHandler.DetectEncoding(path));
-					int lineNo = 0;
-					foreach (var line in lines)
-					{
-						lineNo++;
-						if (line.Length == 0)
-							continue;
-						string str = line.Trim();
-						if (str.Length == 0 || str.StartsWith(';'))
-							continue;
-						string[] tokens = str.Split(',');
-						//AContentItem item = CreateFromCsv(tokens);
-						ScriptPosition? sp = new(filename, lineNo);
-						if (CreateFromCsv(tokens, directory, currentAnime, sp) is ASprite item)
-						{
-							//アニメスプライト宣言ならcurrentAnime上書きしてフレーム追加モードにする。そうでないならnull
-							currentAnime = item as SpriteAnime;
-							if (reload && resourceImageDictionary.ContainsKey(item.Name))
-								resourceImageDictionary.Remove(item.Name, out _);
 
-							if (!resourceImageDictionary.TryAdd(item.Name, item))
+			var csvFiles = Directory.EnumerateFiles(Program.ContentDir, "*.csv", SearchOption.AllDirectories);
+			using var trans = metaDb.BeginTransaction();
+			using var insertCmd = metaDb.CreateCommand();
+			insertCmd.Transaction = trans;
+			insertCmd.CommandText = @"INSERT OR REPLACE INTO SpriteMeta 
+				(Name, FrameIndex, FilePath, RectX, RectY, RectW, RectH, PosX, PosY, Delay, DestW, DestH, IsAnime) 
+				VALUES (@name, @idx, @filepath, @rx, @ry, @rw, @rh, @px, @py, @delay, @dw, @dh, @isAnime)";
+
+			var pName = insertCmd.Parameters.Add("@name", SqliteType.Text);
+			var pIdx = insertCmd.Parameters.Add("@idx", SqliteType.Integer);
+			var pPath = insertCmd.Parameters.Add("@filepath", SqliteType.Text);
+			var pRx = insertCmd.Parameters.Add("@rx", SqliteType.Integer);
+			var pRy = insertCmd.Parameters.Add("@ry", SqliteType.Integer);
+			var pRw = insertCmd.Parameters.Add("@rw", SqliteType.Integer);
+			var pRh = insertCmd.Parameters.Add("@rh", SqliteType.Integer);
+			var pPx = insertCmd.Parameters.Add("@px", SqliteType.Integer);
+			var pPy = insertCmd.Parameters.Add("@py", SqliteType.Integer);
+			var pDelay = insertCmd.Parameters.Add("@delay", SqliteType.Integer);
+			var pDw = insertCmd.Parameters.Add("@dw", SqliteType.Integer);
+			var pDh = insertCmd.Parameters.Add("@dh", SqliteType.Integer);
+			var pIsAnime = insertCmd.Parameters.Add("@isAnime", SqliteType.Integer);
+
+			foreach (var path in csvFiles)
+			{
+				string directory = Path.GetDirectoryName(path) + "\\";
+				string[] lines = File.ReadAllLines(path, EncodingHandler.DetectEncoding(path));
+
+				Dictionary<string, int> frameCounters = new(Config.StrComper);
+
+				foreach (var line in lines)
+				{
+					string str = line.Trim();
+					if (str.Length == 0 || str.StartsWith(';'))
+						continue;
+					string[] tokens = str.Split(',');
+					if (tokens.Length < 2)
+						continue;
+
+					string name = tokens[0].Trim().ToUpper(CultureInfo.InvariantCulture);
+					string arg2 = tokens[1].Trim();
+
+					pName.Value = name;
+					pPath.Value = "";
+					pRx.Value = 0; pRy.Value = 0; pRw.Value = 0; pRh.Value = 0;
+					pPx.Value = 0; pPy.Value = 0; pDelay.Value = 0;
+					pDw.Value = 0; pDh.Value = 0; pIsAnime.Value = 0;
+
+					// 纯粹的文本解析和入库，绝对不加载图片
+					if (arg2.Equals("ANIME", StringComparison.OrdinalIgnoreCase))
+					{
+						if (tokens.Length >= 4)
+						{
+							int.TryParse(tokens[2], out int width);
+							int.TryParse(tokens[3], out int height);
+							if (width > 0 && height > 0)
 							{
-								ParserMediator.Warn(string.Format(trerror.SpriteNameAlreadyUsed.Text, item.Name), sp, 0);
-								item.Dispose();
+								pIdx.Value = -1; // Header marker
+								pDw.Value = width;
+								pDh.Value = height;
+								pIsAnime.Value = 1;
+								insertCmd.ExecuteNonQuery();
+								frameCounters[name] = 0;
 							}
-							//else
-							//	resourceImageDictionary.TryAdd(item.Name, item);
 						}
+						continue;
 					}
-				});
+
+					string fullPath = directory + arg2;
+					pPath.Value = fullPath;
+
+					if (tokens.Length >= 6)
+					{
+						int.TryParse(tokens[2], out int rx); pRx.Value = rx;
+						int.TryParse(tokens[3], out int ry); pRy.Value = ry;
+						int.TryParse(tokens[4], out int rw); pRw.Value = rw;
+						int.TryParse(tokens[5], out int rh); pRh.Value = rh;
+					}
+					if (tokens.Length >= 8)
+					{
+						int.TryParse(tokens[6], out int px); pPx.Value = px;
+						int.TryParse(tokens[7], out int py); pPy.Value = py;
+					}
+					if (tokens.Length >= 9)
+					{
+						int.TryParse(tokens[8], out int delay); pDelay.Value = delay;
+					}
+					// 处理画框宽度和高度参数
+					if (tokens.Length >= 11)
+					{
+						int.TryParse(tokens[9], out int destW); pDw.Value = destW;
+						int.TryParse(tokens[10], out int destH); pDh.Value = destH;
+					}
+
+					if (!frameCounters.ContainsKey(name))
+						frameCounters[name] = 0;
+
+					pIdx.Value = frameCounters[name]++;
+					insertCmd.ExecuteNonQuery();
+				}
+			}
+			trans.Commit();
 		}
 		catch (Exception e)
 		{
 			return e;
-			//throw new CodeEE("リソースファイルのロード中にエラーが発生しました");
 		}
-		imageDictionary = new ConcurrentDictionary<string, ASprite>(resourceImageDictionary);
 		return null;
 	}
 
 	static public void UnloadContents()
 	{
-		foreach (var img in resourceDic.Values)
-			img.Dispose();
-		resourceDic.Clear();
-		imageDictionary.Clear();
-		resourceImageDictionary.Clear();
+		SpriteDisposeAll(true);
 		foreach (var graph in gList.Values)
 			graph.GDispose();
 		gList.Clear();
@@ -192,17 +614,15 @@ static class AppContents
 		AnimatedImageHelper.ClearCache();
 	}
 
-	//タイトルに戻る時用（コードの変更はないので、動的に作られた分だけ削除）
 	static public void UnloadGraphicList()
 	{
 		foreach (var graph in gList.Values)
 			graph.GDispose();
 		gList.Clear();
 	}
-	// used for clean ConstImage from memory
+
 	static public void UnloadTempLoadedConstImageNames()
 	{
-		//EE_画像読み込みスレッドの最適化
 		lock (tempLoadedConstImages)
 		{
 			foreach (ConstImage img in tempLoadedConstImages)
@@ -210,10 +630,9 @@ static class AppContents
 			tempLoadedConstImages.Clear();
 		}
 	}
-	// used for clean GraphicsImage from memory
+
 	static public void UnloadTempLoadedGraphicsImageNames()
 	{
-		//EE_画像読み込みスレッドの最適化
 		lock (tempLoadedGraphicsImages)
 		{
 			foreach (GraphicsImage img in tempLoadedGraphicsImages)
@@ -222,191 +641,6 @@ static class AppContents
 			tempLoadedGraphicsImages.Clear();
 		}
 	}
-	/// <summary>
-	/// resourcesフォルダ中のcsvの1行を読んで新しいリソースを作る(or既存のアニメーションスプライトに1フレーム追加する)
-	/// </summary>
-	/// <param name="tokens"></param>
-	/// <param name="dir"></param>
-	/// <param name="currentAnime"></param>
-	/// <param name="sp"></param>
-	/// <returns></returns>
-	static private AContentItem CreateFromCsv(string[] tokens, string dir, SpriteAnime currentAnime, ScriptPosition? sp)
-	{
-		if (tokens.Length < 2)
-			return null;
-		string name = tokens[0].Trim().ToUpper(CultureInfo.InvariantCulture);//
-		string arg2 = tokens[1];//画像ファイル名
-		if (name.Length == 0 || arg2.Length == 0)
-			return null;
-		//アニメーションスプライト宣言
-		if (arg2.Equals("ANIME", StringComparison.OrdinalIgnoreCase))
-		{
-			if (tokens.Length < 4)
-			{
-				ParserMediator.Warn(trerror.NotDeclaredAnimationSpriteSize.Text, sp, 1);
-				return null;
-			}
-			//w,h
-			int[] sizeValue = new int[2];
-			bool sccs = true;
-			for (int i = 0; i < 2; i++)
-				sccs &= int.TryParse(tokens[i + 2], out sizeValue[i]);
-			if (!sccs || sizeValue[0] <= 0 || sizeValue[1] <= 0 || sizeValue[0] > AbstractImage.MAX_IMAGESIZE || sizeValue[1] > AbstractImage.MAX_IMAGESIZE)
-			{
-				ParserMediator.Warn(trerror.InvalidAnimationSpriteSize.Text, sp, 1);
-				return null;
-			}
-			SpriteAnime anime = new(name, new Size(sizeValue[0], sizeValue[1]));
 
-			return anime;
-		}
-		//アニメ宣言以外（アニメ用フレーム含む
-
-		if (arg2.IndexOf('.', StringComparison.Ordinal) < 0)
-		{
-			ParserMediator.Warn(string.Format(trerror.MissingSecondArgumentExtension.Text, arg2), sp, 1);
-			return null;
-		}
-		string parentName = dir + arg2;
-
-
-		//親画像のロードConstImage
-		if (!resourceDic.TryGetValue(parentName, out AbstractImage value))
-		{
-			string filepath = parentName;
-			SKBitmap bmp;
-			var skbitmap = SKBitmap.Decode(filepath);
-			#region EM_私家版_webp
-			// Bitmap bmp = new Bitmap(filepath);
-			//var webpbmp = Utils.LoadImage(filepath);
-			#endregion
-			if (skbitmap == null)
-			{
-				ParserMediator.Warn(string.Format(trerror.FailedLoadFile.Text, arg2), sp, 1);
-				return null;
-			}
-
-			bmp = skbitmap;
-
-			if (bmp.Width > AbstractImage.MAX_IMAGESIZE || bmp.Height > AbstractImage.MAX_IMAGESIZE)
-			{
-				//1824-2 すでに8192以上の幅を持つ画像を利用したバリアントが存在してしまっていたため、警告しつつ許容するように変更
-				//	bmp.Dispose();
-				ParserMediator.Warn(string.Format(trerror.TooLargeImageFile.Text, AbstractImage.MAX_IMAGESIZE.ToString(), arg2), sp, 1);
-				//return null;
-			}
-			ConstImage img = new(parentName);
-			img.CreateFrom(bmp, filepath, Config.TextDrawingMode == TextDrawingMode.WINAPI);
-			if (!img.IsCreated)
-			{
-				ParserMediator.Warn(string.Format(trerror.FailedCreateResource.Text, arg2), sp, 1);
-				return null;
-			}
-			value = img;
-			resourceDic.TryAdd(parentName, value);
-			img.Dispose();
-		}
-		if (value is not ConstImage parentImage || !parentImage.IsCreated)
-		{
-			ParserMediator.Warn(string.Format(trerror.SpriteCreateFromFailedResource.Text, arg2), sp, 1);
-			return null;
-		}
-		//Rectangle rect = new(0, 0, parentImage.Width, parentImage.Height);
-		var rect = new Rectangle(new Point(0, 0), new Size(parentImage.SKBitmap.Width, parentImage.SKBitmap.Height));
-		Size size = rect.Size;
-		Point pos = new();
-		int delay = 1000;
-		//name,parentname, x,y,w,h ,offset_x,offset_y, delayTime, destX,destY
-		if (tokens.Length >= 6)//x,y,w,h
-		{
-			int[] outValue = new int[4];
-			bool sccs = true;
-			for (int i = 0; i < 4; i++)
-				sccs &= int.TryParse(tokens[i + 2], out outValue[i]);
-			if (sccs)
-			{
-				rect = new Rectangle(outValue[0], outValue[1], outValue[2], outValue[3]);
-				size = rect.Size;
-				if (rect.Width <= 0 || rect.Height <= 0)
-				{
-					ParserMediator.Warn(string.Format(trerror.SpriteSizeIsNegatibe.Text, name), sp, 1);
-					return null;
-				}
-				if (!rect.IntersectsWith(new Rectangle(0, 0, parentImage.Width, parentImage.Height)))
-				{
-					ParserMediator.Warn(string.Format(trerror.OoRParentImage.Text, name), sp, 1);
-					return null;
-				}
-			}
-			if (tokens.Length >= 8)
-			{
-				sccs = true;
-				for (int i = 0; i < 2; i++)
-					sccs &= int.TryParse(tokens[i + 6], out outValue[i]);
-				if (sccs)
-					pos = new Point(outValue[0], outValue[1]);
-				if (tokens.Length >= 9)
-				{
-					sccs = int.TryParse(tokens[8], out delay);
-					if (sccs && delay <= 0)
-					{
-						ParserMediator.Warn(string.Format(trerror.FrameTimeIsNegative.Text, name), sp, 1);
-						return null;
-					}
-					if (tokens.Length >= 11)
-					{
-						sccs = true;
-						for (int i = 0; i < 2; i++)
-							sccs &= int.TryParse(tokens[i + 9], out outValue[i]);
-						if (sccs)
-							size = new Size(outValue[0], outValue[1]);
-					}
-				}
-			}
-		}
-		//既存のスプライトに対するフレーム追加
-		if (currentAnime != null && currentAnime.Name == name)
-		{
-			if (!currentAnime.AddFrame(parentImage, rect, pos, delay))
-			{
-				ParserMediator.Warn(string.Format(trerror.FailedAddSpriteFrame.Text, arg2), sp, 1);
-				return null;
-			}
-			return null;
-		}
-
-		// 新增：检测是否为动态 WebP/GIF
-		var animFrames = AnimatedImageHelper.Decode(parentName);
-		if (animFrames != null)
-		{
-			// 自动转换为 SpriteAnime
-			SpriteAnime anime = new SpriteAnime(name, size);
-			int frameIndex = 0;
-			foreach (var frame in animFrames)
-			{
-				string frameName = $"{parentName}_f{frameIndex}";
-				
-				// 使用 GetOrAdd 保证多线程并发加载时的绝对安全
-				var frameValue = resourceDic.GetOrAdd(frameName, _ => {
-					ConstImage frameImg = new ConstImage(frameName);
-					// 必须复制 Bitmap 以防被外部 Dispose 破坏缓存
-					frameImg.CreateFrom(frame.Bitmap.Copy(), parentName, false);
-					return frameImg;
-				});
-				
-				// 自动应用 CSV 中定义的裁剪(rect)、偏移(pos)
-				anime.AddFrame(frameValue, rect, pos, frame.Delay);
-				frameIndex++;
-			}
-			return anime;
-		}
-		// 新增结束
-
-		//新規スプライト定義
-		ASprite image = new SpriteF(name, parentImage, rect, pos, size);
-
-		//if (Config.DisplayReport)
-		//	ParserMediator.SingleLine(string.Format(Lang.SystemLine.CreateFromCSV.Text, arg2, name));
-		return image;
-	}
+	private static ConcurrentDictionary<string, ASprite> activeSprites = new(Config.StrComper);
 }

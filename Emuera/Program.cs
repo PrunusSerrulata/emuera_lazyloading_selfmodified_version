@@ -3,6 +3,7 @@ using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -188,10 +189,40 @@ static partial class Program
 		if (Directory.Exists(FontDir))
 		{
 			foreach (string fontFile in Directory.GetFiles(FontDir, "*.ttf", SearchOption.AllDirectories))
+			{
 				GlobalStatic.Pfc.AddFontFile(fontFile);
+				try
+				{
+					var typeface = SKTypeface.FromFile(fontFile);
+					if (typeface != null)
+						GlobalStatic.CustomTypefaces.Add(typeface);
+				}
+				catch { }
+			}
 
 			foreach (string fontFile in Directory.GetFiles(FontDir, "*.otf", SearchOption.AllDirectories))
+			{
 				GlobalStatic.Pfc.AddFontFile(fontFile);
+				try
+				{
+					var typeface = SKTypeface.FromFile(fontFile);
+					if (typeface != null)
+						GlobalStatic.CustomTypefaces.Add(typeface);
+				}
+				catch { }
+			}
+
+			foreach (string fontFile in Directory.GetFiles(FontDir, "*.ttc", SearchOption.AllDirectories))
+			{
+				GlobalStatic.Pfc.AddFontFile(fontFile);
+				try
+				{
+					var typeface = SKTypeface.FromFile(fontFile);
+					if (typeface != null)
+						GlobalStatic.CustomTypefaces.Add(typeface);
+				}
+				catch { }
+			}
 		}
 		#endregion
 

@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using System;
@@ -115,7 +115,12 @@ namespace MinorShift.Emuera.Forms
 			comboBox6.Items[3] = Lang.UI.ConfigDialog.Environment.TextEditorCommandline.UserSetting.Text;
 
 			tabPageView.Text = Lang.UI.ConfigDialog.Display.Text;
-			label18.Text = Lang.UI.ConfigDialog.Display.TextDrawingMode.Text;
+			label18.Text = Lang.UI.ConfigDialog.Display.TextDrawingMode.Text; // 恢复为"渲染API"
+			label18.ForeColor = System.Drawing.Color.Black;
+			comboBoxTextDrawingMode.Enabled = false;
+			labelSkiaImageQuality.Text = Lang.UI.ConfigDialog.Display.SkiaImageQuality.Text;
+			labelSkiaFontHinting.Text = Lang.UI.ConfigDialog.Display.SkiaFontHinting.Text;
+			labelSkiaFontEdging.Text = Lang.UI.ConfigDialog.Display.SkiaFontEdging.Text;
 			label9.Text = Lang.UI.ConfigDialog.Display.FPS.Text;
 			label5.Text = Lang.UI.ConfigDialog.Display.PrintCPerLine.Text;
 			label1.Text = Lang.UI.ConfigDialog.Display.PrintCLength.Text;
@@ -409,17 +414,21 @@ namespace MinorShift.Emuera.Forms
 			setColorBox(colorBoxBacklog, ConfigCode.LogColor);
 
 
-			ConfigItem<TextDrawingMode> itemTDM = (ConfigItem<TextDrawingMode>)ConfigData.Instance.GetConfigItem(ConfigCode.TextDrawingMode);
-			switch (itemTDM.Value)
-			{
-				case TextDrawingMode.WINAPI:
-					comboBoxTextDrawingMode.SelectedIndex = 0; break;
-				case TextDrawingMode.TEXTRENDERER:
-					comboBoxTextDrawingMode.SelectedIndex = 1; break;
-				case TextDrawingMode.GRAPHICS:
-					comboBoxTextDrawingMode.SelectedIndex = 2; break;
-			}
-			comboBoxTextDrawingMode.Enabled = !itemTDM.Fixed;
+			// 锁定为SkiaSharp，不需要处理用户选择
+			comboBoxTextDrawingMode.SelectedIndex = 3; // SKIASHARP = 3
+			comboBoxTextDrawingMode.Enabled = false;
+
+			ConfigItem<SkiaSharpImageQuality> itemImgQuality = (ConfigItem<SkiaSharpImageQuality>)ConfigData.Instance.GetConfigItem(ConfigCode.SkiaSharpImageQuality);
+			comboBoxSkiaImageQuality.SelectedIndex = (int)itemImgQuality.Value;
+			comboBoxSkiaImageQuality.Enabled = !itemImgQuality.Fixed;
+
+			ConfigItem<SkiaSharpFontHinting> itemFontHinting = (ConfigItem<SkiaSharpFontHinting>)ConfigData.Instance.GetConfigItem(ConfigCode.SkiaSharpFontHinting);
+			comboBoxSkiaFontHinting.SelectedIndex = (int)itemFontHinting.Value;
+			comboBoxSkiaFontHinting.Enabled = !itemFontHinting.Fixed;
+
+			ConfigItem<SkiaSharpFontEdging> itemFontEdging = (ConfigItem<SkiaSharpFontEdging>)ConfigData.Instance.GetConfigItem(ConfigCode.SkiaSharpFontEdging);
+			comboBoxSkiaFontEdging.SelectedIndex = (int)itemFontEdging.Value;
+			comboBoxSkiaFontEdging.Enabled = !itemFontEdging.Fixed;
 
 			ConfigItem<string> itemStr = (ConfigItem<string>)ConfigData.Instance.GetConfigItem(ConfigCode.FontName);
 			string fontname = itemStr.Value;
@@ -636,15 +645,11 @@ namespace MinorShift.Emuera.Forms
 			config.GetConfigItem(ConfigCode.FocusColor).SetValue(colorBoxSelecting.SelectingColor);
 			config.GetConfigItem(ConfigCode.LogColor).SetValue(colorBoxBacklog.SelectingColor);
 
-			switch (comboBoxTextDrawingMode.SelectedIndex)
-			{
-				case 0:
-					config.GetConfigItem(ConfigCode.TextDrawingMode).SetValue(TextDrawingMode.WINAPI); break;
-				case 1:
-					config.GetConfigItem(ConfigCode.TextDrawingMode).SetValue(TextDrawingMode.TEXTRENDERER); break;
-				case 2:
-					config.GetConfigItem(ConfigCode.TextDrawingMode).SetValue(TextDrawingMode.GRAPHICS); break;
-			}
+			// 锁定为SkiaSharp，不需要保存用户选择
+
+			config.GetConfigItem(ConfigCode.SkiaSharpImageQuality).SetValue((SkiaSharpImageQuality)comboBoxSkiaImageQuality.SelectedIndex);
+			config.GetConfigItem(ConfigCode.SkiaSharpFontHinting).SetValue((SkiaSharpFontHinting)comboBoxSkiaFontHinting.SelectedIndex);
+			config.GetConfigItem(ConfigCode.SkiaSharpFontEdging).SetValue((SkiaSharpFontEdging)comboBoxSkiaFontEdging.SelectedIndex);
 
 			switch (comboBoxReduceArgumentOnLoad.SelectedIndex)
 			{
@@ -791,7 +796,7 @@ namespace MinorShift.Emuera.Forms
 			if (numericUpDown2.Enabled)
 				numericUpDown2.Value = parent.MainPicBox.Width;
 			if (numericUpDown3.Enabled)
-				numericUpDown3.Value = parent.MainPicBox.Height + Config.LineHeight;
+			numericUpDown3.Value = parent.MainPicBox.Height + parent.TextBox.Height;
 		}
 
 		private void button3_Click(object sender, EventArgs e)

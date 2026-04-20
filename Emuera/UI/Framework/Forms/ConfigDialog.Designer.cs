@@ -1,4 +1,4 @@
-﻿namespace MinorShift.Emuera.Forms
+namespace MinorShift.Emuera.Forms
 {
 	partial class ConfigDialog
 	{
@@ -70,6 +70,12 @@
 			flowLayoutPanel17 = new System.Windows.Forms.FlowLayoutPanel();
 			label18 = new System.Windows.Forms.Label();
 			comboBoxTextDrawingMode = new System.Windows.Forms.ComboBox();
+			labelSkiaImageQuality = new System.Windows.Forms.Label();
+			comboBoxSkiaImageQuality = new System.Windows.Forms.ComboBox();
+			labelSkiaFontHinting = new System.Windows.Forms.Label();
+			comboBoxSkiaFontHinting = new System.Windows.Forms.ComboBox();
+			labelSkiaFontEdging = new System.Windows.Forms.Label();
+			comboBoxSkiaFontEdging = new System.Windows.Forms.ComboBox();
 			flowLayoutPanel14 = new System.Windows.Forms.FlowLayoutPanel();
 			numericUpDown7 = new System.Windows.Forms.NumericUpDown();
 			label9 = new System.Windows.Forms.Label();
@@ -562,6 +568,12 @@
 			resources.ApplyResources(flowLayoutPanel17, "flowLayoutPanel17");
 			flowLayoutPanel17.Controls.Add(label18);
 			flowLayoutPanel17.Controls.Add(comboBoxTextDrawingMode);
+			flowLayoutPanel17.Controls.Add(labelSkiaImageQuality);
+			flowLayoutPanel17.Controls.Add(comboBoxSkiaImageQuality);
+			flowLayoutPanel17.Controls.Add(labelSkiaFontHinting);
+			flowLayoutPanel17.Controls.Add(comboBoxSkiaFontHinting);
+			flowLayoutPanel17.Controls.Add(labelSkiaFontEdging);
+			flowLayoutPanel17.Controls.Add(comboBoxSkiaFontEdging);
 			flowLayoutPanel17.Controls.Add(flowLayoutPanel14);
 			flowLayoutPanel17.Controls.Add(flowLayoutPanel15);
 			flowLayoutPanel17.Controls.Add(flowLayoutPanel16);
@@ -580,9 +592,48 @@
 			// 
 			comboBoxTextDrawingMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			comboBoxTextDrawingMode.FormattingEnabled = true;
-			comboBoxTextDrawingMode.Items.AddRange(new object[] { resources.GetString("comboBoxTextDrawingMode.Items"), resources.GetString("comboBoxTextDrawingMode.Items1"), resources.GetString("comboBoxTextDrawingMode.Items2") });
+			comboBoxTextDrawingMode.Items.AddRange(new object[] { resources.GetString("comboBoxTextDrawingMode.Items"), resources.GetString("comboBoxTextDrawingMode.Items1"), resources.GetString("comboBoxTextDrawingMode.Items2"), "SkiaSharp" });
 			resources.ApplyResources(comboBoxTextDrawingMode, "comboBoxTextDrawingMode");
 			comboBoxTextDrawingMode.Name = "comboBoxTextDrawingMode";
+			// 
+			// labelSkiaImageQuality
+			// 
+			resources.ApplyResources(labelSkiaImageQuality, "labelSkiaImageQuality");
+			labelSkiaImageQuality.Name = "labelSkiaImageQuality";
+			// 
+			// comboBoxSkiaImageQuality
+			// 
+			comboBoxSkiaImageQuality.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			comboBoxSkiaImageQuality.FormattingEnabled = true;
+			comboBoxSkiaImageQuality.Items.AddRange(new object[] { "None", "Low", "Medium", "High" });
+			resources.ApplyResources(comboBoxSkiaImageQuality, "comboBoxSkiaImageQuality");
+			comboBoxSkiaImageQuality.Name = "comboBoxSkiaImageQuality";
+			// 
+			// labelSkiaFontHinting
+			// 
+			resources.ApplyResources(labelSkiaFontHinting, "labelSkiaFontHinting");
+			labelSkiaFontHinting.Name = "labelSkiaFontHinting";
+			// 
+			// comboBoxSkiaFontHinting
+			// 
+			comboBoxSkiaFontHinting.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			comboBoxSkiaFontHinting.FormattingEnabled = true;
+			comboBoxSkiaFontHinting.Items.AddRange(new object[] { "None", "Slight", "Normal", "Full" });
+			resources.ApplyResources(comboBoxSkiaFontHinting, "comboBoxSkiaFontHinting");
+			comboBoxSkiaFontHinting.Name = "comboBoxSkiaFontHinting";
+			// 
+			// labelSkiaFontEdging
+			// 
+			resources.ApplyResources(labelSkiaFontEdging, "labelSkiaFontEdging");
+			labelSkiaFontEdging.Name = "labelSkiaFontEdging";
+			// 
+			// comboBoxSkiaFontEdging
+			// 
+			comboBoxSkiaFontEdging.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			comboBoxSkiaFontEdging.FormattingEnabled = true;
+			comboBoxSkiaFontEdging.Items.AddRange(new object[] { "Alias", "AntiAlias", "SubpixelAntiAlias" });
+			resources.ApplyResources(comboBoxSkiaFontEdging, "comboBoxSkiaFontEdging");
+			comboBoxSkiaFontEdging.Name = "comboBoxSkiaFontEdging";
 			// 
 			// flowLayoutPanel14
 			// 
@@ -1848,6 +1899,12 @@
 		private System.Windows.Forms.NumericUpDown numericUpDown1;
 		private System.Windows.Forms.Label label18;
 		private System.Windows.Forms.ComboBox comboBoxTextDrawingMode;
+		private System.Windows.Forms.Label labelSkiaImageQuality;
+		private System.Windows.Forms.ComboBox comboBoxSkiaImageQuality;
+		private System.Windows.Forms.Label labelSkiaFontHinting;
+		private System.Windows.Forms.ComboBox comboBoxSkiaFontHinting;
+		private System.Windows.Forms.Label labelSkiaFontEdging;
+		private System.Windows.Forms.ComboBox comboBoxSkiaFontEdging;
 		private System.Windows.Forms.CheckBox checkBox14;
 		private System.Windows.Forms.Button button2;
 		private System.Windows.Forms.TabPage tabPageWindow;

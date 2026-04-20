@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -179,6 +179,9 @@ internal sealed partial class Lang
 			{
 				public static string Text { get { return trClass[typeof(Display)].Text; } }
 				[Managed] public static TranslatableString TextDrawingMode { get; } = new TranslatableString("描画インターフェース");
+				[Managed] public static TranslatableString SkiaImageQuality { get; } = new TranslatableString("画像縮尺品質");
+				[Managed] public static TranslatableString SkiaFontHinting { get; } = new TranslatableString("フォントヒント");
+				[Managed] public static TranslatableString SkiaFontEdging { get; } = new TranslatableString("フォントエッジ");
 				[Managed] public static TranslatableString FPS { get; } = new TranslatableString("フレーム毎秒");
 				[Managed] public static TranslatableString PrintCPerLine { get; } = new TranslatableString("PRINTCを並べる数");
 				[Managed] public static TranslatableString PrintCLength { get; } = new TranslatableString("PRINTCの文字数");

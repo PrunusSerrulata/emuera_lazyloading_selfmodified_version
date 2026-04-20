@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <lang>
     <name>English</name>
     <culture>en</culture>
@@ -63,6 +63,9 @@
     <tr id="UI.ConfigDialog.Environment.TextEditorCommandline.UserSetting"><![CDATA[User Setting]]></tr>
     <tr id="UI.ConfigDialog.Display"><![CDATA[Display]]></tr>
     <tr id="UI.ConfigDialog.Display.TextDrawingMode"><![CDATA[Drawing Interface]]></tr>
+    <tr id="UI.ConfigDialog.Display.SkiaImageQuality"><![CDATA[Image Scaling Quality]]></tr>
+    <tr id="UI.ConfigDialog.Display.SkiaFontHinting"><![CDATA[Font Hinting]]></tr>
+    <tr id="UI.ConfigDialog.Display.SkiaFontEdging"><![CDATA[Font Edging]]></tr>
     <tr id="UI.ConfigDialog.Display.FPS"><![CDATA[Frames per second]]></tr>
     <tr id="UI.ConfigDialog.Display.PrintCPerLine"><![CDATA[Number of PRINTC per column]]></tr>
     <tr id="UI.ConfigDialog.Display.PrintCLength"><![CDATA[Number of characters in PRINTC]]></tr>

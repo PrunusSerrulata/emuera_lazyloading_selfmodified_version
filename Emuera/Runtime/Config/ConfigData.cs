@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config.JSON;
+using MinorShift.Emuera.Runtime.Config.JSON;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Sub;
@@ -53,7 +53,7 @@ internal sealed class ConfigData
 		configArray.Add(new ConfigItem<bool>(ConfigCode.AutoSave, "オートセーブを行なう", "Make autosaves", true));
 		configArray.Add(new ConfigItem<bool>(ConfigCode.UseKeyMacro, "キーボードマクロを使用する", "Use keyboard macros", true));
 		configArray.Add(new ConfigItem<bool>(ConfigCode.SizableWindow, "ウィンドウの高さを可変にする", "Changeable window height", true));
-		configArray.Add(new ConfigItem<TextDrawingMode>(ConfigCode.TextDrawingMode, "描画インターフェース", "Drawing interface", TextDrawingMode.TEXTRENDERER));
+		configArray.Add(new ConfigItem<TextDrawingMode>(ConfigCode.TextDrawingMode, "描画インターフェース", "Drawing interface", TextDrawingMode.SKIASHARP));
 
 		configArray.Add(new ConfigItem<int>(ConfigCode.WindowX, "ウィンドウ幅", "Window width", 760));
 		configArray.Add(new ConfigItem<int>(ConfigCode.WindowY, "ウィンドウ高さ", "Window height", 480));
@@ -119,6 +119,12 @@ internal sealed class ConfigData
 		configArray.Add(new ConfigItem<bool>(ConfigCode.SystemNoTarget, "キャラクタ変数の引数を補完しない", "Do not auto-complete arguments for character variables", false));
 		configArray.Add(new ConfigItem<bool>(ConfigCode.SystemIgnoreStringSet, "文字列変数の代入に文字列式を強制する", "String variable assignment on valid with string expression", false));
 		configArray.Add(new ConfigItem<bool>(ConfigCode.UseLazyLoading, "UseLazyLoading", "UseLazyLoading",true));
+
+		#region EM_尊尼获加_SkiaSharp渲染设置
+		configArray.Add(new ConfigItem<SkiaSharpImageQuality>(ConfigCode.SkiaSharpImageQuality, "SKIASHARP IMAGE QUALITY", "SkiaSharp image quality", SkiaSharpImageQuality.High));
+		configArray.Add(new ConfigItem<SkiaSharpFontHinting>(ConfigCode.SkiaSharpFontHinting, "SKIASHARP FONT HINTING", "SkiaSharp font hinting", SkiaSharpFontHinting.None));
+		configArray.Add(new ConfigItem<SkiaSharpFontEdging>(ConfigCode.SkiaSharpFontEdging, "SKIASHARP FONT EDGING", "SkiaSharp font edging", SkiaSharpFontEdging.SubpixelAntiAlias));
+		#endregion
 
 		#region EE_UPDATECHECK
 		configArray.Add(new ConfigItem<bool>(ConfigCode.ForbidUpdateCheck, "UPDATECHECKを許可しない", "Disallow UPDATECHECK", false));
@@ -215,7 +221,7 @@ internal sealed class ConfigData
 		configArray[i++] = new ConfigItem<bool>(ConfigCode.AutoSave, "オートセーブを行なう", true);
 		configArray[i++] = new ConfigItem<bool>(ConfigCode.UseKeyMacro, "キーボードマクロを使用する", true);
 		configArray[i++] = new ConfigItem<bool>(ConfigCode.SizableWindow, "ウィンドウの高さを可変にする", true);
-		configArray[i++] = new ConfigItem<TextDrawingMode>(ConfigCode.TextDrawingMode, "描画インターフェース", TextDrawingMode.TEXTRENDERER);
+		configArray[i++] = new ConfigItem<TextDrawingMode>(ConfigCode.TextDrawingMode, "描画インターフェース", TextDrawingMode.SKIASHARP);
 		//configArray[i++] = new ConfigItem<bool>(ConfigCode.UseImageBuffer, "イメージバッファを使用する", true);
 		configArray[i++] = new ConfigItem<int>(ConfigCode.WindowX, "ウィンドウ幅", 760);
 		configArray[i++] = new ConfigItem<int>(ConfigCode.WindowY, "ウィンドウ高さ", 480);

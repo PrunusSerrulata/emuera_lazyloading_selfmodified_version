@@ -160,7 +160,7 @@ internal sealed class PrintStringBuffer
 	public ConsoleDisplayLine FlushSingleLine(StringMeasure stringMeasure, bool temporary)
 	{
 		fromCssToButton();
-		setWidthToButtonList(m_buttonList, stringMeasure, true);
+		setWidthToButtonList(m_buttonList, stringMeasure, true, false);
 		var line = new ConsoleDisplayLine([.. m_buttonList], true, temporary);
 		clearBuffer();
 		return line;
@@ -190,7 +190,7 @@ internal sealed class PrintStringBuffer
 	{
 		if (buttonList.Count == 0)
 			return [];
-		setWidthToButtonList(buttonList, stringMeasure, nobr);
+		setWidthToButtonList(buttonList, stringMeasure, nobr, subDiv);
 		List<ConsoleDisplayLine> lineList = [];
 		List<ConsoleButtonString> lineButtonList = [];
 		#region EM_私家版_HTML_divタグ
@@ -417,7 +417,7 @@ internal sealed class PrintStringBuffer
 
 
 	//stringListにPointX、Widthを追加
-	private static void setWidthToButtonList(List<ConsoleButtonString> buttonList, StringMeasure stringMeasure, bool nobr)
+	private static void setWidthToButtonList(List<ConsoleButtonString> buttonList, StringMeasure stringMeasure, bool nobr, bool subDiv = false)
 	{
 		int pointX = 0;
 		//int count = buttonList.Count;
