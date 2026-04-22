@@ -8385,5 +8385,80 @@ internal static partial class FunctionMethodCreator
 			return SqlManager.ImportXmlCustom(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm), arguments[3].GetStrValue(exm), arguments[4].GetStrValue(exm));
 		}
 	}
+
+	private sealed class BitSetMethod : FunctionMethod
+	{
+		public BitSetMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 2 },
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			long idx = arguments[1].GetIntValue(exm);
+			long val = arguments.Count > 2 && arguments[2] != null ? arguments[2].GetIntValue(exm) : 1;
+			long length = arguments.Count > 3 && arguments[3] != null ? arguments[3].GetIntValue(exm) : 1;
+			BitArrayManager.BitSet(array, idx, val, length);
+			return 1;
+		}
+	}
+
+	private sealed class BitGetMethod : FunctionMethod
+	{
+		public BitGetMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int }, OmitStart = 1 },
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			long idx = arguments[1].GetIntValue(exm);
+			return BitArrayManager.BitGet(array, idx);
+		}
+	}
+
+	private sealed class BitToggleMethod : FunctionMethod
+	{
+		public BitToggleMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int }, OmitStart = 1 },
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			long idx = arguments[1].GetIntValue(exm);
+			return BitArrayManager.BitToggle(array, idx);
+		}
+	}
+
+	private sealed class BitIndexOfFirstMethod : FunctionMethod
+	{
+		public BitIndexOfFirstMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int }, OmitStart = 1 },
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			long val = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetIntValue(exm) : 0;
+			return BitArrayManager.BitIndexOfFirst(array, val);
+		}
+	}
 	#endregion
 }

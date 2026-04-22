@@ -377,6 +377,10 @@ internal static partial class FunctionMethodCreator
 			["SQL_EXPORT_MAP_XML"] = new SqlExportMapXmlMethod(),
 			["SQL_EXPORT_DT_XML"] = new SqlExportDtXmlMethod(),
 			["SQL_IMPORT_XML_CUSTOM"] = new SqlImportXmlCustomMethod(),
+			["BITSET"] = new BitSetMethod(),
+			["BITGET"] = new BitGetMethod(),
+			["BITTOGGLE"] = new BitToggleMethod(),
+			["BITINDEXOFFIRST"] = new BitIndexOfFirstMethod(),
 			#endregion
 		};
 
