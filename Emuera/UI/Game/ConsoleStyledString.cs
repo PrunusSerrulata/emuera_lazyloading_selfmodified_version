@@ -44,33 +44,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			Error = true;
 			return;
 		}
-		if (!Font.ContainsGlyphs(Text))
-		{
-			var textsWithFontList = new List<TextsWithFont>();
-			var currentText = new StringBuilder();
-			SKFont currentFont = null;
-			foreach (var @char in Text)
-			{
-				var glyphFont = FindFontForChar(@char, style.FontStyle);
-				if (currentFont == null)
-					currentFont = glyphFont;
-				if (glyphFont != currentFont)
-				{
-					if (currentText.Length > 0)
-					{
-						textsWithFontList.Add(CreateTextWithFont(currentFont, currentText.ToString()));
-						currentText.Clear();
-					}
-					currentFont = glyphFont;
-				}
-				currentText.Append(@char);
-			}
-			if (currentText.Length > 0)
-			{
-				textsWithFontList.Add(CreateTextWithFont(currentFont, currentText.ToString()));
-			}
-			_texts = textsWithFontList;
-		}
+
+		BuildFallbacks();
+
 		Color = style.Color;
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
@@ -78,6 +54,54 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			colorChanged = true;
 		PointX = -1;
 		Width = -1;
+	}
+
+	private void BuildFallbacks()
+	{
+		if (Font == null) return;
+
+		if (!GlobalStatic.Console.strictFontFallback && Font.ContainsGlyphs(Text))
+		{
+			_texts = null;
+			return;
+		}
+
+		var textsWithFontList = new List<TextsWithFont>();
+		var currentText = new StringBuilder();
+		SKTypeface currentTypeface = null;
+
+		foreach (var @char in Text)
+		{
+			SKTypeface glyphTypeface = Font.Typeface;
+
+			if (!Font.ContainsGlyph(@char))
+			{
+				glyphTypeface = FontFactory.GetFallbackTypefaceForChar(@char, Font.Typeface.FamilyName) ?? Font.Typeface;
+			}
+
+			if (currentTypeface == null)
+				currentTypeface = glyphTypeface;
+
+			if (glyphTypeface != currentTypeface)
+			{
+				if (currentText.Length > 0)
+				{
+					var tempFont = new SKFont(currentTypeface, Font.Size) { Hinting = Font.Hinting, Edging = Font.Edging };
+					textsWithFontList.Add(CreateTextWithFont(tempFont, currentText.ToString()));
+					currentText.Clear();
+				}
+				currentTypeface = glyphTypeface;
+			}
+			currentText.Append(@char);
+		}
+
+		if (currentText.Length > 0)
+		{
+			var tempFont = new SKFont(currentTypeface, Font.Size) { Hinting = Font.Hinting, Edging = Font.Edging };
+			textsWithFontList.Add(CreateTextWithFont(tempFont, currentText.ToString()));
+		}
+
+		_texts = textsWithFontList;
 	}
 
 	private SKFont FindFontForChar(char c, FontStyle style)
@@ -134,15 +158,12 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			return null;
 		string str = Text[index..];
 		Text = Text[..index];
-		ConsoleStyledString ret = new()
+
+		BuildFallbacks();
+
+		ConsoleStyledString ret = new ConsoleStyledString(str, this.StringStyle)
 		{
-			Font = Font,
-			Text = str,
-			Color = Color,
-			ButtonColor = ButtonColor,
-			colorChanged = colorChanged,
-			StringStyle = StringStyle,
-			XsubPixel = XsubPixel
+			XsubPixel = this.XsubPixel
 		};
 		return ret;
 	}

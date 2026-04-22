@@ -7792,6 +7792,27 @@ internal static partial class FunctionMethodCreator
 	}
 	#endregion
 
+	// 严格字体回退模式
+	#region Strict Font Fallback
+	private sealed class StrictFontFallbackMethod : FunctionMethod
+	{
+		public StrictFontFallbackMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.Int }, OmitStart = 1 },
+				];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long argument0 = arguments[0].GetIntValue(exm);
+			GlobalStatic.Console.strictFontFallback = argument0 != 0;
+			return 0;
+		}
+	}
+	#endregion
+
 	//HOTKEY STATE
 	private sealed class HotkeyStateMethod : FunctionMethod
 	{

@@ -87,6 +87,8 @@ internal sealed partial class EmueraConsole : IDisposable
 	public nint bitmapCacheArrayIndex = 0;
 	public bool bitmapCacheEnabledForNextLine;
 
+	public bool strictFontFallback = false;
+
 	public EmueraConsole(MainWindow parent)
 	{
 		window = parent;

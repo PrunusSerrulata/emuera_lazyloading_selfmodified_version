@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using SkiaSharp;
 using MinorShift.Emuera.UI.Game;
+using System;
 
 namespace MinorShift.Emuera.UI;
 
 internal class FontFactory
 {
 
-	static readonly Dictionary<(string fontname, float fontSize, FontStyle fontStyle), SKFont> fontDic = [];
-	static readonly Dictionary<char, SKTypeface> fallbackTypefaceCache = [];
+	static readonly Dictionary<(string fontname, float fontSize, FontStyle font_style), SKFont> fontDic = [];
+	static readonly Dictionary<(char, string), SKTypeface> fallbackTypefaceCache = [];
 
 	public static SKFont GetFont(StringStyle stringStyle)
 	{
@@ -100,7 +101,13 @@ internal class FontFactory
 
 	public static SKTypeface GetFallbackTypefaceForChar(char c)
 	{
-		if (fallbackTypefaceCache.TryGetValue(c, out var cachedTypeface))
+		return GetFallbackTypefaceForChar(c, Config.FontName);
+	}
+
+	public static SKTypeface GetFallbackTypefaceForChar(char c, string currentFontName)
+	{
+		var cacheKey = (c, currentFontName);
+		if (fallbackTypefaceCache.TryGetValue(cacheKey, out var cachedTypeface))
 		{
 			return cachedTypeface;
 		}
@@ -109,26 +116,57 @@ internal class FontFactory
 		{
 			if (customTypeface != null && customTypeface.ContainsGlyph(c))
 			{
-				fallbackTypefaceCache[c] = customTypeface;
+				fallbackTypefaceCache[cacheKey] = customTypeface;
 				return customTypeface;
 			}
 		}
 
-		var simHei = SKTypeface.FromFamilyName("SimHei");
-		if (simHei != null && simHei.ContainsGlyph(c))
+		bool isSerif = !string.IsNullOrEmpty(currentFontName) && (
+			currentFontName.Contains("Mincho", StringComparison.OrdinalIgnoreCase) ||
+			currentFontName.Contains("明朝", StringComparison.OrdinalIgnoreCase) ||
+			currentFontName.Contains("宋体", StringComparison.OrdinalIgnoreCase) ||
+			currentFontName.Contains("Sun", StringComparison.OrdinalIgnoreCase) ||
+			currentFontName.Contains("Serif", StringComparison.OrdinalIgnoreCase));
+
+		string[] safeFallbackFonts;
+
+		if (isSerif)
 		{
-			fallbackTypefaceCache[c] = simHei;
-			return simHei;
+			safeFallbackFonts = new string[] {
+				"MS Mincho", "MS PMincho",
+				"SimSun", "NSimSun", "FangSong",
+				"MingLiU", "PMingLiU",
+				"MS Gothic", "SimHei"
+			};
+		}
+		else
+		{
+			safeFallbackFonts = new string[] {
+				"MS Gothic", "MS PGothic", "MS UI Gothic",
+				"SimHei", "Microsoft YaHei",
+				"Meiryo", "Yu Gothic",
+				"SimSun"
+			};
+		}
+
+		foreach (var fontName in safeFallbackFonts)
+		{
+			var safeTypeface = SKTypeface.FromFamilyName(fontName);
+			if (safeTypeface != null && safeTypeface.FamilyName.Equals(fontName, StringComparison.OrdinalIgnoreCase) && safeTypeface.ContainsGlyph(c))
+			{
+				fallbackTypefaceCache[cacheKey] = safeTypeface;
+				return safeTypeface;
+			}
 		}
 
 		var matchTypeface = SKFontManager.Default.MatchCharacter(c);
 		if (matchTypeface != null)
 		{
-			fallbackTypefaceCache[c] = matchTypeface;
+			fallbackTypefaceCache[cacheKey] = matchTypeface;
 			return matchTypeface;
 		}
 
-		fallbackTypefaceCache[c] = SKTypeface.Default;
+		fallbackTypefaceCache[cacheKey] = SKTypeface.Default;
 		return SKTypeface.Default;
 	}
 

@@ -1,3 +1,48 @@
+
+2026年4月22日
+智能字体回退优化 - 衬线/无衬线分类回退：
+	改进字体回退逻辑，根据主字体名称动态调整回退优先级。
+
+	1. 修复 FontFactory.cs：
+		- 缓存 Key 从 `char` 升级为 `(char, string)` 支持不同主字体返回不同回退
+		- 衬线体检测：识别 "Mincho"/"明朝"/"宋体"/"Sun"/"Serif"
+		- 衬线体回退优先：MS Mincho → SimSun/NSimSun/FangSong → MingLiU → MS Gothic/SimHei
+		- 无衬线体回退优先：MS Gothic → SimHei/Microsoft YaHei → Meiryo/Yu Gothic → SimSun
+		- 增加 `safeTypeface.FamilyName.Equals(fontName)` 严格校验，防止 SkiaSharp 返回假字体
+
+	2. 修复 ConsoleStyledString.cs：
+		- BuildFallbacks() 调用 GetFallbackTypefaceForChar 时传入 `Font.Typeface.FamilyName`
+		- 使 FontFactory 能根据主字体类型选择合适的回退策略
+
+	修复 Word Wrap 导致富文本字体回退丢失问题：
+	问题描述：当 HTML div 标签内文字过长自动换行（Divide）时，换行后的后半部分文字会丢失字体回退信息，导致某些字符显示为豆腐块（□）。
+	根本原因：ConsoleStyledString.DivideAt() 方法在分割字符串时，没有重新计算 _texts（回退字体列表），直接复制了主字体导致回退信息丢失。
+
+	1. 修复 ConsoleStyledString.cs：
+		- 将字体回退构建逻辑提取为独立的 BuildFallbacks() 方法
+		- 构造函数和 DivideAt() 方法均调用 BuildFallbacks() 确保回退字体正确计算
+		- 优化 SKTypeface 比较逻辑，避免 SKFont 引用比较错误
+		- 新增 strictFontFallback 全局标志位控制严格模式
+
+	2. 修复 EmueraConsole.cs：
+		- 添加 strictFontFallback 属性标志位
+
+	3. 修复 Creator.cs：
+		- 注册新指令 STRICT_FONT_FALLBACK
+
+	4. 修复 Creator.Method.cs：
+		- 实现 StrictFontFallbackMethod 类逻辑
+
+	新增命令：STRICT_FONT_FALLBACK
+	输入：int
+	注释：
+	控制严格字体回退模式。参数为 1 时开启强制逐字检查，参数为 0 时关闭。
+	默认情况下，如果一段文字能被主字体完全覆盖，系统会跳过逐字检查以提升性能。
+	开启严格模式后，系统将强制逐字检查字符是否为每个字体所支持。
+	适用于某些"字体声称自己有这个字，但画出来是空白"的极端情况。
+	使用完后可以调用 STRICT_FONT_FALLBACK 0 关闭以恢复性能。
+	见手册
+
 修复 ToolTip 屏幕边缘遮挡问题：
 	应用上游修复，统一使用异步 Task 机制显示 ToolTip，替代原有的 InitialDelay==0 同步 / !=0 异步混合逻辑。
 	新增 tooltip_size 字段记录 ToolTip 真实尺寸，用于屏幕边缘碰撞检测。
@@ -7,7 +52,6 @@
 
 修复效果：鼠标悬停于屏幕底部按钮时，ToolTip 不再被任务栏遮挡。
 
-2026年4月22日
 skiasharp版本上线
 修复 SkiaSharp 文本渲染排版不对称问题：
 	1. 修复 Config.cs：允许 SKIASHARP 模式也拥有全局偏移量 DrawingParam_ShapePositionShift，DrawableWidth 改为左右对称减去两倍偏移量，完美模拟 GDI+ 的 TextRenderer 边距行为。

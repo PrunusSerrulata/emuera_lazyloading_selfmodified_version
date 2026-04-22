@@ -348,6 +348,9 @@ internal static partial class FunctionMethodCreator
 			//Bitmap Cache
 			["BITMAP_CACHE_ENABLE"] = new BitmapCacheEnableMethod(),
 
+			// 严格字体回退模式
+			["STRICT_FONT_FALLBACK"] = new StrictFontFallbackMethod(),
+
 			//HOTKEY STATE
 			["HOTKEY_STATE"] = new HotkeyStateMethod(),
 			["HOTKEY_STATE_INIT"] = new HotkeyStateInitMethod(),
