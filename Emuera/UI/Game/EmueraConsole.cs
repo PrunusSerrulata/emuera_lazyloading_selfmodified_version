@@ -2368,9 +2368,15 @@ internal sealed partial class EmueraConsole : IDisposable
 					{
 						if (part is ConsoleDivPart div)
 						{
-							if (pointY < div.Top || pointY > div.Bottom)
-								continue;
+							// Y轴剪枝
+							// 计算该 div 所在基础行的屏幕绝对 Y 坐标
 							var lineY = bottomLineBase + (div.Parent.ParentLine.LineNo - bottomLineNo - correction) * Config.LineHeight;
+							// div.Top 和 div.Bottom 是相对偏移量 (ypos 和 ypos+height)。
+							// lineY + div.Top 即为该 div 在屏幕上的大致绝对 Y 坐标。
+							// 考虑到 margin/padding 可能带来的额外偏移，上下各放宽 200px 的容错范围。
+							if (pointY < lineY + div.Top - 200 || pointY > lineY + div.Bottom + 200)
+								continue;
+
 							var childPointing = div.TestChildHitbox(pointX, pointY, lineY);
 							if (childPointing != null)
 							{
