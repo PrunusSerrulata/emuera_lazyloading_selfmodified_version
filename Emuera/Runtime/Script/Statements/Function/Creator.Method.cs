@@ -5939,7 +5939,7 @@ internal static partial class FunctionMethodCreator
 				case "SPRITEPOSX":
 				case "SPRITEPOSY":
 					ASprite img = AppContents.GetSprite(imgname);
-					if (img == null || !img.IsCreated)
+					if (img == null)
 						return 0;
 					if (Name == "SPRITEWIDTH")
 						return img.DestBaseSize.Width;
@@ -5965,7 +5965,7 @@ internal static partial class FunctionMethodCreator
 		{
 			string imgname = arguments[0].GetStrValue(exm);
 			ASprite img = AppContents.GetSprite(imgname);
-			if (img == null || !img.IsCreated)
+			if (img == null)
 				return 0;
 			Point p = ReadPoint(Name, exm, arguments, 1);
 			switch (Name)

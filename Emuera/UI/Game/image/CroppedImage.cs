@@ -99,13 +99,16 @@ internal abstract class ASpriteSingle : ASprite
 
 	public override void GraphicsDraw(SKCanvas g, Point offset)
 	{
+		var bmp = Bitmap;
+		if (bmp == null) return;
 		offset.Offset(DestBasePosition);
-		//canvas.DrawImage(Bitmap, new Rectangle(offset, DestBaseSize), SrcRectangle, GraphicsUnit.Pixel);
 		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
-		g.DrawBitmap(Bitmap, SrcRectangle.ToSKRect(), SKRect.Create(offset.ToSKPoint(), SrcRectangle.Size.ToSKSize()), _paint);
+		g.DrawBitmap(bmp, SrcRectangle.ToSKRect(), SKRect.Create(offset.ToSKPoint(), SrcRectangle.Size.ToSKSize()), _paint);
 	}
 	public override void GraphicsDraw(SKCanvas g, Rectangle destRect)
 	{
+		var bmp = Bitmap;
+		if (bmp == null) return;
 		if (!DestBasePosition.IsEmpty)
 		{
 			destRect.X = destRect.X + DestBasePosition.X * destRect.Width / DestBaseSize.Width;
@@ -113,13 +116,14 @@ internal abstract class ASpriteSingle : ASprite
 			destRect.Width = destRect.Width * SrcRectangle.Width / DestBaseSize.Width;
 			destRect.Height = destRect.Height * SrcRectangle.Height / DestBaseSize.Height;
 		}
-		//canvas.DrawImage(Bitmap, destRect, SrcRectangle, GraphicsUnit.Pixel);
 		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
-		g.DrawBitmap(Bitmap, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
+		g.DrawBitmap(bmp, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
 	}
 
 	public override void GraphicsDraw(SKCanvas g, Rectangle destRect, SKColorFilter attr)
 	{
+		var bmp = Bitmap;
+		if (bmp == null) return;
 		if (!DestBasePosition.IsEmpty)
 		{
 			destRect.X = destRect.X + DestBasePosition.X * destRect.Width / DestBaseSize.Width;
@@ -127,11 +131,9 @@ internal abstract class ASpriteSingle : ASprite
 			destRect.Width = destRect.Width * SrcRectangle.Width / DestBaseSize.Width;
 			destRect.Height = destRect.Height * SrcRectangle.Height / DestBaseSize.Height;
 		}
-		//canvas.DrawImage(Bitmap, destRect, SrcRectangle, GraphicsUnit.Pixel, attr);←このパターンがない
-		//canvas.DrawImage(Bitmap, destRect, SrcRectangle.X, SrcRectangle.Y, SrcRectangle.Width, SrcRectangle.Height, GraphicsUnit.Pixel, attr);
 		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
 		_paint.ColorFilter = attr;
-		g.DrawBitmap(Bitmap, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
+		g.DrawBitmap(bmp, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
 		_paint.ColorFilter = null;
 	}
 
@@ -358,4 +360,258 @@ internal sealed class SpriteAnime : ASprite
 		using SKPaint paint = new() { FilterQuality = (SKFilterQuality)Config.ImageQuality, ColorFilter = attr };
 		g.DrawBitmap(frame.BaseImage.SKBitmap, frame.SrcRectangle.ToSKRect(), destRect.ToSKRect(), paint);
 	}
+}
+
+internal sealed class SpriteAnimated : ASprite, IFileBacked
+{
+	private readonly string filepath;
+	private readonly int frameCount;
+	private readonly int totalDuration;
+	private readonly int[] frameTimestamps;
+
+	private SKBitmap[] frames;
+	private bool isEvicted;
+	private DateTime startTime;
+	private readonly Rectangle srcRect;
+
+	public SpriteAnimated(string name, string filepath, Rectangle srcRect, Size destSize, int width, int height, int count, int[] delays)
+		: base(name, destSize)
+	{
+		this.filepath = filepath;
+		this.srcRect = srcRect.IsEmpty ? new Rectangle(0, 0, width, height) : srcRect;
+		this.frameCount = count;
+
+		this.frameTimestamps = new int[count];
+		int cumulative = 0;
+		for (int i = 0; i < count; i++)
+		{
+			cumulative += delays[i];
+			this.frameTimestamps[i] = cumulative;
+		}
+		this.totalDuration = cumulative;
+
+		this.frames = Array.Empty<SKBitmap>();
+		this.isEvicted = true;
+		this.startTime = DateTime.Now;
+
+		if (frameCount > 1)
+		{
+			AnimSpriteCache.RegisterSprite(this);
+			AnimSpriteCache.Add(filepath, this);
+		}
+	}
+
+	private void EnsureLoaded()
+	{
+		if (frameCount <= 0) return;
+		if (!isEvicted && frames.Length > 0) return;
+
+		var decoded = AnimatedImageHelper.Decode(filepath);
+		if (decoded != null)
+		{
+			frames = new SKBitmap[decoded.Count];
+			for (int i = 0; i < decoded.Count; i++)
+				frames[i] = decoded[i].Bitmap;
+		}
+		isEvicted = false;
+	}
+
+	public string FilePath => filepath;
+	public bool IsEvicted => isEvicted;
+	public int FrameCount => frameCount;
+	public override bool IsCreated => frameCount > 0;
+
+	public SKBitmap GetFrame(int index)
+	{
+		EnsureLoaded();
+		if (frameCount > 1) AnimSpriteCache.Touch(filepath);
+		if (index < 0 || index >= frameCount || frames == null || frames.Length == 0) return null;
+		return frames[index];
+	}
+
+	public int GetCurrentFrameIndex()
+	{
+		if (totalDuration <= 0 || frameCount <= 0) return 0;
+		if (startTime == DateTime.MinValue) startTime = DateTime.Now;
+
+		long elapsed = (long)(DateTime.Now - startTime).TotalMilliseconds % totalDuration;
+		for (int i = 0; i < frameTimestamps.Length; i++)
+		{
+			if (elapsed < frameTimestamps[i]) return i;
+		}
+		return frameCount - 1;
+	}
+
+	public void Evict()
+	{
+		if (frames == null) return;
+		foreach (var frame in frames) frame?.Dispose();
+		frames = Array.Empty<SKBitmap>();
+		isEvicted = true;
+	}
+
+	public void Reload()
+	{
+		if (!isEvicted) return;
+		startTime = DateTime.Now;
+		EnsureLoaded();
+		if (frameCount > 1) AnimSpriteCache.Touch(filepath);
+	}
+
+	public override void Dispose()
+	{
+		Evict();
+		if (frameCount > 1) AnimSpriteCache.Evict(filepath);
+	}
+
+	public override void GraphicsDraw(SKCanvas g, Rectangle destRect)
+	{
+		if (isEvicted || frames.Length == 0) EnsureLoaded();
+		var frame = GetFrame(GetCurrentFrameIndex());
+		if (frame != null)
+		{
+			using SKPaint paint = new() { FilterQuality = (SKFilterQuality)Config.ImageQuality };
+			g.DrawBitmap(frame, srcRect.ToSKRect(), destRect.ToSKRect(), paint);
+		}
+	}
+
+	public override void GraphicsDraw(SKCanvas g, Point offset) { throw new NotSupportedException(); }
+	public override void GraphicsDraw(SKCanvas g, Rectangle destRect, SKColorFilter attr)
+	{
+		if (isEvicted || frames.Length == 0) EnsureLoaded();
+		var frame = GetFrame(GetCurrentFrameIndex());
+		if (frame != null)
+		{
+			using SKPaint paint = new() { FilterQuality = (SKFilterQuality)Config.ImageQuality, ColorFilter = attr };
+			g.DrawBitmap(frame, srcRect.ToSKRect(), destRect.ToSKRect(), paint);
+		}
+	}
+	public override SKColor SpriteGetColor(int x, int y) { throw new NotSupportedException(); }
+}
+
+internal sealed class AnimSpriteCache
+{
+	private static readonly LinkedList<string> lruOrder = new();
+	private static readonly Dictionary<string, LinkedListNode<string>> lruNodes = new();
+	private static readonly Dictionary<string, WeakReference<IFileBacked>> spriteRefs = new();
+	private static readonly object lockObj = new();
+	private const int MaxAnimations = 6;
+
+	public static void Add(string filepath, IFileBacked sprite)
+	{
+		lock (lockObj)
+		{
+			if (lruNodes.TryGetValue(filepath, out var node))
+			{
+				lruOrder.Remove(node);
+				lruNodes[filepath] = lruOrder.AddLast(filepath);
+				spriteRefs[filepath] = new WeakReference<IFileBacked>(sprite);
+				return;
+			}
+			while (lruOrder.Count >= MaxAnimations)
+			{
+				var oldest = lruOrder.First;
+				if (oldest != null)
+				{
+					lruOrder.RemoveFirst();
+					var oldFilepath = oldest.Value;
+					lruNodes.Remove(oldFilepath);
+					if (spriteRefs.TryGetValue(oldFilepath, out var weakRef) && weakRef.TryGetTarget(out var oldSprite))
+						oldSprite.Evict();
+					spriteRefs.Remove(oldFilepath);
+				}
+			}
+			lruNodes[filepath] = lruOrder.AddLast(filepath);
+			spriteRefs[filepath] = new WeakReference<IFileBacked>(sprite);
+		}
+	}
+
+	public static void RegisterSprite(IFileBacked sprite)
+	{
+		if (sprite == null) return;
+		lock (lockObj)
+		{
+			var filepath = sprite.FilePath;
+			if (lruNodes.ContainsKey(filepath))
+				spriteRefs[filepath] = new WeakReference<IFileBacked>(sprite);
+		}
+	}
+
+	public static void Touch(string filepath)
+	{
+		lock (lockObj)
+		{
+			if (!lruNodes.TryGetValue(filepath, out var node)) return;
+			lruOrder.Remove(node);
+			lruNodes[filepath] = lruOrder.AddLast(filepath);
+		}
+	}
+
+	public static void Evict(string filepath)
+	{
+		lock (lockObj)
+		{
+			if (!lruNodes.TryGetValue(filepath, out var node)) return;
+			lruOrder.Remove(node);
+			lruNodes.Remove(filepath);
+			if (spriteRefs.TryGetValue(filepath, out var weakRef) && weakRef.TryGetTarget(out var sprite))
+				sprite.Evict();
+			spriteRefs.Remove(filepath);
+		}
+	}
+}
+
+public static class ImageResourceCache
+{
+	private static readonly LinkedList<string> lruOrder = new();
+	private static readonly Dictionary<string, LinkedListNode<string>> lruNodes = new();
+	private static readonly object cacheLock = new object();
+	private static int maxCacheFiles = 200;
+
+	public static void Touch(string filepath)
+	{
+		lock (cacheLock)
+		{
+			if (!lruNodes.TryGetValue(filepath, out var node)) return;
+			lruOrder.Remove(node);
+			lruNodes[filepath] = lruOrder.AddLast(filepath);
+		}
+	}
+
+	public static void Add(string filepath)
+	{
+		lock (cacheLock)
+		{
+			if (lruNodes.ContainsKey(filepath))
+			{
+				Touch(filepath);
+				return;
+			}
+			while (lruOrder.Count >= maxCacheFiles) EvictOldest();
+			var node = lruOrder.AddLast(filepath);
+			lruNodes[filepath] = node;
+		}
+	}
+
+	private static void EvictOldest()
+	{
+		if (lruOrder.Count == 0) return;
+		var oldest = lruOrder.First.Value;
+		lruOrder.RemoveFirst();
+		lruNodes.Remove(oldest);
+		OnFileEvicted?.Invoke(oldest);
+	}
+
+	public static void Evict(string filepath)
+	{
+		lock (cacheLock)
+		{
+			if (!lruNodes.TryGetValue(filepath, out var node)) return;
+			lruOrder.Remove(node);
+			lruNodes.Remove(filepath);
+			OnFileEvicted?.Invoke(filepath);
+		}
+	}
+
+	public static event Action<string> OnFileEvicted;
 }

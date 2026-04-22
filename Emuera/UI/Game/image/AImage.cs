@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using SkiaSharp;
 
@@ -14,4 +14,12 @@ internal abstract class AbstractImage : IDisposable
 	public abstract bool IsCreated { get; }
 
 	public abstract void Dispose();
+}
+
+internal interface IFileBacked
+{
+	string FilePath { get; }
+	bool IsEvicted { get; }
+	void Evict();
+	void Reload();
 }

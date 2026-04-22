@@ -6,6 +6,33 @@ namespace MinorShift.Emuera.UI.Game.Image
 {
     public static class AnimatedImageHelper
     {
+        public static bool GetAnimInfo(string filepath, out int width, out int height, out int frameCount, out int[] delays)
+        {
+            width = height = frameCount = 0;
+            delays = null;
+
+            if (!File.Exists(filepath)) return false;
+
+            using var codec = SKCodec.Create(filepath);
+            if (codec == null) return false;
+
+            width = codec.Info.Width;
+            height = codec.Info.Height;
+            frameCount = codec.FrameCount;
+
+            if (frameCount > 1)
+            {
+                delays = new int[frameCount];
+                for (int i = 0; i < frameCount; i++)
+                {
+                    int duration = codec.FrameInfo[i].Duration;
+                    delays[i] = duration > 0 ? duration : 100;
+                }
+                return true;
+            }
+            return false;
+        }
+
         public static List<(SKBitmap Bitmap, int Delay)> Decode(string filepath)
         {
             if (!File.Exists(filepath)) return null;
