@@ -28,6 +28,13 @@ public struct TextsWithFont
 	public float offsetY;
 }
 
+public struct GdiTextsWithFont
+{
+	public string Text;
+	public Font Font;
+	public float Width;
+}
+
 /// <summary>
 /// 装飾付文字列。stringとStringStyleからなる。
 /// </summary>
@@ -45,6 +52,14 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			return;
 		}
 
+		string fontName = style.Fontname ?? Config.FontName;
+		IsRasterFont = FontFactory.IsRasterFont(fontName);
+		if (IsRasterFont)
+		{
+			GdiFont = FontFactory.GetGdiFont(fontName, style.FontStyle, Font.Size);
+			BuildGdiFallbacks();
+		}
+
 		BuildFallbacks();
 
 		Color = style.Color;
@@ -54,6 +69,32 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			colorChanged = true;
 		PointX = -1;
 		Width = -1;
+	}
+
+	private void BuildGdiFallbacks()
+	{
+		if (GdiFont == null) return;
+
+		var gdiTextsWithFontList = new List<GdiTextsWithFont>();
+		var currentText = new StringBuilder();
+		Font currentFont = GdiFont;
+
+		foreach (var @char in Text)
+		{
+			currentText.Append(@char);
+		}
+
+		if (currentText.Length > 0)
+		{
+			gdiTextsWithFontList.Add(new GdiTextsWithFont
+			{
+				Text = currentText.ToString(),
+				Font = currentFont,
+				Width = TextRenderer.MeasureText(currentText.ToString(), currentFont).Width
+			});
+		}
+
+		_gdiTexts = gdiTextsWithFontList;
 	}
 
 	private void BuildFallbacks()
@@ -132,6 +173,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	public SKFont Font { get; private set; }
 	SKFont _fallbackFont;
 	List<TextsWithFont> _texts;//フォントフォールバック用
+	List<GdiTextsWithFont> _gdiTexts;
+	public Font GdiFont { get; private set; }
+	public bool IsRasterFont { get; private set; }
 
 	public StringStyle StringStyle { get; private set; }
 	public override bool CanDivide
@@ -207,6 +251,27 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		#endregion
 	}
 
+	private static SKBitmap CreateSkBitmapFromGdiBitmap(System.Drawing.Bitmap gdiBitmap)
+	{
+		var width = gdiBitmap.Width;
+		var height = gdiBitmap.Height;
+		var skBitmap = new SKBitmap(width, height);
+
+		var rect = new System.Drawing.Rectangle(0, 0, width, height);
+		var bitmapData = gdiBitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+		try
+		{
+			skBitmap.SetPixels(bitmapData.Scan0);
+		}
+		finally
+		{
+			gdiBitmap.UnlockBits(bitmapData);
+		}
+
+		return skBitmap;
+	}
+
 	public override void DrawTo(SKCanvas graph, SKPoint origin, bool isSelecting, bool isFocus, bool isBackLog, TextDrawingMode mode, bool isButton = false)
 	{
 		if (Error)
@@ -247,6 +312,41 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	}
 	Point = point;
 
+	#region EM_私家版_GDI渲染扩展
+	if (IsRasterFont && GdiFont != null)
+	{
+		if (_gdiTexts != null)
+		{
+			foreach (var gdiText in _gdiTexts)
+			{
+				var size = TextRenderer.MeasureText(gdiText.Text, gdiText.Font);
+				using var bitmap = new System.Drawing.Bitmap(size.Width, size.Height);
+				using (var g = System.Drawing.Graphics.FromImage(bitmap))
+				{
+					g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+					TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color);
+				}
+				using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
+				var skPoint = point with { Y = point.Y - gdiText.Font.Height + gdiText.Font.Size };
+				graph.DrawBitmap(skBitmap, skPoint);
+				point.Offset(gdiText.Width, 0);
+			}
+		}
+		else
+		{
+			using var bitmap = new System.Drawing.Bitmap((int)Width, (int)Font.Size);
+			using (var g = System.Drawing.Graphics.FromImage(bitmap))
+			{
+				g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+				TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color);
+			}
+			using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
+			graph.DrawBitmap(skBitmap, point);
+		}
+		return;
+	}
+	#endregion
+
 	if (backcolor.HasValue)
 	{
 		var size = new SKSize(Width, Font.Size);
@@ -284,34 +384,65 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		else if (isBackLog && !colorChanged)
 			color = Config.LogColor;
 
-		#region EM_私家版_描画拡張
-	/*
-	if (mode == TextDrawingMode.GRAPHICS)
-		graph.DrawString(Text, Font, new SolidBrush(color), new Point(xOffset, 0));
-	else
-		// TextRenderer.DrawText(graph, Text, Font, new Point(PointX, pointY), color, TextFormatFlags.NoPrefix);
-		TextRenderer.DrawText(graph, Text.AsSpan(), Font, new Point(xOffset, 0), color, TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping);
-	*/
-	using var bitmapPaint = new SKPaint { 
-		TextAlign = SKTextAlign.Left,
-		Color = color.ToSKColor()
-	};
-
-	float startX = xOffset + Config.DrawingParam_ShapePositionShift;
-
-	if (_texts == null)
-	{
-		graph.DrawText(Text, startX, -Font.Metrics.Ascent, Font, bitmapPaint);
-	}
-	else
-	{
-		float currentX = startX;
-		foreach (var text in _texts)
+		#region EM_私家版_GDI渲染扩展
+		if (IsRasterFont && GdiFont != null)
 		{
-			graph.DrawText(text.Text, currentX, -text.Font.Metrics.Ascent, text.Font, bitmapPaint);
-			currentX += text.Width;
+			float startX = xOffset + Config.DrawingParam_ShapePositionShift;
+			var point = new SKPoint(startX, 0);
+
+			if (_gdiTexts != null)
+			{
+				foreach (var gdiText in _gdiTexts)
+				{
+					var size = TextRenderer.MeasureText(gdiText.Text, gdiText.Font);
+					using var bitmap = new System.Drawing.Bitmap(size.Width, size.Height);
+					using (var g = System.Drawing.Graphics.FromImage(bitmap))
+					{
+						g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+						TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color);
+					}
+					using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
+					var skPoint = point with { Y = point.Y - gdiText.Font.Height + gdiText.Font.Size };
+					graph.DrawBitmap(skBitmap, skPoint);
+					point.Offset(gdiText.Width, 0);
+				}
+			}
+			else
+			{
+				using var bitmap = new System.Drawing.Bitmap((int)Width, (int)Font.Size);
+				using (var g = System.Drawing.Graphics.FromImage(bitmap))
+				{
+					g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+					TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color);
+				}
+				using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
+				graph.DrawBitmap(skBitmap, point);
+			}
+			return;
 		}
-	}
-	#endregion
+		#endregion
+
+		#region EM_私家版_描画拡張
+		using var bitmapPaint = new SKPaint {
+			TextAlign = SKTextAlign.Left,
+			Color = color.ToSKColor()
+		};
+
+		float gdiStartX = xOffset + Config.DrawingParam_ShapePositionShift;
+
+		if (_texts == null)
+		{
+			graph.DrawText(Text, gdiStartX, -Font.Metrics.Ascent, Font, bitmapPaint);
+		}
+		else
+		{
+			float currentX = gdiStartX;
+			foreach (var text in _texts)
+			{
+				graph.DrawText(text.Text, currentX, -text.Font.Metrics.Ascent, text.Font, bitmapPaint);
+				currentX += text.Width;
+			}
+		}
+		#endregion
 	}
 }

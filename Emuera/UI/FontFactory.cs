@@ -12,6 +12,48 @@ internal class FontFactory
 
 	static readonly Dictionary<(string fontname, float fontSize, FontStyle font_style), SKFont> fontDic = [];
 	static readonly Dictionary<(char, string), SKTypeface> fallbackTypefaceCache = [];
+	static readonly Dictionary<(string fontname, int fontSize, FontStyle font_style), Font> gdiFontDic = [];
+
+	public static bool IsRasterFont(string fontName)
+	{
+		if (string.IsNullOrEmpty(fontName))
+			return false;
+		if (fontName.Contains("ＭＳ ゴシック", StringComparison.OrdinalIgnoreCase))
+			return true;
+		if (fontName.Contains("MS Gothic", StringComparison.OrdinalIgnoreCase))
+			return true;
+		return fontName.Contains("Gothic", StringComparison.OrdinalIgnoreCase) &&
+			   !fontName.Contains("PGothic", StringComparison.OrdinalIgnoreCase) &&
+			   !fontName.Contains("UI Gothic", StringComparison.OrdinalIgnoreCase);
+	}
+
+	public static Font GetGdiFont(string requestFontName, FontStyle style, float fontSize)
+	{
+		string fn = requestFontName;
+		if (string.IsNullOrEmpty(requestFontName))
+			fn = Config.FontName;
+
+		int fontSizeInt = (int)fontSize;
+		var key = (fn, fontSizeInt, style);
+
+		if (gdiFontDic.TryGetValue(key, out var cachedFont))
+		{
+			return cachedFont;
+		}
+
+		Font font;
+		try
+		{
+			font = new Font(fn, fontSizeInt, style, GraphicsUnit.Pixel);
+		}
+		catch
+		{
+			font = new Font(Config.FontName, fontSizeInt, style, GraphicsUnit.Pixel);
+		}
+
+		gdiFontDic[key] = font;
+		return font;
+	}
 
 	public static SKFont GetFont(StringStyle stringStyle)
 	{
