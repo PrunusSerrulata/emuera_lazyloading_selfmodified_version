@@ -180,6 +180,70 @@ namespace MinorShift.Emuera.Forms
 		public ToolTip ToolTip { get { return toolTipButton; } }
 		private EmueraConsole console;
 
+		#region 尊尼获加版_全屏功能
+		private bool isFullScreen;
+		private FormBorderStyle savedFormBorderStyle;
+		private FormWindowState savedWindowState;
+		private Rectangle savedBounds;
+		private bool savedMenuVisible;
+		private bool savedTopMost;
+
+		public void ToggleFullScreen()
+		{
+			if (isFullScreen)
+			{
+				FormBorderStyle = savedFormBorderStyle;
+				WindowState = savedWindowState;
+				Bounds = savedBounds;
+				menuStrip.Visible = savedMenuVisible;
+				vScrollBar.Visible = true;
+				TopMost = savedTopMost;
+				isFullScreen = false;
+			}
+			else
+			{
+				savedFormBorderStyle = FormBorderStyle;
+				savedWindowState = WindowState;
+				savedBounds = Bounds;
+				savedMenuVisible = menuStrip.Visible;
+				savedTopMost = TopMost;
+				FormBorderStyle = FormBorderStyle.None;
+				WindowState = FormWindowState.Normal;
+				Bounds = Screen.PrimaryScreen.Bounds;
+				TopMost = true;
+				menuStrip.Visible = false;
+				vScrollBar.Visible = false;
+				isFullScreen = true;
+			}
+		}
+
+		// 提取菜单显示/隐藏逻辑为一个独立的方法
+		private void CheckFullScreenMenuVisibility()
+		{
+			if (!isFullScreen) return;
+
+			// 使用 PointToClient(MousePosition).Y 获取鼠标相对于整个窗口的绝对 Y 坐标
+			// 这样无论鼠标停留在哪个控件上，坐标计算都是准确的
+			int clientY = PointToClient(MousePosition).Y;
+
+			// 当鼠标靠近顶部（小于10像素）且菜单未显示时，显示菜单
+			if (clientY < 10 && !menuStrip.Visible)
+			{
+				menuStrip.Visible = true;
+			}
+			// 当鼠标离开顶部（大于菜单高度+10像素的缓冲带）且菜单已显示时，隐藏菜单
+			else if (clientY > menuStrip.Height + 10 && menuStrip.Visible)
+			{
+				menuStrip.Visible = false;
+			}
+		}
+
+		private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+		{
+			CheckFullScreenMenuVisibility();
+		}
+		#endregion
+
 		#region EM_私家版_Icon指定機能
 		public void SetupIcon(Icon icon)
 		{
@@ -213,6 +277,7 @@ namespace MinorShift.Emuera.Forms
 
 			ヘルプHToolStripMenuItem.Text = Lang.UI.MainWindow.Help.Text;
 			コンフィグCToolStripMenuItem.Text = Lang.UI.MainWindow.Help.Config.Text;
+			FullScreenToolStripMenuItem.Text = Lang.UI.MainWindow.Help.FullScreen.Text;
 
 			LanguageToolStripMenuItem.Text = Lang.UI.MainWindow.Language.Text;
 
@@ -481,6 +546,9 @@ namespace MinorShift.Emuera.Forms
 				case Keys.Z when (keyData & Keys.Modifiers & Keys.Control) == Keys.Control:
 					console?.GotoTitleAndLoadAndRepeatInput();
 					break;
+				case Keys.F11:
+					ToggleFullScreen();
+					return true;
 			}
 			return base.ProcessCmdKey(ref msg, keyData);
 		}
@@ -639,6 +707,7 @@ namespace MinorShift.Emuera.Forms
 
 		private void mainPicBox_MouseMove(object sender, MouseEventArgs e)
 		{
+			CheckFullScreenMenuVisibility();
 			if (!Config.UseMouse)
 				return;
 			if (console == null)
@@ -945,6 +1014,11 @@ namespace MinorShift.Emuera.Forms
 		private void コンフィグCToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ShowConfigDialog();
+		}
+
+		private void FullScreenToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ToggleFullScreen();
 		}
 
 		public void ShowConfigDialog()

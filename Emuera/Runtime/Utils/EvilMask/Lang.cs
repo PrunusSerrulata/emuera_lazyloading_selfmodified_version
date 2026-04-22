@@ -92,6 +92,7 @@ internal sealed partial class Lang
 			{
 				public static string Text { get { return trClass[typeof(Help)].Text; } }
 				[Managed] public static TranslatableString Config { get; } = new TranslatableString("設定(&C)");
+				[Managed] public static TranslatableString FullScreen { get; } = new TranslatableString("全屏切换(&F)");
 			}
 			
 			[Translate("言語 (&L)"), Managed]

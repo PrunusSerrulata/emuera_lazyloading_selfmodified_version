@@ -23,6 +23,7 @@
     <tr id="UI.MainWindow.Tools.CopyToClipboard"><![CDATA[复制到剪贴板]]></tr>
     <tr id="UI.MainWindow.Help"><![CDATA[帮助(&H)]]></tr>
     <tr id="UI.MainWindow.Help.Config"><![CDATA[设置(&C)]]></tr>
+    <tr id="UI.MainWindow.Help.FullScreen"><![CDATA[切换全屏(&F)]]></tr>
     <tr id="UI.MainWindow.Language"><![CDATA[语言(&L)]]></tr>
     <tr id="UI.MainWindow.ContextMenu.KeyMacro"><![CDATA[按键宏]]></tr>
     <tr id="UI.MainWindow.ContextMenu.Cut"><![CDATA[剪切]]></tr>
