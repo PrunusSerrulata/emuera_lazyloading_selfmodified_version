@@ -107,32 +107,37 @@ class ConsoleDivPart : AConsoleDisplayNode
 	public ConsoleButtonString TestChildHitbox(int pointX, int pointY, int relPointY)
 	{
 		ConsoleButtonString pointing = null;
-		#region EE_div各要素の修正
 		var rect = new Rectangle(PointX + xOffset, relPointY + PointY + yOffset, width, Height);
-		#endregion
+		
+		// 如果鼠标根本不在这个 Div 内部，直接返回
 		if (!rect.Contains(pointX, pointY)) return null;
-		relPointY = rect.Y;
-		foreach (var line in children)
+
+		// O(1) 快速定位鼠标所在的行索引
+		int localY = pointY - rect.Y;
+		int lineIndex = localY / Config.Config.LineHeight;
+
+		// 确保索引不越界
+		if (lineIndex >= 0 && lineIndex < children.Length)
 		{
-			for (int b = 0; b < line.Buttons.Length; b++)
+			var line = children[lineIndex];
+			int actualRelPointY = rect.Y + (lineIndex * Config.Config.LineHeight);
+
+			// 倒序遍历该行的按钮（与原逻辑保持一致，后画的在最上层）
+			for (int b = line.Buttons.Length - 1; b >= 0; b--)
 			{
-				ConsoleButtonString button = line.Buttons[line.Buttons.Length - b - 1];
-				if (button == null || button.StrArray == null)
-					continue;
-				if (button.PointX <= pointX && button.PointX + button.Width >= pointX)
+				ConsoleButtonString button = line.Buttons[b];
+				if (button == null || button.StrArray == null) continue;
+
+				// 快速 X 轴包围盒测试
+				if (pointX >= button.PointX && pointX <= button.PointX + button.Width)
 				{
-					//if (relPointY >= 0 && relPointY <= Config.Config.FontSize)
-					//{
-					//	pointing = button;
-					//	if(pointing.IsButton)
-					//		goto breakfor;
-					//}
 					foreach (AConsoleDisplayNode part in button.StrArray)
 					{
-						if (part == null)
-							continue;
-						if (part.PointX <= pointX && part.PointX + part.Width >= pointX
-							&& relPointY + part.Top <= pointY && relPointY + part.Bottom >= pointY)
+						if (part == null) continue;
+						
+						// 精确命中测试
+						if (pointX >= part.PointX && pointX <= part.PointX + part.Width &&
+							pointY >= actualRelPointY + part.Top && pointY <= actualRelPointY + part.Bottom)
 						{
 							pointing = button;
 							if (pointing.IsButton)
@@ -141,7 +146,6 @@ class ConsoleDivPart : AConsoleDisplayNode
 					}
 				}
 			}
-			relPointY += Config.Config.LineHeight;
 		}
 		return pointing;
 	}

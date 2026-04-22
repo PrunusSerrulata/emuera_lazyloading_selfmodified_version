@@ -1,10 +1,40 @@
 2026年4月22日
+skiasharp版本上线
 修复 SkiaSharp 文本渲染排版不对称问题：
 	1. 修复 Config.cs：允许 SKIASHARP 模式也拥有全局偏移量 DrawingParam_ShapePositionShift，DrawableWidth 改为左右对称减去两倍偏移量，完美模拟 GDI+ 的 TextRenderer 边距行为。
 	2. 修复 ConsoleDisplayLine.cs SetAlignment()：移除针对 SKIASHARP 的错误 padding hack，恢复纯净的对齐逻辑，让 LEFT/CENTER/RIGHT 坐标计算统一从 0 开始。
 	3. 修复 ConsoleStyledString.cs DrawTo()：在渲染层统一加上 DrawingParam_ShapePositionShift，模拟 GDI+ 的 TextRenderer 边距。
 	4. 修复 ConsoleStyledString.cs DrawToBitmap()：生成按钮位图时也加上 DrawingParam_ShapePositionShift，保持与 DrawTo 一致。
 	修复效果：ALIGNMENT LEFT 文字不再贴边，与输入框（TextBox）左边距完全一致；CUSTOMDRAWLINE 分割线左右边距绝对对称；CENTER/RIGHT 对齐不再左右不对称；图像和形状与文字完美对齐。
+
+2026年4月21日
+重构 DIV 渲染性能优化（鼠标悬停高亮延迟修复）：
+	针对 HTML_PRINT 方法中大量 div 时鼠标滑过按钮高亮出现的延迟问题，进行以下三项重构：
+
+	1. ConsoleEscapedParts.cs 重构：
+		- 替换 DataTable 为 List<Struct>（EscapedPartRecord 结构体）
+		- 消除 LINQ 开销，使用 CollectionsMarshal.AsSpan 直接遍历
+		- 消除装箱/拆箱开销，降低 GC 压力
+		- 预估提升：DataTable 查询从 O(n) 降至 O(n)，但内存分配减少 80%+
+
+	2. ConsoleDivPart.cs TestChildHitbox 方法优化：
+		- 原先 O(n) 遍历所有子行改为 O(1) 直接定位
+		- 使用 localY / LineHeight 数学计算替代逐行遍历
+		- 预估提升：100 行子元素场景从 100 次循环降至 1 次
+
+	3. EmueraConsole.cs MoveMouse Y轴包围盒预剔除：
+		- 在调用 TestChildHitbox 之前增加 div.Top / div.Bottom Y轴检测
+		- 鼠标不在 div Y轴范围内时跳过命中测试
+		- 预估提升：均匀分布的 div 场景可跳过 40-60% 的无效检测
+
+	优化效果预估（以 50 个 div，每 div 100 行子元素为例）：
+		- 优化前：50 × 100 = 5000 次循环 + DataTable LINQ 开销
+		- 优化后：平均 20-25 次命中测试 + Struct 遍历
+
+新增命令：SPRITEANIMEFRAME，获取动画精灵的帧数
+	统一支持 SpriteAnime、SpriteGif、SpriteWebP 三种动画精灵的帧数查询。
+	废弃 GET_GIF_FRAMES、GET_GIF_WIDTH、GET_GIF_HEIGHT、PRINT_GIF_FRAME。
+见手册
 
 重构图像资源管理 - 修复 SpriteAnime 动画渲染卡顿问题：
 	1. 引入 SharedBitmapCache 全局共享位图池，解决 Sprite Sheet（多帧拼接大图）动画播放时同一文件被重复解码导致内存爆炸和性能下降的问题。

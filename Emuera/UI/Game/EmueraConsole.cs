@@ -2367,6 +2367,8 @@ internal sealed partial class EmueraConsole : IDisposable
 					{
 						if (part is ConsoleDivPart div)
 						{
+							if (pointY < div.Top || pointY > div.Bottom)
+								continue;
 							var lineY = bottomLineBase + (div.Parent.ParentLine.LineNo - bottomLineNo - correction) * Config.LineHeight;
 							var childPointing = div.TestChildHitbox(pointX, pointY, lineY);
 							if (childPointing != null)
