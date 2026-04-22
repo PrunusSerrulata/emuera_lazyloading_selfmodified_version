@@ -1,4 +1,11 @@
 2026年4月22日
+修复 SkiaSharp 文本渲染排版不对称问题：
+	1. 修复 Config.cs：允许 SKIASHARP 模式也拥有全局偏移量 DrawingParam_ShapePositionShift，DrawableWidth 改为左右对称减去两倍偏移量，完美模拟 GDI+ 的 TextRenderer 边距行为。
+	2. 修复 ConsoleDisplayLine.cs SetAlignment()：移除针对 SKIASHARP 的错误 padding hack，恢复纯净的对齐逻辑，让 LEFT/CENTER/RIGHT 坐标计算统一从 0 开始。
+	3. 修复 ConsoleStyledString.cs DrawTo()：在渲染层统一加上 DrawingParam_ShapePositionShift，模拟 GDI+ 的 TextRenderer 边距。
+	4. 修复 ConsoleStyledString.cs DrawToBitmap()：生成按钮位图时也加上 DrawingParam_ShapePositionShift，保持与 DrawTo 一致。
+	修复效果：ALIGNMENT LEFT 文字不再贴边，与输入框（TextBox）左边距完全一致；CUSTOMDRAWLINE 分割线左右边距绝对对称；CENTER/RIGHT 对齐不再左右不对称；图像和形状与文字完美对齐。
+
 重构图像资源管理 - 修复 SpriteAnime 动画渲染卡顿问题：
 	1. 引入 SharedBitmapCache 全局共享位图池，解决 Sprite Sheet（多帧拼接大图）动画播放时同一文件被重复解码导致内存爆炸和性能下降的问题。
 	2. 优化 ConstImage 架构，使其成为极轻量的共享外壳，不再独立管理 SKBitmap 实例，所有图像共享 SharedBitmapCache 的位图引用。

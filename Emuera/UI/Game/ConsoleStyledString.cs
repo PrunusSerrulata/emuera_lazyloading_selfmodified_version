@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -219,10 +219,10 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		TextAlign = SKTextAlign.Left
 	};
 
-	var point = new SKPoint(PointX, origin.Y);
+	var point = new SKPoint(PointX + Config.DrawingParam_ShapePositionShift, origin.Y);
 	if (origin.X == -1)//旧来の位置決め方式
 	{
-		point.X = PointX;
+		point.X = PointX + Config.DrawingParam_ShapePositionShift;
 	}
 	Point = point;
 
@@ -276,13 +276,15 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		Color = color.ToSKColor()
 	};
 
+	float startX = xOffset + Config.DrawingParam_ShapePositionShift;
+
 	if (_texts == null)
 	{
-		graph.DrawText(Text, xOffset, -Font.Metrics.Ascent, Font, bitmapPaint);
+		graph.DrawText(Text, startX, -Font.Metrics.Ascent, Font, bitmapPaint);
 	}
 	else
 	{
-		float currentX = xOffset;
+		float currentX = startX;
 		foreach (var text in _texts)
 		{
 			graph.DrawText(text.Text, currentX, -text.Font.Metrics.Ascent, text.Font, bitmapPaint);

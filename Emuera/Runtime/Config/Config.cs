@@ -231,9 +231,9 @@ internal static class Config
 		}
 
 		DrawingParam_ShapePositionShift = 0;
-		if (TextDrawingMode != TextDrawingMode.WINAPI && TextDrawingMode != TextDrawingMode.SKIASHARP)
+		if (TextDrawingMode != TextDrawingMode.WINAPI)
 			DrawingParam_ShapePositionShift = Math.Max(2, FontSize / 6);
-		DrawableWidth = WindowX - Math.Max(2, FontSize / 6);
+		DrawableWidth = WindowX - (DrawingParam_ShapePositionShift * 2);
 		#region eee_カレントディレクトリー
 		// ForceSavDir = Program.ExeDir + "sav\\";
 		ForceSavDir = Program.ExeDir + "sav" + Path.DirectorySeparatorChar;

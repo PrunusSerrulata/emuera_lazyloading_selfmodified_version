@@ -73,34 +73,23 @@ internal sealed class ConsoleDisplayLine
 
 		//目標位置
 		int movetoX = 0;
-		int padding = (customWidth <= 0 && Config.TextDrawingMode == TextDrawingMode.SKIASHARP) ? System.Math.Max(2, Config.FontSize / 6) : 0;
 
 		if (align == DisplayLineAlignment.LEFT)
 		{
 			if (IsLogicalLine)
 			{
-				// 如果初始坐标为0，说明没有使用绝对定位(pos)，需要加上padding
-				if (pointX == 0)
-					movetoX = padding;
-				else
+				if (pointX != 0)
 					return; // 位置固定に対応
-			}
-			else
-			{
-				// 自动换行的行始终加上padding
-				movetoX = padding;
 			}
 		}
 		#region EM_私家版_HTML_divタグ
 		else if (align == DisplayLineAlignment.CENTER)
-			// movetoX = Config.WindowX / 2 - width / 2;
 			#region EE_div各要素の修正
-			movetoX = padding + (customWidth > 0 ? customWidth : Config.DrawableWidth) / 2 - width / 2/* + xOffset*/;
+			movetoX = (customWidth > 0 ? customWidth : Config.DrawableWidth) / 2 - width / 2;
 		#endregion
 		else if (align == DisplayLineAlignment.RIGHT)
-			// movetoX = Config.WindowX - width;
 			#region EE_div各要素の修正
-			movetoX = padding + (customWidth > 0 ? customWidth : Config.DrawableWidth) - width/* + xOffset*/;
+			movetoX = (customWidth > 0 ? customWidth : Config.DrawableWidth) - width;
 		#endregion
 		#endregion
 		//移動距離
