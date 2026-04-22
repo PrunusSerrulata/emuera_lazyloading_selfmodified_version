@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 
 namespace MinorShift.Emuera.Runtime.Utils.EvilMask;
@@ -213,8 +213,8 @@ internal sealed class Shape
 								graph.FillRectangle(brush, new Rectangle(
 									flipX ? rect.X + rect.Width / 2 : rect.X + radius[corner],
 									flipY ? rect.Y + rect.Height - border[Direction.Bottom] : rect.Y,
-									rect.Width / 2 - radius[corner],
-									border[flipX ? Direction.Bottom : Direction.Top]));
+									rect.Width / 2 - (flipX ? radius[corner] : 0),
+									border[flipY ? Direction.Bottom : Direction.Top]));
 								graph.SmoothingMode = SmoothingMode.AntiAlias;
 							}
 					}

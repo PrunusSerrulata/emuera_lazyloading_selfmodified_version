@@ -1817,36 +1817,34 @@ internal sealed partial class EmueraConsole : IDisposable
 			if (!string.IsNullOrEmpty(title))
 			{
 				title = title.Replace("<br>", Environment.NewLine);
-				if (tooltip_duration == 0 || window.ToolTip.OwnerDraw == true)
+				System.Threading.SynchronizationContext context = System.Threading.SynchronizationContext.Current;
+				Task.Run(async () =>
 				{
-					window.ToolTip.SetToolTip(window.MainPicBox, title);
-				}
-				else
-				{
-					if (window.ToolTip.InitialDelay == 0)
+					ConsoleButtonString savedPointingString = pointingString;
+					if (window.ToolTip.InitialDelay != 0)
+						await Task.Delay(window.ToolTip.InitialDelay);
+					context.Post((state) =>
 					{
-						Point mousePos = window.MainPicBox.PointToClient(Control.MousePosition);
-						window.ToolTip.Show(title, window.MainPicBox, new Point(mousePos.X, mousePos.Y + 18), tooltip_duration);
-					}
-					else
-					{
-						System.Threading.SynchronizationContext context = System.Threading.SynchronizationContext.Current;
-						Task.Run(async () =>
+						MoveMouse(GetMousePosition());
+						if (lastPointingString == savedPointingString)
 						{
-							ConsoleButtonString savedPointingString = pointingString;
-							await Task.Delay(window.ToolTip.InitialDelay);
-							context.Post((state) =>
-							{
-								MoveMouse(GetMousePosition());
-								if (lastPointingString == savedPointingString)
-								{
-									Point mousePos = window.MainPicBox.PointToClient(Control.MousePosition);
-									window.ToolTip.Show(title, window.MainPicBox, new Point(mousePos.X, mousePos.Y + 18), tooltip_duration);
-								}
-							}, null);
-						});
-					}
-				}
+							Point mousePos = window.MainPicBox.PointToClient(Control.MousePosition);
+							Point p = new Point(mousePos.X + 2, mousePos.Y + Cursor.Current.Size.Height / 2);
+							Point absoluteP = Cursor.Position;
+							Size screen = Screen.FromPoint(mousePos).WorkingArea.Size;
+							if (absoluteP.Y + tooltip_size.Height > screen.Height)
+								p.Y -= Cursor.Current.Size.Height * 2;
+							if (p.Y < 0)
+								p.Y = 0;
+							if (p.Y + tooltip_size.Height > screen.Height)
+								tooltip_size = new Size(tooltip_size.Width, screen.Height - p.Y);
+							if (tooltip_duration == 0)
+								window.ToolTip.Show(title, window.MainPicBox, p);
+							else
+								window.ToolTip.Show(title, window.MainPicBox, p, tooltip_duration);
+						}
+					}, null);
+				});
 				tooltipUsed = true;
 			}
 			lastPointingString = pointingString;
@@ -1915,6 +1913,7 @@ internal sealed partial class EmueraConsole : IDisposable
 			if (g.IsCreated)
 			{
 				e.ToolTipSize = new Size(g.Width, g.Height);
+				tooltip_size = e.ToolTipSize;
 				return;
 			}
 		}
@@ -1931,6 +1930,7 @@ internal sealed partial class EmueraConsole : IDisposable
 	foundfont:
 		var size = TextRenderer.MeasureText((sender as ToolTip).GetToolTip(e.AssociatedControl), f, new Size(int.MaxValue, int.MaxValue), tooltip_format);
 		e.ToolTipSize = new Size(size.Width, size.Height);
+		tooltip_size = e.ToolTipSize;
 	}
 
 	public void CustomToolTip(bool b)
@@ -1960,6 +1960,7 @@ internal sealed partial class EmueraConsole : IDisposable
 	}
 
 	int tooltip_duration;
+	Size tooltip_size;
 	string tooltip_fontname = Config.FontName;
 	long tooltip_fontsize = Config.FontSize;
 	TextFormatFlags tooltip_format;

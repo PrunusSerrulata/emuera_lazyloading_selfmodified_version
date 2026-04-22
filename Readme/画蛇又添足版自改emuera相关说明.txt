@@ -1,3 +1,12 @@
+修复 ToolTip 屏幕边缘遮挡问题：
+	应用上游修复，统一使用异步 Task 机制显示 ToolTip，替代原有的 InitialDelay==0 同步 / !=0 异步混合逻辑。
+	新增 tooltip_size 字段记录 ToolTip 真实尺寸，用于屏幕边缘碰撞检测。
+	使用 Cursor.Current.Size.Height 替代硬编码的 18 像素偏移量。
+	新增屏幕边缘防遮挡逻辑：当鼠标靠近屏幕底部时，ToolTip 自动向上翻转显示，避免被任务栏或屏幕边缘裁切。
+	增强边界检测：向上边界限制 p.Y 不小于 0；超长 ToolTip 截断显示防止闪烁。
+
+修复效果：鼠标悬停于屏幕底部按钮时，ToolTip 不再被任务栏遮挡。
+
 2026年4月22日
 skiasharp版本上线
 修复 SkiaSharp 文本渲染排版不对称问题：
@@ -6,6 +15,9 @@ skiasharp版本上线
 	3. 修复 ConsoleStyledString.cs DrawTo()：在渲染层统一加上 DrawingParam_ShapePositionShift，模拟 GDI+ 的 TextRenderer 边距。
 	4. 修复 ConsoleStyledString.cs DrawToBitmap()：生成按钮位图时也加上 DrawingParam_ShapePositionShift，保持与 DrawTo 一致。
 	修复效果：ALIGNMENT LEFT 文字不再贴边，与输入框（TextBox）左边距完全一致；CUSTOMDRAWLINE 分割线左右边距绝对对称；CENTER/RIGHT 对齐不再左右不对称；图像和形状与文字完美对齐。
+
+修复 Shape.cs div 标签 border 与 radius 同行时渲染错误：
+	应用上游提交 844f646 修复 FillRectangle 在 flipX 变换时宽度计算错误（应为 `rect.Width/2 - (flipX ? radius[corner] : 0)` 而非 `rect.Width/2 - radius[corner]`）以及 flipX/flipY 方向判断错误（Y轴方向应使用 flipY 而非 flipX）。该修复解决 div 同时使用 border 和 radius 时图形出现缺口或错位的问题。
 
 2026年4月21日
 重构 DIV 渲染性能优化（鼠标悬停高亮延迟修复）：
