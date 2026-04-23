@@ -4,11 +4,20 @@ using System.Drawing;
 using SkiaSharp;
 using MinorShift.Emuera.UI.Game;
 using System;
+using System.Diagnostics;
 
 namespace MinorShift.Emuera.UI;
 
-internal class FontFactory
+internal static class FontFactory
 {
+	static readonly HashSet<string> rasterFontNames = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"ＭＳ ゴシック", "MS Gothic", "MS UI Gothic",
+		"MS PGothic",
+		"SimHei",
+		"ＭＳ 明朝", "MS Mincho", "MS PMincho",
+		"SimSun", "NSimSun", "FangSong", "MingLiU", "PMingLiU"
+	};
 
 	static readonly Dictionary<(string fontname, float fontSize, FontStyle font_style), SKFont> fontDic = [];
 	static readonly Dictionary<(char, string), SKTypeface> fallbackTypefaceCache = [];
@@ -18,13 +27,7 @@ internal class FontFactory
 	{
 		if (string.IsNullOrEmpty(fontName))
 			return false;
-		if (fontName.Contains("ＭＳ ゴシック", StringComparison.OrdinalIgnoreCase))
-			return true;
-		if (fontName.Contains("MS Gothic", StringComparison.OrdinalIgnoreCase))
-			return true;
-		return fontName.Contains("Gothic", StringComparison.OrdinalIgnoreCase) &&
-			   !fontName.Contains("PGothic", StringComparison.OrdinalIgnoreCase) &&
-			   !fontName.Contains("UI Gothic", StringComparison.OrdinalIgnoreCase);
+		return rasterFontNames.Contains(fontName);
 	}
 
 	public static Font GetGdiFont(string requestFontName, FontStyle style, float fontSize)
@@ -199,6 +202,7 @@ internal class FontFactory
 				fallbackTypefaceCache[cacheKey] = safeTypeface;
 				return safeTypeface;
 			}
+			safeTypeface?.Dispose();
 		}
 
 		var matchTypeface = SKFontManager.Default.MatchCharacter(c);
@@ -208,7 +212,6 @@ internal class FontFactory
 			return matchTypeface;
 		}
 
-		fallbackTypefaceCache[cacheKey] = SKTypeface.Default;
 		return SKTypeface.Default;
 	}
 
@@ -229,11 +232,24 @@ internal class FontFactory
 
 	public static void ClearFont()
 	{
-		foreach (var font in fontDic)
-		{
-			font.Value.Dispose();
-		}
 		fontDic.Clear();
+
+		int disposedCount = 0;
+		foreach (var typeface in fallbackTypefaceCache.Values)
+		{
+			typeface?.Dispose();
+			disposedCount++;
+		}
 		fallbackTypefaceCache.Clear();
+
+		int gdiDisposedCount = 0;
+		foreach (var gdiFont in gdiFontDic.Values)
+		{
+			gdiFont?.Dispose();
+			gdiDisposedCount++;
+		}
+		gdiFontDic.Clear();
+
+		Debug.WriteLine($"[FontFactory] 释放字体缓存: SKFont=0, SKTypeface={disposedCount}, GDI={gdiDisposedCount}");
 	}
 }

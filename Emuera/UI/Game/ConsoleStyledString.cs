@@ -255,14 +255,21 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	{
 		var width = gdiBitmap.Width;
 		var height = gdiBitmap.Height;
-		var skBitmap = new SKBitmap(width, height);
+		var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
 		var rect = new System.Drawing.Rectangle(0, 0, width, height);
 		var bitmapData = gdiBitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
 		try
 		{
-			skBitmap.SetPixels(bitmapData.Scan0);
+			unsafe
+			{
+				var dstPixels = skBitmap.GetPixels();
+				var srcPixels = bitmapData.Scan0;
+				var bytesPerPixel = 4;
+				var totalBytes = width * height * bytesPerPixel;
+				Buffer.MemoryCopy(srcPixels.ToPointer(), dstPixels.ToPointer(), totalBytes, totalBytes);
+			}
 		}
 		finally
 		{

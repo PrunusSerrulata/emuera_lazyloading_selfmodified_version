@@ -1,4 +1,35 @@
 
+2026年4月23日
+修复MS Gothic字体与过去产生差异的问题：
+	SkiaSharp渲染的MS Gothic等光栅字体与过去的GDI+渲染存在差异，引入GDI渲染扩展作为回退方案。
+
+	1. 修复 FontFactory.cs：
+		- 新增 gdiFontDic 字典缓存GDI字体
+		- 新增 IsRasterFont() 方法识别需要GDI渲染的光栅字体
+		- 新增 GetGdiFont() 方法获取GDI字体实例
+		- 支持字体：MS Gothic、MS UI Gothic、MS PGothic、SimHei、MS Mincho、MS PMincho、SimSun等
+
+	2. 修复 ConsoleStyledString.cs：
+		- 新增 BuildGdiFallbacks() 方法构建GDI字体回退列表
+		- 新增 CreateSkBitmapFromGdiBitmap() 方法将GDI位图转换为Skia位图
+		- DrawTo() 和 DrawToBitmap() 中添加 GDI 渲染路径
+		- 当字体为光栅字体且存在GDI字体时，使用GDI TextRenderer渲染并转换为SKBitmap
+
+字体缓存内存泄漏修复：
+	修复FontFactory中的字体缓存内存泄漏问题，确保游戏重置时正确释放所有字体资源。
+
+	1. 修复 FontFactory.cs：
+		- 重构IsRasterFont()方法：使用HashSet替代多个Contains字符串匹配，支持Gothic/Mincho/SimHei/SimSun等完整字体家族
+		- 修复ClearFont()方法：正确释放SKTypeface和GDI Font资源
+		- 修复safeFallbackFonts循环：未匹配的临时SKTypeface对象立即Dispose，避免循环内泄漏
+		- 不再缓存SKTypeface.Default静态单例，避免ClearFont时误释放共享实例
+		- 添加Debug.WriteLine日志，记录释放的字体缓存数量
+
+	2. 修复 ConsoleStyledString.cs：
+		- 修复CreateSkBitmapFromGdiBitmap()方法：使用Buffer.MemoryCopy深拷贝像素数据替代SetPixels共享引用
+		- 解决GDI Bitmap被Dispose后SKBitmap数据失效的问题
+		- 确保SKBitmap拥有独立的像素数据副本
+
 2026年4月22日
 智能字体回退优化 - 衬线/无衬线分类回退：
 	改进字体回退逻辑，根据主字体名称动态调整回退优先级。
