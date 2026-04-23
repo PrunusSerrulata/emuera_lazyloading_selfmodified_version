@@ -402,11 +402,7 @@ internal sealed partial class EmueraConsole : IDisposable
 		}
 		PrintFlush(false);
 		UseUserStyle = false;
-		ConsoleDisplayLine dispLine = PrintPlainwithSingleLine(str);
-		if (dispLine == null)
-			return;
-		addDisplayLine(dispLine, true);
-		RefreshStrings(false);
+		PrintPlainwithSingleLine(str, true);
 	}
 
 	internal void PrintErrorButton(string str, ScriptPosition? pos, int level = 0)
@@ -647,7 +643,7 @@ internal sealed partial class EmueraConsole : IDisposable
 		window.clear_richText();
 	}
 
-	internal ConsoleDisplayLine PrintPlainwithSingleLine(string str)
+	internal ConsoleDisplayLine PrintPlainwithSingleLine(string str, bool force_LEFT = false)
 	{
 		if (!Enabled)
 			return null;
@@ -655,6 +651,10 @@ internal sealed partial class EmueraConsole : IDisposable
 			return null;
 		printBuffer.AppendPlainText(str, Style);
 		ConsoleDisplayLine dispLine = printBuffer.FlushSingleLine(stringMeasure, false);
+		if (dispLine == null)
+			return null;
+		addDisplayLine(dispLine, force_LEFT);
+		RefreshStrings(false);
 		return dispLine;
 	}
 
