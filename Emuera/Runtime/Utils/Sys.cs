@@ -16,7 +16,7 @@ public static class AssemblyData
 		ExeName = Path.GetFileName(ExePath);
 		emueraVer = typeof(AssemblyData).Assembly.GetName().Version;
 
-		EmueraVersionText = "Emuera.NET " + Application.ProductVersion;
+		EmueraVersionText = "Emuera.NET SkiaSharp " + Application.ProductVersion;
 	}
 
 	/// <summary>

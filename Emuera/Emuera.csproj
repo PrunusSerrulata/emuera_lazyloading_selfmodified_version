@@ -23,8 +23,8 @@
         <AssemblyName>Emuera</AssemblyName>
         <RootNamespace>MinorShift.Emuera</RootNamespace>
         <ApplicationManifest>emuera.manifest</ApplicationManifest>
-        <Version>1.824.0</Version>
-        <InformationalVersion>1.824+v22+EMv18+EEv53 Lazyloadingv3.0</InformationalVersion>
+        <Version>1.824</Version>
+        <InformationalVersion>1824+v24+EMv18+EEv55 Lazyloadingv4.1</InformationalVersion>
         <Copyright>Copyright (C) 2008- MinorShift, 妊）|дﾟ)の中の人</Copyright>
     </PropertyGroup>
 
@@ -53,7 +53,6 @@
 
 	<PropertyGroup Condition="$(Configuration.Contains('NAudio'))">
 		<DefineConstants>NAudio</DefineConstants>
-		<InformationalVersion>$(InformationalVersion) NAudio</InformationalVersion>
 		<!-- <AssemblyName>$(AssemblyName)-NAudio</AssemblyName> -->
 	</PropertyGroup>
 
@@ -72,10 +71,6 @@
 
     <Choose>
         <When Condition="$(Configuration.Contains('NAudio'))">
-            <PropertyGroup>
-                <InformationalVersion>$(InformationalVersion) NAudio</InformationalVersion>
-            </PropertyGroup>
-
             <ItemGroup Condition="$(Configuration.Contains('NAudio'))">
                 <Compile Remove="Runtime/Utils/Sound.WMP.cs" />
             </ItemGroup>

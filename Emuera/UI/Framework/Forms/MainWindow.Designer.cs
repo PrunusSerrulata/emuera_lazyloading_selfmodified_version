@@ -280,7 +280,7 @@ partial class MainWindow
 		EmuVerToolStripTextBox.Margin = new System.Windows.Forms.Padding(1, 0, 3, 0);
 		EmuVerToolStripTextBox.Name = "EmuVerToolStripTextBox";
 		EmuVerToolStripTextBox.ShortcutsEnabled = false;
-		EmuVerToolStripTextBox.Size = new System.Drawing.Size(250, 26);
+		EmuVerToolStripTextBox.Size = new System.Drawing.Size(600, 26);
 		EmuVerToolStripTextBox.Text = "Emuera Ver. 0.000+v00.0";
 		EmuVerToolStripTextBox.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 		// 
