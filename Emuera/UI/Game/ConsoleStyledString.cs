@@ -368,6 +368,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	bool useGdiRender = (RenderMode == TextDrawingMode.TEXTRENDERER || RenderMode == null) && IsRasterFont && GdiFont != null;
 	if (useGdiRender)
 	{
+		var gdiPoint = point with { X = point.X - Config.DrawingParam_ShapePositionShift };
 		if (_gdiTexts != null)
 		{
 			foreach (var gdiText in _gdiTexts)
@@ -380,9 +381,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 					TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color);
 				}
 				using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
-				var skPoint = point with { Y = point.Y - gdiText.Font.Height + gdiText.Font.Size };
+				var skPoint = gdiPoint with { Y = gdiPoint.Y - gdiText.Font.Height + gdiText.Font.Size };
 				graph.DrawBitmap(skBitmap, skPoint);
-				point.Offset(gdiText.Width, 0);
+				gdiPoint.Offset(gdiText.Width, 0);
 			}
 		}
 		else
@@ -394,7 +395,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 				TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color);
 			}
 			using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
-			graph.DrawBitmap(skBitmap, point);
+			graph.DrawBitmap(skBitmap, gdiPoint);
 		}
 		return;
 	}
@@ -441,7 +442,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		bool useGdiRenderBitmap = (RenderMode == TextDrawingMode.TEXTRENDERER || RenderMode == null) && IsRasterFont && GdiFont != null;
 		if (useGdiRenderBitmap)
 		{
-			float startX = xOffset + Config.DrawingParam_ShapePositionShift;
+			float startX = xOffset;
 			var point = new SKPoint(startX, 0);
 
 			if (_gdiTexts != null)
