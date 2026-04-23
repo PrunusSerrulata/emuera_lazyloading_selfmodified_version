@@ -15,7 +15,7 @@
 ### API
 
 ```
-SET_TEXT_DRAWING_MODE(mode)
+SET_TEXT_DRAWING_MODE mode
 GET_TEXT_DRAWING_MODE()
 ```
 
@@ -38,13 +38,13 @@ GET_TEXT_DRAWING_MODE()
     PRINTFORML 当前渲染模式: {GET_TEXT_DRAWING_MODE()}
 
     ; 切换到 GDI+ 模式
-    SET_TEXT_DRAWING_MODE(1)
+    SET_TEXT_DRAWING_MODE 1
     PRINTFORML 切换后渲染模式: {GET_TEXT_DRAWING_MODE()}
 
     HTML_PRINT "<font render='skia'>这段使用SkiaSharp渲染</font>"
 
     ; 切换回 SkiaSharp 模式
-    SET_TEXT_DRAWING_MODE(3)
+    SET_TEXT_DRAWING_MODE 3
     HTML_PRINT "<font render='gdi'>这段强制使用GDI+渲染</font>"
 ```
 
@@ -53,8 +53,8 @@ GET_TEXT_DRAWING_MODE()
 ### API
 
 ```
-SET_SKIA_QUALITY(quality, hinting, edging)
-GET_SKIA_QUALITY(type)
+SET_SKIA_QUALITY quality, hinting, edging
+GET_SKIA_QUALITY type
 ```
 
 控制 SkiaSharp 渲染质量参数。所有参数均可省略，省略时保持当前值不变。
@@ -109,15 +109,15 @@ GET_SKIA_QUALITY(type)
     PRINTFORML FontEdging: {GET_SKIA_QUALITY(2)}
 
     ; 设置为高质量模式
-    SET_SKIA_QUALITY(3, 2, 2)
+    SET_SKIA_QUALITY 3,2,2
     HTML_PRINT "高质量渲染的文本"
 
     ; 设置为像素风格（关闭抗锯齿）
-    SET_SKIA_QUALITY(3, 0, 0)
+    SET_SKIA_QUALITY 3,0,0
     HTML_PRINT "像素风文字渲染"
 
     ; 只修改抗锯齿方式，保留其他设置
-    SET_SKIA_QUALITY(, , 1)
+    SET_SKIA_QUALITY 3,2,1
 ```
 
 ## HTML_PRINT font 标签渲染属性扩展
@@ -165,12 +165,10 @@ GET_SKIA_QUALITY(type)
     HTML_PRINT "<font render='skia' edging='alias' hinting='full'>SkiaSharp像素风+完整微调</font>"
 
     ; 嵌套继承示例
-    HTML_PRINT "<font edging='subpixel'>外层设置subpixel"
-    HTML_PRINT "<font hinting='full'>内层继承外层+覆盖hinting"
-    HTML_PRINT "</font></font>"
+    HTML_PRINT "<font edging='subpixel'>外层设置subpixel<font hinting='full'>内层继承外层+覆盖hinting</font></font>"
 
     PRINTFORML 当前渲染模式: {GET_TEXT_DRAWING_MODE()}
-    SET_SKIA_QUALITY(3, 2, 2)
+    SET_SKIA_QUALITY 3,2,2
     HTML_PRINT "<font face='MS Gothic' edging='alias'>全局切换后，字体设置仍生效</font>"
 ```
 
@@ -181,8 +179,8 @@ GET_SKIA_QUALITY(type)
     ; 场景：根据不同内容切换最佳渲染方式
 
     ; 1. 大段普通文本：使用 SkiaSharp + 抗锯齿，追求流畅度
-    SET_TEXT_DRAWING_MODE(3)
-    SET_SKIA_QUALITY(3, 1, 2)
+    SET_TEXT_DRAWING_MODE 3
+    SET_SKIA_QUALITY 3,1,2
     HTML_PRINT "<font face='MS Mincho'>这是大段说明文字，追求阅读体验</font>"
 
     ; 2. 特殊符号需要精确像素：切换 GDI+ 渲染
@@ -196,10 +194,7 @@ GET_SKIA_QUALITY(type)
     HTML_PRINT "状态图标: <font color='0xFF0000'>♥</font> <font color='0x00FF00'>●</font>"
 
     ; 5. 嵌套组合：外层像素风格，内层大段落继承但hinting不同
-    HTML_PRINT "<font edging='alias' hinting='normal'>"
-    HTML_PRINT "像素风格段落"
-    HTML_PRINT "<font hinting='full'>内层文字更锐利</font>"
-    HTML_PRINT "</font>"
+    HTML_PRINT "<font edging='alias' hinting='normal'>像素风格段落<font hinting='full'>内层文字更锐利</font></font>"
 ```
 
 ### Related

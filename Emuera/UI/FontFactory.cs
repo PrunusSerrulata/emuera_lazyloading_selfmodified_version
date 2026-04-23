@@ -246,18 +246,13 @@ internal static class FontFactory
 		foreach (var typeface in fallbackTypefaceCache.Values)
 		{
 			typeface?.Dispose();
-			disposedCount++;
+		disposedCount++;
 		}
 		fallbackTypefaceCache.Clear();
 
-		int gdiDisposedCount = 0;
-		foreach (var gdiFont in gdiFontDic.Values)
-		{
-			gdiFont?.Dispose();
-			gdiDisposedCount++;
-		}
+		// 只清空字典引用，由 GC 自然回收
 		gdiFontDic.Clear();
 
-		Debug.WriteLine($"[FontFactory] 释放字体缓存: SKFont=0, SKTypeface={disposedCount}, GDI={gdiDisposedCount}");
+		Debug.WriteLine($"[FontFactory] 释放字体缓存: SKFont=0, SKTypeface={disposedCount}");
 	}
 }
