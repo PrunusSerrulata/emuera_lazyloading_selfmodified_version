@@ -41,6 +41,11 @@ public struct GdiTextsWithFont
 internal sealed class ConsoleStyledString : AConsoleColoredPart
 {
 	private ConsoleStyledString() { }
+
+	public TextDrawingMode? RenderMode { get; private set; }
+	public SkiaSharpFontEdging? FontEdging { get; private set; }
+	public SkiaSharpFontHinting? FontHinting { get; private set; }
+
 	public ConsoleStyledString(string str, StringStyle style)
 	{
 		Text = str;
@@ -55,6 +60,44 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		string fontName = style.Fontname ?? Config.FontName;
 		IsRasterFont = FontFactory.IsRasterFont(fontName);
 		if (IsRasterFont)
+		{
+			GdiFont = FontFactory.GetGdiFont(fontName, style.FontStyle, Font.Size);
+			BuildGdiFallbacks();
+		}
+
+		BuildFallbacks();
+
+		Color = style.Color;
+		ButtonColor = style.ButtonColor;
+		colorChanged = style.ColorChanged;
+		if (!colorChanged && Color != Config.ForeColor)
+			colorChanged = true;
+		PointX = -1;
+		Width = -1;
+	}
+
+	public ConsoleStyledString(string str, StringStyle style, TextDrawingMode? renderMode, SkiaSharpFontEdging? edging, SkiaSharpFontHinting? hinting)
+	{
+		Text = str;
+		StringStyle = style;
+		RenderMode = renderMode ?? Config.TextDrawingMode;
+		FontEdging = edging;
+		FontHinting = hinting;
+
+		var actualEdging = edging ?? Config.FontEdging;
+		var actualHinting = hinting ?? Config.FontHinting;
+
+		Font = FontFactory.GetFont(style.Fontname, style.FontStyle, null, actualEdging, actualHinting);
+		if (Font == null)
+		{
+			Error = true;
+			return;
+		}
+
+		string fontName = style.Fontname ?? Config.FontName;
+		IsRasterFont = FontFactory.IsRasterFont(fontName);
+
+		if (RenderMode == TextDrawingMode.TEXTRENDERER && IsRasterFont)
 		{
 			GdiFont = FontFactory.GetGdiFont(fontName, style.FontStyle, Font.Size);
 			BuildGdiFallbacks();
@@ -305,11 +348,13 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	}
 
 	#region EM_私家版_描画拡張
+	bool isAntialias = FontEdging == null || FontEdging != SkiaSharpFontEdging.Alias;
 	using var paint = new SKPaint
 	{
 		Color = color.ToSKColor(),
-		IsAntialias = true,
-		TextAlign = SKTextAlign.Left
+		IsAntialias = isAntialias,
+		TextAlign = SKTextAlign.Left,
+		ColorFilter = SKColorFilter.CreateBlendMode(color.ToSKColor(), SKBlendMode.SrcIn)
 	};
 
 	var point = new SKPoint(PointX + Config.DrawingParam_ShapePositionShift, origin.Y);
@@ -320,7 +365,8 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	Point = point;
 
 	#region EM_私家版_GDI渲染扩展
-	if (IsRasterFont && GdiFont != null)
+	bool useGdiRender = (RenderMode == TextDrawingMode.TEXTRENDERER || RenderMode == null) && IsRasterFont && GdiFont != null;
+	if (useGdiRender)
 	{
 		if (_gdiTexts != null)
 		{
@@ -392,7 +438,8 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			color = Config.LogColor;
 
 		#region EM_私家版_GDI渲染扩展
-		if (IsRasterFont && GdiFont != null)
+		bool useGdiRenderBitmap = (RenderMode == TextDrawingMode.TEXTRENDERER || RenderMode == null) && IsRasterFont && GdiFont != null;
+		if (useGdiRenderBitmap)
 		{
 			float startX = xOffset + Config.DrawingParam_ShapePositionShift;
 			var point = new SKPoint(startX, 0);
@@ -430,9 +477,12 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		#endregion
 
 		#region EM_私家版_描画拡張
+		bool isAntialias = FontEdging == null || FontEdging != SkiaSharpFontEdging.Alias;
 		using var bitmapPaint = new SKPaint {
 			TextAlign = SKTextAlign.Left,
-			Color = color.ToSKColor()
+			Color = color.ToSKColor(),
+			IsAntialias = isAntialias,
+			ColorFilter = SKColorFilter.CreateBlendMode(color.ToSKColor(), SKBlendMode.SrcIn)
 		};
 
 		float gdiStartX = xOffset + Config.DrawingParam_ShapePositionShift;

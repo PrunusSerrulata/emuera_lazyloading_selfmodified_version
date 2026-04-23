@@ -11,6 +11,7 @@ namespace MinorShift.Emuera.UI;
 internal static class FontFactory
 {
 	static readonly HashSet<string> rasterFontNames = new(StringComparer.OrdinalIgnoreCase)
+	/*
 	{
 		"ＭＳ ゴシック", "MS Gothic", "MS UI Gothic",
 		"MS PGothic",
@@ -18,8 +19,14 @@ internal static class FontFactory
 		"ＭＳ 明朝", "MS Mincho", "MS PMincho",
 		"SimSun", "NSimSun", "FangSong", "MingLiU", "PMingLiU"
 	};
+	*/
+	{
+		"ＭＳ ゴシック", "MS Gothic", "MS UI Gothic",
+		"MS PGothic",
+		"ＭＳ 明朝", "MS Mincho", "MS PMincho",
+	};
 
-	static readonly Dictionary<(string fontname, float fontSize, FontStyle font_style), SKFont> fontDic = [];
+	static readonly Dictionary<(string fontname, float fontSize, FontStyle font_style, SkiaSharpFontEdging edging, SkiaSharpFontHinting hinting), SKFont> fontDic = [];
 	static readonly Dictionary<(char, string), SKTypeface> fallbackTypefaceCache = [];
 	static readonly Dictionary<(string fontname, int fontSize, FontStyle font_style), Font> gdiFontDic = [];
 
@@ -62,28 +69,29 @@ internal static class FontFactory
 	{
 		return GetFont(stringStyle.Fontname, stringStyle.FontStyle);
 	}
-	public static SKFont GetFont(string requestFontName, FontStyle style, float? fontSize = null)
+	public static SKFont GetFont(string requestFontName, FontStyle style, float? fontSize = null, SkiaSharpFontEdging? edging = null, SkiaSharpFontHinting? hinting = null)
 	{
 		string fn = requestFontName;
 		if (string.IsNullOrEmpty(requestFontName))
 			fn = Config.FontName;
 		fontSize ??= Config.FontSize;
 		
-		// 检查字体缓存
-		var key = (fn, fontSize.Value, style);
+		var actualEdging = edging ?? Config.FontEdging;
+		var actualHinting = hinting ?? Config.FontHinting;
+
+		var key = (fn, fontSize.Value, style, actualEdging, actualHinting);
 		if (fontDic.TryGetValue(key, out var cachedFont))
 		{
 			return cachedFont;
 		}
 		
-		// 创建新字体
 		try
 		{
 			var typeface = CreateTypefaceWithFallback(fn);
 			var font = new SKFont(typeface, fontSize.Value)
 			{
-				Hinting = (SKFontHinting)Config.FontHinting,
-				Edging = (SKFontEdging)Config.FontEdging
+				Hinting = (SKFontHinting)actualHinting,
+				Edging = (SKFontEdging)actualEdging
 			};
 			fontDic[key] = font;
 			return font;

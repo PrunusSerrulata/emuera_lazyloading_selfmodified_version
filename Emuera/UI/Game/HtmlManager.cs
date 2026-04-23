@@ -227,6 +227,9 @@ internal static class HtmlManager
 		public int Color = -1;
 		public int BColor = -1;
 		public string FontName;
+		public TextDrawingMode? RenderMode = null;
+		public SkiaSharpFontEdging? FontEdging = null;
+		public SkiaSharpFontHinting? FontHinting = null;
 		//public int PointX = 0;
 		//public bool PointXisLocked = false;
 	}
@@ -318,6 +321,10 @@ internal static class HtmlManager
 			}
 			return new StringStyle(c, colorChanged, b, FontStyle, fontname);
 		}
+
+		public TextDrawingMode? RenderMode => FonttagList.Count > 0 ? FonttagList[^1].RenderMode : null;
+		public SkiaSharpFontEdging? FontEdging => FonttagList.Count > 0 ? FonttagList[^1].FontEdging : null;
+		public SkiaSharpFontHinting? FontHinting => FonttagList.Count > 0 ? FonttagList[^1].FontHinting : null;
 	}
 
 	/// <summary>
@@ -524,7 +531,7 @@ internal static class HtmlManager
 			if (found < 0)
 			{
 				string txt = Unescape(st.Substring());
-				cssList.Add(new ConsoleStyledString(txt, state.GetSS()));
+				cssList.Add(new ConsoleStyledString(txt, state.GetSS(), state.RenderMode, state.FontEdging, state.FontHinting));
 				if (state.FlagPClosed)
 					throw new CodeEE(trerror.TextAfterP.Text);
 				if (state.FlagNobrClosed)
@@ -534,7 +541,7 @@ internal static class HtmlManager
 			else if (found > 0)
 			{
 				string txt = Unescape(st.Substring(st.CurrentPosition, found));
-				cssList.Add(new ConsoleStyledString(txt, state.GetSS()));
+				cssList.Add(new ConsoleStyledString(txt, state.GetSS(), state.RenderMode, state.FontEdging, state.FontHinting));
 				state.LineHead = false;
 				st.CurrentPosition += found;
 			}
@@ -1444,6 +1451,42 @@ internal static class HtmlManager
 									throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word.Code));
 								font.FontName = attrValue;
 								break;
+							case "render":
+								if (font.RenderMode != null)
+									throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word.Code));
+								if (attrValue.Equals("gdi", StringComparison.OrdinalIgnoreCase))
+									font.RenderMode = TextDrawingMode.TEXTRENDERER;
+								else if (attrValue.Equals("skia", StringComparison.OrdinalIgnoreCase))
+									font.RenderMode = TextDrawingMode.SKIASHARP;
+								else
+									throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, tag, word.Code));
+								break;
+							case "edging":
+								if (font.FontEdging != null)
+									throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word.Code));
+								if (attrValue.Equals("alias", StringComparison.OrdinalIgnoreCase))
+									font.FontEdging = SkiaSharpFontEdging.Alias;
+								else if (attrValue.Equals("antialias", StringComparison.OrdinalIgnoreCase))
+									font.FontEdging = SkiaSharpFontEdging.AntiAlias;
+								else if (attrValue.Equals("subpixel", StringComparison.OrdinalIgnoreCase))
+									font.FontEdging = SkiaSharpFontEdging.SubpixelAntiAlias;
+								else
+									throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, tag, word.Code));
+								break;
+							case "hinting":
+								if (font.FontHinting != null)
+									throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word.Code));
+								if (attrValue.Equals("none", StringComparison.OrdinalIgnoreCase))
+									font.FontHinting = SkiaSharpFontHinting.None;
+								else if (attrValue.Equals("slight", StringComparison.OrdinalIgnoreCase))
+									font.FontHinting = SkiaSharpFontHinting.Slight;
+								else if (attrValue.Equals("normal", StringComparison.OrdinalIgnoreCase))
+									font.FontHinting = SkiaSharpFontHinting.Normal;
+								else if (attrValue.Equals("full", StringComparison.OrdinalIgnoreCase))
+									font.FontHinting = SkiaSharpFontHinting.Full;
+								else
+									throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, tag, word.Code));
+								break;
 							//case "pos":
 							//	{
 							//		//throw new NotImplCodeEE();
@@ -1470,6 +1513,12 @@ internal static class HtmlManager
 							font.BColor = oldFont.BColor;
 						if (font.FontName == null)
 							font.FontName = oldFont.FontName;
+						if (font.RenderMode == null)
+							font.RenderMode = oldFont.RenderMode;
+						if (font.FontEdging == null)
+							font.FontEdging = oldFont.FontEdging;
+						if (font.FontHinting == null)
+							font.FontHinting = oldFont.FontHinting;
 					}
 					state.FonttagList.Add(font);
 					return null;

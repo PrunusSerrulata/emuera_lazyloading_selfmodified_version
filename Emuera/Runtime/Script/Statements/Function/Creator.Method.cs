@@ -8482,4 +8482,84 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 	#endregion
+
+	#region EM_私家版_动态渲染管线与质量控制 API
+	private sealed class SetTextDrawingModeMethod : FunctionMethod
+	{
+		public SetTextDrawingModeMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = new Type[] { typeof(long) };
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long mode = arguments[0].GetIntValue(exm);
+			if (mode == 1 || mode == 3)
+			{
+				Config.TextDrawingMode = (TextDrawingMode)mode;
+				return 1;
+			}
+			return 0;
+		}
+	}
+
+	private sealed class GetTextDrawingModeMethod : FunctionMethod
+	{
+		public GetTextDrawingModeMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = new Type[] { };
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return (long)Config.TextDrawingMode;
+		}
+	}
+
+	private sealed class SetSkiaQualityMethod : FunctionMethod
+	{
+		public SetSkiaQualityMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArrayEx = new ArgTypeList[] {
+				new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 1 }
+			};
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (arguments.Count > 0 && arguments[0] != null)
+				Config.ImageQuality = (SkiaSharpImageQuality)arguments[0].GetIntValue(exm);
+			if (arguments.Count > 1 && arguments[1] != null)
+				Config.FontHinting = (SkiaSharpFontHinting)arguments[1].GetIntValue(exm);
+			if (arguments.Count > 2 && arguments[2] != null)
+				Config.FontEdging = (SkiaSharpFontEdging)arguments[2].GetIntValue(exm);
+			FontFactory.ClearFont();
+			return 1;
+		}
+	}
+
+	private sealed class GetSkiaQualityMethod : FunctionMethod
+	{
+		public GetSkiaQualityMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = new Type[] { typeof(long) };
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long type = arguments[0].GetIntValue(exm);
+			switch (type)
+			{
+				case 0: return (long)Config.ImageQuality;
+				case 1: return (long)Config.FontHinting;
+				case 2: return (long)Config.FontEdging;
+				default: return -1;
+			}
+		}
+	}
+	#endregion
 }

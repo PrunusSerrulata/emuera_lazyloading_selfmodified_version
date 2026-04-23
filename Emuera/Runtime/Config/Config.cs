@@ -506,7 +506,7 @@ internal static class Config
 	public static bool UseKeyMacro { get; private set; }
 	public static bool SizableWindow { get; private set; }
 	//public static bool UseImageBuffer { get; private set; }
-	public static TextDrawingMode TextDrawingMode { get; private set; }
+	public static TextDrawingMode TextDrawingMode { get; set; }
 	public static int WindowX { get; private set; }
 	/// <summary>
 	/// 実際に描画可能な横幅
@@ -529,9 +529,9 @@ internal static class Config
 	public static int FPS { get; private set; }
 
 	#region EM_尊尼获加_SkiaSharp渲染设置
-	public static SkiaSharpImageQuality ImageQuality { get; private set; }
-	public static SkiaSharpFontHinting FontHinting { get; private set; }
-	public static SkiaSharpFontEdging FontEdging { get; private set; }
+	public static SkiaSharpImageQuality ImageQuality { get; set; }
+	public static SkiaSharpFontHinting FontHinting { get; set; }
+	public static SkiaSharpFontEdging FontEdging { get; set; }
 	#endregion
 
 	//public static int SkipFrame { get; private set; }

@@ -31,6 +31,52 @@
 		- 解决GDI Bitmap被Dispose后SKBitmap数据失效的问题
 		- 确保SKBitmap拥有独立的像素数据副本
 
+新增命令：SET_TEXT_DRAWING_MODE, GET_TEXT_DRAWING_MODE, SET_SKIA_QUALITY, GET_SKIA_QUALITY
+	动态渲染管线与质量控制API，允许在运行时切换渲染模式和SkiaSharp质量参数。
+
+	1. 修复 Config.cs：
+		- TextDrawingMode 属性从 private set 改为 set，允许运行时修改
+		- ImageQuality、FontHinting、FontEdging 属性从 private set 改为 set
+
+	2. 新增 Creator.Method.cs：
+		- SetTextDrawingModeMethod：设置渲染模式，1=TEXTRENDERER(GDI+)，3=SKIASHARP
+		- GetTextDrawingModeMethod：获取当前渲染模式
+		- SetSkiaQualityMethod：动态设置SkiaSharp渲染质量，参数可省略
+		- GetSkiaQualityMethod：查询SkiaSharp质量参数，type: 0=ImageQuality, 1=FontHinting, 2=FontEdging
+
+	3. 新增 Creator.cs：
+		- 注册 SET_TEXT_DRAWING_MODE, GET_TEXT_DRAWING_MODE, SET_SKIA_QUALITY, GET_SKIA_QUALITY
+
+HTML_PRINT font标签渲染属性扩展：
+	在HTML_PRINT的<font>标签中新增render、edging、hinting属性，支持细粒度控制文本渲染方式。
+
+	1. 修复 ConsoleStyledString.cs：
+		- 新增 RenderMode、FontEdging、FontHinting 属性
+		- 新增带渲染参数的构造函数重载
+		- DrawTo/DrawToBitmap 中的GDI渲染分支根据RenderMode属性判断
+		- SkiaSharp绘制时根据FontEdging属性控制IsAntialias
+		- SkiaSharp路径应用 SrcIn 单色滤镜，实现Emoji单色渲染
+
+	2. 修复 FontFactory.cs：
+		- GetFont方法支持 edging 和 hinting 参数
+		- fontDic 缓存Key加入 edging 和 hinting 维度
+
+	3. 修复 HtmlManager.cs：
+		- HtmlAnalzeStateFontTag 新增 RenderMode、FontEdging、FontHinting 字段
+		- HtmlAnalzeState 新增 RenderMode、FontEdging、FontHinting 便捷属性
+		- font标签解析新增 render、edging、hinting 属性识别
+		- 嵌套font标签时继承外层渲染属性
+		- ConsoleStyledString 创建时传递渲染参数
+
+	使用例：
+		HTML_PRINT "<font render='gdi'>[♥] 特殊符号</font> 普通文本"
+		HTML_PRINT "<font render='skia' edging='alias'>狗牙像素风文字</font>"
+		HTML_PRINT "<font hinting='full'>清晰锐利的微小字体</font>"
+		SET_TEXT_DRAWING_MODE(1) : PRINTFORML GDI+模式渲染
+		SET_TEXT_DRAWING_MODE(3) : PRINTFORML SkiaSharp模式渲染
+		SET_SKIA_QUALITY(3, 0, 0) : FontEdging=Alias关闭抗锯齿
+		SET_SKIA_QUALITY(3, 2, 2) : 恢复默认高质量平滑
+
 2026年4月22日
 智能字体回退优化 - 衬线/无衬线分类回退：
 	改进字体回退逻辑，根据主字体名称动态调整回退优先级。

@@ -1,5 +1,6 @@
 ﻿using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -269,6 +270,35 @@ internal sealed class ConfigItem<T> : AConfigItem
 			else
 				throw new CodeEE(Lang.Error.InvalidSpecification.Text);
 		}
+		#region EM_尊尼获加_SkiaSharp渲染设置
+		else if (this is ConfigItem<SkiaSharpImageQuality>)
+		{
+			if (Enum.TryParse<SkiaSharpImageQuality>(str, true, out var result))
+			{
+				((ConfigItem<SkiaSharpImageQuality>)(AConfigItem)this).Value = result;
+			}
+			else
+				throw new CodeEE(Lang.Error.InvalidSpecification.Text);
+		}
+		else if (this is ConfigItem<SkiaSharpFontHinting>)
+		{
+			if (Enum.TryParse<SkiaSharpFontHinting>(str, true, out var result))
+			{
+				((ConfigItem<SkiaSharpFontHinting>)(AConfigItem)this).Value = result;
+			}
+			else
+				throw new CodeEE(Lang.Error.InvalidSpecification.Text);
+		}
+		else if (this is ConfigItem<SkiaSharpFontEdging>)
+		{
+			if (Enum.TryParse<SkiaSharpFontEdging>(str, true, out var result))
+			{
+				((ConfigItem<SkiaSharpFontEdging>)(AConfigItem)this).Value = result;
+			}
+			else
+				throw new CodeEE(Lang.Error.InvalidSpecification.Text);
+		}
+		#endregion
 		//else
 		//    throw new ExeEE("型不明なコンフィグ");
 		return ret;
