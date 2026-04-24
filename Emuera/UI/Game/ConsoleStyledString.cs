@@ -119,23 +119,16 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		if (GdiFont == null) return;
 
 		var gdiTextsWithFontList = new List<GdiTextsWithFont>();
-		var currentText = new StringBuilder();
-		Font currentFont = GdiFont;
 
-		foreach (var @char in Text)
-		{
-			currentText.Append(@char);
-		}
+		TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
+		var size = TextRenderer.MeasureText(Text, GdiFont, new System.Drawing.Size(int.MaxValue, int.MaxValue), flags);
 
-		if (currentText.Length > 0)
+		gdiTextsWithFontList.Add(new GdiTextsWithFont
 		{
-			gdiTextsWithFontList.Add(new GdiTextsWithFont
-			{
-				Text = currentText.ToString(),
-				Font = currentFont,
-				Width = TextRenderer.MeasureText(currentText.ToString(), currentFont).Width
-			});
-		}
+			Text = Text,
+			Font = GdiFont,
+			Width = size.Width
+		});
 
 		_gdiTexts = gdiTextsWithFontList;
 	}
@@ -144,7 +137,13 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	{
 		if (Font == null) return;
 
-		if (!GlobalStatic.Console.strictFontFallback && Font.ContainsGlyphs(Text))
+		bool hasSurrogate = false;
+		for (int i = 0; i < Text.Length; i++)
+		{
+			if (char.IsSurrogate(Text[i])) { hasSurrogate = true; break; }
+		}
+
+		if (!GlobalStatic.Console.strictFontFallback && !hasSurrogate && Font.ContainsGlyphs(Text))
 		{
 			_texts = null;
 			return;
@@ -154,13 +153,17 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		var currentText = new StringBuilder();
 		SKTypeface currentTypeface = null;
 
-		foreach (var @char in Text)
+		var enumerator = System.Globalization.StringInfo.GetTextElementEnumerator(Text);
+		while (enumerator.MoveNext())
 		{
+			string grapheme = enumerator.GetTextElement();
+			int codepoint = char.ConvertToUtf32(grapheme, 0);
+
 			SKTypeface glyphTypeface = Font.Typeface;
 
-			if (!Font.ContainsGlyph(@char))
+			if (!Font.ContainsGlyphs(grapheme))
 			{
-				glyphTypeface = FontFactory.GetFallbackTypefaceForChar(@char, Font.Typeface.FamilyName) ?? Font.Typeface;
+				glyphTypeface = FontFactory.GetFallbackTypefaceForCodepoint(codepoint, Font.Typeface.FamilyName) ?? Font.Typeface;
 			}
 
 			if (currentTypeface == null)
@@ -176,7 +179,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 				}
 				currentTypeface = glyphTypeface;
 			}
-			currentText.Append(@char);
+			currentText.Append(grapheme);
 		}
 
 		if (currentText.Length > 0)
@@ -262,19 +265,24 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			Width = 0;
 			return;
 		}
-		if (_texts == null)
+
+		if (RenderMode == TextDrawingMode.TEXTRENDERER && GdiFont != null && _gdiTexts != null)
+		{
+			var offsetX = 0.0f;
+			foreach (var text in _gdiTexts) offsetX += text.Width;
+			Width = (int)offsetX;
+		}
+		else if (_texts == null)
 		{
 			Width = StringMeasure.GetDisplayLength(Text, Font);
 		}
 		else
 		{
 			var offsetX = 0.0f;
-			foreach (var text in _texts)
-			{
-				offsetX += text.Width;
-			}
+			foreach (var text in _texts) offsetX += text.Width;
 			Width = (int)offsetX;
 		}
+
 		XsubPixel = subPixel;
 		Size = new SKSize(Width, Config.LineHeight);
 
@@ -368,22 +376,22 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	bool useGdiRender = (RenderMode == TextDrawingMode.TEXTRENDERER || RenderMode == null) && IsRasterFont && GdiFont != null;
 	if (useGdiRender)
 	{
-		var gdiPoint = point with { X = point.X - Config.DrawingParam_ShapePositionShift };
+		TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping;
+
 		if (_gdiTexts != null)
 		{
 			foreach (var gdiText in _gdiTexts)
 			{
-				var size = TextRenderer.MeasureText(gdiText.Text, gdiText.Font);
-				using var bitmap = new System.Drawing.Bitmap(size.Width, size.Height);
+				using var bitmap = new System.Drawing.Bitmap((int)gdiText.Width + 2, (int)Font.Size + 2);
 				using (var g = System.Drawing.Graphics.FromImage(bitmap))
 				{
 					g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-					TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color);
+					TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color, flags);
 				}
 				using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
-				var skPoint = gdiPoint with { Y = gdiPoint.Y - gdiText.Font.Height + gdiText.Font.Size };
+				var skPoint = new SKPoint(point.X, point.Y - gdiText.Font.Height + gdiText.Font.Size);
 				graph.DrawBitmap(skBitmap, skPoint);
-				gdiPoint.Offset(gdiText.Width, 0);
+				point.Offset(gdiText.Width, 0);
 			}
 		}
 		else
@@ -392,10 +400,10 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			using (var g = System.Drawing.Graphics.FromImage(bitmap))
 			{
 				g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-				TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color);
+				TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color, flags);
 			}
 			using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
-			graph.DrawBitmap(skBitmap, gdiPoint);
+			graph.DrawBitmap(skBitmap, new SKPoint(point.X, point.Y));
 		}
 		return;
 	}
@@ -442,19 +450,19 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		bool useGdiRenderBitmap = (RenderMode == TextDrawingMode.TEXTRENDERER || RenderMode == null) && IsRasterFont && GdiFont != null;
 		if (useGdiRenderBitmap)
 		{
-			float startX = xOffset;
+			TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping;
+			float startX = xOffset + Config.DrawingParam_ShapePositionShift;
 			var point = new SKPoint(startX, 0);
 
 			if (_gdiTexts != null)
 			{
 				foreach (var gdiText in _gdiTexts)
 				{
-					var size = TextRenderer.MeasureText(gdiText.Text, gdiText.Font);
-					using var bitmap = new System.Drawing.Bitmap(size.Width, size.Height);
+					using var bitmap = new System.Drawing.Bitmap((int)gdiText.Width + 2, (int)Font.Size + 2);
 					using (var g = System.Drawing.Graphics.FromImage(bitmap))
 					{
 						g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-						TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color);
+						TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color, flags);
 					}
 					using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
 					var skPoint = point with { Y = point.Y - gdiText.Font.Height + gdiText.Font.Size };
@@ -468,7 +476,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 				using (var g = System.Drawing.Graphics.FromImage(bitmap))
 				{
 					g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-					TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color);
+					TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color, flags);
 				}
 				using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
 				graph.DrawBitmap(skBitmap, point);

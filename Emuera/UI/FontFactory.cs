@@ -28,6 +28,7 @@ internal static class FontFactory
 
 	static readonly Dictionary<(string fontname, float fontSize, FontStyle font_style, SkiaSharpFontEdging edging, SkiaSharpFontHinting hinting), SKFont> fontDic = [];
 	static readonly Dictionary<(char, string), SKTypeface> fallbackTypefaceCache = [];
+	static readonly Dictionary<(int, string), SKTypeface> fallbackTypefaceCodepointCache = [];
 	static readonly Dictionary<(string fontname, int fontSize, FontStyle font_style), Font> gdiFontDic = [];
 
 	public static bool IsRasterFont(string fontName)
@@ -223,6 +224,34 @@ internal static class FontFactory
 		return SKTypeface.Default;
 	}
 
+	public static SKTypeface GetFallbackTypefaceForCodepoint(int codepoint, string currentFontName)
+	{
+		if (codepoint <= 0xFFFF)
+			return GetFallbackTypefaceForChar((char)codepoint, currentFontName);
+
+		var cacheKey = (codepoint, currentFontName);
+		if (fallbackTypefaceCodepointCache.TryGetValue(cacheKey, out var cachedTypeface))
+			return cachedTypeface;
+
+		foreach (var customTypeface in GlobalStatic.CustomTypefaces)
+		{
+			if (customTypeface != null && customTypeface.GetGlyph(codepoint) != 0)
+			{
+				fallbackTypefaceCodepointCache[cacheKey] = customTypeface;
+				return customTypeface;
+			}
+		}
+
+		var matchTypeface = SKFontManager.Default.MatchCharacter(codepoint);
+		if (matchTypeface != null)
+		{
+			fallbackTypefaceCodepointCache[cacheKey] = matchTypeface;
+			return matchTypeface;
+		}
+
+		return SKTypeface.Default;
+	}
+
 	public static bool TryGetGlyphFromFallback(string fontName, uint codepoint)
 	{
 		SKTypeface typeface = CreateTypefaceWithFallback(fontName);
@@ -249,6 +278,13 @@ internal static class FontFactory
 		disposedCount++;
 		}
 		fallbackTypefaceCache.Clear();
+
+		foreach (var typeface in fallbackTypefaceCodepointCache.Values)
+		{
+			typeface?.Dispose();
+			disposedCount++;
+		}
+		fallbackTypefaceCodepointCache.Clear();
 
 		// 只清空字典引用，由 GC 自然回收
 		gdiFontDic.Clear();
