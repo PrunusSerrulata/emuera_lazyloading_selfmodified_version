@@ -112,15 +112,11 @@ class ConsoleDivPart : AConsoleDisplayNode
 		// 如果鼠标根本不在这个 Div 内部，直接返回
 		if (!rect.Contains(pointX, pointY)) return null;
 
-		// O(1) 快速定位鼠标所在的行索引
-		int localY = pointY - rect.Y;
-		int lineIndex = localY / Config.Config.LineHeight;
-
-		// 确保索引不越界
-		if (lineIndex >= 0 && lineIndex < children.Length)
+		for (int i = 0; i < children.Length; i++)
 		{
-			var line = children[lineIndex];
-			int actualRelPointY = rect.Y + (lineIndex * Config.Config.LineHeight);
+			var line = children[i];
+			// 计算该行的基准 Y 坐标
+			int actualRelPointY = rect.Y + (i * Config.Config.LineHeight);
 
 			// 倒序遍历该行的按钮（与原逻辑保持一致，后画的在最上层）
 			for (int b = line.Buttons.Length - 1; b >= 0; b--)

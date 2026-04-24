@@ -224,7 +224,7 @@ internal sealed class UserDefinedVariableData
 
 					continue;
 				}
-				else if (sizeTerm.Int <= 0 || sizeTerm.Int > 1000000)
+				else if (sizeTerm.Int <= 0 || sizeTerm.Int > 10000000)
 					throw new CodeEE(trerror.OoRDefinable.Text, sc);
 				sizeNum.Add((int)sizeTerm.Int);
 			}

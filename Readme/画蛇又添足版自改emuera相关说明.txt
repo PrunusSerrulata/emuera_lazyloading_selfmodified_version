@@ -1,4 +1,15 @@
 
+2026年4月24日
+修复 DIV 内图片按钮点击失效问题：
+	问题描述：当 div 内存在高度超过一行（LineHeight）的图片时，点击图片下半部分无法触发按钮事件，只有点击图片左上角（全角字符范围内）才能正常响应。
+	根本原因：TestChildHitbox 使用 O(1) 快速定位算法 `lineIndex = localY / LineHeight`，假设每个元素高度不超过一行。当图片高度为 100px 时，点击 Y=50 位置计算出 lineIndex=2，但图片实际在第 0 行，导致命中测试失败。
+
+	1. 修复 ConsoleDivPart.cs：
+		- 删除 O(1) 快速定位逻辑，改用遍历所有行的精确包围盒测试
+		- 遍历 div 内所有 children 行，对每行的 buttons 进行倒序遍历
+		- 使用 actualRelPointY = rect.Y + (i * LineHeight) 计算每行基准 Y 坐标
+		- 对每个 part 进行完整的 X/Y 轴包围盒命中测试
+
 2026年4月23日
 修复工具栏版本显示
 修复MS Gothic字体与过去产生差异的问题：
