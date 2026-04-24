@@ -266,28 +266,30 @@ internal static partial class FunctionMethodCreator
 		public GetVarMethod()
 		{
 			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
+				];
 			CanRestructure = false;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
+			long defaultValue = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetIntValue(exm) : 0;
+			bool hasDefault = arguments.Count > 1 && arguments[1] != null;
 			string name = arguments[0].GetStrValue(exm);
-			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(arguments[0].GetStrValue(exm)), LexEndWith.EoL, LexAnalyzeFlag.None);
+
+			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(name), LexEndWith.EoL, LexAnalyzeFlag.None);
 			AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
 
-			if (term is VariableTerm)
+			if (term is VariableTerm var)
 			{
-				VariableTerm var = (VariableTerm)term;
-
 				if (var.Identifier == null)
-					throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
 				if (!var.IsInteger)
-					throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
+					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
 				return var.GetIntValue(exm);
 			}
-			else
-				throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+			return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
 		}
 	}
 	private sealed class GetVarsMethod : FunctionMethod
@@ -295,27 +297,29 @@ internal static partial class FunctionMethodCreator
 		public GetVarsMethod()
 		{
 			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String }, OmitStart = 1 },
+				];
 			CanRestructure = false;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
+			string defaultValue = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetStrValue(exm) : "";
+			bool hasDefault = arguments.Count > 1 && arguments[1] != null;
 			string name = arguments[0].GetStrValue(exm);
-			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(arguments[0].GetStrValue(exm)), LexEndWith.EoL, LexAnalyzeFlag.None);
+
+			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(name), LexEndWith.EoL, LexAnalyzeFlag.None);
 			AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
 
-			if (term is VariableTerm)
+			if (term is VariableTerm var)
 			{
-				VariableTerm var = (VariableTerm)term;
-
 				if (var.Identifier == null)
-					throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
 				if (!var.IsString)
-					throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
+					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
 				return var.GetStrValue(exm);
 			}
-			else
-				throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+			return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
 		}
 	}
 	private sealed class ExistVarMethod : FunctionMethod
@@ -373,144 +377,123 @@ internal static partial class FunctionMethodCreator
 				];
 			CanRestructure = false;
 		}
-		private string CheckVariableTerm(AExpression arg, string v)
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			var vname = v == null ? trerror.FirstArg.Text : v;
+			bool isAscending = arguments.Count < 3 || arguments[2] == null || arguments[2].GetIntValue(exm) != 0;
+			long fixedLengthInput = arguments.Count < 4 ? -1 : arguments[3].GetIntValue(exm);
+			if (fixedLengthInput == 0) return 0;
+			if (fixedLengthInput < -1 || fixedLengthInput > int.MaxValue)
+				throw new CodeEE($"[{Name}] fixedLength parameter must be between -1 and {int.MaxValue}");
+
+			VariableTerm baseVar = arguments[0] is VariableTerm vt ? vt : GetConvertedTerm(exm, arguments[0].GetStrValue(exm));
+			if (!baseVar.Identifier.IsArray1D)
+				throw new CodeEE(string.Format(trerror.Not1DFuncArg.Text, Name, "1"));
+
+			int[] sortedIndices = GetSortedIndices(baseVar, isAscending, (int)fixedLengthInput);
+
+			var targetVarNames = (string[])(arguments[1] as VariableTerm).Identifier.GetArray();
+			var targetTerms = targetVarNames.Select(name => GetConvertedTerm(exm, name)).ToList();
+
+			foreach (var term in targetTerms)
+			{
+				if (!ApplySortToVariable(term, sortedIndices))
+					return 0;
+			}
+			return 1;
+		}
+
+		private int[] GetSortedIndices(VariableTerm baseVar, bool ascending, int fixedLength)
+		{
+			if (baseVar.IsInteger)
+			{
+				long[] array = (long[])baseVar.Identifier.GetArray();
+				int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
+				if (fixedLength == -1)
+				{
+					for (int i = 0; i < length; i++)
+					{
+						if (array[i] == 0) { length = i; break; }
+					}
+				}
+				var indices = Enumerable.Range(0, length).ToArray();
+				if (ascending)
+					Array.Sort(indices, (a, b) => array[a].CompareTo(array[b]));
+				else
+					Array.Sort(indices, (a, b) => array[b].CompareTo(array[a]));
+				return indices;
+			}
+			else
+			{
+				string[] array = (string[])baseVar.Identifier.GetArray();
+				int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
+				if (fixedLength == -1)
+				{
+					for (int i = 0; i < length; i++)
+					{
+						if (string.IsNullOrEmpty(array[i])) { length = i; break; }
+					}
+				}
+				var indices = Enumerable.Range(0, length).ToArray();
+				if (ascending)
+					Array.Sort(indices, (a, b) => string.Compare(array[a], array[b], StringComparison.Ordinal));
+				else
+					Array.Sort(indices, (a, b) => string.Compare(array[b], array[a], StringComparison.Ordinal));
+				return indices;
+			}
+		}
+
+		private bool ApplySortToVariable(VariableTerm term, int[] indices)
+		{
+			Array array = (Array)term.Identifier.GetArray();
+			int dim = array.Rank;
+			if (dim < 1 || dim > 3)
+				throw new ExeEE(trerror.AbnormalArray.Text);
+			if (array.GetLength(0) < indices.Length) return false;
+
+			Array clone = (Array)array.Clone();
+			for (int i = 0; i < indices.Length; i++)
+			{
+				int src = indices[i];
+				if (dim == 1)
+				{
+					array.SetValue(clone.GetValue(src), i);
+				}
+				else if (dim == 2)
+				{
+					for (int x = 0; x < array.GetLength(1); x++)
+						array.SetValue(clone.GetValue(src, x), i, x);
+				}
+				else
+				{
+					for (int x = 0; x < array.GetLength(1); x++)
+						for (int y = 0; y < array.GetLength(2); y++)
+							array.SetValue(clone.GetValue(src, x, y), i, x, y);
+				}
+			}
+			return true;
+		}
+
+		private VariableTerm GetConvertedTerm(ExpressionMediator exm, string name)
+		{
+			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(name), LexEndWith.EoL, LexAnalyzeFlag.None);
+			var term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
+			var err = CheckVariableTerm(term, name);
+			if (err != null) throw new CodeEE(err);
+			return term as VariableTerm;
+		}
+
+		private string CheckVariableTerm(AExpression arg, string vname)
+		{
 			if (!(arg is VariableTerm varTerm) || varTerm.Identifier.IsCalc || varTerm.Identifier.IsConst)
 				return string.Format(trerror.NotVarFunc.Text, Name, vname);
-			if (v == null && !varTerm.Identifier.IsArray1D)
-				return string.Format(trerror.Not1DFuncArg.Text, Name, "1");
 			if (varTerm.Identifier.IsCharacterData)
 				return string.Format(trerror.IsCharaVarFunc.Text, Name, vname);
 			if (!varTerm.Identifier.IsArray1D && !varTerm.Identifier.IsArray2D && !varTerm.Identifier.IsArray3D)
 				return string.Format(trerror.NotDimVarFunc.Text, Name, vname);
 			return null;
 		}
-		private VariableTerm GetConvertedTerm(ExpressionMediator exm, string name)
-		{
-			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(name), LexEndWith.EoL, LexAnalyzeFlag.None);
-			var term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
-			var err = CheckVariableTerm(term, name);
-			if (err != null)
-				throw new CodeEE(err);
-			return term as VariableTerm;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			bool isAscending = arguments.Count < 3 || arguments[2] == null || arguments[2].GetIntValue(exm) != 0;
-			long fixedLength = arguments.Count < 4 ? -1 : arguments[3].GetIntValue(exm);
-			if (fixedLength == 0) return 0;
-			VariableTerm varTerm = arguments[0] is VariableTerm ? arguments[0] as VariableTerm : GetConvertedTerm(exm, arguments[0].GetStrValue(exm));
-			int[] sortedArray;
-			if (varTerm.Identifier.IsInteger)
-			{
-				List<KeyValuePair<long, int>> sortList = [];
-				long[] array = (long[])varTerm.Identifier.GetArray();
-				var length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
-				for (int i = 0; i < length; i++)
-				{
-					if (fixedLength == -1 && array[i] == 0)
-						break;
-					if (array[i] < long.MinValue || array[i] > long.MaxValue)
-						return 0;
-					sortList.Add(new KeyValuePair<long, int>(array[i], i));
-				}
-				//素ではintの範囲しか扱えないので一工夫
-				sortList.Sort((a, b) => { return (isAscending ? 1 : -1) * Math.Sign(a.Key - b.Key); });
-				sortedArray = sortList.Select(p => p.Value).ToArray();
-			}
-			else
-			{
-				List<KeyValuePair<string, int>> sortList = [];
-				string[] array = (string[])varTerm.Identifier.GetArray();
-				var length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
-				for (int i = 0; i < length; i++)
-				{
-					if (fixedLength == -1 && string.IsNullOrEmpty(array[i]))
-						return 0;
-					sortList.Add(new KeyValuePair<string, int>(array[i], i));
-				}
-				sortList.Sort((a, b) => { return (isAscending ? 1 : -1) * a.Key.CompareTo(b.Key); });
-				sortedArray = sortList.Select(p => p.Value).ToArray();
-			}
-			List<VariableTerm> varTerms = [];
-			foreach (var nTerm in (string[])(arguments[1] as VariableTerm).Identifier.GetArray())
-				varTerms.Add(GetConvertedTerm(exm, nTerm));
-			foreach (var term in varTerms)
-			{
-				if (term.Identifier.IsArray1D)
-				{
-					if (term.IsInteger)
-					{
-						var array = (long[])term.Identifier.GetArray();
-						var clone = (long[])array.Clone();
-						if (array.Length < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							array[i] = clone[sortedArray[i]];
-					}
-					else
-					{
-						var array = (string[])term.Identifier.GetArray();
-						var clone = (string[])array.Clone();
-						if (array.Length < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							array[i] = clone[sortedArray[i]];
-					}
-				}
-				else if (term.Identifier.IsArray2D)
-				{
-					if (term.IsInteger)
-					{
-						var array = (long[,])term.Identifier.GetArray();
-						var clone = (long[,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								array[i, x] = clone[sortedArray[i], x];
-					}
-					else
-					{
-						var array = (string[,])term.Identifier.GetArray();
-						var clone = (string[,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								array[i, x] = clone[sortedArray[i], x];
-					}
-				}
-				else if (term.Identifier.IsArray3D)
-				{
-					if (term.IsInteger)
-					{
-						var array = (long[,,])term.Identifier.GetArray();
-						var clone = (long[,,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								for (int y = 0; y < array.GetLength(2); y++)
-									array[i, x, y] = clone[sortedArray[i], x, y];
-					}
-					else
-					{
-						var array = (string[,,])term.Identifier.GetArray();
-						var clone = (string[,,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								for (int y = 0; y < array.GetLength(2); y++)
-									array[i, x, y] = clone[sortedArray[i], x, y];
-					}
-				}
-				else { throw new ExeEE(trerror.AbnormalArray.Text); }
-			}
-			return 1;
-		}
+
 		public override bool UniqueRestructure(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			for (int i = 0; i < arguments.Count; i++)
@@ -524,36 +507,38 @@ internal static partial class FunctionMethodCreator
 		{
 			ReturnType = typeof(long);
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any } },
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int }, OmitStart = 2 },
 				];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
+			long defaultValue = arguments.Count > 2 && arguments[2] != null ? arguments[2].GetIntValue(exm) : 0;
+			bool hasDefault = arguments.Count > 2 && arguments[2] != null;
 			string name = arguments[0].GetStrValue(exm);
-			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(arguments[0].GetStrValue(exm)), LexEndWith.EoL, LexAnalyzeFlag.None);
+
+			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(name), LexEndWith.EoL, LexAnalyzeFlag.None);
 			AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
 
 			if (term is VariableTerm var)
 			{
 				if (var.Identifier == null || var.Identifier.IsConst)
-					throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
 				if (var.IsString)
 				{
 					if (arguments[1].GetOperandType() != typeof(string))
-						throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
+						return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
 					var.SetValue(arguments[1].GetStrValue(exm), exm);
 				}
 				else
 				{
 					if (arguments[1].GetOperandType() != typeof(long))
-						throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
+						return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
 					var.SetValue(arguments[1].GetIntValue(exm), exm);
 				}
 				return 1;
 			}
-			else
-				throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+			return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
 		}
 	}
 	private sealed class VarSetExMethod : FunctionMethod
