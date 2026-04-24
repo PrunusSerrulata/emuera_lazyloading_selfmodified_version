@@ -2,10 +2,10 @@
 
 | 命令/属性名称 | 参数 | 返回值/效果 |
 | :--- | :--- | :--- |
-| **SET_TEXT_DRAWING_MODE** | int mode | int (1=成功, 0=失败) |
-| **GET_TEXT_DRAWING_MODE** | 无 | int (当前渲染模式) |
-| **SET_SKIA_QUALITY** | int quality, int hinting, int edging | int (1=成功) |
-| **GET_SKIA_QUALITY** | int type | int (指定参数的值) |
+| **SET_TEXT_DRAWING_MODE** | int mode | 命令专用。动态切换全局文本渲染管线 |
+| **int GET_TEXT_DRAWING_MODE** | 无 | 命令/表达式。返回当前渲染模式(1=GDI+, 3=SkiaSharp) |
+| **SET_SKIA_QUALITY** | int quality, int hinting, int edging | 命令专用。修改全局 SkiaSharp 质量参数 |
+| **int GET_SKIA_QUALITY** | int type | 命令/表达式。返回指定参数的值 |
 | **HTML_PRINT font render** | 'gdi' \| 'skia' | 控制该标签内文本的渲染管线 |
 | **HTML_PRINT font edging** | 'alias' \| 'antialias' \| 'subpixel' | 控制抗锯齿方式 |
 | **HTML_PRINT font hinting** | 'none' \| 'slight' \| 'normal' \| 'full' | 控制字形微调程度 |
@@ -14,9 +14,9 @@
 
 ### API
 
-```
-SET_TEXT_DRAWING_MODE mode
-GET_TEXT_DRAWING_MODE()
+``` { #language-erbapi }
+SET_TEXT_DRAWING_MODE modeID
+int GET_TEXT_DRAWING_MODE
 ```
 
 动态切换全局文本渲染管线。
@@ -26,6 +26,23 @@ GET_TEXT_DRAWING_MODE()
 
 ### Hint
 
+!!! hint "Hint"
+
+    **命令专用。**
+
+    命令语法：
+    ```
+    SET_TEXT_DRAWING_MODE 3
+    GET_TEXT_DRAWING_MODE
+    ```
+
+    表达式语法：
+    ```
+    LOCAL = GET_TEXT_DRAWING_MODE()
+    ```
+
+* `SET_TEXT_DRAWING_MODE`：命令专用。成功返回 1，失败返回 0。
+* `GET_TEXT_DRAWING_MODE`：命令/表达式。返回当前渲染模式（1=GDI+, 3=SkiaSharp）。
 * 该设置影响**全局**文本渲染方式，包括 `PRINT`、`PRINTFORML`、`HTML_PRINT` 等所有文本输出。
 * 默认为 `SKIASHARP` (3)。
 * 切换渲染管线后，当前已缓存的字体可能需要重新加载才能生效。
@@ -52,9 +69,9 @@ GET_TEXT_DRAWING_MODE()
 
 ### API
 
-```
-SET_SKIA_QUALITY quality, hinting, edging
-GET_SKIA_QUALITY type
+``` { #language-erbapi }
+SET_SKIA_QUALITY qualityID{, hintingID, edgingID}
+int GET_SKIA_QUALITY typeID
 ```
 
 控制 SkiaSharp 渲染质量参数。所有参数均可省略，省略时保持当前值不变。
@@ -77,6 +94,18 @@ GET_SKIA_QUALITY type
 
 ### Hint
 
+!!! hint "Hint"
+
+    **命令专用。**
+
+    命令语法：
+    ```
+    SET_SKIA_QUALITY 3, 2, 2
+    GET_SKIA_QUALITY 0
+    ```
+
+* `SET_SKIA_QUALITY`：命令专用。调用后会修改全局 SkiaSharp 质量参数。
+* `GET_SKIA_QUALITY`：命令/表达式。根据 `type` 参数返回对应的质量值（0=ImageQuality, 1=FontHinting, 2=FontEdging）。
 * 修改质量设置后，FontFactory 会清除字体缓存，确保下次渲染时使用新参数创建字体。
 * 这些设置主要影响 SkiaSharp 渲染管线下的文本显示效果。
 * `edging='alias'` 可实现类似早期 Windows 字体的那种锐利像素风格。

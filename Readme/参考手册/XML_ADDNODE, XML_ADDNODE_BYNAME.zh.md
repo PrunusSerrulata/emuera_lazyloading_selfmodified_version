@@ -2,15 +2,17 @@
 
 | 函数名 | 参数 | 返回值 |
 | :--- | :--- | :--- |
-| **XML_ADDNODE** | int xmlId, string xpath, string nodeXml(, int methodType, int doSetAll) | int |
-| **XML_ADDNODE** | ref string xml, string xpath, string nodeXml(, int methodType, int doSetAll) | int |
-| **XML_ADDNODE_BYNAME** | string xmlName, string xpath, string nodeXml(, int methodType, int doSetAll) | int |
+| **int XML_ADDNODE** | int xmlId, string xpath, string nodeXml(, int methodType, int doSetAll) | 命令/表达式。返回成功匹配的目标节点数量 |
+| **int XML_ADDNODE** | ref string xml, string xpath, string nodeXml(, int methodType, int doSetAll) | 命令/表达式。返回成功匹配的目标节点数量 |
+| **int XML_ADDNODE_BYNAME** | string xmlName, string xpath, string nodeXml(, int methodType, int doSetAll) | 命令/表达式。返回成功匹配的目标节点数量 |
 
 ### API
 
-1. `int XML_ADDNODE(xmlId, xpath, nodeXml[, methodType, doSetAll])`
-2. `int XML_ADDNODE(ref xml, xpath, nodeXml[, methodType, doSetAll])`
-3. `int XML_ADDNODE_BYNAME(xmlName, xpath, nodeXml[, methodType, doSetAll])`
+``` { #language-erbapi }
+int XML_ADDNODE xmlIdNum, xpathString, nodeXmlString{, methodType, doSetAll}
+int XML_ADDNODE xmlString, xpathString, nodeXmlString{, methodType, doSetAll}
+int XML_ADDNODE_BYNAME xmlNameString, xpathString, nodeXmlString{, methodType, doSetAll}
+```
 
 根据 `xpath` 选择的元素节点（详见 XPath 的介绍），将新的元素节点 `nodeXml` 添加到指定的 XML 中。
 函数返回值为 **成功匹配到的目标节点数量**；如果 XML 解析失败或指定的 ID 不存在，返回 -1。
@@ -31,8 +33,24 @@
 
 ### Hint
 
-* 命令 / 行内函数两种写法均有效。
-* 传入的 `nodeXml` 必须是格式合法的 XML 字符串（例如 `<child id="1">text</child>`）。
+!!! hint "Hint"
+
+    **命令/表达式。**
+
+    命令语法：
+    ```
+    XML_ADDNODE 0, "/root", "<child/>"
+    XML_ADDNODE_BYNAME "myXml", "/root", "<child/>"
+    ```
+
+    表达式语法：
+    ```
+    LOCAL = XML_ADDNODE(0, "/root", "<child/>")
+    LOCAL = XML_ADDNODE_BYNAME("myXml", "/root", "<child/>")
+    ```
+
+    所有XML_ADDNODE函数均为命令语法，使用空格分隔参数，也可以作为表达式调用。
+    传入的 `nodeXml` 必须是格式合法的 XML 字符串（例如 `<child id="1">text</child>`）。
 
 ### Example
 

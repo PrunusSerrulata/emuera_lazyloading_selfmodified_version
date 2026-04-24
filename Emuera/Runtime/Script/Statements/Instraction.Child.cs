@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
@@ -12,6 +12,7 @@ using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using MinorShift.Emuera.Runtime.Utils.PluginSystem;
+using MinorShift.Emuera.UI;
 using MinorShift.Emuera.UI.Game;
 using System;
 using System.Collections.Generic;
@@ -3699,6 +3700,108 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
+
+	private sealed class CALLEVENT_Instruction : AInstruction
+	{
+		public CALLEVENT_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.STR);
+			flag = FLOW_CONTROL | EXTENDED;
+		}
+
+		public override void SetJumpTo(ref bool useCallForm, InstructionLine func, int currentDepth, ref string FunctionoNotFoundName)
+		{
+			//EVENT関数からCALLされた先でCALLEVENTされるようなパターンはIntoFunctionで捕まえる
+			FunctionLabelLine label = func.ParentLabelLine;
+			if (label.IsEvent)
+			{
+				ParserMediator.Warn(trerror.CanNotUseCallevent.Text, func, 2, true, false);
+			}
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			string labelName = func.Argument.ConstStr;
+			CalledFunction call = CalledFunction.CallEventFunction(GlobalStatic.Process, labelName, func);
+			if (call == null)
+				return;
+			state.IntoFunction(call, null, null);
+		}
+	}
+
+	private sealed class GOTO_Instruction : AInstruction
+	{
+		public GOTO_Instruction(bool form, bool isTry, bool isTryCatch)
+		{
+			if (form)
+				ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_CALLFORM);
+			else
+				ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_CALL);
+			this.isTry = isTry;
+			flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG;
+			if (isTry)
+				flag |= IS_TRY;
+			if (isTryCatch)
+				flag |= IS_TRYC | PARTIAL;
+		}
+		readonly bool isTry;
+
+		public override void SetJumpTo(ref bool useCallForm, InstructionLine func, int currentDepth, ref string FunctionoNotFoundName)
+		{
+			GotoLabelLine jumpto;
+			func.JumpTo = null;
+			if (func.Argument.IsConst)
+			{
+				string labelName = func.Argument.ConstStr;
+				jumpto = GlobalStatic.LabelDictionary.GetLabelDollar(labelName, func.ParentLabelLine);
+				if (jumpto == null)
+				{
+					if (!func.Function.IsTry())
+						ParserMediator.Warn(string.Format(trerror.NotDefinedLabelName.Text, labelName), func, 2, true, false);
+					else
+						return;
+				}
+				else if (jumpto.IsError)
+					ParserMediator.Warn(string.Format(trerror.InvalidLabelName.Text, labelName), func, 2, true, false);
+				else if (jumpto != null)
+				{
+					func.JumpTo = jumpto;
+				}
+			}
+		}
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			string label;
+			LogicalLine jumpto;
+			if (func.Argument.IsConst)
+			{
+				label = func.Argument.ConstStr;
+				if (func.JumpTo != null)
+					jumpto = func.JumpTo;
+				else
+					return;
+			}
+			else
+			{
+				label = ((SpCallArgment)func.Argument).FuncnameTerm.GetStrValue(exm);
+				jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label);
+			}
+			if (jumpto == null)
+			{
+				if (!func.Function.IsTry())
+					throw new CodeEE(string.Format(trerror.NotDefinedLabelName.Text, label));
+				if (func.JumpToEndCatch != null)
+					state.JumpTo(func.JumpToEndCatch);
+				return;
+			}
+			else if (jumpto.IsError)
+				throw new CodeEE(string.Format(trerror.InvalidLabelName.Text, label));
+			state.JumpTo(jumpto);
+		}
+	}
+	#endregion
+
+	#region 尊尼获加荣誉出品
 	private sealed class CALLS_Instruction : AInstruction
 	{
 		public CALLS_Instruction(bool isJump, bool isTry, bool isTryCatch)
@@ -3817,102 +3920,102 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class CALLEVENT_Instruction : AInstruction
+	private sealed class SETANIMETIMER_Instruction : AInstruction
 	{
-		public CALLEVENT_Instruction()
+		public SETANIMETIMER_Instruction()
 		{
-			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.STR);
-			flag = FLOW_CONTROL | EXTENDED;
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
+			flag = METHOD_SAFE | EXTENDED;
 		}
-
-		public override void SetJumpTo(ref bool useCallForm, InstructionLine func, int currentDepth, ref string FunctionoNotFoundName)
-		{
-			//EVENT関数からCALLされた先でCALLEVENTされるようなパターンはIntoFunctionで捕まえる
-			FunctionLabelLine label = func.ParentLabelLine;
-			if (label.IsEvent)
-			{
-				ParserMediator.Warn(trerror.CanNotUseCallevent.Text, func, 2, true, false);
-			}
-		}
-
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			string labelName = func.Argument.ConstStr;
-			CalledFunction call = CalledFunction.CallEventFunction(GlobalStatic.Process, labelName, func);
-			if (call == null)
-				return;
-			state.IntoFunction(call, null, null);
+			ExpressionArgument arg = (ExpressionArgument)func.Argument;
+			long iValue;
+			if (arg.IsConst)
+				iValue = arg.ConstInt;
+			else
+				iValue = arg.Term.GetIntValue(exm);
+			if (iValue < int.MinValue || iValue > short.MaxValue)
+				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, "SETANIMETIMER", 1, iValue, int.MinValue, int.MaxValue));
+			exm.Console.setRedrawTimer((int)iValue);
 		}
 	}
 
-	private sealed class GOTO_Instruction : AInstruction
+	private sealed class STRICTFONTFALLBACK_Instruction : AInstruction
 	{
-		public GOTO_Instruction(bool form, bool isTry, bool isTryCatch)
+		public STRICTFONTFALLBACK_Instruction()
 		{
-			if (form)
-				ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_CALLFORM);
-			else
-				ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_CALL);
-			this.isTry = isTry;
-			flag = METHOD_SAFE | FLOW_CONTROL | FORCE_SETARG;
-			if (isTry)
-				flag |= IS_TRY;
-			if (isTryCatch)
-				flag |= IS_TRYC | PARTIAL;
-		}
-		readonly bool isTry;
-
-		public override void SetJumpTo(ref bool useCallForm, InstructionLine func, int currentDepth, ref string FunctionoNotFoundName)
-		{
-			GotoLabelLine jumpto;
-			func.JumpTo = null;
-			if (func.Argument.IsConst)
-			{
-				string labelName = func.Argument.ConstStr;
-				jumpto = GlobalStatic.LabelDictionary.GetLabelDollar(labelName, func.ParentLabelLine);
-				if (jumpto == null)
-				{
-					if (!func.Function.IsTry())
-						ParserMediator.Warn(string.Format(trerror.NotDefinedLabelName.Text, labelName), func, 2, true, false);
-					else
-						return;
-				}
-				else if (jumpto.IsError)
-					ParserMediator.Warn(string.Format(trerror.InvalidLabelName.Text, labelName), func, 2, true, false);
-				else if (jumpto != null)
-				{
-					func.JumpTo = jumpto;
-				}
-			}
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
+			flag = METHOD_SAFE | EXTENDED;
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			string label;
-			LogicalLine jumpto;
-			if (func.Argument.IsConst)
-			{
-				label = func.Argument.ConstStr;
-				if (func.JumpTo != null)
-					jumpto = func.JumpTo;
-				else
-					return;
-			}
+			ExpressionArgument arg = (ExpressionArgument)func.Argument;
+			long value;
+			if (arg.IsConst)
+				value = arg.ConstInt;
 			else
-			{
-				label = ((SpCallArgment)func.Argument).FuncnameTerm.GetStrValue(exm);
-				jumpto = state.CurrentCalled.CallLabel(GlobalStatic.Process, label);
-			}
-			if (jumpto == null)
-			{
-				if (!func.Function.IsTry())
-					throw new CodeEE(string.Format(trerror.NotDefinedLabelName.Text, label));
-				if (func.JumpToEndCatch != null)
-					state.JumpTo(func.JumpToEndCatch);
-				return;
-			}
-			else if (jumpto.IsError)
-				throw new CodeEE(string.Format(trerror.InvalidLabelName.Text, label));
-			state.JumpTo(jumpto);
+				value = arg.Term.GetIntValue(exm);
+			GlobalStatic.Console.strictFontFallback = value != 0;
+		}
+	}
+
+	private sealed class SETSKIAQUALITY_Instruction : AInstruction
+	{
+		public SETSKIAQUALITY_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_ANY);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			ExpressionArrayArgument arg = (ExpressionArrayArgument)func.Argument;
+			if (arg.TermList.Length > 0 && arg.TermList[0] != null)
+				Config.ImageQuality = (SkiaSharpImageQuality)arg.TermList[0].GetIntValue(exm);
+			if (arg.TermList.Length > 1 && arg.TermList[1] != null)
+				Config.FontHinting = (SkiaSharpFontHinting)arg.TermList[1].GetIntValue(exm);
+			if (arg.TermList.Length > 2 && arg.TermList[2] != null)
+				Config.FontEdging = (SkiaSharpFontEdging)arg.TermList[2].GetIntValue(exm);
+			FontFactory.ClearFont();
+		}
+	}
+
+	private sealed class TEXTTHREADMODE_Instruction : AInstruction
+	{
+		public TEXTTHREADMODE_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			ExpressionArgument arg = (ExpressionArgument)func.Argument;
+			long mode;
+			if (arg.IsConst)
+				mode = arg.ConstInt;
+			else
+				mode = arg.Term.GetIntValue(exm);
+			if (mode == 1 || mode == 3)
+				Config.TextDrawingMode = (TextDrawingMode)mode;
+		}
+	}
+
+	private sealed class BITMAPCACHEENABLE_Instruction : AInstruction
+	{
+		public BITMAPCACHEENABLE_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			ExpressionArgument arg = (ExpressionArgument)func.Argument;
+			long value;
+			if (arg.IsConst)
+				value = arg.ConstInt;
+			else
+				value = arg.Term.GetIntValue(exm);
+			GlobalStatic.Console.bitmapCacheEnabledForNextLine = value != 0;
 		}
 	}
 	#endregion

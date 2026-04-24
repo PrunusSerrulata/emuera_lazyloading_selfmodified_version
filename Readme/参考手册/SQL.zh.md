@@ -2,43 +2,66 @@
 
 | 函数名 | 参数 | 返回值 |
 | :--- | :--- | :--- |
-| **SQL_CONNECT** | string dbName (, string connectionString) | int |
-| **SQL_DISCONNECT** | string dbName | int |
-| **SQL_EXECUTE_NONQUERY** | string dbName, string sql | int |
-| **SQL_EXECUTE_READER** | string dbName, string sql | int |
-| **SQL_READER_READ** | long readerId | int |
-| **SQL_READER_GET_LONG** | long readerId, int columnIndex | int |
-| **SQL_READER_GET_STRING** | long readerId, int columnIndex | string |
-| **SQL_READER_ISNULL** | long readerId, int columnIndex | int |
-| **SQL_READER_CLOSE** | long readerId | int |
-| **SQL_IMPORT_MAP_XML** | string dbName, string tableName, string filePath | int |
-| **SQL_IMPORT_DT_XML** | string dbName, string tableName, string schemaPath, string dataPath | int |
-| **SQL_EXPORT_MAP_XML** | string dbName, string tableName, string filePath | int |
-| **SQL_EXPORT_DT_XML** | string dbName, string tableName, string schemaPath, string dataPath | int |
-| **SQL_IMPORT_XML_CUSTOM** | string dbName, string tableName, string filePath, string rowXPath, string columnMappings | int |
+| **SQL_CONNECT** | string dbName (, string connectionString) | 命令/表达式。返回1=成功，0=失败 |
+| **SQL_DISCONNECT** | string dbName | 命令/表达式。返回1 |
+| **SQL_EXECUTE_NONQUERY** | string dbName, string sql | 命令/表达式。返回受影响行数 |
+| **SQL_EXECUTE_READER** | string dbName, string sql | 命令/表达式。返回readerId |
+| **SQL_READER_READ** | long readerId | 命令/表达式。返回1=有数据，0=已读完 |
+| **SQL_READER_GET_LONG** | long readerId, int columnIndex | 命令/表达式。返回整数值，NULL返回0 |
+| **SQL_READER_GET_STRING** | long readerId, int columnIndex | 命令/表达式。返回字符串值 |
+| **SQL_READER_ISNULL** | long readerId, int columnIndex | 命令/表达式。返回1=NULL，0=非NULL |
+| **SQL_READER_CLOSE** | long readerId | 命令/表达式。返回1 |
+| **SQL_EXECUTE_SCALAR_LONG** | string dbName, string sql | 命令/表达式。返回查询结果整数 |
+| **SQL_EXECUTE_SCALAR_STRING** | string dbName, string sql | 命令/表达式。返回查询结果字符串 |
+| **SQL_IMPORT_MAP_XML** | string dbName, string tableName, string filePath | 命令/表达式。返回1=成功 |
+| **SQL_IMPORT_DT_XML** | string dbName, string tableName, string schemaPath, string dataPath | 命令/表达式。返回1=成功 |
+| **SQL_EXPORT_MAP_XML** | string dbName, string tableName, string filePath | 命令/表达式。返回1=成功 |
+| **SQL_EXPORT_DT_XML** | string dbName, string tableName, string schemaPath, string dataPath | 命令/表达式。返回1=成功 |
+| **SQL_IMPORT_XML_CUSTOM** | string dbName, string tableName, string filePath, string rowXPath, string columnMappings | 命令/表达式。返回1=成功 |
 
 ### API
 
-1. `int SQL_CONNECT(dbName[, connectionString])`
-2. `int SQL_DISCONNECT(dbName)`
-3. `int SQL_EXECUTE_NONQUERY(dbName, sql)`
-4. `int SQL_EXECUTE_READER(dbName, sql)`
-5. `int SQL_READER_READ(readerId)`
-6. `int SQL_READER_GET_LONG(readerId, columnIndex)`
-7. `string SQL_READER_GET_STRING(readerId, columnIndex)`
-8. `int SQL_READER_ISNULL(readerId, columnIndex)`
-9. `int SQL_READER_CLOSE(readerId)`
-10. `int SQL_EXECUTE_SCALAR_LONG(dbName, sql)`
-11. `string SQL_EXECUTE_SCALAR_STRING(dbName, sql)`
-12. `int SQL_IMPORT_MAP_XML(dbName, tableName, filePath)`
-13. `int SQL_IMPORT_DT_XML(dbName, tableName, schemaPath, dataPath)`
-14. `int SQL_EXPORT_MAP_XML(dbName, tableName, filePath)`
-15. `int SQL_EXPORT_DT_XML(dbName, tableName, schemaPath, dataPath)`
-16. `int SQL_IMPORT_XML_CUSTOM(dbName, tableName, filePath, rowXPath, columnMappings)`
+``` { #language-erbapi }
+int SQL_CONNECT dbNameString{, connectionString}
+int SQL_DISCONNECT dbNameString
+int SQL_EXECUTE_NONQUERY dbNameString, sqlString
+int SQL_EXECUTE_READER dbNameString, sqlString
+int SQL_READER_READ readerIdNum
+int SQL_READER_GET_LONG readerIdNum, columnIndexNum
+string SQL_READER_GET_STRING readerIdNum, columnIndexNum
+int SQL_READER_ISNULL readerIdNum, columnIndexNum
+int SQL_READER_CLOSE readerIdNum
+int SQL_EXECUTE_SCALAR_LONG dbNameString, sqlString
+string SQL_EXECUTE_SCALAR_STRING dbNameString, sqlString
+int SQL_IMPORT_MAP_XML dbNameString, tableNameString, filePathString
+int SQL_IMPORT_DT_XML dbNameString, tableNameString, schemaPathString, dataPathString
+int SQL_EXPORT_MAP_XML dbNameString, tableNameString, filePathString
+int SQL_EXPORT_DT_XML dbNameString, tableNameString, schemaPathString, dataPathString
+int SQL_IMPORT_XML_CUSTOM dbNameString, tableNameString, filePathString, rowXPathString, columnMappingsString
+```
 
 提供完整的 SQLite 数据库操作能力，支持内存数据库和文件数据库。
 
-**函数说明：**
+### Hint
+
+!!! hint "Hint"
+
+    **命令/表达式。**
+
+    所有SQL函数作为命令时，使用空格分隔参数，也可以作为表达式调用。
+
+    命令语法示例：
+    ```
+    SQL_CONNECT "gameData"
+    SQL_EXECUTE_NONQUERY "gameData", "CREATE TABLE IF NOT EXISTS players (name TEXT, score INTEGER)"
+    ```
+
+    表达式语法示例：
+    ```
+    IF SQL_CONNECT("gameData") == 1
+        LOCAL:0 = SQL_EXECUTE_SCALAR_LONG("gameData", "SELECT COUNT(*) FROM players")
+    ENDIF
+    ```
 
 1. **SQL_CONNECT** - 连接数据库
    - `dbName`: 数据库标识符，用于后续操作引用

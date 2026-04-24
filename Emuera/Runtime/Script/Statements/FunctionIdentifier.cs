@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Function;
+using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Function;
@@ -452,6 +452,14 @@ internal sealed partial class FunctionIdentifier
 		addPrintFunction(FunctionCode.PRINTSN);
 		addPrintFunction(FunctionCode.PRINTFORMN);
 		addPrintFunction(FunctionCode.PRINTFORMSN);
+		#endregion
+
+		#region 尊尼获加荣誉出品
+		addFunction(FunctionCode.SETANIMETIMER, new SETANIMETIMER_Instruction());
+		addFunction(FunctionCode.STRICTFONTFALLBACK, new STRICTFONTFALLBACK_Instruction());
+		addFunction(FunctionCode.SETSKIAQUALITY, new SETSKIAQUALITY_Instruction());
+		addFunction(FunctionCode.TEXTTHREADMODE, new TEXTTHREADMODE_Instruction());
+		addFunction(FunctionCode.BITMAPCACHEENABLE, new BITMAPCACHEENABLE_Instruction());
 		#endregion
 
 		Dictionary<string, FunctionMethod> methodList = FunctionMethodCreator.GetMethodList();

@@ -7029,25 +7029,6 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 
-	private sealed class SetAnimeTimerMethod : FunctionMethod
-	{
-		public SetAnimeTimerMethod()
-		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
-			CanRestructure = false;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long i64 = arguments[0].GetIntValue(exm);
-			if (i64 < int.MinValue || i64 > short.MaxValue)
-				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodDefaultArgumentOutOfRange0, Name, i64, 1));
-				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, i64, int.MinValue, int.MaxValue));
-			exm.Console.setRedrawTimer((int)i64);
-			return 1;
-		}
-	}
-
 	private sealed class GetAnimeTimerMethod : FunctionMethod
 	{
 		public GetAnimeTimerMethod()
@@ -7755,48 +7736,6 @@ internal static partial class FunctionMethodCreator
 	}
 
 	#endregion
-	//Bitmap Cache
-	#region Bitmap Cache
-	private sealed class BitmapCacheEnableMethod : FunctionMethod
-	{
-		public BitmapCacheEnableMethod()
-		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = null;
-			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.Int }, OmitStart = 1 },
-				];
-			CanRestructure = false;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long argument0 = arguments[0].GetIntValue(exm);
-			GlobalStatic.Console.bitmapCacheEnabledForNextLine = argument0 != 0;
-			return 0;
-		}
-	}
-	#endregion
-
-	// 严格字体回退模式
-	#region Strict Font Fallback
-	private sealed class StrictFontFallbackMethod : FunctionMethod
-	{
-		public StrictFontFallbackMethod()
-		{
-			ReturnType = typeof(long);
-			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.Int }, OmitStart = 1 },
-				];
-			CanRestructure = false;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long argument0 = arguments[0].GetIntValue(exm);
-			GlobalStatic.Console.strictFontFallback = argument0 != 0;
-			return 0;
-		}
-	}
-	#endregion
 
 	//HOTKEY STATE
 	private sealed class HotkeyStateMethod : FunctionMethod
@@ -8500,29 +8439,6 @@ internal static partial class FunctionMethodCreator
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return (long)Config.TextDrawingMode;
-		}
-	}
-
-	private sealed class SetSkiaQualityMethod : FunctionMethod
-	{
-		public SetSkiaQualityMethod()
-		{
-			ReturnType = typeof(long);
-			argumentTypeArrayEx = new ArgTypeList[] {
-				new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 1 }
-			};
-			CanRestructure = false;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			if (arguments.Count > 0 && arguments[0] != null)
-				Config.ImageQuality = (SkiaSharpImageQuality)arguments[0].GetIntValue(exm);
-			if (arguments.Count > 1 && arguments[1] != null)
-				Config.FontHinting = (SkiaSharpFontHinting)arguments[1].GetIntValue(exm);
-			if (arguments.Count > 2 && arguments[2] != null)
-				Config.FontEdging = (SkiaSharpFontEdging)arguments[2].GetIntValue(exm);
-			FontFactory.ClearFont();
-			return 1;
 		}
 	}
 

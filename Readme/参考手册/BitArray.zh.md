@@ -2,17 +2,19 @@
 
 | 函数名 | 参数 | 返回值 |
 | :--- | :--- | :--- |
-| **BITSET** | ref int[] array, int idx (, int val, int length) | int |
-| **BITGET** | ref int[] array, int idx | int |
-| **BITTOGGLE** | ref int[] array, int idx | int |
-| **BITINDEXOFFIRST** | ref int[] array (, int val) | int |
+| **int BITSET** | ref int[] array, int idx (, int val, int length) | 命令/表达式。返回1=成功 |
+| **int BITGET** | ref int[] array, int idx | 命令/表达式。返回位值(0/1)，超范围返回-1 |
+| **int BITTOGGLE** | ref int[] array, int idx | 命令/表达式。返回1=成功，0=超范围 |
+| **int BITINDEXOFFIRST** | ref int[] array (, int val) | 命令/表达式。返回第一个匹配位索引，未找到返回-1 |
 
 ### API
 
-1. `int BITSET(array, idx[, val, length])`
-2. `int BITGET(array, idx)`
-3. `int BITTOGGLE(array, idx)`
-4. `int BITINDEXOFFIRST(array[, val])`
+``` { #language-erbapi }
+int BITSET arrayRef, idxID{, val, length}
+int BITGET arrayRef, idxID
+int BITTOGGLE arrayRef, idxID
+int BITINDEXOFFIRST arrayRef{, val}
+```
 
 使用整数数组模拟位图（Bitmap），提供位的设置、读取、翻转和查找功能。
 
@@ -24,7 +26,6 @@
    - `val`: 要设置的值（0为清除，1为设置，非0值也视为1），默认为1
    - `length`: 连续设置的位数，默认为1
    - 返回 1 表示操作成功
-   - 备注：如果设置范围超出数组容量，只会操作有效范围内的位
 
 2. **BITGET** - 读取位图中指定位置的位值
    - `array`: 位图数组
@@ -51,10 +52,29 @@
 
 ### Hint
 
-- `#DIM DYNAMIC BIT_ARRAY, 4` 创建能存储 4*64=256 位的位图
-- 适合用于标记大量布尔状态、集合运算、权限位掩码等场景
-- 比逐个布尔变量更节省内存且操作更高效
+!!! hint "Hint"
 
+    **命令/表达式。**
+
+    命令语法：
+    ```
+    BITSET DA, 5
+    BITGET DA, 5
+    BITTOGGLE DA, 5
+    BITINDEXOFFIRST DA, 0
+    ```
+
+    表达式语法：
+    ```
+    LOCAL = BITSET(DA, 5)
+    LOCAL = BITGET(DA, 5)
+    LOCAL = BITTOGGLE(DA, 5)
+    LOCAL = BITINDEXOFFIRST(DA, 0)
+    ```
+
+    所有BitArray函数均为命令语法，使用空格分隔参数，也可以作为表达式调用。
+    位图使用小端序存储，每个数组元素存储64位。
+    索引从0开始，超出范围的操作会被忽略。
 ### Example
 
 **MAIN.ERB**
@@ -117,52 +137,6 @@
 
     ONEINPUT
 
-;===============================================================
-;BitArray 实用示例 - 简单权限系统
-;===============================================================
-
-@SYSTEM_PERMISSION_DEMO
-    ; 权限定义（位位置）
-    #DIM CONST PERM_READ = 0
-    #DIM CONST PERM_WRITE = 1
-    #DIM CONST PERM_DELETE = 2
-    #DIM CONST PERM_ADMIN = 3
-
-    ; 用户权限位图
-    #DIM DYNAMIC USER_PERMISSIONS, 1
-
-    PRINTFORML "=== BitArray 权限系统演示 ==="
-
-    ; 授予所有权限
-    PRINTFORML "授予全部权限..."
-    BITSET USER_PERMISSIONS, PERM_READ, 1, 1
-    BITSET USER_PERMISSIONS, PERM_WRITE, 1, 1
-    BITSET USER_PERMISSIONS, PERM_DELETE, 1, 1
-    BITSET USER_PERMISSIONS, PERM_ADMIN, 1, 1
-
-    ; 检查权限
-    PRINTFORML ""
-    PRINTFORML "检查权限："
-    PRINTFORML "  读权限: {BITGET(USER_PERMISSIONS, PERM_READ)}"
-    PRINTFORML "  写权限: {BITGET(USER_PERMISSIONS, PERM_WRITE)}"
-    PRINTFORML "  删除权限: {BITGET(USER_PERMISSIONS, PERM_DELETE)}"
-    PRINTFORML "  管理权限: {BITGET(USER_PERMISSIONS, PERM_ADMIN)}"
-
-    ; 撤销删除权限
-    PRINTFORML ""
-    PRINTFORML "撤销删除权限..."
-    BITSET USER_PERMISSIONS, PERM_DELETE, 0, 1
-    PRINTFORML "  删除权限: {BITGET(USER_PERMISSIONS, PERM_DELETE)} (应为0)"
-
-    ; 查找第一个未授权的位置
-    PRINTFORML ""
-    LOCAL = BITINDEXOFFIRST(USER_PERMISSIONS, 0)
-    PRINTFORML "第一个未授权的位置: {LOCAL}"
-
-    PRINTFORML ""
-    PRINTFORML "=== 演示完成 ==="
-
-    ONEINPUT
 ```
 
 **Result**

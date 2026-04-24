@@ -233,31 +233,6 @@ SPRITEDISPOSEALL deleteCsvImage
 
 ---
 
-## SQL 资源查询
-
-### SQL_RESOURCE_EXIST
-
-**功能**: 检查 Sprite 是否存在（不加载）
-
-**语法**:
-```
-SQL_RESOURCE_EXIST "spriteName"
-```
-
-**返回值**: 1=存在，0=不存在
-
-**说明**: 仅查询 SQLite 索引，不触发加载
-
-**示例**:
-```erb
-SQL_RESOURCE_EXIST "CHARA_001"
-IF RESULT == 1
-    PRINTW 索引中存在此人设
-ENDIF
-```
-
----
-
 ## 行为对比
 
 | 函数 | 动图识别 | 多帧展开 | LRU 管理 | 内存释放 |
@@ -276,13 +251,6 @@ ENDIF
 
 ### 推荐模式
 
-```erb
-; 1. 检查是否存在
-SQL_RESOURCE_EXIST "CHARA_001"
-IF RESULT == 0
-    PRINTW 资源不存在
-    RETURN
-ENDIF
 
 ; 2. 直接使用（自动加载）
 DRAWCHARA "CHARA_001"
@@ -327,12 +295,3 @@ private static readonly int MAX_LRU_CAPACITY = 800;  // 最大缓存文件数
 
 ---
 
-## 旧版 RM_* 函数（已废弃）
-
-以下函数已在重构后移除，请使用新的 SQL 资源函数：
-
-| 旧函数 | 替代方案 |
-|:-------|:---------|
-| RM_RESOURCECHECK_LOAD | 直接使用 Sprite 渲染函数（自动加载） |
-| RM_RESOURCE_EXIST | SQL_RESOURCE_EXIST |
-| RM_RELEASE_ALL | SPRITEDISPOSEALL |

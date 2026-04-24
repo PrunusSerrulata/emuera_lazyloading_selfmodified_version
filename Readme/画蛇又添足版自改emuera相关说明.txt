@@ -68,14 +68,7 @@ HTML_PRINT font标签渲染属性扩展：
 		- 嵌套font标签时继承外层渲染属性
 		- ConsoleStyledString 创建时传递渲染参数
 
-	使用例：
-		HTML_PRINT "<font render='gdi'>[♥] 特殊符号</font> 普通文本"
-		HTML_PRINT "<font render='skia' edging='alias'>狗牙像素风文字</font>"
-		HTML_PRINT "<font hinting='full'>清晰锐利的微小字体</font>"
-		SET_TEXT_DRAWING_MODE(1) : PRINTFORML GDI+模式渲染
-		SET_TEXT_DRAWING_MODE(3) : PRINTFORML SkiaSharp模式渲染
-		SET_SKIA_QUALITY(3, 0, 0) : FontEdging=Alias关闭抗锯齿
-		SET_SKIA_QUALITY(3, 2, 2) : 恢复默认高质量平滑
+	见手册
 
 2026年4月22日
 智能字体回退优化 - 衬线/无衬线分类回退：

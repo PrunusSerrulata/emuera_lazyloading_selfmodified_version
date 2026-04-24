@@ -2,13 +2,15 @@
 
 | 函数名 | 参数 | 返回值 |
 | :--- | :--- | :--- |
-| **EVAL** | string expression(, int defaultValue) | int |
-| **EVALS** | string expression(, string defaultValue) | string |
+| **EVAL** | string expression(, int defaultValue) | 命令/表达式。返回表达式求值结果 |
+| **EVALS** | string expression(, string defaultValue) | 命令/表达式。返回表达式求值结果 |
 
 ### API
 
-1. `int EVAL(expression[, defaultValue])`
-2. `string EVALS(expression[, defaultValue])`
+``` { #language-erbapi }
+int EVAL expressionString{, defaultValue}
+string EVALS expressionString{, defaultValue}
+```
 
 将传入的字符串 `expression` 作为 ERB 表达式在运行时进行动态解析与求值。
 * `EVAL` 用于计算并返回**整数**结果。
@@ -20,8 +22,25 @@
 
 ### Hint
 
-* 表达式内的变量会绑定到**当前执行该函数的上下文**。这意味着你可以在字符串里使用 `LOCAL`、`ARG` 等局部变量，它们会正确读取当前函数内的值。
-* 非常适合与 `DataTable` 或 `XML` 系统配合，将计算公式作为数据存储在外部，实现高度的数据驱动架构。
+!!! hint "Hint"
+
+    **命令/表达式。**
+
+    命令语法：
+    ```
+    EVAL "LOCAL + 10"
+    EVALS "\"字符串结果\""
+    ```
+
+    表达式语法：
+    ```
+    LOCAL = EVAL("LOCAL + 10")
+    RESULTS:0 = EVALS("\"字符串结果\"")
+    ```
+
+    所有EVAL函数均为命令语法，使用空格分隔参数，也可以作为表达式调用。
+    表达式内的变量会绑定到**当前执行该函数的上下文**。
+    非常适合与 `DataTable` 或 `XML` 系统配合，将计算公式作为数据存储在外部，实现高度的数据驱动架构。
 
 ### Example
 

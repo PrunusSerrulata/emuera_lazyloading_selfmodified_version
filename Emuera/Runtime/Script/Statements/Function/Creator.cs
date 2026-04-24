@@ -209,7 +209,6 @@ internal static partial class FunctionMethodCreator
 
 			["SPRITEANIMECREATE"] = new SpriteAnimeCreateMethod(),
 			["SPRITEANIMEADDFRAME"] = new SpriteAnimeAddFrameMethod(),
-			["SETANIMETIMER"] = new SetAnimeTimerMethod(),
 			["GETANIMETIMER"] = new GetAnimeTimerMethod(),
 
 			#region EE_OUTPUTLOG拡張
@@ -345,12 +344,6 @@ internal static partial class FunctionMethodCreator
 			["EXISTMETH"] = new ExistMethMethod(),
 			#endregion
 
-			//Bitmap Cache
-			["BITMAP_CACHE_ENABLE"] = new BitmapCacheEnableMethod(),
-
-			// 严格字体回退模式
-			["STRICT_FONT_FALLBACK"] = new StrictFontFallbackMethod(),
-
 			//HOTKEY STATE
 			["HOTKEY_STATE"] = new HotkeyStateMethod(),
 			["HOTKEY_STATE_INIT"] = new HotkeyStateInitMethod(),
@@ -384,9 +377,9 @@ internal static partial class FunctionMethodCreator
 			["BITGET"] = new BitGetMethod(),
 			["BITTOGGLE"] = new BitToggleMethod(),
 			["BITINDEXOFFIRST"] = new BitIndexOfFirstMethod(),
-			["SET_TEXT_DRAWING_MODE"] = new SetTextDrawingModeMethod(),
+			//["SET_TEXT_DRAWING_MODE"] 已移至 AInstruction: TEXTTHREADMODE_Instruction
 			["GET_TEXT_DRAWING_MODE"] = new GetTextDrawingModeMethod(),
-			["SET_SKIA_QUALITY"] = new SetSkiaQualityMethod(),
+			//["SET_SKIA_QUALITY"] 已移至 AInstruction: SETSKIAQUALITY_Instruction
 			["GET_SKIA_QUALITY"] = new GetSkiaQualityMethod(),
 			#endregion
 		};
