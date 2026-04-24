@@ -3941,9 +3941,9 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class STRICTFONTFALLBACK_Instruction : AInstruction
+	private sealed class STRICT_FONT_FALLBACK_Instruction : AInstruction
 	{
-		public STRICTFONTFALLBACK_Instruction()
+		public STRICT_FONT_FALLBACK_Instruction()
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
 			flag = METHOD_SAFE | EXTENDED;
@@ -3960,9 +3960,9 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class SETSKIAQUALITY_Instruction : AInstruction
+	private sealed class SET_SKIA_QUALITY_Instruction : AInstruction
 	{
-		public SETSKIAQUALITY_Instruction()
+		public SET_SKIA_QUALITY_Instruction()
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_ANY);
 			flag = METHOD_SAFE | EXTENDED;
@@ -3980,9 +3980,9 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class TEXTTHREADMODE_Instruction : AInstruction
+	private sealed class SET_TEXT_DRAWING_MODE_Instruction : AInstruction
 	{
-		public TEXTTHREADMODE_Instruction()
+		public SET_TEXT_DRAWING_MODE_Instruction()
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
 			flag = METHOD_SAFE | EXTENDED;
@@ -4000,9 +4000,9 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	private sealed class BITMAPCACHEENABLE_Instruction : AInstruction
+	private sealed class BITMAP_CACHE_ENABLE_Instruction : AInstruction
 	{
-		public BITMAPCACHEENABLE_Instruction()
+		public BITMAP_CACHE_ENABLE_Instruction()
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
 			flag = METHOD_SAFE | EXTENDED;

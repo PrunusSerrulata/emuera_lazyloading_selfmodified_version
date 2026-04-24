@@ -377,9 +377,9 @@ internal static partial class FunctionMethodCreator
 			["BITGET"] = new BitGetMethod(),
 			["BITTOGGLE"] = new BitToggleMethod(),
 			["BITINDEXOFFIRST"] = new BitIndexOfFirstMethod(),
-			//["SET_TEXT_DRAWING_MODE"] 已移至 AInstruction: TEXTTHREADMODE_Instruction
+			//["SET_TEXT_DRAWING_MODE"] 已移至 AInstruction: SET_TEXT_DRAWING_MODE_Instruction
 			["GET_TEXT_DRAWING_MODE"] = new GetTextDrawingModeMethod(),
-			//["SET_SKIA_QUALITY"] 已移至 AInstruction: SETSKIAQUALITY_Instruction
+			//["SET_SKIA_QUALITY"] 已移至 AInstruction: SET_SKIA_QUALITY_Instruction
 			["GET_SKIA_QUALITY"] = new GetSkiaQualityMethod(),
 			#endregion
 		};

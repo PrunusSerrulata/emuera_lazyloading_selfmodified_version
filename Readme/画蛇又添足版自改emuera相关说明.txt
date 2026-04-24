@@ -41,7 +41,7 @@
 	2. 新增 Creator.Method.cs：
 		- SetTextDrawingModeMethod：设置渲染模式，1=TEXTRENDERER(GDI+)，3=SKIASHARP
 		- GetTextDrawingModeMethod：获取当前渲染模式
-		- SetSkiaQualityMethod：动态设置SkiaSharp渲染质量，参数可省略
+		- SET_SKIA_QUALITYMethod：动态设置SkiaSharp渲染质量，参数可省略
 		- GetSkiaQualityMethod：查询SkiaSharp质量参数，type: 0=ImageQuality, 1=FontHinting, 2=FontEdging
 
 	3. 新增 Creator.cs：
@@ -93,16 +93,16 @@ HTML_PRINT font标签渲染属性扩展：
 		- 将字体回退构建逻辑提取为独立的 BuildFallbacks() 方法
 		- 构造函数和 DivideAt() 方法均调用 BuildFallbacks() 确保回退字体正确计算
 		- 优化 SKTypeface 比较逻辑，避免 SKFont 引用比较错误
-		- 新增 strictFontFallback 全局标志位控制严格模式
+		- 新增 STRICT_FONT_FALLBACK 全局标志位控制严格模式
 
 	2. 修复 EmueraConsole.cs：
-		- 添加 strictFontFallback 属性标志位
+		- 添加 STRICT_FONT_FALLBACK 属性标志位
 
 	3. 修复 Creator.cs：
 		- 注册新指令 STRICT_FONT_FALLBACK
 
 	4. 修复 Creator.Method.cs：
-		- 实现 StrictFontFallbackMethod 类逻辑
+		- 实现 STRICT_FONT_FALLBACKMethod 类逻辑
 
 	新增命令：STRICT_FONT_FALLBACK
 	输入：int
@@ -432,3 +432,43 @@ BGM只存在一个通道，因此无需输入通道编号
 
 
 以上内容为本次更新内容，如有遗漏，请及时补充。
+
+==========================================================================================================
+==================================
+符号渲染修复（字位簇解析 + GDI测量渲染统一）：
+==================================
+
+符号渲染修复（字位簇解析 + GDI/Skia测量渲染统一）：
+	修复两个符号渲染问题：
+
+	问题一：⚰️等组合字符（U+26B0 + U+FE0F）后被插入多余空格
+	原因：BuildFallbacks使用foreach(char)遍历，将变体选择符U+FE0F作为独立字符测量宽度，导致排版为已合并的字位簇分配了两个字符的宽度
+
+	问题二：🎭等Emoji与后续文字重叠
+	原因：指定render='gdi'时，排版引擎仍使用SkiaSharp的测量宽度安排位置，而GDI+实际绘制宽度更宽，导致后续字符提前开始绘制
+
+	架构原则：剥夺GDI+的隐形Padding，统一用物理宽度测量；GDI和Skia片段在混合渲染时使用相同的渲染起点（均包含ShapePositionShift）。
+
+	1. ConsoleStyledString.cs - BuildFallbacks：
+		- 使用StringInfo.GetTextElementEnumerator按字位簇遍历，正确处理组合字符（如⚰️ = U+26B0 + U+FE0F）和代理对（如🎭 = U+1F3AD）
+		- 使用Font.ContainsGlyphs(grapheme)替代Font.ContainsGlyph(@char)进行字形检查，兼容非BMP字符
+		- 添加hasSurrogate检查，确保含代理对的文本强制进入逐字位簇回退分析
+		- 使用char.ConvertToUtf32获取codepoint，通过FontFactory.GetFallbackTypefaceForCodepoint查找回退字体
+
+	2. ConsoleStyledString.cs - BuildGdiFallbacks：
+		- 添加TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix标志，剥夺GDI+隐形边距，获取精准物理宽度
+		- 简化为单条目测量（GDI内部自行处理字体回退）
+
+	3. ConsoleStyledString.cs - SetWidth：
+		- 新增GDI模式分支：当RenderMode为TEXTRENDERER时，使用_gdiTexts的GDI测量宽度进行排版，确保测量与渲染引擎一致
+
+	4. ConsoleStyledString.cs - DrawTo / DrawToBitmap GDI渲染部分：
+		- 添加TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping标志
+		- 渲染起点统一使用point.X（已包含ShapePositionShift），与Skia路径完全对齐
+		- Bitmap尺寸增加2像素冗余防止边缘裁切
+		- DrawToBitmap同步修正startX，加上ShapePositionShift
+
+	5. FontFactory.cs：
+		- 新增GetFallbackTypefaceForCodepoint(int codepoint, string currentFontName)方法：BMP字符委托现有GetFallbackTypefaceForChar，非BMP字符使用SKTypeface.GetGlyph和SKFontManager.MatchCharacter
+		- 新增fallbackTypefaceCodepointCache缓存字典
+		- ClearFont()中增加对新缓存的清理

@@ -456,10 +456,10 @@ internal sealed partial class FunctionIdentifier
 
 		#region 尊尼获加荣誉出品
 		addFunction(FunctionCode.SETANIMETIMER, new SETANIMETIMER_Instruction());
-		addFunction(FunctionCode.STRICTFONTFALLBACK, new STRICTFONTFALLBACK_Instruction());
-		addFunction(FunctionCode.SETSKIAQUALITY, new SETSKIAQUALITY_Instruction());
-		addFunction(FunctionCode.TEXTTHREADMODE, new TEXTTHREADMODE_Instruction());
-		addFunction(FunctionCode.BITMAPCACHEENABLE, new BITMAPCACHEENABLE_Instruction());
+		addFunction(FunctionCode.STRICT_FONT_FALLBACK, new STRICT_FONT_FALLBACK_Instruction());
+		addFunction(FunctionCode.SET_SKIA_QUALITY, new SET_SKIA_QUALITY_Instruction());
+		addFunction(FunctionCode.SET_TEXT_DRAWING_MODE, new SET_TEXT_DRAWING_MODE_Instruction());
+		addFunction(FunctionCode.BITMAP_CACHE_ENABLE, new BITMAP_CACHE_ENABLE_Instruction());
 		#endregion
 
 		Dictionary<string, FunctionMethod> methodList = FunctionMethodCreator.GetMethodList();
