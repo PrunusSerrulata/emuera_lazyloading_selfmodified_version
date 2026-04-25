@@ -399,6 +399,27 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
+	private sealed class HTML_PRINTC_Instruction : AInstruction
+	{
+		readonly bool alignRight;
+		public HTML_PRINTC_Instruction(bool isRight)
+		{
+			alignRight = isRight;
+			flag = EXTENDED | METHOD_SAFE;
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_HTML_PRINTC);
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			if (GlobalStatic.Process.SkipPrint)
+				return;
+			var arg = (SpHtmlPrintC)func.Argument;
+			string htmlStr = arg.Str.GetStrValue(exm);
+			int cellWidth = arg.CellWidth == null ? 0 : (int)arg.CellWidth.GetIntValue(exm);
+			exm.Console.PrintHtmlC(htmlStr, alignRight, cellWidth);
+		}
+	}
+
 	private sealed class PRINT_IMG_Instruction : AInstruction
 	{
 		public PRINT_IMG_Instruction()

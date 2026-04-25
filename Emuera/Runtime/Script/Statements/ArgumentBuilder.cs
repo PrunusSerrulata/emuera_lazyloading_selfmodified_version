@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Parser;
@@ -243,8 +243,9 @@ internal static partial class ArgumentParser
 		#region EM_DT
 		argb[FunctionArgType.SP_DT_COLUMN_OPTIONS] = new SP_DT_COLUMN_OPTIONS_ArgumentBuilder();
 		#endregion
-		#region EM_私家版_HTML_PRINT拡張
+		#region 尊尼获加荣誉出品
 		argb[FunctionArgType.SP_HTML_PRINT] = new SP_HTML_PRINT_ArgumentBuilder();
+		argb[FunctionArgType.SP_HTML_PRINTC] = new SP_HTML_PRINTC_ArgumentBuilder();
 		#endregion
 	}
 
@@ -395,6 +396,41 @@ internal static partial class ArgumentParser
 				ret.ConstInt = args.Count > 1 ? args[1].GetIntValue(exm) : 0;
 				ret.ConstStr = args[0].GetStrValue(exm);
 			}
+			return ret;
+		}
+	}
+	private sealed class SP_HTML_PRINTC_ArgumentBuilder : ArgumentBuilder
+	{
+		public SP_HTML_PRINTC_ArgumentBuilder()
+		{
+			argumentTypeArray = null;
+		}
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			CharStream st = line.PopArgumentPrimitive();
+			WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AnalyzePrintV);
+			List<AExpression> args = ExpressionParser.ReduceArguments(wc, ArgsEndWith.EoL, false);
+			if (args.Count < 1)
+			{
+				warn(trerror.NotEnoughArguments.Text, line, 2, false);
+				return null;
+			}
+			if (args.Count > 2)
+			{
+				warn(trerror.TooManyArg.Text, line, 2, false);
+				return null;
+			}
+			for (int i = 0; i < args.Count; i++)
+			{
+				if (i == 0 && args[i] == null)
+				{ warn(string.Format(trerror.CanNotOmitArg.Text, i + 1), line, 2, false); return null; }
+				if (i == 0 && args[i].GetOperandType() != typeof(string))
+				{ warn(string.Format(trerror.IncorrectArg.Text, i + 1), line, 2, false); return null; }
+				if (i == 1 && args[i].GetOperandType() != typeof(long))
+				{ warn(string.Format(trerror.IncorrectArg.Text, i + 1), line, 2, false); return null; }
+				args[i] = args[i].Restructure(exm);
+			}
+			var ret = new SpHtmlPrintC(args[0], args.Count > 1 ? args[1] : null);
 			return ret;
 		}
 	}

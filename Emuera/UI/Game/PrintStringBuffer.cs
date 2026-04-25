@@ -135,6 +135,20 @@ internal sealed class PrintStringBuffer
 		}
 	}
 
+	public int CurrentLineWidth
+	{
+		get
+		{
+			int width = 0;
+			foreach (var btn in m_buttonList)
+			{
+				if (btn != null)
+					width += btn.Width > 0 ? btn.Width : 0;
+			}
+			return width;
+		}
+	}
+
 	public override string ToString()
 	{
 		StringBuilder buf = new();

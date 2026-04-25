@@ -1,4 +1,10 @@
 
+2026年4月26日
+新增命令：HTML_PRINTC, HTML_PRINTLC，基于像素的HTML制表命令
+	原版 PRINTC / PRINTLC 基于半角字符数计算填充空格，在非等距字体或使用 FONTSTYLE 等影响字宽的操作时，制表会严重错位。HTML_PRINTC / HTML_PRINTLC 利用 HTML_PRINT 已有的像素级文本测量能力，实现精确的像素制表。
+
+见手册
+
 2026年4月25日
 HTML_PRINT font标签新增size属性：
 	在HTML_PRINT的<font>标签中新增size属性，支持指定字体大小（像素）。

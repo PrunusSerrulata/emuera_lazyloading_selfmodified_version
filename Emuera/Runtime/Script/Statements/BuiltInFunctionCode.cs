@@ -1,4 +1,4 @@
-﻿namespace MinorShift.Emuera.Runtime.Script.Statements;
+namespace MinorShift.Emuera.Runtime.Script.Statements;
 
 /// <summary>
 /// 命令コード
@@ -402,6 +402,8 @@ enum FunctionCode
 	#endregion
 
 	#region 尊尼获加荣誉出品
+	HTML_PRINTC,
+	HTML_PRINTLC,
 	JUMPSTR,
 	CALLSTR,
 	TRYJUMPSTR,

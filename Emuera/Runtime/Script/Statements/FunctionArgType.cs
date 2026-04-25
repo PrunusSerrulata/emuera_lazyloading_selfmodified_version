@@ -1,4 +1,4 @@
-﻿namespace MinorShift.Emuera.Runtime.Script.Statements;
+namespace MinorShift.Emuera.Runtime.Script.Statements;
 
 /// <summary>
 /// 命令の引数タイプ
@@ -85,5 +85,8 @@ enum FunctionArgType
 	#endregion
 	#region EM_私家版_HTML_PRINT拡張
 	SP_HTML_PRINT,
+	#endregion
+	#region 尊尼获加荣誉出品
+	SP_HTML_PRINTC,
 	#endregion
 }

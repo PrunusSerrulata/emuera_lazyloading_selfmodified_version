@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Script.Statements.Function;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
@@ -81,6 +81,16 @@ internal sealed class SpHtmlPrint : Argument
 	}
 	readonly public AExpression Str;
 	readonly public AExpression Opt;
+}
+internal sealed class SpHtmlPrintC : Argument
+{
+	public SpHtmlPrintC(AExpression str, AExpression cellWidth)
+	{
+		Str = str;
+		CellWidth = cellWidth;
+	}
+	readonly public AExpression Str;
+	readonly public AExpression CellWidth;
 }
 #endregion
 internal abstract class Argument

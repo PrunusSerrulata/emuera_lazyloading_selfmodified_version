@@ -455,6 +455,8 @@ internal sealed partial class FunctionIdentifier
 		#endregion
 
 		#region 尊尼获加荣誉出品
+		addFunction(FunctionCode.HTML_PRINTC, new HTML_PRINTC_Instruction(true), IS_PRINT);
+		addFunction(FunctionCode.HTML_PRINTLC, new HTML_PRINTC_Instruction(false), IS_PRINT);
 		addFunction(FunctionCode.SETANIMETIMER, new SETANIMETIMER_Instruction());
 		addFunction(FunctionCode.STRICT_FONT_FALLBACK, new STRICT_FONT_FALLBACK_Instruction());
 		addFunction(FunctionCode.SET_SKIA_QUALITY, new SET_SKIA_QUALITY_Instruction());

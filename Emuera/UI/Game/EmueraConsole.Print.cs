@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Utils;
@@ -516,6 +516,61 @@ internal sealed partial class EmueraConsole : IDisposable
 			addRangeDisplayLine(HtmlManager.Html2DisplayLine(str, stringMeasure, this));
 		}
 		RefreshStrings(false);
+	}
+
+	public void PrintHtmlC(string str, bool alignRight, int cellWidthPx)
+	{
+		if (string.IsNullOrEmpty(str))
+			return;
+		if (!Enabled)
+			return;
+		if (cellWidthPx <= 0)
+			cellWidthPx = Config.PrintCLength * Config.FontSize / 2;
+
+		int maxLineWidth = Config.DrawableWidth;
+		int currentPx = printBuffer.CurrentLineWidth;
+
+		if (currentPx > 0 && currentPx + cellWidthPx > maxLineWidth)
+		{
+			ConsoleDisplayLine[] dispList = printBuffer.Flush(stringMeasure, force_temporary);
+			addRangeDisplayLine(dispList);
+		}
+
+		var buttons = HtmlManager.Html2ButtonList(str, stringMeasure, this);
+		if (buttons.Length == 0)
+			return;
+
+		int contentWidth = 0;
+		foreach (var btn in buttons)
+		{
+			btn.CalcWidth(stringMeasure, 0);
+			contentWidth += btn.Width;
+		}
+
+		int padPx = cellWidthPx - contentWidth;
+		if (padPx > 0)
+		{
+			var spaceRect = new RectangleF(0, 0, padPx, Config.FontSize);
+			var spacePart = new ConsoleSpacePart(spaceRect);
+			spacePart.SetWidth(stringMeasure, 0);
+			var spaceBtn = new ConsoleButtonString(this, [spacePart]);
+			spaceBtn.CalcWidth(stringMeasure, 0);
+			if (alignRight)
+				printBuffer.AppendButton(spaceBtn);
+		}
+
+		foreach (var btn in buttons)
+			printBuffer.AppendButton(btn);
+
+		if (padPx > 0 && !alignRight)
+		{
+			var spaceRect = new RectangleF(0, 0, padPx, Config.FontSize);
+			var spacePart = new ConsoleSpacePart(spaceRect);
+			spacePart.SetWidth(stringMeasure, 0);
+			var spaceBtn = new ConsoleButtonString(this, [spacePart]);
+			spaceBtn.CalcWidth(stringMeasure, 0);
+			printBuffer.AppendButton(spaceBtn);
+		}
 	}
 	#endregion
 
