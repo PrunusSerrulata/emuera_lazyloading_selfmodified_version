@@ -160,6 +160,7 @@ int GET_SKIA_QUALITY typeID
 | render | 'gdi' \| 'skia' | 指定渲染管线，覆盖全局设置 |
 | edging | 'alias' \| 'antialias' \| 'subpixel' | 控制该文本的抗锯齿方式 |
 | hinting | 'none' \| 'slight' \| 'normal' \| 'full' | 控制字形微调程度 |
+| size | 正浮点数(可带px后缀) | 指定字体大小（像素） |
 
 ### Hint
 
@@ -168,8 +169,10 @@ int GET_SKIA_QUALITY typeID
   * **光栅字体**（MS Gothic、MS Mincho、SimHei、SimSun等）：自动使用 GDI+ 渲染
   * **非光栅字体**：使用全局设置的 `SET_TEXT_DRAWING_MODE` 渲染模式
 * 省略 `edging` 属性时，默认使用 `Config.FontEdging`（全局设置）。
+* 省略 `size` 属性时，默认使用 `Config.FontSize`（全局字体大小）。
 * `edging='alias'` 可让光栅字体在 SkiaSharp 下呈现像素风格。
 * 使用 `<font render='gdi'>` 可以强制特定文本使用 GDI+ 渲染。
+* `size` 属性支持浮点数，例如 `<font size='12.5'>` 表示12.5像素的字体大小。支持带 `px` 后缀或不带后缀两种写法，例如 `<font size='24px'>` 和 `<font size='24'>` 等效。
 
 ### Example
 
@@ -189,6 +192,12 @@ int GET_SKIA_QUALITY typeID
     ; 使用 hinting 控制字形微调
     HTML_PRINT "<font hinting='full'>清晰锐利的微小字体</font>"
     HTML_PRINT "<font hinting='none'>无微调的原始渲染</font>"
+
+    ; 使用 size 控制字体大小
+    HTML_PRINT "<font size='24'>大号字体（24像素）</font>"
+    HTML_PRINT "<font size='24px'>同上（带px后缀）</font>"
+    HTML_PRINT "<font size='16.5'>半精度字体（16.5像素）</font>"
+    HTML_PRINT "<font size='12'>小号字体（12像素）</font>"
 
     ; 组合使用多个属性
     HTML_PRINT "<font render='skia' edging='alias' hinting='full'>SkiaSharp像素风+完整微调</font>"

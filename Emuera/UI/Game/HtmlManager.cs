@@ -227,6 +227,7 @@ internal static class HtmlManager
 		public int Color = -1;
 		public int BColor = -1;
 		public string FontName;
+		public float? FontSize = null;
 		public TextDrawingMode? RenderMode = null;
 		public SkiaSharpFontEdging? FontEdging = null;
 		public SkiaSharpFontHinting? FontHinting = null;
@@ -325,6 +326,7 @@ internal static class HtmlManager
 		public TextDrawingMode? RenderMode => FonttagList.Count > 0 ? FonttagList[^1].RenderMode : null;
 		public SkiaSharpFontEdging? FontEdging => FonttagList.Count > 0 ? FonttagList[^1].FontEdging : null;
 		public SkiaSharpFontHinting? FontHinting => FonttagList.Count > 0 ? FonttagList[^1].FontHinting : null;
+		public float? FontSize => FonttagList.Count > 0 ? FonttagList[^1].FontSize : null;
 	}
 
 	/// <summary>
@@ -398,7 +400,7 @@ internal static class HtmlManager
 					if (parts[cssCounter] is ConsoleStyledString)
 					{
 						ConsoleStyledString css = parts[cssCounter] as ConsoleStyledString;
-						b.Append(getStringStyleStartingTag(css.StringStyle));
+						b.Append(getStringStyleStartingTag(css));
 						b.Append(Escape(css.Text));
 						b.Append(getClosingStyleStartingTag(css.StringStyle));
 					}
@@ -531,7 +533,7 @@ internal static class HtmlManager
 			if (found < 0)
 			{
 				string txt = Unescape(st.Substring());
-				cssList.Add(new ConsoleStyledString(txt, state.GetSS(), state.RenderMode, state.FontEdging, state.FontHinting));
+				cssList.Add(new ConsoleStyledString(txt, state.GetSS(), state.RenderMode, state.FontEdging, state.FontHinting, state.FontSize));
 				if (state.FlagPClosed)
 					throw new CodeEE(trerror.TextAfterP.Text);
 				if (state.FlagNobrClosed)
@@ -541,7 +543,7 @@ internal static class HtmlManager
 			else if (found > 0)
 			{
 				string txt = Unescape(st.Substring(st.CurrentPosition, found));
-				cssList.Add(new ConsoleStyledString(txt, state.GetSS(), state.RenderMode, state.FontEdging, state.FontHinting));
+				cssList.Add(new ConsoleStyledString(txt, state.GetSS(), state.RenderMode, state.FontEdging, state.FontHinting, state.FontSize));
 				state.LineHead = false;
 				st.CurrentPosition += found;
 			}
@@ -826,46 +828,76 @@ internal static class HtmlManager
 		b.Append(colorValue.ToString("X6"));
 		return b.ToString();
 	}
-	private static string getStringStyleStartingTag(StringStyle style)
+	private static string getStringStyleStartingTag(ConsoleStyledString css)
 	{
-		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && style.ButtonColor == Config.FocusColor);
-		if (!fontChanged && style.FontStyle == FontStyle.Regular)
+		bool fontChanged = !((css.StringStyle.Fontname == null || css.StringStyle.Fontname == Config.FontName) && !css.StringStyle.ColorChanged && css.StringStyle.ButtonColor == Config.FocusColor);
+		bool sizeChanged = css.FontSize.HasValue;
+		bool renderChanged = css.RenderMode.HasValue && css.RenderMode.Value != Config.TextDrawingMode;
+		bool edgingChanged = css.FontEdging.HasValue && css.FontEdging.Value != Config.FontEdging;
+		bool hintingChanged = css.FontHinting.HasValue && css.FontHinting.Value != Config.FontHinting;
+		if (!fontChanged && css.StringStyle.FontStyle == FontStyle.Regular && !sizeChanged && !renderChanged && !edgingChanged && !hintingChanged)
 			return "";
 		StringBuilder b = new();
-		if (fontChanged)
+		if (fontChanged || sizeChanged || renderChanged || edgingChanged || hintingChanged)
 		{
 			b.Append("<font");
-			if (style.Fontname != null && style.Fontname != Config.FontName)
+			if (css.StringStyle.Fontname != null && css.StringStyle.Fontname != Config.FontName)
 			{
 				b.Append(" face='");
-				b.Append(Escape(style.Fontname));
+				b.Append(Escape(css.StringStyle.Fontname));
 				b.Append("'");
 			}
-			if (style.ColorChanged)
+			if (css.StringStyle.ColorChanged)
 			{
 				b.Append(" color='#");
-				int colorValue = style.Color.R * 0x10000 + style.Color.G * 0x100 + style.Color.B;
+				int colorValue = css.StringStyle.Color.R * 0x10000 + css.StringStyle.Color.G * 0x100 + css.StringStyle.Color.B;
 				b.Append(colorValue.ToString("X6"));
 				b.Append("'");
 			}
-			if (style.ButtonColor != Config.FocusColor)
+			if (css.StringStyle.ButtonColor != Config.FocusColor)
 			{
 				b.Append(" bcolor='#");
-				int colorValue = style.ButtonColor.R * 0x10000 + style.ButtonColor.G * 0x100 + style.ButtonColor.B;
+				int colorValue = css.StringStyle.ButtonColor.R * 0x10000 + css.StringStyle.ButtonColor.G * 0x100 + css.StringStyle.ButtonColor.B;
 				b.Append(colorValue.ToString("X6"));
+				b.Append("'");
+			}
+			if (sizeChanged)
+			{
+				b.Append(" size='");
+				b.Append(css.FontSize.Value);
+				b.Append("'");
+			}
+			if (renderChanged)
+			{
+				b.Append(" render='");
+				b.Append(css.RenderMode.Value == TextDrawingMode.TEXTRENDERER ? "gdi" : "skia");
+				b.Append("'");
+			}
+			if (edgingChanged)
+			{
+				b.Append(" edging='");
+				string edgStr = css.FontEdging.Value == SkiaSharpFontEdging.Alias ? "alias" :
+							   (css.FontEdging.Value == SkiaSharpFontEdging.AntiAlias ? "antialias" : "subpixel");
+				b.Append(edgStr);
+				b.Append("'");
+			}
+			if (hintingChanged)
+			{
+				b.Append(" hinting='");
+				b.Append(css.FontHinting.Value.ToString().ToLower());
 				b.Append("'");
 			}
 			b.Append(">");
 		}
-		if (style.FontStyle != FontStyle.Regular)
+		if (css.StringStyle.FontStyle != FontStyle.Regular)
 		{
-			if ((style.FontStyle & FontStyle.Strikeout) != FontStyle.Regular)
+			if ((css.StringStyle.FontStyle & FontStyle.Strikeout) != FontStyle.Regular)
 				b.Append("<s>");
-			if ((style.FontStyle & FontStyle.Underline) != FontStyle.Regular)
+			if ((css.StringStyle.FontStyle & FontStyle.Underline) != FontStyle.Regular)
 				b.Append("<u>");
-			if ((style.FontStyle & FontStyle.Italic) != FontStyle.Regular)
+			if ((css.StringStyle.FontStyle & FontStyle.Italic) != FontStyle.Regular)
 				b.Append("<i>");
-			if ((style.FontStyle & FontStyle.Bold) != FontStyle.Regular)
+			if ((css.StringStyle.FontStyle & FontStyle.Bold) != FontStyle.Regular)
 				b.Append("<b>");
 		}
 
@@ -1487,6 +1519,16 @@ internal static class HtmlManager
 								else
 									throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, tag, word.Code));
 								break;
+							case "size":
+								if (font.FontSize != null)
+									throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word.Code));
+								string sizeStr = attrValue;
+								if (sizeStr.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+									sizeStr = sizeStr.Substring(0, sizeStr.Length - 2);
+								if (!float.TryParse(sizeStr, out float sizeValue) || sizeValue <= 0)
+									throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, tag, word.Code));
+								font.FontSize = sizeValue;
+								break;
 							//case "pos":
 							//	{
 							//		//throw new NotImplCodeEE();
@@ -1513,6 +1555,8 @@ internal static class HtmlManager
 							font.BColor = oldFont.BColor;
 						if (font.FontName == null)
 							font.FontName = oldFont.FontName;
+						if (font.FontSize == null)
+							font.FontSize = oldFont.FontSize;
 						if (font.RenderMode == null)
 							font.RenderMode = oldFont.RenderMode;
 						if (font.FontEdging == null)
