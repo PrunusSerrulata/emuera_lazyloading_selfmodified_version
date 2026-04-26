@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -52,7 +52,7 @@ namespace MinorShift.Emuera.GameData.Function
 		}
 
 		// 3. 执行非查询语句
-		public static long ExecuteNonQuery(string dbName, string sql)
+		public static long ExecuteNonQuery(string dbName, string sql, string[] paramValues = null)
 		{
 			if (!_connections.TryGetValue(dbName, out var conn))
 				throw new CodeEE($"数据库 '{dbName}' 未连接。");
@@ -61,7 +61,17 @@ namespace MinorShift.Emuera.GameData.Function
 			{
 				using var cmd = conn.CreateCommand();
 				cmd.CommandText = sql;
-				return cmd.ExecuteNonQuery(); // 返回受影响的行数
+				if (paramValues != null)
+				{
+					for (int i = 0; i < paramValues.Length; i++)
+					{
+						var p = cmd.CreateParameter();
+						p.ParameterName = "@" + i;
+						p.Value = paramValues[i] ?? (object)DBNull.Value;
+						cmd.Parameters.Add(p);
+					}
+				}
+				return cmd.ExecuteNonQuery();
 			}
 			catch (Exception ex)
 			{
@@ -70,7 +80,7 @@ namespace MinorShift.Emuera.GameData.Function
 		}
 
 		// 4. 执行查询语句 (SELECT)
-		public static long ExecuteReader(string dbName, string sql)
+		public static long ExecuteReader(string dbName, string sql, string[] paramValues = null)
 		{
 			if (!_connections.TryGetValue(dbName, out var conn))
 				throw new CodeEE($"数据库 '{dbName}' 未连接。");
@@ -79,6 +89,16 @@ namespace MinorShift.Emuera.GameData.Function
 			{
 				var cmd = conn.CreateCommand();
 				cmd.CommandText = sql;
+				if (paramValues != null)
+				{
+					for (int i = 0; i < paramValues.Length; i++)
+					{
+						var p = cmd.CreateParameter();
+						p.ParameterName = "@" + i;
+						p.Value = paramValues[i] ?? (object)DBNull.Value;
+						cmd.Parameters.Add(p);
+					}
+				}
 				var reader = cmd.ExecuteReader();
 
 				long id = _nextReaderId++;
@@ -163,7 +183,7 @@ namespace MinorShift.Emuera.GameData.Function
 		}
 
 		// 10. 执行标量查询 (Long)
-		public static long ExecuteScalarLong(string dbName, string sql)
+		public static long ExecuteScalarLong(string dbName, string sql, string[] paramValues = null)
 		{
 			if (!_connections.TryGetValue(dbName, out var conn))
 				throw new CodeEE($"数据库 '{dbName}' 未连接。");
@@ -172,6 +192,16 @@ namespace MinorShift.Emuera.GameData.Function
 			{
 				using var cmd = conn.CreateCommand();
 				cmd.CommandText = sql;
+				if (paramValues != null)
+				{
+					for (int i = 0; i < paramValues.Length; i++)
+					{
+						var p = cmd.CreateParameter();
+						p.ParameterName = "@" + i;
+						p.Value = paramValues[i] ?? (object)DBNull.Value;
+						cmd.Parameters.Add(p);
+					}
+				}
 				var result = cmd.ExecuteScalar();
 				if (result == null || result == DBNull.Value) return 0;
 				return Convert.ToInt64(result);
@@ -183,7 +213,7 @@ namespace MinorShift.Emuera.GameData.Function
 		}
 
 		// 11. 执行标量查询 (String)
-		public static string ExecuteScalarString(string dbName, string sql)
+		public static string ExecuteScalarString(string dbName, string sql, string[] paramValues = null)
 		{
 			if (!_connections.TryGetValue(dbName, out var conn))
 				throw new CodeEE($"数据库 '{dbName}' 未连接。");
@@ -192,6 +222,16 @@ namespace MinorShift.Emuera.GameData.Function
 			{
 				using var cmd = conn.CreateCommand();
 				cmd.CommandText = sql;
+				if (paramValues != null)
+				{
+					for (int i = 0; i < paramValues.Length; i++)
+					{
+						var p = cmd.CreateParameter();
+						p.ParameterName = "@" + i;
+						p.Value = paramValues[i] ?? (object)DBNull.Value;
+						cmd.Parameters.Add(p);
+					}
+				}
 				var result = cmd.ExecuteScalar();
 				if (result == null || result == DBNull.Value) return string.Empty;
 				return result.ToString();
@@ -522,5 +562,11 @@ namespace MinorShift.Emuera.GameData.Function
                 throw new CodeEE($"自定义 XML 导入失败: {ex.Message}");
             }
         }
+
+		public static string Escape(string input)
+		{
+			if (string.IsNullOrEmpty(input)) return input;
+			return input.Replace("'", "''");
+		}
 	}
 }

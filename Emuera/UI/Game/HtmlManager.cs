@@ -402,7 +402,7 @@ internal static class HtmlManager
 						ConsoleStyledString css = parts[cssCounter] as ConsoleStyledString;
 						b.Append(getStringStyleStartingTag(css));
 						b.Append(Escape(css.Text));
-						b.Append(getClosingStyleStartingTag(css.StringStyle));
+						b.Append(getClosingStyleStartingTag(css));
 					}
 					else if (parts[cssCounter] is ConsoleImagePart)
 					{
@@ -904,10 +904,15 @@ internal static class HtmlManager
 		return b.ToString();
 	}
 
-	private static string getClosingStyleStartingTag(StringStyle style)
+	private static string getClosingStyleStartingTag(ConsoleStyledString css)
 	{
+		var style = css.StringStyle;
 		bool fontChanged = !((style.Fontname == null || style.Fontname == Config.FontName) && !style.ColorChanged && style.ButtonColor == Config.FocusColor);
-		if (!fontChanged && style.FontStyle == FontStyle.Regular)
+		bool sizeChanged = css.FontSize.HasValue;
+		bool renderChanged = css.RenderMode.HasValue && css.RenderMode.Value != Config.TextDrawingMode;
+		bool edgingChanged = css.FontEdging.HasValue && css.FontEdging.Value != Config.FontEdging;
+		bool hintingChanged = css.FontHinting.HasValue && css.FontHinting.Value != Config.FontHinting;
+		if (!fontChanged && style.FontStyle == FontStyle.Regular && !sizeChanged && !renderChanged && !edgingChanged && !hintingChanged)
 			return "";
 		StringBuilder b = new();
 		if (style.FontStyle != FontStyle.Regular)
@@ -921,7 +926,7 @@ internal static class HtmlManager
 			if ((style.FontStyle & FontStyle.Strikeout) != FontStyle.Regular)
 				b.Append("</s>");
 		}
-		if (fontChanged)
+		if (fontChanged || sizeChanged || renderChanged || edgingChanged || hintingChanged)
 			b.Append("</font>");
 		return b.ToString();
 	}

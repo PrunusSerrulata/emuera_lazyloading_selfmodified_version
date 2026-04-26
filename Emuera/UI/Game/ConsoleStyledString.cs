@@ -51,10 +51,11 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	{
 		Text = str;
 		StringStyle = style;
-		RenderMode = Config.TextDrawingMode;
-		FontEdging = Config.FontEdging;
-		FontHinting = Config.FontHinting;
-		FontSize = Config.FontSize;
+		RenderMode = null;
+		FontEdging = null;
+		FontHinting = null;
+		FontSize = null;
+
 		Font = FontFactory.GetFont(style.Fontname, style.FontStyle);
 		if (Font == null)
 		{

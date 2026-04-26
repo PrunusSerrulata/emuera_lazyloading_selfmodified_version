@@ -5,6 +5,27 @@
 
 见手册
 
+新增命令：SQL_ESCAPE, SQL_P_EXECUTE_NONQUERY, SQL_P_EXECUTE_READER, SQL_P_EXECUTE_SCALAR_LONG, SQL_P_EXECUTE_SCALAR_STRING，SQL参数化查询与转义函数
+	SQL_ESCAPE：将字符串中的单引号转义为双单引号，用于拼接 SQL 时的安全处理。
+	SQL_P_EXECUTE_* 系列：支持参数化查询，使用 @0, @1, @2... 占位符绑定参数值，彻底避免 SQL 注入风险。
+
+	修复 SqlManager.cs：
+		- ExecuteNonQuery / ExecuteReader / ExecuteScalarLong / ExecuteScalarString 新增 string[] paramValues 可选参数
+		- 参数化查询使用 SQLite 原生参数绑定机制（@0, @1, @2...），参数值不会被解释为 SQL 代码
+		- 新增 Escape() 静态方法，将 ' 转义为 ''
+
+
+见手册
+
+新增命令：MAP_VALUES, MAP_MERGE, MAP_REMOVEIF, MAP_FINDKEY, MAP_TOSTRING, MAP_FROMSTRING，MAP增强函数集
+	MAP_VALUES：获取 MAP 中所有 value，行为与 MAP_GETKEYS 对称
+	MAP_MERGE：将源 MAP 合并到目标 MAP（覆盖同 key）
+	MAP_REMOVEIF：按条件批量删除键值对（KEY_CONTAINS/KEY_PREFIX/KEY_SUFFIX/VAL_CONTAINS/VAL_EQ/VAL_NE）
+	MAP_FINDKEY：按条件查找匹配的 key，返回逗号分隔的 key 列表
+	MAP_TOSTRING：将 MAP 序列化为字符串（可自定义分隔符和键值分隔符）
+	MAP_FROMSTRING：从字符串反序列化导入 MAP（可自定义分隔符和键值分隔符）
+见手册
+
 2026年4月25日
 HTML_PRINT font标签新增size属性：
 	在HTML_PRINT的<font>标签中新增size属性，支持指定字体大小（像素）。
