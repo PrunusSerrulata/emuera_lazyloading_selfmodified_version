@@ -56,7 +56,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		FontHinting = null;
 		FontSize = null;
 
-		Font = FontFactory.GetFont(style.Fontname, style.FontStyle);
+		Font = FontFactory.GetFont(style.Fontname, style.FontStyle, FontSize, FontEdging, FontHinting);
 		if (Font == null)
 		{
 			Error = true;

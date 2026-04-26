@@ -1725,7 +1725,15 @@ internal sealed partial class EmueraConsole : IDisposable
 					if (cbgList[cidx].isButton && cbgList[cidx].buttonValue == selectingCBGButtonInt)
 						img = cbgList[cidx].ImgB;
 					if (img != null && img.IsCreated)
-						img.GraphicsDraw(graph, new Point(cbgList[cidx].x, cbgList[cidx].y + window.MainPicBox.Height - img.DestBaseSize.Height));
+					{
+						try
+						{
+							img.GraphicsDraw(graph, new Point(cbgList[cidx].x, cbgList[cidx].y + window.MainPicBox.Height - img.DestBaseSize.Height));
+						}
+						catch
+						{
+						}
+					}
 					cidx++;
 				}
 				if (depth == 0)
@@ -1736,7 +1744,13 @@ internal sealed partial class EmueraConsole : IDisposable
 					i < displayLineList.Count;//何処かで非同期にDisplayLineListを触ってるやつがいる気がする...
 					i++)
 					{
-						displayLineList[i].DrawTo(graph, pointY, isBackLog, true, Config.TextDrawingMode);
+						try
+						{
+							displayLineList[i].DrawTo(graph, pointY, isBackLog, true, Config.TextDrawingMode);
+						}
+						catch
+						{
+						}
 						pointY += Config.LineHeight;
 					}
 				}
@@ -1751,7 +1765,13 @@ internal sealed partial class EmueraConsole : IDisposable
 							var correction = GlobalStatic.Console.GetLineNo - Config.MaxLog;
 							baseLineNo -= correction;
 						}
-						p.Parent.DrawPartTo(graph, p, topPointY + (baseLineNo - topLineNo) * Config.LineHeight, isBackLog, Config.TextDrawingMode);
+						try
+						{
+							p.Parent.DrawPartTo(graph, p, topPointY + (baseLineNo - topLineNo) * Config.LineHeight, isBackLog, Config.TextDrawingMode);
+						}
+						catch
+						{
+						}
 					}
 					eidx++;
 				}
@@ -1784,14 +1804,28 @@ internal sealed partial class EmueraConsole : IDisposable
 		}
 		#region EmuEra-Rikaichan
 		if (Config.RikaiEnabled)
-			rikaichan.OnPaint(graph, stringMeasure, window.MainPicBox.Width);
+		{
+			try
+			{
+				rikaichan.OnPaint(graph, stringMeasure, window.MainPicBox.Width);
+			}
+			catch
+			{
+			}
+		}
 		#endregion
 
 		//真のHTML描画
 		var y = 0;
 		foreach (var element in _htmlElementList)
 		{
-			element.DrawTo(graph, y, false, false, Config.TextDrawingMode);
+			try
+			{
+				element.DrawTo(graph, y, false, false, Config.TextDrawingMode);
+			}
+			catch
+			{
+			}
 			y += Config.LineHeight;
 		}
 

@@ -5849,15 +5849,23 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			Color c = ReadColor(Name, exm, arguments, 1);
-			Point p = ReadPoint(Name, exm, arguments, 2);
-			if (p.X < 0 || p.X >= g.Width || p.X < 0 || p.Y >= g.Height)
-				return 0;
-			g.GSetColor(c, p.X, p.Y);
-			return 1;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				Color c = ReadColor(Name, exm, arguments, 1);
+				Point p = ReadPoint(Name, exm, arguments, 2);
+				if (p.X < 0 || p.X >= g.Width || p.X < 0 || p.Y >= g.Height)
+					return 0;
+				g.GSetColor(c, p.X, p.Y);
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
@@ -5874,12 +5882,20 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			Color c = ReadColor(Name, exm, arguments, 1);
-			g.GSetBrush(new SolidBrush(c));
-			return 1;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				Color c = ReadColor(Name, exm, arguments, 1);
+				g.GSetBrush(new SolidBrush(c));
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
@@ -5907,51 +5923,59 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			string fontname = arguments[1].GetStrValue(exm);
-			long fontsize = arguments[2].GetIntValue(exm);
-			FontStyle fs = FontStyle.Regular;
-			if (arguments.Count > 3)
-			{
-				long style = arguments[3].GetIntValue(exm);
-
-				if ((style & 1) != 0)
-					fs |= FontStyle.Bold;
-				if ((style & 2) != 0)
-					fs |= FontStyle.Italic;
-				if ((style & 4) != 0)
-					fs |= FontStyle.Strikeout;
-				if ((style & 8) != 0)
-					fs |= FontStyle.Underline;
-			}
-
-			SKFont styledFont;
 			try
 			{
-				#region EE_フォントファイル対応
-				foreach (FontFamily ff in GlobalStatic.Pfc.Families)
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				string fontname = arguments[1].GetStrValue(exm);
+				long fontsize = arguments[2].GetIntValue(exm);
+				FontStyle fs = FontStyle.Regular;
+				if (arguments.Count > 3)
 				{
-					if (ff.Name == fontname)
-					{
-						styledFont = new SKFont(SKTypeface.FromFamilyName(ff.Name), fontsize);
-						goto foundfont;
-					}
+					long style = arguments[3].GetIntValue(exm);
+
+					if ((style & 1) != 0)
+						fs |= FontStyle.Bold;
+					if ((style & 2) != 0)
+						fs |= FontStyle.Italic;
+					if ((style & 4) != 0)
+						fs |= FontStyle.Strikeout;
+					if ((style & 8) != 0)
+						fs |= FontStyle.Underline;
 				}
-				// styledFont = new Font(fontname, fontsize, FontStyle.Regular, GraphicsUnit.Pixel);
-				styledFont = FontFactory.GetFont(fontname, fs, fontsize);
-				
+
+				SKFont styledFont;
+				try
+				{
+					#region EE_フォントファイル対応
+					foreach (FontFamily ff in GlobalStatic.Pfc.Families)
+					{
+						if (ff.Name == fontname)
+						{
+							styledFont = new SKFont(SKTypeface.FromFamilyName(ff.Name), fontsize);
+							goto foundfont;
+						}
+					}
+					// styledFont = new Font(fontname, fontsize, FontStyle.Regular, GraphicsUnit.Pixel);
+					styledFont = FontFactory.GetFont(fontname, fs, fontsize);
+
+				}
+				catch
+				{
+					return 0;
+				}
+			foundfont:
+				#endregion
+				// canvas.GSetFont(styledFont);
+				g.GSetFont(styledFont, fs);
+				return 1;
 			}
-			catch
+			catch (Exception ex)
 			{
-				return 0;
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
 			}
-		foundfont:
-			#endregion
-			// canvas.GSetFont(styledFont);
-			g.GSetFont(styledFont, fs);
-			return 1;
 		}
 	}
 	#endregion
@@ -5971,13 +5995,21 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			Color c = ReadColor(Name, exm, arguments, 1);
-			long width = arguments[2].GetIntValue(exm);
-			g.GSetPen(new Pen(c, width));
-			return 1;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				Color c = ReadColor(Name, exm, arguments, 1);
+				long width = arguments[2].GetIntValue(exm);
+				g.GSetPen(new Pen(c, width));
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
@@ -5995,12 +6027,20 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
 
-			g.GDashStyle(arguments[1].GetIntValue(exm), arguments[2].GetIntValue(exm));
-			return 1;
+				g.GDashStyle(arguments[1].GetIntValue(exm), arguments[2].GetIntValue(exm));
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 	#endregion
@@ -6045,46 +6085,66 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			string text = arguments[1].GetStrValue(exm);
-			if (arguments.Count == 2)
+			try
 			{
-				g.GDrawString(text, 0, 0);
-			}
-			else if (arguments.Count == 4)
-			{
-				Point p = ReadPoint(Name, exm, arguments, 2);
-				g.GDrawString(text, p.X, p.Y);
-			}
-			//生成する画像のサイズを取得
-			var bitmap = new SKBitmap(16, 16);
-			//Graphics canvas = Graphics.FromImage(bitmap);
-			var graphics = new SKCanvas(bitmap);
-			SKFont font = g.Fnt;
-			var paint = new SKPaint();
-			if (font == null)
-			{
-				//font = new Font(Config.FontName, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
-				paint.Typeface = SKTypeface.FromFamilyName(Config.FontName);
-				paint.TextSize = Config.FontSize;
-				paint.Style = (SKPaintStyle)GlobalStatic.Console.StringStyle.FontStyle;
-			}
-			else
-			{
-				paint.Typeface = font.Typeface;
-				paint.TextSize = font.Size;
-				paint.Style = (SKPaintStyle)g.Fontstyle;
-			}
-			
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				string text = arguments[1].GetStrValue(exm);
+				if (arguments.Count == 2)
+				{
+					g.GDrawString(text, 0, 0);
+				}
+				else if (arguments.Count == 4)
+				{
+					Point p = ReadPoint(Name, exm, arguments, 2);
+					g.GDrawString(text, p.X, p.Y);
+				}
+				//生成する画像のサイズを取得
+				try
+				{
+					var bitmap = new SKBitmap(16, 16);
+					//Graphics canvas = Graphics.FromImage(bitmap);
+					var graphics = new SKCanvas(bitmap);
+					SKFont font = g.Fnt;
+					var paint = new SKPaint();
+					if (font == null)
+					{
+						//font = new Font(Config.FontName, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
+						paint.Typeface = SKTypeface.FromFamilyName(Config.FontName);
+						paint.TextSize = Config.FontSize;
+						paint.Style = (SKPaintStyle)GlobalStatic.Console.StringStyle.FontStyle;
+					}
+					else
+					{
+						paint.Typeface = font.Typeface;
+						paint.TextSize = font.Size;
+						paint.Style = (SKPaintStyle)g.Fontstyle;
+					}
 
-			var size = paint.MeasureText(text);
+					var size = paint.MeasureText(text);
 
-			long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
-			resultArray[1] = (long)size;
-			resultArray[2] = (long)paint.TextSize;
-			return 1;
+					long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
+					resultArray[1] = (long)size;
+					resultArray[2] = (long)paint.TextSize;
+
+					bitmap.Dispose();
+					graphics.Dispose();
+					paint.Dispose();
+				}
+				catch
+				{
+					long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
+					resultArray[1] = 0;
+					resultArray[2] = Config.FontSize;
+				}
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 	#endregion
@@ -6111,36 +6171,44 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			string text = arguments[0].GetStrValue(exm);
-			//生成する画像のサイズを取得
-			string fontname = arguments[1].GetStrValue(exm);
-			long fontsize = arguments[2].GetIntValue(exm);
-			FontStyle fs = FontStyle.Regular;
-			if (arguments.Count > 3)
+			try
 			{
-				long style = arguments[3].GetIntValue(exm);
-				if ((style & 1) != 0)
-					fs |= FontStyle.Bold;
-				if ((style & 2) != 0)
-					fs |= FontStyle.Italic;
-				if ((style & 4) != 0)
-					fs |= FontStyle.Strikeout;
-				if ((style & 8) != 0)
-					fs |= FontStyle.Underline;
-			}
-			Font fnt = new(fontname, fontsize, fs, GraphicsUnit.Pixel);
-			var bitmap = new Bitmap(16, 16);
-			//Graphics canvas = Graphics.FromImage(bitmap);
-			var graphics = Graphics.FromImage(bitmap);
-			var size = graphics.MeasureString(text, fnt, int.MaxValue, StringFormat.GenericTypographic);
+				string text = arguments[0].GetStrValue(exm);
+				//生成する画像のサイズを取得
+				string fontname = arguments[1].GetStrValue(exm);
+				long fontsize = arguments[2].GetIntValue(exm);
+				FontStyle fs = FontStyle.Regular;
+				if (arguments.Count > 3)
+				{
+					long style = arguments[3].GetIntValue(exm);
+					if ((style & 1) != 0)
+						fs |= FontStyle.Bold;
+					if ((style & 2) != 0)
+						fs |= FontStyle.Italic;
+					if ((style & 4) != 0)
+						fs |= FontStyle.Strikeout;
+					if ((style & 8) != 0)
+						fs |= FontStyle.Underline;
+				}
+				Font fnt = new(fontname, fontsize, fs, GraphicsUnit.Pixel);
+				var bitmap = new Bitmap(16, 16);
+				//Graphics canvas = Graphics.FromImage(bitmap);
+				var graphics = Graphics.FromImage(bitmap);
+				var size = graphics.MeasureString(text, fnt, int.MaxValue, StringFormat.GenericTypographic);
 
-			//TextRenderer
-			//Size tsize = TextRenderer.MeasureText(canvas, text, fnt,
-			//    new Size(2000, 2000), TextFormatFlags.NoPadding);
-			long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
-			//resultArray[1] = (Int64)tsize.Width;
-			resultArray[1] = (long)size.Height;
-			return (long)size.Width;
+				//TextRenderer
+				//Size tsize = TextRenderer.MeasureText(canvas, text, fnt,
+				//    new Size(2000, 2000), TextFormatFlags.NoPadding);
+				long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
+				//resultArray[1] = (Int64)tsize.Width;
+				resultArray[1] = (long)size.Height;
+				return (long)size.Width;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 	#endregion
@@ -6212,25 +6280,33 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
-			if (!dest.IsCreated)
-				return 0;
-			GraphicsImage src = ReadGraphics(Name, exm, arguments, 1);
-			if (!src.IsCreated)
-				return 0;
-			long angle = arguments[2].GetIntValue(exm);
+			try
+			{
+				GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
+				if (!dest.IsCreated)
+					return 0;
+				GraphicsImage src = ReadGraphics(Name, exm, arguments, 1);
+				if (!src.IsCreated)
+					return 0;
+				long angle = arguments[2].GetIntValue(exm);
 
-			//座標省略してたらx/2,y/2で渡す
-			if (arguments.Count == 3)
-			{
-				dest.GDrawGWithRotate(src.RealBitmap, angle, src.Width / 2, src.Height / 2);
+				//座標省略してたらx/2,y/2で渡す
+				if (arguments.Count == 3)
+				{
+					dest.GDrawGWithRotate(src.RealBitmap, angle, src.Width / 2, src.Height / 2);
+				}
+				else
+				{
+					Point p = ReadPoint(Name, exm, arguments, 3);
+					dest.GDrawGWithRotate(src.RealBitmap, angle, p.X, p.Y);
+				}
+				return 1;
 			}
-			else
+			catch (Exception ex)
 			{
-				Point p = ReadPoint(Name, exm, arguments, 3);
-				dest.GDrawGWithRotate(src.RealBitmap, angle, p.X, p.Y);
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
 			}
-			return 1;
 		}
 	}
 	#endregion
@@ -6267,13 +6343,21 @@ internal static partial class FunctionMethodCreator
 		{
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			Point fromP = ReadPoint(Name, exm, arguments, 1);
-			Point forP = ReadPoint(Name, exm, arguments, 3);
-			g.GDrawLine(fromP.X, fromP.Y, forP.X, forP.Y);
-			return 1;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				Point fromP = ReadPoint(Name, exm, arguments, 1);
+				Point forP = ReadPoint(Name, exm, arguments, 3);
+				g.GDrawLine(fromP.X, fromP.Y, forP.X, forP.Y);
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 	#endregion
@@ -6400,28 +6484,38 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (g.IsCreated)
-				return 0;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (g.IsCreated)
+				{
+					System.Diagnostics.Debug.WriteLine($"[WARNING] GCREATE: GID {(int)arguments[0].GetIntValue(exm)} already exists (Width={g.Width}, Height={g.Height}), returning 0");
+					return 0;
+				}
 
-			Point p = ReadPoint(Name, exm, arguments, 1);
-			int width = p.X; int height = p.Y;
-			if (width <= 0)//{0}関数:GraphicsのWidthに0以下の値({1})が指定されました
-						   // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth0, Name, width));
-				throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Width", width));
-			else if (width > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのWidthに{2}以上の値({1})が指定されました
-														 // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth1, Name, width, AbstractImage.MAX_IMAGESIZE));
-				throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Width", AbstractImage.MAX_IMAGESIZE, width));
-			if (height <= 0)//{0}関数:GraphicsのHeightに0以下の値({1})が指定されました
-							// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight0, Name, height));
-				throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Height", height));
-			else if (height > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのHeightに{2}以上の値({1})が指定されました
-														  // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight1, Name, height, AbstractImage.MAX_IMAGESIZE));
-				throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Height", AbstractImage.MAX_IMAGESIZE, height));
+				Point p = ReadPoint(Name, exm, arguments, 1);
+				int width = p.X; int height = p.Y;
+				if (width <= 0)//{0}関数:GraphicsのWidthに0以下の値({1})が指定されました
+							   // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth0, Name, width));
+					throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Width", width));
+				else if (width > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのWidthに{2}以上の値({1})が指定されました
+															 // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth1, Name, width, AbstractImage.MAX_IMAGESIZE));
+					throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Width", AbstractImage.MAX_IMAGESIZE, width));
+				if (height <= 0)//{0}関数:GraphicsのHeightに0以下の値({1})が指定されました
+								// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight0, Name, height));
+					throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Height", height));
+				else if (height > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのHeightに{2}以上の値({1})が指定されました
+															  // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight1, Name, height, AbstractImage.MAX_IMAGESIZE));
+					throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Height", AbstractImage.MAX_IMAGESIZE, height));
 
-			g.GCreate(width, height, false);
-			return 1;
-
+				g.GCreate(width, height, false);
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
@@ -6501,11 +6595,19 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			g.GDispose();
-			return 1;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				g.GDispose();
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 	/// <summary>
@@ -6561,54 +6663,62 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			string imgname = arguments[0].GetStrValue(exm);
-			if (string.IsNullOrEmpty(imgname))
-				return 0;
-			ASprite img = AppContents.GetSprite(imgname);
-			if (img != null && img.IsCreated)
-				return 0;
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 1);
-			if (!g.IsCreated)
-				return 0;
-
-			Rectangle rect = new(0, 0, g.Width, g.Height);
-			Point pos = new Point(0, 0);
-			Size destSize = new Size(g.Width, g.Height);
-			
-			if (arguments.Count >= 6)
-			{//四角形は正でも負でもよいが親画像の外を指してはいけない
-				rect = ReadRectangle(Name, exm, arguments, 2);
-				// 默认情况下，目标尺寸 = 源矩形尺寸
-				destSize = rect.Size;
-				#region EM_私家版_SPRITECREATE範囲制限緩和
-				//if (rect.X + rect.Width < 0 || rect.X + rect.Width > canvas.Width || rect.Y + rect.Height < 0 || rect.Y + rect.Height > canvas.Height)
-				//	throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
-				if (!rect.IntersectsWith(new Rectangle(0, 0, g.Width, g.Height)))
-					// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
-					throw new CodeEE(string.Format(trerror.ImgRefOutOfRange.Text, Name));
-				#endregion
-			}
-			// 处理偏移坐标 (PosX, PosY) - 参数索引 6, 7
-			if (arguments.Count >= 8)
+			try
 			{
-				int px = (int)arguments[6].GetIntValue(exm);
-				int py = (int)arguments[7].GetIntValue(exm);
-				pos = new Point(px, py);
-			}
+				string imgname = arguments[0].GetStrValue(exm);
+				if (string.IsNullOrEmpty(imgname))
+					return 0;
+				ASprite img = AppContents.GetSprite(imgname);
+				if (img != null && img.IsCreated)
+					return 0;
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 1);
+				if (!g.IsCreated)
+					return 0;
 
-			// 处理目标尺寸 (DestW, DestH) - 参数索引 8, 9
-			if (arguments.Count == 10)
-			{
-				int dw = (int)arguments[8].GetIntValue(exm);
-				int dh = (int)arguments[9].GetIntValue(exm);
-				// 保持正数（虽然负数在某些绘图逻辑里可能意味着翻转，但在 Emuera CSV 解析里通常取绝对值或报错，这里做个绝对值处理比较安全）
-				if (dw < 0) dw = -dw;
-				if (dh < 0) dh = -dh;
-				destSize = new Size(dw, dh);
+				Rectangle rect = new(0, 0, g.Width, g.Height);
+				Point pos = new Point(0, 0);
+				Size destSize = new Size(g.Width, g.Height);
+				
+				if (arguments.Count >= 6)
+				{//四角形は正でも負でもよいが親画像の外を指してはいけない
+					rect = ReadRectangle(Name, exm, arguments, 2);
+					// 默认情况下，目标尺寸 = 源矩形尺寸
+					destSize = rect.Size;
+					#region EM_私家版_SPRITECREATE範囲制限緩和
+					//if (rect.X + rect.Width < 0 || rect.X + rect.Width > canvas.Width || rect.Y + rect.Height < 0 || rect.Y + rect.Height > canvas.Height)
+					//	throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
+					if (!rect.IntersectsWith(new Rectangle(0, 0, g.Width, g.Height)))
+						// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
+						throw new CodeEE(string.Format(trerror.ImgRefOutOfRange.Text, Name));
+					#endregion
+				}
+				// 处理偏移坐标 (PosX, PosY) - 参数索引 6, 7
+				if (arguments.Count >= 8)
+				{
+					int px = (int)arguments[6].GetIntValue(exm);
+					int py = (int)arguments[7].GetIntValue(exm);
+					pos = new Point(px, py);
+				}
+
+				// 处理目标尺寸 (DestW, DestH) - 参数索引 8, 9
+				if (arguments.Count == 10)
+				{
+					int dw = (int)arguments[8].GetIntValue(exm);
+					int dh = (int)arguments[9].GetIntValue(exm);
+					// 保持正数（虽然负数在某些绘图逻辑里可能意味着翻转，但在 Emuera CSV 解析里通常取绝对值或报错，这里做个绝对值处理比较安全）
+					if (dw < 0) dw = -dw;
+					if (dh < 0) dh = -dh;
+					destSize = new Size(dw, dh);
+				}
+				// 调用更新后的 CreateSpriteG
+				AppContents.CreateSpriteG(imgname, g, rect, pos, destSize);
+				return 1;
 			}
-			// 调用更新后的 CreateSpriteG
-			AppContents.CreateSpriteG(imgname, g, rect, pos, destSize);
-			return 1;
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
@@ -6732,15 +6842,23 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			Color c = ReadColor(Name, exm, arguments, 1);
-			if (!g.IsCreated)
-				return 0;
-			if (arguments.Count == 2)
-				g.GClear(c);
-			else
-				g.GClear(c, (int)arguments[2].GetIntValue(exm), (int)arguments[3].GetIntValue(exm), (int)arguments[4].GetIntValue(exm), (int)arguments[5].GetIntValue(exm));
-			return 1;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				Color c = ReadColor(Name, exm, arguments, 1);
+				if (!g.IsCreated)
+					return 0;
+				if (arguments.Count == 2)
+					g.GClear(c);
+				else
+					g.GClear(c, (int)arguments[2].GetIntValue(exm), (int)arguments[3].GetIntValue(exm), (int)arguments[4].GetIntValue(exm), (int)arguments[5].GetIntValue(exm));
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 		#endregion
 	}
@@ -6761,12 +6879,20 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
-			if (!g.IsCreated)
-				return 0;
-			Rectangle rect = ReadRectangle(Name, exm, arguments, 1);
-			g.GFillRectangle(rect);
-			return 1;
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				Rectangle rect = ReadRectangle(Name, exm, arguments, 1);
+				g.GFillRectangle(rect);
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
@@ -6816,22 +6942,30 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
-			if (!dest.IsCreated)
-				return 0;
-			GraphicsImage src = ReadGraphics(Name, exm, arguments, 1);
-			if (!src.IsCreated)
-				return 0;
-			Rectangle destRect = ReadRectangle(Name, exm, arguments, 2);
-			Rectangle srcRect = ReadRectangle(Name, exm, arguments, 6);
-			if (arguments.Count == 10 || arguments[10] == null)
+			try
 			{
-				dest.GDrawG(src, destRect, srcRect);
+				GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
+				if (!dest.IsCreated)
+					return 0;
+				GraphicsImage src = ReadGraphics(Name, exm, arguments, 1);
+				if (!src.IsCreated)
+					return 0;
+				Rectangle destRect = ReadRectangle(Name, exm, arguments, 2);
+				Rectangle srcRect = ReadRectangle(Name, exm, arguments, 6);
+				if (arguments.Count == 10 || arguments[10] == null)
+				{
+					dest.GDrawG(src, destRect, srcRect);
+					return 1;
+				}
+				float[][] cm = ReadColormatrix(Name, exm, arguments, 10);
+				dest.GDrawG(src, destRect, srcRect, cm);
 				return 1;
 			}
-			float[][] cm = ReadColormatrix(Name, exm, arguments, 10);
-			dest.GDrawG(src, destRect, srcRect, cm);
-			return 1;
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 
 		public override bool UniqueRestructure(ExpressionMediator exm, List<AExpression> arguments)
@@ -6868,22 +7002,30 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
-			if (!dest.IsCreated)
-				return 0;
-			GraphicsImage src = ReadGraphics(Name, exm, arguments, 1);
-			if (!src.IsCreated)
-				return 0;
-			GraphicsImage mask = ReadGraphics(Name, exm, arguments, 2);
-			if (!mask.IsCreated)
-				return 0;
-			if (src.Width != mask.Width || src.Height != mask.Height)
-				return 0;
-			Point destPoint = ReadPoint(Name, exm, arguments, 3);
-			if (destPoint.X + src.Width > dest.Width || destPoint.Y + src.Height > dest.Height)
-				return 0;
-			dest.GDrawGWithMask(src, mask, destPoint);
-			return 1;
+			try
+			{
+				GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
+				if (!dest.IsCreated)
+					return 0;
+				GraphicsImage src = ReadGraphics(Name, exm, arguments, 1);
+				if (!src.IsCreated)
+					return 0;
+				GraphicsImage mask = ReadGraphics(Name, exm, arguments, 2);
+				if (!mask.IsCreated)
+					return 0;
+				if (src.Width != mask.Width || src.Height != mask.Height)
+					return 0;
+				Point destPoint = ReadPoint(Name, exm, arguments, 3);
+				if (destPoint.X + src.Width > dest.Width || destPoint.Y + src.Height > dest.Height)
+					return 0;
+				dest.GDrawGWithMask(src, mask, destPoint);
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 
 
@@ -6939,40 +7081,48 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
-			if (!dest.IsCreated)
-				return 0;
+			try
+			{
+				GraphicsImage dest = ReadGraphics(Name, exm, arguments, 0);
+				if (!dest.IsCreated)
+					return 0;
 
-			string imgname = arguments[1].GetStrValue(exm);
-			ASprite img = AppContents.GetSprite(imgname);
-			if (img == null || !img.IsCreated)
-				return 0;
+				string imgname = arguments[1].GetStrValue(exm);
+				ASprite img = AppContents.GetSprite(imgname);
+				if (img == null || !img.IsCreated)
+					return 0;
 
-			Rectangle destRect = new(0, 0, img.DestBaseSize.Width, img.DestBaseSize.Height);
-			if (arguments.Count == 2)
-			{
-				dest.GDrawCImg(img, destRect);
-				return 1;
-			}
-			if (arguments.Count == 4)
-			{
-				Point p = ReadPoint(Name, exm, arguments, 2);
-				destRect.X = p.X;
-				destRect.Y = p.Y;
-				dest.GDrawCImg(img, destRect);
-				return 1;
-			}
-			if (arguments.Count == 6)
-			{
+				Rectangle destRect = new(0, 0, img.DestBaseSize.Width, img.DestBaseSize.Height);
+				if (arguments.Count == 2)
+				{
+					dest.GDrawCImg(img, destRect);
+					return 1;
+				}
+				if (arguments.Count == 4)
+				{
+					Point p = ReadPoint(Name, exm, arguments, 2);
+					destRect.X = p.X;
+					destRect.Y = p.Y;
+					dest.GDrawCImg(img, destRect);
+					return 1;
+				}
+				if (arguments.Count == 6)
+				{
+					destRect = ReadRectangle(Name, exm, arguments, 2);
+					dest.GDrawCImg(img, destRect);
+					return 1;
+				}
+				//if (arguments.Count == 7)
 				destRect = ReadRectangle(Name, exm, arguments, 2);
-				dest.GDrawCImg(img, destRect);
+				float[][] cm = ReadColormatrix(Name, exm, arguments, 6);
+				dest.GDrawCImg(img, destRect, cm);
 				return 1;
 			}
-			//if (arguments.Count == 7)
-			destRect = ReadRectangle(Name, exm, arguments, 2);
-			float[][] cm = ReadColormatrix(Name, exm, arguments, 6);
-			dest.GDrawCImg(img, destRect, cm);
-			return 1;
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 
 		public override bool UniqueRestructure(ExpressionMediator exm, List<AExpression> arguments)
@@ -7007,28 +7157,36 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			string imgname = arguments[0].GetStrValue(exm);
-			if (string.IsNullOrEmpty(imgname))
-				return 0;
-			//リソースチェック・既に存在しているならば失敗
-			ASprite img = AppContents.GetSprite(imgname);
-			if (img != null && img.IsCreated)
-				return 0;
-			Point pos = ReadPoint(Name, exm, arguments, 1);
-			if (pos.X <= 0)//{0}関数:GraphicsのWidthに0以下の値({1})が指定されました
-						   // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth0, Name, pos.X));
-				throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Width", pos.X));
-			else if (pos.X > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのWidthに{2}以上の値({1})が指定されました
-														 // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth1, Name, pos.X, AbstractImage.MAX_IMAGESIZE));
-				throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Width", AbstractImage.MAX_IMAGESIZE, pos.X));
-			if (pos.Y <= 0)//{0}関数:GraphicsのHeightに0以下の値({1})が指定されました
-						   // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight0, Name, pos.Y));
-				throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Height", pos.Y));
-			else if (pos.Y > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのHeightに{2}以上の値({1})が指定されました
-														 // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight1, Name, pos.Y, AbstractImage.MAX_IMAGESIZE));
-				throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Height", AbstractImage.MAX_IMAGESIZE, pos.Y));
-			AppContents.CreateSpriteAnime(imgname, pos.X, pos.Y);
-			return 1;
+			try
+			{
+				string imgname = arguments[0].GetStrValue(exm);
+				if (string.IsNullOrEmpty(imgname))
+					return 0;
+				//リソースチェック・既に存在しているならば失敗
+				ASprite img = AppContents.GetSprite(imgname);
+				if (img != null && img.IsCreated)
+					return 0;
+				Point pos = ReadPoint(Name, exm, arguments, 1);
+				if (pos.X <= 0)//{0}関数:GraphicsのWidthに0以下の値({1})が指定されました
+							   // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth0, Name, pos.X));
+					throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Width", pos.X));
+				else if (pos.X > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのWidthに{2}以上の値({1})が指定されました
+															 // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGWidth1, Name, pos.X, AbstractImage.MAX_IMAGESIZE));
+					throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Width", AbstractImage.MAX_IMAGESIZE, pos.X));
+				if (pos.Y <= 0)//{0}関数:GraphicsのHeightに0以下の値({1})が指定されました
+							   // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight0, Name, pos.Y));
+					throw new CodeEE(string.Format(trerror.GParamIsNegative.Text, Name, "Height", pos.Y));
+				else if (pos.Y > AbstractImage.MAX_IMAGESIZE)//{0}関数:GraphicsのHeightに{2}以上の値({1})が指定されました
+															 // throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGHeight1, Name, pos.Y, AbstractImage.MAX_IMAGESIZE));
+					throw new CodeEE(string.Format(trerror.GParamTooLarge.Text, Name, "Height", AbstractImage.MAX_IMAGESIZE, pos.Y));
+				AppContents.CreateSpriteAnime(imgname, pos.X, pos.Y);
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
@@ -7050,29 +7208,37 @@ internal static partial class FunctionMethodCreator
 			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
 				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
 				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
-			string imgname = arguments[0].GetStrValue(exm);
-			if (string.IsNullOrEmpty(imgname))
-				return 0;
-			if (AppContents.GetSprite(imgname) == null)
-				return 0;
-			SpriteAnime img = AppContents.GetSprite(imgname) as SpriteAnime;
-			if (img == null && !img.IsCreated)
-				return 0;
-			GraphicsImage g = ReadGraphics(Name, exm, arguments, 1);
-			if (!g.IsCreated)
-				return 0;
-			Rectangle rect = ReadRectangle(Name, exm, arguments, 2);
-			//四角形は正でなければならず、かつ親画像の外を指してはいけない
-			if (rect.Width <= 0 || rect.Height <= 0 ||
-				rect.X < 0 || rect.X + rect.Width > g.Width || rect.Y < 0 || rect.Y + rect.Height > g.Height)
-				return 0;
-			//throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
-			Point offset = ReadPoint(Name, exm, arguments, 6);
-			long delay = arguments[8].GetIntValue(exm);
-			if (delay <= 0 || delay > int.MaxValue)
-				return 0;
-			img.AddFrame(g, rect, offset, (int)delay);
-			return 1;
+			try
+			{
+				string imgname = arguments[0].GetStrValue(exm);
+				if (string.IsNullOrEmpty(imgname))
+					return 0;
+				if (AppContents.GetSprite(imgname) == null)
+					return 0;
+				SpriteAnime img = AppContents.GetSprite(imgname) as SpriteAnime;
+				if (img == null && !img.IsCreated)
+					return 0;
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 1);
+				if (!g.IsCreated)
+					return 0;
+				Rectangle rect = ReadRectangle(Name, exm, arguments, 2);
+				//四角形は正でなければならず、かつ親画像の外を指してはいけない
+				if (rect.Width <= 0 || rect.Height <= 0 ||
+					rect.X < 0 || rect.X + rect.Width > g.Width || rect.Y < 0 || rect.Y + rect.Height > g.Height)
+					return 0;
+				//throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodCIMGCreateOutOfRange0, Name));
+				Point offset = ReadPoint(Name, exm, arguments, 6);
+				long delay = arguments[8].GetIntValue(exm);
+				if (delay <= 0 || delay > int.MaxValue)
+					return 0;
+				img.AddFrame(g, rect, offset, (int)delay);
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
 		}
 	}
 
