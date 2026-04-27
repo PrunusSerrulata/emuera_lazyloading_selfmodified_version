@@ -366,6 +366,19 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 				var bytesPerPixel = 4;
 				var totalBytes = width * height * bytesPerPixel;
 				Buffer.MemoryCopy(srcPixels.ToPointer(), dstPixels.ToPointer(), totalBytes, totalBytes);
+				int pixelCount = width * height;
+				uint* px = (uint*)dstPixels.ToPointer();
+				for (int i = 0; i < pixelCount; i++)
+				{
+					uint p = px[i];
+					uint a = p >> 24;
+					if (a == 0 || a == 255)
+						continue;
+					uint b = (p & 0xFF) * a / 255;
+					uint g = ((p >> 8) & 0xFF) * a / 255;
+					uint r = ((p >> 16) & 0xFF) * a / 255;
+					px[i] = (a << 24) | (r << 16) | (g << 8) | b;
+				}
 			}
 		}
 		finally
@@ -411,8 +424,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	{
 		Color = color.ToSKColor(),
 		IsAntialias = isAntialias,
-		TextAlign = SKTextAlign.Left,
-		ColorFilter = SKColorFilter.CreateBlendMode(color.ToSKColor(), SKBlendMode.SrcIn)
+		TextAlign = SKTextAlign.Left
 	};
 
 	var point = new SKPoint(PointX + Config.DrawingParam_ShapePositionShift, origin.Y);
@@ -435,7 +447,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 				using var bitmap = new System.Drawing.Bitmap((int)gdiText.Width + 2, (int)Font.Size + 2);
 				using (var g = System.Drawing.Graphics.FromImage(bitmap))
 				{
-					g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+					g.TextRenderingHint = IsRasterFont
+						? System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit
+						: System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 					TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color, flags);
 				}
 				using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
@@ -449,7 +463,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			using var bitmap = new System.Drawing.Bitmap((int)Width, (int)Font.Size);
 			using (var g = System.Drawing.Graphics.FromImage(bitmap))
 			{
-				g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+				g.TextRenderingHint = IsRasterFont
+					? System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit
+					: System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 				TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color, flags);
 			}
 			using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
@@ -511,7 +527,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 					using var bitmap = new System.Drawing.Bitmap((int)gdiText.Width + 2, (int)Font.Size + 2);
 					using (var g = System.Drawing.Graphics.FromImage(bitmap))
 					{
-						g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+						g.TextRenderingHint = IsRasterFont
+							? System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit
+							: System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 						TextRenderer.DrawText(g, gdiText.Text, gdiText.Font, new System.Drawing.Point(0, 0), color, flags);
 					}
 					using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
@@ -525,7 +543,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 				using var bitmap = new System.Drawing.Bitmap((int)Width, (int)Font.Size);
 				using (var g = System.Drawing.Graphics.FromImage(bitmap))
 				{
-					g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+					g.TextRenderingHint = IsRasterFont
+						? System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit
+						: System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 					TextRenderer.DrawText(g, Text, GdiFont, new System.Drawing.Point(0, 0), color, flags);
 				}
 				using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
@@ -544,8 +564,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		using var bitmapPaint = new SKPaint {
 			TextAlign = SKTextAlign.Left,
 			Color = color.ToSKColor(),
-			IsAntialias = isAntialias,
-			ColorFilter = SKColorFilter.CreateBlendMode(color.ToSKColor(), SKBlendMode.SrcIn)
+			IsAntialias = isAntialias
 		};
 
 		float gdiStartX = xOffset + Config.DrawingParam_ShapePositionShift;
