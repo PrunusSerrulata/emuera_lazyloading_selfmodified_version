@@ -1,4 +1,4 @@
-﻿﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System;
@@ -122,7 +122,7 @@ internal sealed class GraphicsImage : AbstractImage
 		if (canvas == null)
 			throw new NullReferenceException();
 		canvas.Save();
-		canvas.ClipRect(new SKRect(x, y, x + w, y + h));
+		canvas.ClipRect(SKRect.Create(x, y, w, h));
 		canvas.Clear(c.ToSKColor());
 		canvas.Restore();
 		drawImgList = null;
@@ -253,7 +253,7 @@ internal sealed class GraphicsImage : AbstractImage
 			g.DrawString(text, gdiFont, penBrush, 0, 0, StringFormat.GenericTypographic);
 		}
 
-		var skTemp = new SKBitmap(bmpW, bmpH, SKColorType.Bgra8888, SKAlphaType.Unpremul);
+		using var skTemp = new SKBitmap(bmpW, bmpH, SKColorType.Bgra8888, SKAlphaType.Unpremul);
 		var rect = new System.Drawing.Rectangle(0, 0, bmpW, bmpH);
 		var bmpData = gdiBitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 		try
@@ -271,7 +271,6 @@ internal sealed class GraphicsImage : AbstractImage
 		}
 
 		canvas.DrawBitmap(skTemp, x, y);
-		skTemp.Dispose();
 	}
 	#endregion
 
@@ -339,26 +338,20 @@ internal sealed class GraphicsImage : AbstractImage
 
 		drawImgList = null;
 
-		try
+		if (brush != null)
 		{
-			if (brush != null)
-			{
-				using var paint = new SKPaint();
-				var b = (SolidBrush)brush;
-				paint.Color = b.Color.ToSKColor();
-				canvas.DrawRect(rect.ToSKRect(), paint);
-			}
-			else
-			{
-				using var paint = new SKPaint
-				{
-					Color = Config.BackColor.ToSKColor()
-				};
-				canvas.DrawRect(rect.ToSKRect(), paint);
-			}
+			using var paint = new SKPaint();
+			var b = (SolidBrush)brush;
+			paint.Color = b.Color.ToSKColor();
+			canvas.DrawRect(rect.ToSKRect(), paint);
 		}
-		catch
+		else
 		{
+			using var paint = new SKPaint
+			{
+				Color = Config.BackColor.ToSKColor()
+			};
+			canvas.DrawRect(rect.ToSKRect(), paint);
 		}
 	}
 
@@ -371,59 +364,40 @@ internal sealed class GraphicsImage : AbstractImage
 		Load();
 		if (canvas == null)
 			throw new NullReferenceException();
-		try
-		{
-			if (useImgList)
-			{
-				if (img as SpriteG != null)
-				{
-					SpriteG imgG = img as SpriteG;
-					if (imgG.useImgList)
-					{
-						foreach (Tuple<ASprite, Rectangle> img_element in imgG.drawImgList)
-						{
-							if (imgG.isBaseImage(this))
-							{
-								drawImgList = null;
-								break;
-							}
-							drawImgList.Add(new Tuple<ASprite, Rectangle>(
-								img_element.Item1,
-								new Rectangle(
-									(img_element.Item2.X + destRect.X) * destRect.Width / imgG.DestBaseSize.Width,
-									(img_element.Item2.Y + destRect.Y) * destRect.Height / imgG.DestBaseSize.Height,
-									img_element.Item2.Width * destRect.Width / imgG.DestBaseSize.Width,
-									img_element.Item2.Height * destRect.Height / imgG.DestBaseSize.Height
-								)
-							));
-						}
-					}
-					else
-					{
-						drawImgList = null;
-					}
-				}
-				else if (img as SpriteF != null)
-				{
-					drawImgList.Add(
-						new Tuple<ASprite, Rectangle>(img, destRect)
-					);
 
-					if (drawImgList.Count > 50)
-					{
-						drawImgList = null;
-					}
+		if (useImgList)
+		{
+			if (img as SpriteG != null)
+			{
+				SpriteG imgG = img as SpriteG;
+				if (imgG.isBaseImage(this))
+				{
+					drawImgList = null;
 				}
 				else
+				{
+					drawImgList.Add(new Tuple<ASprite, Rectangle>(img, destRect));
+					if (drawImgList.Count > 50)
+						drawImgList = null;
+				}
+			}
+			else if (img as SpriteF != null)
+			{
+				drawImgList.Add(
+					new Tuple<ASprite, Rectangle>(img, destRect)
+				);
+
+				if (drawImgList.Count > 50)
 				{
 					drawImgList = null;
 				}
 			}
-			img.GraphicsDraw(canvas, destRect);
+			else
+			{
+				drawImgList = null;
+			}
 		}
-		catch
-		{
-		}
+		img.GraphicsDraw(canvas, destRect);
 	}
 
 	/// <summary>
@@ -436,21 +410,15 @@ internal sealed class GraphicsImage : AbstractImage
 		if (canvas == null)
 			throw new NullReferenceException();
 
-		try
-		{
-			drawImgList = null;
-			float[] skiaCM = [
-				cm[0][0],cm[1][0],cm[2][0],cm[3][0],cm[0][4],
-				cm[0][1],cm[1][1],cm[2][1],cm[3][1],cm[1][4],
-				cm[0][2],cm[1][2],cm[2][2],cm[3][2],cm[2][4],
-				cm[0][3],cm[1][3],cm[2][3],cm[3][3],cm[3][4],
-			];
-			var filter = SKColorFilter.CreateColorMatrix(skiaCM);
-			img.GraphicsDraw(canvas, destRect, filter);
-		}
-		catch
-		{
-		}
+		drawImgList = null;
+		float[] skiaCM = [
+			cm[0][0],cm[1][0],cm[2][0],cm[3][0],cm[0][4],
+			cm[0][1],cm[1][1],cm[2][1],cm[3][1],cm[1][4],
+			cm[0][2],cm[1][2],cm[2][2],cm[3][2],cm[2][4],
+			cm[0][3],cm[1][3],cm[2][3],cm[3][3],cm[3][4],
+		];
+		var filter = SKColorFilter.CreateColorMatrix(skiaCM);
+		img.GraphicsDraw(canvas, destRect, filter);
 	}
 
 	/// <summary>
@@ -463,16 +431,10 @@ internal sealed class GraphicsImage : AbstractImage
 		if (canvas == null)
 			throw new NullReferenceException();
 
-		try
-		{
-			drawImgList = null;
+		drawImgList = null;
 
-			var src = srcGra.GetBitmap();
-			canvas.DrawBitmap(src, new SKPoint(0, 0));
-		}
-		catch
-		{
-		}
+		var src = srcGra.GetBitmap();
+		canvas.DrawBitmap(src, new SKPoint(0, 0));
 	}
 
 
@@ -486,21 +448,15 @@ internal sealed class GraphicsImage : AbstractImage
 		if (canvas == null)
 			throw new NullReferenceException();
 
-		try
-		{
-			drawImgList = null;
+		drawImgList = null;
 
-			var src = srcGra.GetBitmap();
-			ImageAttributes imageAttributes = new();
-			ColorMatrix colorMatrix = new(cm);
-			imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-			canvas.DrawBitmap(src, new SKRect(srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height));
+		var src = srcGra.GetBitmap();
+		ImageAttributes imageAttributes = new();
+		ColorMatrix colorMatrix = new(cm);
+		imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+		canvas.DrawBitmap(src, new SKRect(srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height));
 
-			imageAttributes.Dispose();
-		}
-		catch
-		{
-		}
+		imageAttributes.Dispose();
 	}
 
 
@@ -514,28 +470,22 @@ internal sealed class GraphicsImage : AbstractImage
 		if (canvas == null)
 			throw new NullReferenceException();
 
-		try
-		{
-			drawImgList = null;
+		drawImgList = null;
 
-			// Create a temporary offscreen surface to handle the mask
-			using var surface = SKSurface.Create(new SKImageInfo(srcGra.Width, srcGra.Height));
-			var tempCanvas = surface.Canvas;
+		// Create a temporary offscreen surface to handle the mask
+		using var surface = SKSurface.Create(new SKImageInfo(srcGra.Width, srcGra.Height));
+		var tempCanvas = surface.Canvas;
 
-			// 1. Draw the source image
-			tempCanvas.DrawBitmap(srcGra.GetBitmap(), 0, 0);
+		// 1. Draw the source image
+		tempCanvas.DrawBitmap(srcGra.GetBitmap(), 0, 0);
 
-			// 2. Draw the mask using DstIn blend mode (preserves areas where both mask and source are opaque)
-			using var maskPaint = new SKPaint { BlendMode = SKBlendMode.DstIn };
-			tempCanvas.DrawBitmap(maskGra.GetBitmap(), 0, 0, maskPaint);
+		// 2. Draw the mask using DstIn blend mode (preserves areas where both mask and source are opaque)
+		using var maskPaint = new SKPaint { BlendMode = SKBlendMode.DstIn };
+		tempCanvas.DrawBitmap(maskGra.GetBitmap(), 0, 0, maskPaint);
 
-			// 3. Draw the result to the target canvas
-			using var resultImage = surface.Snapshot();
-			canvas.DrawImage(resultImage, destPoint.X, destPoint.Y);
-		}
-		catch
-		{
-		}
+		// 3. Draw the result to the target canvas
+		using var resultImage = surface.Snapshot();
+		canvas.DrawImage(resultImage, destPoint.X, destPoint.Y);
 	}
 
 	#region EE_GDRAWGWITHROTATE
@@ -563,16 +513,9 @@ internal sealed class GraphicsImage : AbstractImage
 	{
 		if (canvas == null || srcGra == null)
 			throw new NullReferenceException();
-		try
-		{
-			float angle = a;
-			canvas.RotateDegrees(angle, x, y);
-			SKBitmap src = srcGra;
-			canvas.DrawBitmap(src, 0, 0);
-		}
-		catch
-		{
-		}
+		float angle = a;
+		canvas.RotateDegrees(angle, x, y);
+		canvas.DrawBitmap(srcGra, 0, 0);
 	}
 	#endregion
 	#region EE_GDRAWLINE
@@ -581,25 +524,23 @@ internal sealed class GraphicsImage : AbstractImage
 		if (canvas == null)
 			throw new NullReferenceException();
 
-		try
+		if (pen != null)
 		{
-			if (pen != null)
+			using var paint = new SKPaint
 			{
-				using var paint = new SKPaint
-				{
-					Color = pen.Color.ToSKColor(),
-					StrokeWidth = pen.Width
-				};
-				switch (pen.DashCap)
-				{
-					case DashCap.Flat:
-						paint.StrokeCap = SKStrokeCap.Butt;
-						break;
-					case DashCap.Round:
-						paint.StrokeCap = SKStrokeCap.Round;
-						break;
-					case DashCap.Triangle:
-						paint.StrokeCap = SKStrokeCap.Square;
+				Color = pen.Color.ToSKColor(),
+				StrokeWidth = pen.Width
+			};
+			switch (pen.DashCap)
+			{
+				case DashCap.Flat:
+					paint.StrokeCap = SKStrokeCap.Butt;
+					break;
+				case DashCap.Round:
+					paint.StrokeCap = SKStrokeCap.Round;
+					break;
+				case DashCap.Triangle:
+					paint.StrokeCap = SKStrokeCap.Square;
 					break;
 			}
 			SKPathEffect ds = SKPathEffect.CreateDash([1, 0], 0);
@@ -618,13 +559,11 @@ internal sealed class GraphicsImage : AbstractImage
 					ds = SKPathEffect.CreateDash([pen.Width*3, pen.Width, pen.Width, pen.Width], 0);
 					break;
 				case DashStyle.DashDotDot:
-						ds = SKPathEffect.CreateDash([pen.Width*3, pen.Width, pen.Width, pen.Width, pen.Width, pen.Width], 0);
-						break;
-				}
-				// 将计算好的虚线效果赋值给画笔
-				paint.PathEffect = ds;
-				//canvas.DrawLine(pen, fromX, fromY, destX, destY);
-				canvas.DrawLine(fromX, fromY, destX, destY, paint);
+					ds = SKPathEffect.CreateDash([pen.Width*3, pen.Width, pen.Width, pen.Width, pen.Width, pen.Width], 0);
+					break;
+			}
+			paint.PathEffect = ds;
+			canvas.DrawLine(fromX, fromY, destX, destY, paint);
 		}
 		else
 		{
@@ -633,10 +572,6 @@ internal sealed class GraphicsImage : AbstractImage
 				Color = Config.ForeColor.ToSKColor()
 			};
 			canvas.DrawLine(fromX, fromY, destX, destY, paint);
-		}
-		}
-		catch
-		{
 		}
 	}
 	#endregion

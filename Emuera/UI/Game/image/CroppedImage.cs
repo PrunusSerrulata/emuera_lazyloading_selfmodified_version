@@ -144,18 +144,20 @@ internal abstract class ASpriteSingle : ASprite
 /// </summary>
 internal sealed class SpriteG : ASpriteSingle
 {
-	// 旧构造函数
+	public readonly int SourceGID;
+
 	public SpriteG(string name, GraphicsImage gra, Rectangle rect)
 		: base(name, gra, rect)
 	{
+		SourceGID = gra.ID;
 	}
-	// 新的全参数构造函数
-	public SpriteG(string name, GraphicsImage gra, Rectangle rect, Point pos, Size destSize) : base(name, gra, rect, destSize) // 1. 调用父类设置 DestSize
+	public SpriteG(string name, GraphicsImage gra, Rectangle rect, Point pos, Size destSize) : base(name, gra, rect, destSize)
 	{
-		DestBasePosition = pos;        // 2. 手动设置偏移位置
+		DestBasePosition = pos;
+		SourceGID = gra.ID;
 	}
-	public bool useImgList { get { return (BaseImage as GraphicsImage).useImgList; } }
-	public List<Tuple<ASprite, Rectangle>> drawImgList { get { return (BaseImage as GraphicsImage).drawImgList; } }
+	public bool useImgList { get { return (BaseImage as GraphicsImage)?.useImgList ?? false; } }
+	public List<Tuple<ASprite, Rectangle>> drawImgList { get { return (BaseImage as GraphicsImage)?.drawImgList; } }
 	public bool isBaseImage(GraphicsImage gImg)
 	{
 		return BaseImage as GraphicsImage == gImg;

@@ -166,34 +166,7 @@ static class AppContents
 			return;
 		imgName = imgName.ToUpper(CultureInfo.InvariantCulture);
 
-		SpriteG newSprite;
-		if (parent.IsCreated && parent.SKBitmap != null)
-		{
-			var srcBmp = parent.SKBitmap;
-			int sx = Math.Max(0, rect.X);
-			int sy = Math.Max(0, rect.Y);
-			int sw = Math.Min(rect.Width, srcBmp.Width - sx);
-			int sh = Math.Min(rect.Height, srcBmp.Height - sy);
-			if (sw > 0 && sh > 0)
-			{
-				var snapshotBmp = new SKBitmap(sw, sh);
-				using (var canvas = new SKCanvas(snapshotBmp))
-				{
-					canvas.DrawBitmap(srcBmp, new SKRect(sx, sy, sx + sw, sy + sh), new SKRect(0, 0, sw, sh));
-				}
-				GraphicsImage snapshotGra = new GraphicsImage(-1);
-				snapshotGra.GCreateFromF(snapshotBmp, false);
-				newSprite = new SpriteG(imgName, snapshotGra, new Rectangle(0, 0, sw, sh), pos, destSize);
-			}
-			else
-			{
-				newSprite = new SpriteG(imgName, parent, rect, pos, destSize);
-			}
-		}
-		else
-		{
-			newSprite = new SpriteG(imgName, parent, rect, pos, destSize);
-		}
+		SpriteG newSprite = new SpriteG(imgName, parent, rect, pos, destSize);
 		activeSprites[imgName] = newSprite;
 	}
 
