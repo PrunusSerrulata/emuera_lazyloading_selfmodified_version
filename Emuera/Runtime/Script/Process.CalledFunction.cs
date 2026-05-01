@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Function;
+using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameProc;
 using MinorShift.Emuera.Runtime.Config;
@@ -169,11 +169,6 @@ internal sealed class CalledFunction
 		}
 		FunctionLabelLine func = TopLabel;
 		AExpression[] convertedArg = new AExpression[func.Arg.Length];
-		if (convertedArg.Length < srcArgs.Count)
-		{
-			errMes = string.Format(trerror.TooManyFuncArgs.Text, func.LabelName);
-			return null;
-		}
 		AExpression term;
 		VariableTerm destArg;
 		//bool isString = false;

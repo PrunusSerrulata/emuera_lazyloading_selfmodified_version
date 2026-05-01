@@ -1396,22 +1396,27 @@ internal sealed partial class FunctionIdentifier
 			if (Config.TimesNotRigorousCalculation)
 			{
 				double d = var.GetIntValue(exm) * timesArg.DoubleValue;
-				unchecked
+				try
 				{
-					var.SetValue((long)d, exm);
+					checked { var.SetValue((long)d, exm); }
+				}
+				catch (OverflowException)
+				{
+					GlobalStatic.EMediator.Console.PrintWarning(
+						$"TIMES整数溢出: {d}", null, 1);
+					var.SetValue(d > 0 ? long.MaxValue : long.MinValue, exm);
 				}
 			}
 			else
 			{
 				decimal d = var.GetIntValue(exm) * (decimal)timesArg.DoubleValue;
-				unchecked
+				if (d <= long.MaxValue && d >= long.MinValue)
+					var.SetValue((long)d, exm);
+				else
 				{
-					//decimal型は強制的にOverFlowExceptionを投げるので対策が必要
-					//OverFlowの場合は昔の挙動に近づけてみる
-					if (d <= long.MaxValue && d >= long.MinValue)
-						var.SetValue((long)d, exm);
-					else
-						var.SetValue((long)(double)d, exm);
+					GlobalStatic.EMediator.Console.PrintWarning(
+						$"TIMES整数溢出: {d}", null, 1);
+					var.SetValue(d > 0 ? long.MaxValue : long.MinValue, exm);
 				}
 			}
 		}
@@ -3715,7 +3720,13 @@ internal sealed partial class FunctionIdentifier
 				string errMes;
 				arg = call.ConvertArg(spCallArg.RowArgs, out errMes);
 				if (arg == null)
-					throw new CodeEE(errMes);
+				{
+					if (!isTry)
+						throw new CodeEE(errMes);
+					if (func.JumpToEndCatch != null)
+						state.JumpTo(func.JumpToEndCatch);
+					return;
+				}
 			}
 			state.IntoFunction(call, arg, exm);
 		}
