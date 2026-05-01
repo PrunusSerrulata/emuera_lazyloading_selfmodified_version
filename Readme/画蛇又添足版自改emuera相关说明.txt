@@ -1,4 +1,40 @@
 
+2026年5月1日
+运行时核心重构 Phase 0 + Phase 1 B.1-B.2（基于 REFACTOR_HANDBOOK.md 方案）：
+
+Phase 0 — Bug 修复与安全补丁：
+	A.1 ConvertArg() 参数处理：
+		1. 多余参数静默丢弃：srcArgs.Count > func.Arg.Length 时不再报错，循环自然忽略多余参数
+		2. CALL_Instruction isTry 安全网：ConvertArg 失败时正确检查 isTry 标志，TRY 模式下跳转到 EndCatch 而非抛出 CodeEE（与 CALLS_Instruction 对齐）
+
+	A.2 SafeArithmetic 运算寄存器安全化：
+		1. 新增 SafeArithmetic.cs：SafeAdd/SafeSubtract/SafeMultiply/SafeNegate/SafeDivide/SafeModulo/SafeFloatDivide，溢出时打印警告并返回安全边界值
+		2. OperatorMethod.cs 全量替换：PlusIntInt→SafeAdd, MinusIntInt→SafeSubtract, MultIntInt→SafeMultiply, DivIntInt→SafeDivide, ModIntInt→SafeModulo, MinusInt→SafeNegate
+		3. TIMES_Instruction：unchecked 截断 → checked + OverflowException 捕获 + 饱和赋值
+		4. VariableToken.cs PlusValue()（10 处）：裸 += → SafeArithmetic.SafeAdd
+		5. IncrementInt/DecrementInt/IncrementAfterInt/DecrementAfterInt：ChangeValue + OverflowException 捕获
+		6. INITRAND/DUMPRAND 与新随机数算法解耦：移除 UseNewRandom 检查，始终操作 MTRandom 状态，不影响 GetNextRand；旧脚本的 DUMPRAND/RANDOMIZE/INITRAND 存档 hack 用法可继续使用
+
+Phase 1 — 运行时核心移植：
+	1.1 ExecutionContext 栈式上下文（B.1 LOCAL/ARG 递归栈污染）：
+		1. 新增 ExecutionContext.cs：栈式函数调用上下文，每个函数调用创建独立的 LocalIntegers/LocalStrings/ArgIntegers/ArgStrings 数组，父子关系 + Dispose
+		2. 修改 Process.State.cs：新增 _contextStack/CurrentContext，IntoFunction() 时 PushContext，Return() 时 PopContext + Dispose
+		3. 修改 VariableToken.cs：LocalInt1DVariableToken/LocalStr1DVariableToken 的 GetArrayLocal() 从 CurrentContext 读取，无上下文时 Fallback 到本地数组
+
+	1.2 SparseArray<T> 稀疏存储（B.2 变量系统内存灾难）：
+		1. 新增 SparseArray.cs：SparseArray<T>（1D）+ SparseArray2D<T>（2D），Dictionary 按需存储，默认值不占内存；原生操作 Shift/Sort/RemoveRange/MemorySavedBytes
+		2. 修改 VariableData.cs：dataIntegerArray/dataStringArray 从 long[]/string[] 改为 SparseArray<long>/SparseArray<string>；存档序列化适配（写入 ToArray()，加载 copyListToSparseArray）
+		3. 修改 CharacterData.cs：角色变量数组改为 SparseArray
+		4. 修改 VariableEvaluator.cs：全量模式匹配分派适配 SparseArray（8 个方法）
+		5. 修改 VariableToken.cs：GetArray()/GetArrayChara() 直返 SparseArray
+		6. 修改 Creator.Method.cs/Instraction.Child.cs：ARRAYMSORT/SPLIT 等函数适配
+
+	待后续 Phase：
+		- 2D 数组 → SparseArray2D（Phase 1.2 补遗）
+		- VariableCode.__COUNT_*__ 动态计算（Phase 1.4，配合 B.3.4 VariableDescriptor）
+		- LocalFloats 字段（Phase 1.5，配合 B.3.5 浮点变量）
+		- ScopeIn 传参逻辑合并到 ExecutionContext（可选）
+
 2026年4月28日
 修复 SpriteG 快照模式导致合成精灵渲染为空白的Bug：
 	问题描述：SPRITECREATE 从 GraphicsImage 创建精灵时，旧版快照模式会在创建瞬间复制一份位图。如果此时 GraphicsImage 尚未绘制完成（如先 SPRITECREATE 再 GDRAWSPRITE），精灵捕获的是空白画布，导致后续渲染为透明。

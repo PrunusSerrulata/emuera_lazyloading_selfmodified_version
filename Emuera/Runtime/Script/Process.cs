@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Data;
@@ -45,6 +45,7 @@ internal sealed partial class Process(EmueraConsole view)
 	readonly EmueraConsole console = view;
 	private IdentifierDictionary idDic;
 	ProcessState state;
+	public ProcessState State => state;
 	ProcessState originalState;//リセットする時のために
 	bool noError;
 	//色々あって復活させてみる
@@ -261,7 +262,7 @@ internal sealed partial class Process(EmueraConsole view)
 	{
 		coms = new List<long>((int)count);
 		isCTrain = true;
-		long[] selectcom = vEvaluator.SELECTCOM_ARRAY;
+		var selectcom = vEvaluator.SELECTCOM_ARRAY;
 		if (count >= selectcom.Length)
 		{
 			throw new CodeEE(trerror.CalltrainArgMoreThanSelectcom.Text);
@@ -284,7 +285,7 @@ internal sealed partial class Process(EmueraConsole view)
 	// public void InputResult5(int r0, int r1, int r2, int r3, int r4)
 	public void InputResult5(int r0, int r1, int r2, int r3, int r4, long r5)
 	{
-		long[] result = vEvaluator.RESULT_ARRAY;
+		var result = vEvaluator.RESULT_ARRAY;
 		result[0] = r0;
 		result[1] = r1;
 		result[2] = r2;
@@ -429,7 +430,8 @@ internal sealed partial class Process(EmueraConsole view)
 		{
 			if (udmt.Call.TopLabel.hasPrivDynamicVar)
 				udmt.Call.TopLabel.ScopeOut();
-			//1756beta2+v3:こいつらはここにないとデバッグコンソールで式中関数が事故った時に大事故になる
+			var popped = state.PopContext();
+			popped?.Dispose();
 			state.currentMin = temp_current;
 			methodStack--;
 		}

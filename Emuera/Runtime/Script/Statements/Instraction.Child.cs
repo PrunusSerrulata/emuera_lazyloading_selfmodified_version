@@ -357,9 +357,19 @@ internal sealed partial class FunctionIdentifier
 			}
 
 			spSplitArg.Num.SetValue(strs.Length, exm);
-			string[] output = (string[])spSplitArg.Var.GetArray();
-			int outputlength = Math.Min(output.Length, strs.Length);
-			Array.Copy(strs, output, outputlength);
+			object arrObj = spSplitArg.Var.GetArray();
+			if (arrObj is SparseArray<string> sparse)
+			{
+				int outputlength = Math.Min(sparse.Length, strs.Length);
+				for (int i = 0; i < outputlength; i++)
+					sparse[i] = strs[i];
+			}
+			else
+			{
+				string[] output = (string[])arrObj;
+				int outputlength = Math.Min(output.Length, strs.Length);
+				Array.Copy(strs, output, outputlength);
+			}
 		}
 	}
 
@@ -1821,15 +1831,7 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			if (JSONConfig.Data.UseNewRandom)
-			{
-				ParserMediator.Warn(trerror.CanNotUseInitrand.Text, null, 0);
-				ParserMediator.FlushWarningList();
-			}
-			else
-			{
-				exm.VEvaluator.InitRanddata();
-			}
+			exm.VEvaluator.InitRanddata();
 		}
 	}
 
@@ -1843,15 +1845,7 @@ internal sealed partial class FunctionIdentifier
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			if (JSONConfig.Data.UseNewRandom)
-			{
-				ParserMediator.Warn(trerror.CanNotUseDumprand.Text, null, 0);
-				ParserMediator.FlushWarningList();
-			}
-			else
-			{
-				exm.VEvaluator.DumpRanddata();
-			}
+			exm.VEvaluator.DumpRanddata();
 		}
 	}
 

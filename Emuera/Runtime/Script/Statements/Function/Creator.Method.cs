@@ -1,5 +1,6 @@
 using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements;
@@ -76,6 +77,17 @@ internal static partial class FunctionMethodCreator
 		}
 		private bool byName;
 		private static void OutPutNode(XmlNode node, string[] array, int i, long style)
+		{
+			switch (style)
+			{
+				case 1: array[i] = node.InnerText; break;
+				case 2: array[i] = node.InnerXml; break;
+				case 3: array[i] = node.OuterXml; break;
+				case 4: array[i] = node.Name; break;
+				default: array[i] = node.Value; break;
+			}
+		}
+		private static void OutPutNode(XmlNode node, SparseArray<string> array, int i, long style)
 		{
 			switch (style)
 			{
@@ -213,14 +225,21 @@ internal static partial class FunctionMethodCreator
 					}
 				}
 			// strs.Sort();
-			string[] output;
-			if (arguments.Count == 2)
-				output = (arguments[1] as VariableTerm).Identifier.GetArray() as string[];
-			else
-				output = exm.VEvaluator.RESULTS_ARRAY;
 			string[] ret = strs.ToArray();
-			int outputlength = Math.Min(output.Length, ret.Length);
-			Array.Copy(ret, output, outputlength);
+			int outputlength;
+			if (arguments.Count == 2)
+			{
+				string[] output = (arguments[1] as VariableTerm).Identifier.GetArray() as string[];
+				outputlength = Math.Min(output.Length, ret.Length);
+				Array.Copy(ret, output, outputlength);
+			}
+			else
+			{
+				var output = exm.VEvaluator.RESULTS_ARRAY;
+				outputlength = Math.Min(output.Length, ret.Length);
+				for (int i = 0; i < outputlength; i++)
+					output[i] = ret[i];
+			}
 			return outputlength;
 		}
 	}
@@ -251,13 +270,20 @@ internal static partial class FunctionMethodCreator
 			{
 				return -1;
 			}
-			string[] output;
+			int ret;
 			if (arguments.Count == 4)
-				output = (arguments[3] as VariableTerm).Identifier.GetArray() as string[];
+			{
+				string[] output = (arguments[3] as VariableTerm).Identifier.GetArray() as string[];
+				ret = Math.Min(files.Length, output.Length);
+				Array.Copy(files, output, ret);
+			}
 			else
-				output = exm.VEvaluator.RESULTS_ARRAY;
-			var ret = Math.Min(files.Length, output.Length);
-			Array.Copy(files, output, ret);
+			{
+				var output = exm.VEvaluator.RESULTS_ARRAY;
+				ret = Math.Min(files.Length, output.Length);
+				for (int i = 0; i < ret; i++)
+					output[i] = files[i];
+			}
 			return ret;
 		}
 	}
@@ -392,7 +418,8 @@ internal static partial class FunctionMethodCreator
 
 			int[] sortedIndices = GetSortedIndices(baseVar, isAscending, (int)fixedLengthInput);
 
-			var targetVarNames = (string[])(arguments[1] as VariableTerm).Identifier.GetArray();
+			var targetVarArrObj = (arguments[1] as VariableTerm).Identifier.GetArray();
+			var targetVarNames = targetVarArrObj is SparseArray<string> sparseNames ? sparseNames.ToArray(sparseNames.Length) : (string[])targetVarArrObj;
 			var targetTerms = targetVarNames.Select(name => GetConvertedTerm(exm, name)).ToList();
 
 			foreach (var term in targetTerms)
@@ -407,7 +434,8 @@ internal static partial class FunctionMethodCreator
 		{
 			if (baseVar.IsInteger)
 			{
-				long[] array = (long[])baseVar.Identifier.GetArray();
+				object arrObj = baseVar.Identifier.GetArray();
+				long[] array = arrObj is SparseArray<long> sparse ? sparse.ToArray(sparse.Length) : (long[])arrObj;
 				int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
 				if (fixedLength == -1)
 				{
@@ -425,7 +453,8 @@ internal static partial class FunctionMethodCreator
 			}
 			else
 			{
-				string[] array = (string[])baseVar.Identifier.GetArray();
+				object arrObj = baseVar.Identifier.GetArray();
+				string[] array = arrObj is SparseArray<string> sparse ? sparse.ToArray(sparse.Length) : (string[])arrObj;
 				int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
 				if (fixedLength == -1)
 				{
@@ -660,9 +689,10 @@ internal static partial class FunctionMethodCreator
 		{
 			string str = arguments[0].GetStrValue(exm);
 			string[] strs = HtmlManager.HtmlSubString(str, (int)arguments[1].GetIntValue(exm));
-			string[] output = GlobalStatic.Process.VEvaluator.RESULTS_ARRAY;
+			var output = GlobalStatic.Process.VEvaluator.RESULTS_ARRAY;
 			int outputlength = Math.Min(output.Length, strs.Length);
-			Array.Copy(strs, output, outputlength);
+			for (int i = 0; i < outputlength; i++)
+				output[i] = strs[i];
 			return output[0];
 		}
 	}
@@ -702,6 +732,17 @@ internal static partial class FunctionMethodCreator
 		}
 
 		static void Output(MatchCollection matches, Regex reg, string[] values)
+		{
+			var idx = 0;
+			foreach (Match match in matches)
+				foreach (var name in reg.GetGroupNames())
+				{
+					if (idx >= values.Length) return;
+					values[idx] = match.Groups[name].Value;
+					idx++;
+				}
+		}
+		static void Output(MatchCollection matches, Regex reg, SparseArray<string> values)
 		{
 			var idx = 0;
 			foreach (Match match in matches)
@@ -1417,10 +1458,16 @@ internal static partial class FunctionMethodCreator
 			var dt = dict[key];
 			if (op == Operation.Names)
 			{
-				string[] output;
-				if (arguments.Count > 1 && arguments[1] is VariableTerm v) output = v.Identifier.GetArray() as string[];
-				else output = exm.VEvaluator.RESULTS_ARRAY;
-				for (int i = 0; i < dt.Columns.Count; i++) output[i] = dt.Columns[i].ColumnName;
+				if (arguments.Count > 1 && arguments[1] is VariableTerm v)
+				{
+					string[] output = v.Identifier.GetArray() as string[];
+					for (int i = 0; i < dt.Columns.Count; i++) output[i] = dt.Columns[i].ColumnName;
+				}
+				else
+				{
+					var output = exm.VEvaluator.RESULTS_ARRAY;
+					for (int i = 0; i < dt.Columns.Count; i++) output[i] = dt.Columns[i].ColumnName;
+				}
 				return dt.Columns.Count;
 			}
 			string cName = arguments[1].GetStrValue(exm);
@@ -1766,17 +1813,32 @@ internal static partial class FunctionMethodCreator
 			else if (filter != null) res = dt.Select(filter);
 			else res = dt.Select();
 			bool toResult = arguments.Count != 4;
-			long[] output = toResult ? GlobalStatic.VEvaluator.RESULT_ARRAY : (arguments[3] as VariableTerm).Identifier.GetArray() as long[];
-			if (res != null)
+			if (toResult)
 			{
-				int count = Math.Min(res.Length, toResult ? output.Length - 1 : output.Length);
-				for (int i = 0; i < count; i++)
-					output[toResult ? i + 1 : i] = (long)res[i][0];
-				if (toResult) output[0] = res.Length;
-				return res.Length;
+				var output = GlobalStatic.VEvaluator.RESULT_ARRAY;
+				if (res != null)
+				{
+					int count = Math.Min(res.Length, output.Length - 1);
+					for (int i = 0; i < count; i++)
+						output[i + 1] = (long)res[i][0];
+					output[0] = res.Length;
+					return res.Length;
+				}
+				output[0] = 0;
+				return 0;
 			}
-			if (toResult) output[0] = 0;
-			return 0;
+			else
+			{
+				long[] output = (arguments[3] as VariableTerm).Identifier.GetArray() as long[];
+				if (res != null)
+				{
+					int count = Math.Min(res.Length, output.Length);
+					for (int i = 0; i < count; i++)
+						output[i] = (long)res[i][0];
+					return res.Length;
+				}
+				return 0;
+			}
 		}
 	}
 	private sealed class DataTableToXmlMethod : FunctionMethod
@@ -1795,14 +1857,16 @@ internal static partial class FunctionMethodCreator
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
 			if (!dict.ContainsKey(key)) return string.Empty;
 			var dt = dict[key];
-			var output = arguments.Count > 1 ? (arguments[1] as VariableTerm).Identifier.GetArray() as string[] : GlobalStatic.VEvaluator.RESULTS_ARRAY;
 			var idx = arguments.Count > 1 ? 0 : 1;
 
 			var sb = new StringBuilder();
 			using (var sw = new StringWriter(sb))
 			{
 				dt.WriteXmlSchema(sw);
-				output[idx] = sb.ToString();
+				if (arguments.Count > 1)
+					((arguments[1] as VariableTerm).Identifier.GetArray() as string[])[0] = sb.ToString();
+				else
+					GlobalStatic.VEvaluator.RESULTS_ARRAY[1] = sb.ToString();
 				sb.Clear();
 				dt.WriteXml(sw);
 				return sb.ToString();
@@ -1948,25 +2012,30 @@ internal static partial class FunctionMethodCreator
 			else if (op == Operation.GetKeys && arguments.Count > 1)
 			{
 				int count = 0;
-				string[] array;
-				if (arguments.Count == 3) // to array
+				if (arguments.Count == 3)
 				{
 					var Term = arguments[1] as VariableTerm;
 					if (arguments[2].GetIntValue(exm) == 0) return "";
-					array = Term.Identifier.GetArray() as string[];
+					string[] array = Term.Identifier.GetArray() as string[];
+					foreach (var k in sMap.Keys)
+					{
+						if (count >= array.Length) break;
+						array[count] = k;
+						count++;
+					}
 				}
-				else if (arguments.Count == 2) // to RESULTS array
+				else if (arguments.Count == 2)
 				{
 					if (arguments[1].GetIntValue(exm) == 0) return "";
-					array = exm.VEvaluator.RESULTS_ARRAY;
+					var array = exm.VEvaluator.RESULTS_ARRAY;
+					foreach (var k in sMap.Keys)
+					{
+						if (count >= array.Length) break;
+						array[count] = k;
+						count++;
+					}
 				}
 				else return "";
-				foreach (var k in sMap.Keys)
-				{
-					if (count >= array.Length) break;
-					array[count] = k;
-					count++;
-				}
 				exm.VEvaluator.RESULT = sMap.Keys.Count;
 				return arguments.Count == 2 ? exm.VEvaluator.RESULTS : "";
 			}
@@ -2053,25 +2122,30 @@ internal static partial class FunctionMethodCreator
 			if (arguments.Count > 1)
 			{
 				int count = 0;
-				string[] array;
 				if (arguments.Count == 3)
 				{
 					var Term = arguments[1] as VariableTerm;
 					if (arguments[2].GetIntValue(exm) == 0) return "";
-					array = Term.Identifier.GetArray() as string[];
+					string[] array = Term.Identifier.GetArray() as string[];
+					foreach (var v in sMap.Values)
+					{
+						if (count >= array.Length) break;
+						array[count] = v;
+						count++;
+					}
 				}
 				else if (arguments.Count == 2)
 				{
 					if (arguments[1].GetIntValue(exm) == 0) return "";
-					array = exm.VEvaluator.RESULTS_ARRAY;
+					var array = exm.VEvaluator.RESULTS_ARRAY;
+					foreach (var v in sMap.Values)
+					{
+						if (count >= array.Length) break;
+						array[count] = v;
+						count++;
+					}
 				}
 				else return "";
-				foreach (var v in sMap.Values)
-				{
-					if (count >= array.Length) break;
-					array[count] = v;
-					count++;
-				}
 				exm.VEvaluator.RESULT = sMap.Values.Count;
 				return arguments.Count == 2 ? exm.VEvaluator.RESULTS : "";
 			}
@@ -2957,11 +3031,18 @@ internal static partial class FunctionMethodCreator
 			if (arguments.Count > 0 && arguments[0] != null)
 				pattern = arguments[0].GetStrValue(exm);
 			List<string> filepathes = VariableEvaluator.GetDatFiles(type == EraSaveFileType.CharVar, pattern);
-			string[] results = exm.VEvaluator.VariableData.DataStringArray[(int)(VariableCode.RESULTS & VariableCode.__LOWERCASE__)];
-			if (filepathes.Count <= results.Length)
-				filepathes.CopyTo(results);
+			var results = exm.VEvaluator.VariableData.DataStringArray[(int)(VariableCode.RESULTS & VariableCode.__LOWERCASE__)];
+			int resultsLen = exm.VEvaluator.VariableData.Constant.VariableStrArrayLength[(int)(VariableCode.RESULTS & VariableCode.__LOWERCASE__)];
+			if (filepathes.Count <= resultsLen)
+			{
+				for (int i = 0; i < filepathes.Count; i++)
+					results[i] = filepathes[i];
+			}
 			else
-				filepathes.CopyTo(0, results, 0, results.Length);
+			{
+				for (int i = 0; i < resultsLen; i++)
+					results[i] = filepathes[i];
+			}
 			return filepathes.Count;
 		}
 	}
@@ -4546,7 +4627,8 @@ internal static partial class FunctionMethodCreator
 			if (varTerm.Identifier.IsInteger)
 			{
 				List<KeyValuePair<long, int>> sortList = [];
-				long[] array = (long[])varTerm.Identifier.GetArray();
+				object arrObj = varTerm.Identifier.GetArray();
+				long[] array = arrObj is SparseArray<long> sparse ? sparse.ToArray(sparse.Length) : (long[])arrObj;
 				for (int i = 0; i < array.Length; i++)
 				{
 					if (array[i] == 0)
@@ -4564,7 +4646,8 @@ internal static partial class FunctionMethodCreator
 			else
 			{
 				List<KeyValuePair<string, int>> sortList = [];
-				string[] array = (string[])varTerm.Identifier.GetArray();
+				object arrObj = varTerm.Identifier.GetArray();
+				string[] array = arrObj is SparseArray<string> sparse ? sparse.ToArray(sparse.Length) : (string[])arrObj;
 				for (int i = 0; i < array.Length; i++)
 				{
 					if (string.IsNullOrEmpty(array[i]))
@@ -4585,21 +4668,45 @@ internal static partial class FunctionMethodCreator
 				{
 					if (term.IsInteger)
 					{
-						var array = (long[])term.Identifier.GetArray();
-						var clone = (long[])array.Clone();
-						if (array.Length < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							array[i] = clone[sortedArray[i]];
+						object arrObj = term.Identifier.GetArray();
+						if (arrObj is SparseArray<long> sparseArr)
+						{
+							var clone = sparseArr.ToArray(sparseArr.Length);
+							if (sparseArr.Length < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								sparseArr[i] = clone[sortedArray[i]];
+						}
+						else
+						{
+							var array = (long[])arrObj;
+							var clone = (long[])array.Clone();
+							if (array.Length < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								array[i] = clone[sortedArray[i]];
+						}
 					}
 					else
 					{
-						var array = (string[])term.Identifier.GetArray();
-						var clone = (string[])array.Clone();
-						if (array.Length < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							array[i] = clone[sortedArray[i]];
+						object arrObj = term.Identifier.GetArray();
+						if (arrObj is SparseArray<string> sparseArr)
+						{
+							var clone = sparseArr.ToArray(sparseArr.Length);
+							if (sparseArr.Length < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								sparseArr[i] = clone[sortedArray[i]];
+						}
+						else
+						{
+							var array = (string[])arrObj;
+							var clone = (string[])array.Clone();
+							if (array.Length < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								array[i] = clone[sortedArray[i]];
+						}
 					}
 				}
 				else if (term.Identifier.IsArray2D)
@@ -6124,7 +6231,7 @@ internal static partial class FunctionMethodCreator
 
 					var size = paint.MeasureText(text);
 
-					long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
+					var resultArray = exm.VEvaluator.RESULT_ARRAY;
 					resultArray[1] = (long)size;
 					resultArray[2] = (long)paint.TextSize;
 
@@ -6134,7 +6241,7 @@ internal static partial class FunctionMethodCreator
 				}
 				catch
 				{
-					long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
+					var resultArray = exm.VEvaluator.RESULT_ARRAY;
 					resultArray[1] = 0;
 					resultArray[2] = Config.FontSize;
 				}
@@ -6199,7 +6306,7 @@ internal static partial class FunctionMethodCreator
 				//TextRenderer
 				//Size tsize = TextRenderer.MeasureText(canvas, text, fnt,
 				//    new Size(2000, 2000), TextFormatFlags.NoPadding);
-				long[] resultArray = exm.VEvaluator.RESULT_ARRAY;
+				var resultArray = exm.VEvaluator.RESULT_ARRAY;
 				//resultArray[1] = (Int64)tsize.Width;
 				resultArray[1] = (long)size.Height;
 				return (long)size.Width;

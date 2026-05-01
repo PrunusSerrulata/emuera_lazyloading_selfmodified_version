@@ -1,8 +1,10 @@
-﻿using EnumsNET;
+using EnumsNET;
 using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
 using System.Collections.Generic;
@@ -587,14 +589,16 @@ internal sealed partial class VariableData
 	#region 変数
 	private sealed class Int1DVariableToken : VariableToken
 	{
+		readonly int _length;
 		public Int1DVariableToken(VariableCode varCode, VariableData varData)
 			: base(varCode, varData)
 		{
 			CanRestructure = false;
 			array = varData.DataIntegerArray[VarCodeInt];
-			IsForbid = array.Length == 0;
+			_length = varData.Constant.VariableIntArrayLength[VarCodeInt];
+			IsForbid = _length == 0;
 		}
-		long[] array;
+		SparseArray<long> array;
 		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
 		{
 			return array[arguments[0]];
@@ -621,30 +625,30 @@ internal sealed partial class VariableData
 
 		public override long PlusValue(long value, long[] arguments)
 		{
-			array[arguments[0]] += value;
+			array[arguments[0]] = SafeArithmetic.SafeAdd(array[arguments[0]], value);
 			return array[arguments[0]];
 		}
 		public override int GetLength()
-		{ return array.Length; }
+		{ return _length; }
 		public override int GetLength(int dimension)
 		{
 			if (dimension == 0)
-				return array.Length;
+				return _length;
 			throw new CodeEE(string.Format(trerror.GetSizeDimError.Text, varName));
 		}
 		public override object GetArray() { return array; }
 
 		public override void CheckElement(long[] arguments, bool[] doCheck)
 		{
-			if (doCheck[0] && ((arguments[0] < 0) || (arguments[0] >= array.Length)))
+			if (doCheck[0] && ((arguments[0] < 0) || (arguments[0] >= _length)))
 				throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "1", arguments[0].ToString()));
 		}
 		public override void IsArrayRangeValid(long[] arguments, long index1, long index2, string funcName, long i1, long i2)
 		{
 			CheckElement(arguments);
-			if ((index1 < 0) || (index1 > array.Length))
+			if ((index1 < 0) || (index1 > _length))
 				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i1.ToString(), index1.ToString(), varName));
-			if ((index2 < 0) || (index2 > array.Length))
+			if ((index2 < 0) || (index2 > _length))
 				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i2.ToString(), index2.ToString(), varName));
 		}
 	}
@@ -687,7 +691,7 @@ internal sealed partial class VariableData
 		}
 		public override long PlusValue(long value, long[] arguments)
 		{
-			array[arguments[0], arguments[1]] += value;
+			array[arguments[0], arguments[1]] = SafeArithmetic.SafeAdd(array[arguments[0], arguments[1]], value);
 			return array[arguments[0], arguments[1]];
 		}
 		public override int GetLength()
@@ -757,7 +761,7 @@ internal sealed partial class VariableData
 
 		public override long PlusValue(long value, long[] arguments)
 		{
-			array[arguments[0], arguments[1], arguments[2]] += value;
+			array[arguments[0], arguments[1], arguments[2]] = SafeArithmetic.SafeAdd(array[arguments[0], arguments[1], arguments[2]], value);
 			return array[arguments[0], arguments[1], arguments[2]];
 		}
 		public override int GetLength()
@@ -818,14 +822,16 @@ internal sealed partial class VariableData
 
 	private sealed class Str1DVariableToken : VariableToken
 	{
+		readonly int _length;
 		public Str1DVariableToken(VariableCode varCode, VariableData varData)
 			: base(varCode, varData)
 		{
 			CanRestructure = false;
 			array = varData.DataStringArray[VarCodeInt];
-			IsForbid = array.Length == 0;
+			_length = varData.Constant.VariableStrArrayLength[VarCodeInt];
+			IsForbid = _length == 0;
 		}
-		string[] array;
+		SparseArray<string> array;
 		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
 		{
 			return array[arguments[0]];
@@ -848,26 +854,26 @@ internal sealed partial class VariableData
 				array[i] = value;
 		}
 		public override int GetLength()
-		{ return array.Length; }
+		{ return _length; }
 		public override int GetLength(int dimension)
 		{
 			if (dimension == 0)
-				return array.Length;
+				return _length;
 			throw new CodeEE(string.Format(trerror.GetSizeNonExistDim.Text, varName));
 		}
 		public override object GetArray() { return array; }
 
 		public override void CheckElement(long[] arguments, bool[] doCheck)
 		{
-			if (doCheck[0] && ((arguments[0] < 0) || (arguments[0] >= array.Length)))
+			if (doCheck[0] && ((arguments[0] < 0) || (arguments[0] >= _length)))
 				throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "1", arguments[0].ToString()));
 		}
 		public override void IsArrayRangeValid(long[] arguments, long index1, long index2, string funcName, long i1, long i2)
 		{
 			CheckElement(arguments);
-			if ((index1 < 0) || (index1 > array.Length))
+			if ((index1 < 0) || (index1 > _length))
 				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i1.ToString(), index1.ToString(), varName));
-			if ((index2 < 0) || (index2 > array.Length))
+			if ((index2 < 0) || (index2 > _length))
 				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i2.ToString(), index2.ToString(), varName));
 		}
 	}
@@ -902,7 +908,7 @@ internal sealed partial class VariableData
 		public override long PlusValue(long value, long[] arguments)
 		{
 			CharacterData chara = varData.CharacterList[(int)arguments[0]];
-			chara.DataInteger[VarCodeInt] += value;
+			chara.DataInteger[VarCodeInt] = SafeArithmetic.SafeAdd(chara.DataInteger[VarCodeInt], value);
 			return chara.DataInteger[VarCodeInt];
 		}
 	}
@@ -929,7 +935,7 @@ internal sealed partial class VariableData
 		public override void SetValue(long[] values, long[] arguments)
 		{
 			CharacterData chara = varData.CharacterList[(int)arguments[0]];
-			long[] array = chara.DataIntegerArray[VarCodeInt];
+			var array = chara.DataIntegerArray[VarCodeInt];
 			int start = (int)arguments[1];
 			int end = start + values.Length;
 			for (int i = start; i < end; i++)
@@ -948,7 +954,7 @@ internal sealed partial class VariableData
 		public override long PlusValue(long value, long[] arguments)
 		{
 			CharacterData chara = varData.CharacterList[(int)arguments[0]];
-			chara.DataIntegerArray[VarCodeInt][arguments[1]] += value;
+			chara.DataIntegerArray[VarCodeInt][arguments[1]] = SafeArithmetic.SafeAdd(chara.DataIntegerArray[VarCodeInt][arguments[1]], value);
 			return chara.DataIntegerArray[VarCodeInt][arguments[1]];
 		}
 
@@ -1012,7 +1018,7 @@ internal sealed partial class VariableData
 		public override void SetValue(string[] values, long[] arguments)
 		{
 			CharacterData chara = varData.CharacterList[(int)arguments[0]];
-			string[] array = chara.DataStringArray[VarCodeInt];
+			var array = chara.DataStringArray[VarCodeInt];
 			int start = (int)arguments[1];
 			int end = start + values.Length;
 			for (int i = start; i < end; i++)
@@ -1082,7 +1088,7 @@ internal sealed partial class VariableData
 		public override long PlusValue(long value, long[] arguments)
 		{
 			CharacterData chara = varData.CharacterList[(int)arguments[0]];
-			chara.DataIntegerArray2D[VarCodeInt][arguments[1], arguments[2]] += value;
+			chara.DataIntegerArray2D[VarCodeInt][arguments[1], arguments[2]] = SafeArithmetic.SafeAdd(chara.DataIntegerArray2D[VarCodeInt][arguments[1], arguments[2]], value);
 			return chara.DataIntegerArray2D[VarCodeInt][arguments[1], arguments[2]];
 		}
 
@@ -1524,6 +1530,28 @@ internal sealed partial class VariableData
 		}
 		long[] array;
 
+		long[] GetArrayLocal()
+		{
+			var ctx = GlobalStatic.Process?.State?.CurrentContext;
+			if (ctx != null)
+			{
+				return Code switch
+				{
+					VariableCode.LOCAL => ctx.LocalIntegers,
+					VariableCode.ARG => ctx.ArgIntegers,
+					_ => FallbackArray()
+				};
+			}
+			return FallbackArray();
+		}
+
+		long[] FallbackArray()
+		{
+			if (array == null)
+				array = new long[size];
+			return array;
+		}
+
 		public override void SetDefault()
 		{
 			if (array != null)
@@ -1532,42 +1560,35 @@ internal sealed partial class VariableData
 
 		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
 		{
-			if (array == null)
-				array = new long[size];
-			return array[arguments[0]];
+			return GetArrayLocal()[arguments[0]];
 		}
 
 		public override void SetValue(long value, long[] arguments)
 		{
-			if (array == null)
-				array = new long[size];
-			array[arguments[0]] = value;
+			GetArrayLocal()[arguments[0]] = value;
 		}
 
 		public override void SetValue(long[] values, long[] arguments)
 		{
-			if (array == null)
-				array = new long[size];
+			var a = GetArrayLocal();
 			int start = (int)arguments[0];
 			int end = start + values.Length;
 			for (int i = start; i < end; i++)
-				array[i] = values[i - start];
+				a[i] = values[i - start];
 		}
 
 		public override void SetValueAll(long value, int start, int end, int charaPos)
 		{
-			if (array == null)
-				array = new long[size];
+			var a = GetArrayLocal();
 			for (int i = start; i < end; i++)
-				array[i] = value;
+				a[i] = value;
 		}
 
 		public override long PlusValue(long value, long[] arguments)
 		{
-			if (array == null)
-				array = new long[size];
-			array[arguments[0]] += value;
-			return array[arguments[0]];
+			var a = GetArrayLocal();
+			a[arguments[0]] = SafeArithmetic.SafeAdd(a[arguments[0]], value);
+			return a[arguments[0]];
 		}
 
 		public override object GetArray()
@@ -1591,6 +1612,29 @@ internal sealed partial class VariableData
 		{
 		}
 		string[] array;
+
+		string[] GetArrayLocal()
+		{
+			var ctx = GlobalStatic.Process?.State?.CurrentContext;
+			if (ctx != null)
+			{
+				return Code switch
+				{
+					VariableCode.LOCALS => ctx.LocalStrings,
+					VariableCode.ARGS => ctx.ArgStrings,
+					_ => FallbackArray()
+				};
+			}
+			return FallbackArray();
+		}
+
+		string[] FallbackArray()
+		{
+			if (array == null)
+				array = new string[size];
+			return array;
+		}
+
 		public override void SetDefault()
 		{
 			if (array != null)
@@ -1599,34 +1643,28 @@ internal sealed partial class VariableData
 
 		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
 		{
-			if (array == null)
-				array = new string[size];
-			return array[arguments[0]];
+			return GetArrayLocal()[arguments[0]];
 		}
 
 		public override void SetValue(string value, long[] arguments)
 		{
-			if (array == null)
-				array = new string[size];
-			array[arguments[0]] = value;
+			GetArrayLocal()[arguments[0]] = value;
 		}
 
 		public override void SetValue(string[] values, long[] arguments)
 		{
-			if (array == null)
-				array = new string[size];
+			var a = GetArrayLocal();
 			int start = (int)arguments[0];
 			int end = start + values.Length;
 			for (int i = start; i < end; i++)
-				array[i] = values[i - start];
+				a[i] = values[i - start];
 		}
 
 		public override void SetValueAll(string value, int start, int end, int charaPos)
 		{
-			if (array == null)
-				array = new string[size];
+			var a = GetArrayLocal();
 			for (int i = start; i < end; i++)
-				array[i] = value;
+				a[i] = value;
 		}
 
 		public override object GetArray()
@@ -1717,7 +1755,7 @@ internal sealed partial class VariableData
 		public override long PlusValue(long value, long[] arguments)
 		{
 			IfNullInitArray();
-			array[arguments[0]] += value;
+			array[arguments[0]] = SafeArithmetic.SafeAdd(array[arguments[0]], value);
 			return array[arguments[0]];
 		}
 		public override object GetArray()
@@ -1785,7 +1823,7 @@ internal sealed partial class VariableData
 		public override long PlusValue(long value, long[] arguments)
 		{
 			IfNullInitArray();
-			array[arguments[0], arguments[1]] += value;
+			array[arguments[0], arguments[1]] = SafeArithmetic.SafeAdd(array[arguments[0], arguments[1]], value);
 			return array[arguments[0], arguments[1]];
 		}
 		public override object GetArray()
@@ -1855,7 +1893,7 @@ internal sealed partial class VariableData
 		public override long PlusValue(long value, long[] arguments)
 		{
 			IfNullInitArray();
-			array[arguments[0], arguments[1], arguments[2]] += value;
+			array[arguments[0], arguments[1], arguments[2]] = SafeArithmetic.SafeAdd(array[arguments[0], arguments[1], arguments[2]], value);
 			return array[arguments[0], arguments[1], arguments[2]];
 		}
 		public override object GetArray()
@@ -2777,19 +2815,19 @@ internal sealed partial class VariableData
 		}
 		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
 		{
-			long[] array = (long[])GetArrayChara((int)arguments[0]);
+			var array = (SparseArray<long>)GetArrayChara((int)arguments[0]);
 			return array[arguments[1]];
 		}
 
 		public override void SetValue(long value, long[] arguments)
 		{
-			long[] array = (long[])GetArrayChara((int)arguments[0]);
+			var array = (SparseArray<long>)GetArrayChara((int)arguments[0]);
 			array[arguments[1]] = value;
 		}
 
 		public override void SetValue(long[] values, long[] arguments)
 		{
-			long[] array = (long[])GetArrayChara((int)arguments[0]);
+			var array = (SparseArray<long>)GetArrayChara((int)arguments[0]);
 			int start = (int)arguments[1];
 			int end = start + values.Length;
 			for (int i = start; i < end; i++)
@@ -2798,14 +2836,14 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(long value, int start, int end, int charaPos)
 		{
-			long[] array = (long[])GetArrayChara(charaPos);
+			var array = (SparseArray<long>)GetArrayChara(charaPos);
 			for (int i = start; i < end; i++)
 				array[i] = value;
 		}
 
 		public override long PlusValue(long value, long[] arguments)
 		{
-			long[] array = (long[])GetArrayChara((int)arguments[0]);
+			var array = (SparseArray<long>)GetArrayChara((int)arguments[0]);
 			array[arguments[1]] += value;
 			return array[arguments[1]];
 		}
@@ -2819,19 +2857,19 @@ internal sealed partial class VariableData
 		}
 		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
 		{
-			string[] array = (string[])GetArrayChara((int)arguments[0]);
+			var array = (SparseArray<string>)GetArrayChara((int)arguments[0]);
 			return array[arguments[1]];
 		}
 
 		public override void SetValue(string value, long[] arguments)
 		{
-			string[] array = (string[])GetArrayChara((int)arguments[0]);
+			var array = (SparseArray<string>)GetArrayChara((int)arguments[0]);
 			array[arguments[1]] = value;
 		}
 
 		public override void SetValue(string[] values, long[] arguments)
 		{
-			string[] array = (string[])GetArrayChara((int)arguments[0]);
+			var array = (SparseArray<string>)GetArrayChara((int)arguments[0]);
 			int start = (int)arguments[1];
 			int end = start + values.Length;
 			for (int i = start; i < end; i++)
@@ -2840,7 +2878,7 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(string value, int start, int end, int charaPos)
 		{
-			string[] array = (string[])GetArrayChara(charaPos);
+			var array = (SparseArray<string>)GetArrayChara(charaPos);
 			for (int i = start; i < end; i++)
 				array[i] = value;
 		}

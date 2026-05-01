@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
@@ -22,8 +23,8 @@ internal sealed partial class VariableData : IDisposable
 	#endregion
 	readonly long[] dataInteger;
 	readonly string[] dataString;
-	readonly long[][] dataIntegerArray;
-	readonly string[][] dataStringArray;
+	readonly SparseArray<long>[] dataIntegerArray;
+	readonly SparseArray<string>[] dataStringArray;
 	readonly long[][,] dataIntegerArray2D;
 	readonly string[][,] dataStringArray2D;
 	readonly long[][,,] dataIntegerArray3D;
@@ -35,8 +36,8 @@ internal sealed partial class VariableData : IDisposable
 	readonly List<CharacterData> characterList;
 	public long[] DataInteger { get { return dataInteger; } }
 	public string[] DataString { get { return dataString; } }
-	public long[][] DataIntegerArray { get { return dataIntegerArray; } }
-	public string[][] DataStringArray { get { return dataStringArray; } }
+	public SparseArray<long>[] DataIntegerArray { get { return dataIntegerArray; } }
+	public SparseArray<string>[] DataStringArray { get { return dataStringArray; } }
 	public long[][,] DataIntegerArray2D { get { return dataIntegerArray2D; } }
 	public string[][,] DataStringArray2D { get { return dataStringArray2D; } }
 	public long[][,,] DataIntegerArray3D { get { return dataIntegerArray3D; } }
@@ -90,16 +91,22 @@ internal sealed partial class VariableData : IDisposable
 		//argString = new VariableLocal<string, StringCalculator>(constant.VariableStrArrayLength[(int)(VariableCode.__LOWERCASE__ & VariableCode.ARGS)]);
 		dataInteger = [];
 
-		dataIntegerArray = new long[(int)VariableCode.__COUNT_INTEGER_ARRAY__][];
+		dataIntegerArray = new SparseArray<long>[(int)VariableCode.__COUNT_INTEGER_ARRAY__];
 		for (int i = 0; i < dataIntegerArray.Length; i++)
-			dataIntegerArray[i] = new long[constant.VariableIntArrayLength[i]];
+		{
+			dataIntegerArray[i] = new SparseArray<long>();
+			dataIntegerArray[i].Length = constant.VariableIntArrayLength[i];
+		}
 
 		dataString = new string[(int)VariableCode.__COUNT_STRING__];
 
-		dataStringArray = new string[(int)VariableCode.__COUNT_STRING_ARRAY__][];
+		dataStringArray = new SparseArray<string>[(int)VariableCode.__COUNT_STRING_ARRAY__];
 
 		for (int i = 0; i < dataStringArray.Length; i++)
-			dataStringArray[i] = new string[constant.VariableStrArrayLength[i]];
+		{
+			dataStringArray[i] = new SparseArray<string>();
+			dataStringArray[i].Length = constant.VariableStrArrayLength[i];
+		}
 
 
 		dataIntegerArray2D = new long[(int)VariableCode.__COUNT_INTEGER_ARRAY_2D__][,];
@@ -518,13 +525,8 @@ internal sealed partial class VariableData : IDisposable
 
 	public void SetDefaultGlobalValue()
 	{
-
-		long[] globalInt = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.GLOBAL];
-		string[] globalStr = dataStringArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.GLOBALS];
-		for (int i = 0; i < globalInt.Length; i++)
-			globalInt[i] = 0;
-		for (int i = 0; i < globalStr.Length; i++)
-			globalStr[i] = null;
+		dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.GLOBAL].Clear();
+		dataStringArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.GLOBALS].Clear();
 		foreach (UserDefinedVariableToken var in userDefinedGlobalVarList)
 			var.SetDefault();
 	}
@@ -560,12 +562,10 @@ internal sealed partial class VariableData : IDisposable
 				case (int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBAL):
 					break;
 				case (int)(VariableCode.__LOWERCASE__ & VariableCode.ITEMPRICE):
-					//constant.ItemPrice.CopyTo(dataIntegerArray[i], 0);
-					Buffer.BlockCopy(constant.ItemPrice, 0, dataIntegerArray[i], 0, 8 * dataIntegerArray[i].Length);
+					dataIntegerArray[i].FromArray(constant.ItemPrice);
 					break;
 				default:
-					for (int j = 0; j < dataIntegerArray[i].Length; j++)
-						dataIntegerArray[i][j] = 0;
+					dataIntegerArray[i].Clear();
 					break;
 			}
 		}
@@ -582,12 +582,11 @@ internal sealed partial class VariableData : IDisposable
 				case (int)(VariableCode.__LOWERCASE__ & VariableCode.STR):
 					{
 						string[] csvStrData = constant.GetCsvNameList(VariableCode.__DUMMY_STR__);
-						csvStrData.CopyTo(dataStringArray[i], 0);
+						dataStringArray[i].FromArray(csvStrData);
 						break;
 					}
 				default:
-					for (int j = 0; j < dataStringArray[i].Length; j++)
-						dataStringArray[i][j] = null;
+					dataStringArray[i].Clear();
 					break;
 			}
 		}
@@ -632,41 +631,20 @@ internal sealed partial class VariableData : IDisposable
 						array3D[x, y, z] = null;
 		}
 
-		long[] palamlv = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.PALAMLV];
+		var palamlv = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.PALAMLV];
 		List<long> defPalam = Config.PalamLvDef;
-		defPalam.CopyTo(0, palamlv, 0, Math.Min(palamlv.Length, defPalam.Count));
-		//palamlv[0] = 0;
-		//palamlv[1] = 100;
-		//palamlv[2] = 500;
-		//palamlv[3] = 3000;
-		//palamlv[4] = 10000;
-		//palamlv[5] = 30000;
-		//palamlv[6] = 60000;
-		//palamlv[7] = 100000;
-		//palamlv[8] = 150000;
-		//palamlv[9] = 250000;
+		for (int i = 0; i < defPalam.Count; i++)
+			palamlv[i] = defPalam[i];
 
-		long[] explv = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.EXPLV];
+		var explv = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.EXPLV];
 		List<long> defExpLv = Config.ExpLvDef;
-		defExpLv.CopyTo(0, explv, 0, Math.Min(explv.Length, defExpLv.Count));
-		//explv[0] = 0;
-		//explv[1] = 1;
-		//explv[2] = 4;
-		//explv[3] = 20;
-		//explv[4] = 50;
-		//explv[5] = 200;
+		for (int i = 0; i < defExpLv.Count; i++)
+			explv[i] = defExpLv[i];
 
-		//dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.ASSIPLAY][0] = 0;
-		//dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.MASTER][0] = 0;
-		long[] array;
-		array = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.ASSI];
-		if (array.Length > 0) array[0] = -1;
-		array = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.TARGET];
-		if (array.Length > 0) array[0] = 1;
-		array = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.PBAND];
-		if (array.Length > 0) array[0] = Config.PbandDef;
-		array = dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.EJAC];
-		if (array.Length > 0) array[0] = 10000;
+		dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.ASSI][0] = -1;
+		dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.TARGET][0] = 1;
+		dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.PBAND][0] = Config.PbandDef;
+		dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)VariableCode.EJAC][0] = 10000;
 
 		LastLoadVersion = -1;
 		LastLoadNo = -1;
@@ -686,9 +664,9 @@ internal sealed partial class VariableData : IDisposable
 		for (int i = 0; i < intCount; i++)
 			writer.Write(dataInteger[i]);
 		for (int i = 0; i < intArrayCount; i++)
-			writer.Write(dataIntegerArray[i]);
+			writer.Write(dataIntegerArray[i].ToArray(constant.VariableIntArrayLength[i]));
 		for (int i = 0; i < strArrayCount; i++)
-			writer.Write(dataStringArray[i]);
+			writer.Write(dataStringArray[i].ToArray(constant.VariableStrArrayLength[i]));
 	}
 
 	public void LoadFromStream(EraDataReader reader)
@@ -699,9 +677,17 @@ internal sealed partial class VariableData : IDisposable
 		for (int i = 0; i < intCount; i++)
 			dataInteger[i] = reader.ReadInt64();
 		for (int i = 0; i < intArrayCount; i++)
-			reader.ReadInt64Array(dataIntegerArray[i]);
+		{
+			var arr = new long[constant.VariableIntArrayLength[i]];
+			reader.ReadInt64Array(arr);
+			dataIntegerArray[i].FromArray(arr);
+		}
 		for (int i = 0; i < strArrayCount; i++)
-			reader.ReadStringArray(dataStringArray[i]);
+		{
+			var arr = new string[constant.VariableStrArrayLength[i]];
+			reader.ReadStringArray(arr);
+			dataStringArray[i].FromArray(arr);
+		}
 	}
 
 	public void SaveToStreamExtended(EraDataWriter writer)
@@ -723,13 +709,19 @@ internal sealed partial class VariableData : IDisposable
 		//dataStringArray
 		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__ARRAY_1D__ | VariableCode.__STRING__);
 		foreach (VariableCode code in codeList)
-			writer.WriteExtended(code.ToString(), dataStringArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
+		{
+			int idx = (int)VariableCode.__LOWERCASE__ & (int)code;
+			writer.WriteExtended(code.ToString(), dataStringArray[idx].ToArray(constant.VariableStrArrayLength[idx]));
+		}
 		writer.EmuSeparete();
 
 		//dataIntegerArray
 		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__ARRAY_1D__ | VariableCode.__INTEGER__);
 		foreach (VariableCode code in codeList)
-			writer.WriteExtended(code.ToString(), dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
+		{
+			int idx = (int)VariableCode.__LOWERCASE__ & (int)code;
+			writer.WriteExtended(code.ToString(), dataIntegerArray[idx].ToArray(constant.VariableIntArrayLength[idx]));
+		}
 		writer.EmuSeparete();
 
 		//dataStringArray2D
@@ -765,8 +757,8 @@ internal sealed partial class VariableData : IDisposable
 				//if (!var.IsSavedata) continue;
 				switch (i)
 				{
-					case 0: writer.WriteExtended(var.Name, (string[])var.GetArray()); break;
-					case 1: writer.WriteExtended(var.Name, (long[])var.GetArray()); break;
+					case 0: writer.WriteExtended(var.Name, var.GetArray() is SparseArray<string> ss0 ? ss0.ToArray(ss0.Length) : (string[])var.GetArray()); break;
+					case 1: writer.WriteExtended(var.Name, var.GetArray() is SparseArray<long> sl1 ? sl1.ToArray(sl1.Length) : (long[])var.GetArray()); break;
 					case 2: writer.WriteExtended(var.Name, (string[,])var.GetArray()); break;
 					case 3: writer.WriteExtended(var.Name, (long[,])var.GetArray()); break;
 					case 4: writer.WriteExtended(var.Name, (string[,,])var.GetArray()); break;
@@ -804,12 +796,12 @@ internal sealed partial class VariableData : IDisposable
 		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__ARRAY_1D__ | VariableCode.__STRING__);
 		foreach (VariableCode code in codeList)
 			if (strListDic.ContainsKey(code.ToString()))
-				copyListToArray(strListDic[code.ToString()], dataStringArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
+				copyListToSparseArray(strListDic[code.ToString()], dataStringArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
 
 		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__ARRAY_1D__ | VariableCode.__INTEGER__);
 		foreach (VariableCode code in codeList)
 			if (intListDic.ContainsKey(code.ToString()))
-				copyListToArray(intListDic[code.ToString()], dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
+				copyListToSparseArray(intListDic[code.ToString()], dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
 
 		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__ARRAY_2D__ | VariableCode.__STRING__);
 		foreach (VariableCode code in codeList)
@@ -846,12 +838,24 @@ internal sealed partial class VariableData : IDisposable
 		varList = userDefinedSaveVarList[i]; i++;
 		foreach (UserDefinedVariableToken var in varList)
 			if (strListDic.TryGetValue(var.Name, out List<string> value))
-				copyListToArray(value, (string[])var.GetArray());
+			{
+				object arrObj = var.GetArray();
+				if (arrObj is SparseArray<string> sparse)
+					copyListToSparseArray(value, sparse);
+				else
+					copyListToArray(value, (string[])arrObj);
+			}
 
 		varList = userDefinedSaveVarList[i]; i++;
 		foreach (UserDefinedVariableToken var in varList)
 			if (intListDic.TryGetValue(var.Name, out List<long> value))
-				copyListToArray(value, (long[])var.GetArray());
+			{
+				object arrObj = var.GetArray();
+				if (arrObj is SparseArray<long> sparse)
+					copyListToSparseArray(value, sparse);
+				else
+					copyListToArray(value, (long[])arrObj);
+			}
 
 		varList = userDefinedSaveVarList[i]; i++;
 		foreach (UserDefinedVariableToken var in varList)
@@ -878,6 +882,15 @@ internal sealed partial class VariableData : IDisposable
 	{
 		int count = Math.Min(srcList.Count, destArray.Length);
 		for (int i = 0; i < count; i++)
+		{
+			destArray[i] = srcList[i];
+		}
+	}
+
+	private static void copyListToSparseArray<T>(List<T> srcList, SparseArray<T> destArray)
+	{
+		destArray.Clear();
+		for (int i = 0; i < srcList.Count; i++)
 		{
 			destArray[i] = srcList[i];
 		}
@@ -921,14 +934,22 @@ internal sealed partial class VariableData : IDisposable
 
 	public void SaveGlobalToStream(EraDataWriter writer)
 	{
-		writer.Write(dataIntegerArray[(int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBAL)]);
-		writer.Write(dataStringArray[(int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBALS)]);
+		int globalIdx = (int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBAL);
+		int globalsIdx = (int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBALS);
+		writer.Write(dataIntegerArray[globalIdx].ToArray(constant.VariableIntArrayLength[globalIdx]));
+		writer.Write(dataStringArray[globalsIdx].ToArray(constant.VariableStrArrayLength[globalsIdx]));
 	}
 
 	public void LoadGlobalFromStream(EraDataReader reader)
 	{
-		reader.ReadInt64Array(dataIntegerArray[(int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBAL)]);
-		reader.ReadStringArray(dataStringArray[(int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBALS)]);
+		int globalIdx = (int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBAL);
+		int globalsIdx = (int)(VariableCode.__LOWERCASE__ & VariableCode.GLOBALS);
+		var intArr = new long[constant.VariableIntArrayLength[globalIdx]];
+		reader.ReadInt64Array(intArr);
+		dataIntegerArray[globalIdx].FromArray(intArr);
+		var strArr = new string[constant.VariableStrArrayLength[globalsIdx]];
+		reader.ReadStringArray(strArr);
+		dataStringArray[globalsIdx].FromArray(strArr);
 	}
 
 	public void SaveGlobalToStream1808(EraDataWriter writer)
@@ -940,8 +961,8 @@ internal sealed partial class VariableData : IDisposable
 				//if (!var.IsSavedata) continue;
 				switch (i)
 				{
-					case 0: writer.WriteExtended(var.Name, (string[])var.GetArray()); break;
-					case 1: writer.WriteExtended(var.Name, (long[])var.GetArray()); break;
+					case 0: writer.WriteExtended(var.Name, var.GetArray() is SparseArray<string> gss0 ? gss0.ToArray(gss0.Length) : (string[])var.GetArray()); break;
+					case 1: writer.WriteExtended(var.Name, var.GetArray() is SparseArray<long> gsl1 ? gsl1.ToArray(gsl1.Length) : (long[])var.GetArray()); break;
 					case 2: writer.WriteExtended(var.Name, (string[,])var.GetArray()); break;
 					case 3: writer.WriteExtended(var.Name, (long[,])var.GetArray()); break;
 					case 4: writer.WriteExtended(var.Name, (string[,,])var.GetArray()); break;
@@ -967,12 +988,24 @@ internal sealed partial class VariableData : IDisposable
 		varList = userDefinedGlobalSaveVarList[i]; i++;
 		foreach (UserDefinedVariableToken var in varList)
 			if (strListDic.TryGetValue(var.Name, out List<string> value))
-				copyListToArray(value, (string[])var.GetArray());
+			{
+				object arrObj = var.GetArray();
+				if (arrObj is SparseArray<string> sparse)
+					copyListToSparseArray(value, sparse);
+				else
+					copyListToArray(value, (string[])arrObj);
+			}
 
 		varList = userDefinedGlobalSaveVarList[i]; i++;
 		foreach (UserDefinedVariableToken var in varList)
 			if (intListDic.TryGetValue(var.Name, out List<long> value))
-				copyListToArray(value, (long[])var.GetArray());
+			{
+				object arrObj = var.GetArray();
+				if (arrObj is SparseArray<long> sparse)
+					copyListToSparseArray(value, sparse);
+				else
+					copyListToArray(value, (long[])arrObj);
+			}
 
 		varList = userDefinedGlobalSaveVarList[i]; i++;
 		foreach (UserDefinedVariableToken var in varList)
@@ -1225,7 +1258,13 @@ internal sealed partial class VariableData : IDisposable
 				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 1)
 					reader.ReadIntArray(null, true);
 				else
-					reader.ReadIntArray((long[])vToken.GetArray(), true);
+				{
+					object arrObj = vToken.GetArray();
+					if (arrObj is SparseArray<long> sparse)
+						reader.ReadIntArray(sparse.ToArray(sparse.Length), true);
+					else
+						reader.ReadIntArray((long[])arrObj, true);
+				}
 				break;
 			case EraSaveDataType.IntArray2D:
 				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 2)
@@ -1243,7 +1282,13 @@ internal sealed partial class VariableData : IDisposable
 				if (vToken == null || !vToken.IsString || vToken.Dimension != 1)
 					reader.ReadStrArray(null, true);
 				else
-					reader.ReadStrArray((string[])vToken.GetArray(), true);
+				{
+					object arrObj = vToken.GetArray();
+					if (arrObj is SparseArray<string> sparse)
+						reader.ReadStrArray(sparse.ToArray(sparse.Length), true);
+					else
+						reader.ReadStrArray((string[])arrObj, true);
+				}
 				break;
 			case EraSaveDataType.StrArray2D:
 				if (vToken == null || !vToken.IsString || vToken.Dimension != 2)
@@ -1268,9 +1313,9 @@ internal sealed partial class VariableData : IDisposable
 	{
 		ClearLocalValue();
 		for (int i = 0; i < dataIntegerArray.Length; i++)
-			dataIntegerArray[i] = null;
+			dataIntegerArray[i].Clear();
 		for (int i = 0; i < dataStringArray.Length; i++)
-			dataStringArray[i] = null;
+			dataStringArray[i].Clear();
 		for (int i = 0; i < characterList.Count; i++)
 			characterList[i].Dispose();
 		characterList.Clear();

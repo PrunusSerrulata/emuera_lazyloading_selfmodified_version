@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
@@ -849,7 +849,7 @@ internal sealed partial class Process
 						callto.IsJump = func.Function.IsJump();
 						UserDefinedFunctionArgument args = callto.ConvertArg(cfa.RowArgs, out string errMes);
 						if (args == null)
-							throw new CodeEE(errMes);
+							continue;
 						state.IntoFunction(callto, args, exm);
 						return true;
 					}

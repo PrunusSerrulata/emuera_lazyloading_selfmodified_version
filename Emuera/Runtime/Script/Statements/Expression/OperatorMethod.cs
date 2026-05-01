@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.Runtime.Script.Statements.Function;
+using System;
+using MinorShift.Emuera.Runtime.Script.Statements.Function;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
@@ -200,7 +201,7 @@ internal static class OperatorMethodManager
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			return arguments[0].GetIntValue(exm) + arguments[1].GetIntValue(exm);
+			return SafeArithmetic.SafeAdd(arguments[0].GetIntValue(exm), arguments[1].GetIntValue(exm));
 		}
 	}
 
@@ -229,7 +230,7 @@ internal static class OperatorMethodManager
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			return arguments[0].GetIntValue(exm) - arguments[1].GetIntValue(exm);
+			return SafeArithmetic.SafeSubtract(arguments[0].GetIntValue(exm), arguments[1].GetIntValue(exm));
 		}
 	}
 
@@ -243,7 +244,7 @@ internal static class OperatorMethodManager
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			return arguments[0].GetIntValue(exm) * arguments[1].GetIntValue(exm);
+			return SafeArithmetic.SafeMultiply(arguments[0].GetIntValue(exm), arguments[1].GetIntValue(exm));
 		}
 	}
 
@@ -296,10 +297,7 @@ internal static class OperatorMethodManager
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long right = arguments[1].GetIntValue(exm);
-			if (right == 0)
-				throw new CodeEE(trerror.DivideByZero.Text);
-			return arguments[0].GetIntValue(exm) / right;
+			return SafeArithmetic.SafeDivide(arguments[0].GetIntValue(exm), arguments[1].GetIntValue(exm));
 		}
 	}
 
@@ -313,10 +311,7 @@ internal static class OperatorMethodManager
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long right = arguments[1].GetIntValue(exm);
-			if (right == 0)
-				throw new CodeEE(trerror.DivideByZero.Text);
-			return arguments[0].GetIntValue(exm) % right;
+			return SafeArithmetic.SafeModulo(arguments[0].GetIntValue(exm), arguments[1].GetIntValue(exm));
 		}
 	}
 
@@ -691,12 +686,7 @@ internal static class OperatorMethodManager
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			if (ret == long.MinValue)
-			{
-				exm.Console.PrintSystemLine(string.Format(Lang.SystemLine.MinusWontWork.Text, long.MinValue));
-			}
-			return -arguments[0].GetIntValue(exm);
+			return SafeArithmetic.SafeNegate(arguments[0].GetIntValue(exm));
 		}
 	}
 
@@ -740,7 +730,16 @@ internal static class OperatorMethodManager
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			VariableTerm var = (VariableTerm)arguments[0];
-			return var.ChangeValue(1L, exm);
+			try
+			{
+				return var.ChangeValue(1L, exm);
+			}
+			catch (OverflowException)
+			{
+				GlobalStatic.EMediator.Console.PrintWarning(
+					"整数溢出: ++操作", null, 1);
+				return long.MaxValue;
+			}
 		}
 	}
 	private sealed class DecrementInt : OperatorMethod
@@ -754,7 +753,16 @@ internal static class OperatorMethodManager
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			VariableTerm var = (VariableTerm)arguments[0];
-			return var.ChangeValue(-1L, exm);
+			try
+			{
+				return var.ChangeValue(-1L, exm);
+			}
+			catch (OverflowException)
+			{
+				GlobalStatic.EMediator.Console.PrintWarning(
+					"整数溢出: --操作", null, 1);
+				return long.MinValue;
+			}
 		}
 	}
 	private sealed class IncrementAfterInt : OperatorMethod
@@ -768,7 +776,16 @@ internal static class OperatorMethodManager
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			VariableTerm var = (VariableTerm)arguments[0];
-			return var.ChangeValue(1L, exm) - 1;
+			try
+			{
+				return var.ChangeValue(1L, exm) - 1;
+			}
+			catch (OverflowException)
+			{
+				GlobalStatic.EMediator.Console.PrintWarning(
+					"整数溢出: ++操作(后置)", null, 1);
+				return long.MaxValue - 1;
+			}
 		}
 	}
 
@@ -783,7 +800,16 @@ internal static class OperatorMethodManager
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			VariableTerm var = (VariableTerm)arguments[0];
-			return var.ChangeValue(-1L, exm) + 1;
+			try
+			{
+				return var.ChangeValue(-1L, exm) + 1;
+			}
+			catch (OverflowException)
+			{
+				GlobalStatic.EMediator.Console.PrintWarning(
+					"整数溢出: --操作(后置)", null, 1);
+				return long.MinValue + 1;
+			}
 		}
 	}
 

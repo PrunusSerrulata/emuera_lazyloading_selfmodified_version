@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic;
+using Microsoft.VisualBasic;
 using MinorShift.Emuera.GameProc;
 using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.GameView;
@@ -23,6 +23,8 @@ internal sealed class ExpressionMediator
 	public readonly VariableEvaluator VEvaluator;
 	public readonly Process Process;
 	public readonly EmueraConsole Console;
+
+	public ExecutionContext CurrentContext => Process.State.CurrentContext;
 
 
 

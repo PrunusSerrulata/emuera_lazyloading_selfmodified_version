@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
 using System.Diagnostics;
@@ -99,6 +99,13 @@ internal sealed class ProcessState
 	readonly EmueraConsole console;
 	readonly List<CalledFunction> functionList = [];
 	private LogicalLine currentLine;
+
+	private readonly Stack<ExecutionContext> _contextStack = new();
+	public ExecutionContext CurrentContext => _contextStack.Count > 0 ? _contextStack.Peek() : null;
+
+	public void PushContext(ExecutionContext ctx) => _contextStack.Push(ctx);
+	public ExecutionContext PopContext() => _contextStack.Count > 0 ? _contextStack.Pop() : null;
+
 	//private LogicalLine nextLine;
 	public int lineCount;
 	public int currentMin;
@@ -257,6 +264,11 @@ internal sealed class ProcessState
 		foreach (CalledFunction called in functionList)
 			if (called.CurrentLabel.hasPrivDynamicVar)
 				called.CurrentLabel.ScopeOut();
+		while (_contextStack.Count > 0)
+		{
+			var ctx = _contextStack.Pop();
+			ctx.Dispose();
+		}
 		functionList.Clear();
 		begintype = BeginType.NULL;
 	}
@@ -312,14 +324,15 @@ internal sealed class ProcessState
 		foreach (CalledFunction called in functionList)
 			if (called.CurrentLabel.hasPrivDynamicVar)
 				called.CurrentLabel.ScopeOut();
+		while (_contextStack.Count > 0)
+		{
+			var ctx = _contextStack.Pop();
+			ctx.Dispose();
+		}
 		functionList.Clear();
 		begintype = BeginType.NULL;
 		return;
 	}
-
-	/// <summary>
-	/// システムによる強制的なBEGIN
-	/// </summary>
 	/// <param name="type"></param>
 	public void Begin(BeginType type)
 	{
@@ -375,9 +388,11 @@ internal sealed class ProcessState
 		//}
 		CalledFunction called = functionList[^1];
 		if (called.IsJump)
-		{//JUMPした場合。即座にRETURN RESULTする。
+		{
 			if (called.TopLabel.hasPrivDynamicVar)
 				called.TopLabel.ScopeOut();
+			var popped = PopContext();
+			popped?.Dispose();
 			functionList.Remove(called);
 			if (Program.DebugMode)
 				console.DebugRemoveTraceLog();
@@ -388,27 +403,29 @@ internal sealed class ProcessState
 		{
 			if (called.TopLabel.hasPrivDynamicVar)
 				called.TopLabel.ScopeOut();
+			var popped = PopContext();
+			popped?.Dispose();
 			currentLine = null;
 		}
 		else
 		{
 			if (called.CurrentLabel.hasPrivDynamicVar)
 				called.CurrentLabel.ScopeOut();
-			//#Singleフラグ付き関数で1が返された。
-			//1752 非0ではなく1と等価であることを見るように修正
-			//1756 全てを終了ではなく#PRIや#LATERのグループごとに修正
+			var popped = PopContext();
+			popped?.Dispose();
 			if (called.IsOnly)
 				called.FinishEvent();
 			else if (called.HasSingleFlag && ret == 1)
 				called.ShiftNextGroup();
 			else
-				called.ShiftNext();//次の同名関数に進む。
-			currentLine = called.CurrentLabel;//関数の始点(@～～)へ移動。呼ぶべき関数が無ければnull
+				called.ShiftNext();
+			currentLine = called.CurrentLabel;
 			if (called.CurrentLabel != null)
 			{
 				lineCount++;
 				if (called.CurrentLabel.hasPrivDynamicVar)
 					called.CurrentLabel.ScopeIn();
+				PushContext(new ExecutionContext(called.CurrentLabel, CurrentContext));
 			}
 		}
 		if (Program.DebugMode)
@@ -492,14 +509,13 @@ internal sealed class ProcessState
 					}
 				}
 		}
+		var ctx = new ExecutionContext(call.TopLabel, CurrentContext);
+		PushContext(ctx);
 		if (srcArgs != null)
 		{
-			//引数の値を確定させる
 			srcArgs.SetTransporter(exm);
-			//プライベート変数更新
 			if (call.TopLabel.hasPrivDynamicVar)
 				call.TopLabel.ScopeIn();
-			//更新した変数へ引数を代入
 			for (int i = 0; i < call.TopLabel.Arg.Length; i++)
 			{
 				if (srcArgs.Arguments[i] != null)
@@ -513,9 +529,8 @@ internal sealed class ProcessState
 				}
 			}
 		}
-		else//こっちに来るのはシステムからの呼び出し=引数は存在しない関数のみ ifネストの外に出していい気もしないでもないがはてさて
+		else
 		{
-			//プライベート変数更新
 			if (call.TopLabel.hasPrivDynamicVar)
 				call.TopLabel.ScopeIn();
 		}

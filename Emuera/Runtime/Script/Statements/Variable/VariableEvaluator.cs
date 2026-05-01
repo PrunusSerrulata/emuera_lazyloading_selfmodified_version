@@ -1,6 +1,7 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config.JSON;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
@@ -45,12 +46,12 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public void InitRanddata()
 	{
-		rand.SetRand(RANDDATA);
+		rand.SetRand(RANDDATA.ToArray(MTRandom.N32 + 1));
 	}
 
 	public void DumpRanddata()
 	{
-		rand.GetRand(RANDDATA);
+		rand.GetRand(RANDDATA.ToArray(MTRandom.N32 + 1));
 	}
 	public long GetNextRand(long max)
 	{
@@ -174,7 +175,17 @@ internal sealed class VariableEvaluator : IDisposable
 				indexNum = singleLongTerm.Int;
 			else
 				indexNum = constant.KeywordToInteger(p.Identifier.Code, ((SingleStrTerm)index).Str, 1);
-			if (indexNum < 0 || indexNum >= ((long[])p.Identifier.GetArrayChara(0)).Length)
+			int arrLen;
+			object arrObj = p.Identifier.GetArrayChara(0);
+			if (arrObj is SparseArray<long> sparseLong)
+				arrLen = sparseLong.Length;
+			else if (arrObj is SparseArray<string> sparseStr)
+				arrLen = sparseStr.Length;
+			else if (arrObj is long[] denseLong)
+				arrLen = denseLong.Length;
+			else
+				arrLen = ((string[])arrObj).Length;
+			if (indexNum < 0 || indexNum >= arrLen)
 				throw new CodeEE(string.Format(trerror.OoRCharaVar.Text, p.Identifier.Name, "2", indexNum.ToString()));
 		}
 
@@ -212,7 +223,17 @@ internal sealed class VariableEvaluator : IDisposable
 				indexNum = singleLongTerm.Int;
 			else
 				indexNum = constant.KeywordToInteger(p.Identifier.Code, ((SingleStrTerm)index).Str, 1);
-			if (indexNum < 0 || indexNum >= ((string[])p.Identifier.GetArrayChara(0)).Length)
+			int arrLen;
+			object arrObj = p.Identifier.GetArrayChara(0);
+			if (arrObj is SparseArray<string> sparseStr)
+				arrLen = sparseStr.Length;
+			else if (arrObj is SparseArray<long> sparseLong)
+				arrLen = sparseLong.Length;
+			else if (arrObj is string[] denseStr)
+				arrLen = denseStr.Length;
+			else
+				arrLen = ((long[])arrObj).Length;
+			if (indexNum < 0 || indexNum >= arrLen)
 				throw new CodeEE(string.Format(trerror.OoRCharaVar.Text, p.Identifier.Name, "2", indexNum.ToString()));
 		}
 
@@ -280,7 +301,11 @@ internal sealed class VariableEvaluator : IDisposable
 		{
 			if (p.Identifier.IsArray1D)
 			{
-				return string.Join(delimiter, (string[])p.Identifier.GetArray(), (int)index1, (int)length);
+				object arrObj = p.Identifier.GetArray();
+				if (arrObj is SparseArray<string> sparseStr)
+					return string.Join(delimiter, sparseStr.ToArray(sparseStr.Length), (int)index1, (int)length);
+				else
+					return string.Join(delimiter, (string[])arrObj, (int)index1, (int)length);
 			}
 			else if (p.Identifier.IsArray2D)
 			{
@@ -366,31 +391,52 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public static long FindElement(FixedVariableTerm p, long target, long start, long end, bool isExact, bool isLast)
 	{
-		long[] array;
-
-		//指定値の配列要素の範囲外かのチェックは済んでるので、これだけでよい
 		if (start >= end)
 			return -1;
 
+		object arrayObj;
 		if (p.Identifier.IsCharacterData)
-			array = (long[])p.Identifier.GetArrayChara((int)p.Index1);
+			arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 		else
-			array = (long[])p.Identifier.GetArray();
+			arrayObj = p.Identifier.GetArray();
 
-		if (isLast)
+		if (arrayObj is SparseArray<long> sparse)
 		{
-			for (int i = (int)end - 1; i >= (int)start; i--)
+			if (isLast)
 			{
-				if (target == array[i])
-					return i;
+				for (int i = (int)end - 1; i >= (int)start; i--)
+				{
+					if (target == sparse[i])
+						return i;
+				}
+			}
+			else
+			{
+				for (int i = (int)start; i < (int)end; i++)
+				{
+					if (target == sparse[i])
+						return i;
+				}
 			}
 		}
 		else
 		{
-			for (int i = (int)start; i < (int)end; i++)
+			long[] array = (long[])arrayObj;
+			if (isLast)
 			{
-				if (target == array[i])
-					return i;
+				for (int i = (int)end - 1; i >= (int)start; i--)
+				{
+					if (target == array[i])
+						return i;
+				}
+			}
+			else
+			{
+				for (int i = (int)start; i < (int)end; i++)
+				{
+					if (target == array[i])
+						return i;
+				}
 			}
 		}
 		return -1;
@@ -398,33 +444,37 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public static long FindElement(FixedVariableTerm p, Regex target, long start, long end, bool isExact, bool isLast)
 	{
-		string[] array;
-
-		//指定値の配列要素の範囲外かのチェックは済んでるので、これだけでよい
 		if (start >= end)
 			return -1;
 
+		object arrayObj;
 		if (p.Identifier.IsCharacterData)
-			array = (string[])p.Identifier.GetArrayChara((int)p.Index1);
+			arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 		else
-			array = (string[])p.Identifier.GetArray();
+			arrayObj = p.Identifier.GetArray();
+
+		Func<int, string> getStr;
+		if (arrayObj is SparseArray<string> sparseStr)
+			getStr = i => sparseStr[i] ?? "";
+		else
+		{
+			var denseStr = (string[])arrayObj;
+			getStr = i => denseStr[i] ?? "";
+		}
 
 		if (isLast)
 		{
 			for (int i = (int)end - 1; i >= (int)start; i--)
 			{
-				//1823 Nullなら空文字列として扱う
-				string str = array[i] ?? "";
+				string str = getStr(i);
 				if (isExact)
 				{
 					Match match = target.Match(str);
-					//正規表現に引っかかった文字列の長さ＝元の文字列の長さなら完全一致
 					if (match.Success && str.Length == match.Length)
 						return i;
 				}
 				else
 				{
-					//部分一致なのでひっかかればOK
 					if (target.IsMatch(str))
 						return i;
 				}
@@ -434,18 +484,15 @@ internal sealed class VariableEvaluator : IDisposable
 		{
 			for (int i = (int)start; i < (int)end; i++)
 			{
-				//1823 Nullなら空文字列として扱う
-				string str = array[i] ?? "";
+				string str = getStr(i);
 				if (isExact)
 				{
-					//正規表現に引っかかった文字列の長さ＝元の文字列の長さなら完全一致
 					Match match = target.Match(str);
 					if (match.Success && str.Length == match.Length)
 						return i;
 				}
 				else
 				{
-					//部分一致なのでひっかかればOK
 					if (target.IsMatch(str))
 						return i;
 				}
@@ -532,12 +579,25 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public static void ShiftArray(FixedVariableTerm p, int shift, long def, int start, int num)
 	{
-		long[] array;
+		object arrayObj;
 		if (p.Identifier.IsCharacterData)
-			array = (long[])p.Identifier.GetArrayChara((int)p.Index1);
+			arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 		else
-			array = (long[])p.Identifier.GetArray();
+			arrayObj = p.Identifier.GetArray();
 
+		if (arrayObj is SparseArray<long> sparse)
+		{
+			if (start >= sparse.Length)
+				throw new CodeEE(string.Format(trerror.OoRArrayShift.Text, start.ToString(), p.Identifier.Name));
+			if (num == -1)
+				num = sparse.Length - start;
+			if (start + num > sparse.Length)
+				num = sparse.Length - start;
+			sparse.Shift(shift, def, start, num);
+			return;
+		}
+
+		long[] array = (long[])arrayObj;
 		if (start >= array.Length)
 			throw new CodeEE(string.Format(trerror.OoRArrayShift.Text, start.ToString(), p.Identifier.Name));
 
@@ -564,7 +624,6 @@ internal sealed class VariableEvaluator : IDisposable
 		long[] temp = new long[num];
 		Buffer.BlockCopy(array, start * 8, temp, 0, 8 * num);
 
-		//これを満たすのはshift > 0であることは自明
 		if (sourceStart == 0)
 		{
 			if (length > 0)
@@ -590,33 +649,33 @@ internal sealed class VariableEvaluator : IDisposable
 			}
 		}
 
-		//if (start > 0)
-		//    //Array.Copy(temp, 0, array, 0, start);
-		//    Buffer.BlockCopy(temp, 0, array, 0, 8 * start);
-
 		if (length > 0)
-			//Array.Copy(temp, sourceStart, array, destStart, length);
 			Buffer.BlockCopy(temp, sourceStart * 8, array, destStart * 8, length * 8);
-
-		//if ((start + num) < array.Length)
-		//    //Array.Copy(temp, (start + num), array, (start + num), array.Length - (start + num));
-		//    Buffer.BlockCopy(temp, (start + num) * 8, array, (start + num) * 8, (array.Length - (start + num)) * 8);
 	}
 
 	public static void ShiftArray(FixedVariableTerm p, int shift, string def, int start, int num)
 	{
-		string[] arrays;
+		object arrayObj;
 		if (p.Identifier.IsCharacterData)
-			arrays = (string[])p.Identifier.GetArrayChara((int)p.Index1);
+			arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 		else
-			arrays = (string[])p.Identifier.GetArray();
+			arrayObj = p.Identifier.GetArray();
 
+		if (arrayObj is SparseArray<string> sparse)
+		{
+			if (start >= sparse.Length)
+				throw new CodeEE(string.Format(trerror.OoRArrayShift.Text, start.ToString(), p.Identifier.Name));
+			if (num == -1)
+				num = sparse.Length - start;
+			if (start + num > sparse.Length)
+				num = sparse.Length - start;
+			sparse.Shift(shift, def, start, num);
+			return;
+		}
+
+		string[] arrays = (string[])arrayObj;
 		if (start >= arrays.Length)
 			throw new CodeEE(string.Format(trerror.OoRArrayShift.Text, start.ToString(), p.Identifier.Name));
-
-		//for (int i = 0; i < arrays.Length; i++)
-		//    arrays[i] = "";
-		//Array.Clear(arrays, 0, arrays.Length);
 
 		if (num == -1)
 			num = arrays.Length - start;
@@ -629,9 +688,6 @@ internal sealed class VariableEvaluator : IDisposable
 				arrays[i] = def;
 			return;
 		}
-
-		//if (start > 0)
-		//    Array.Copy(temps, 0, arrays, 0, start);
 
 		int sourceStart = 0;
 		int destStart = start + shift;
@@ -671,52 +727,62 @@ internal sealed class VariableEvaluator : IDisposable
 
 		if (length > 0)
 			Array.Copy(temps, sourceStart, arrays, destStart, length);
-		//if ((start + num) < arrays.Length)
-		//    Array.Copy(temps, (start + num), arrays, (start + num), arrays.Length - (start + num));
 	}
 
 	public static void RemoveArray(FixedVariableTerm p, int start, int num)
 	{
 		if (p.Identifier.IsInteger)
 		{
-			long[] array;
+			object arrayObj;
 			if (p.Identifier.IsCharacterData)
-				array = (long[])p.Identifier.GetArrayChara((int)p.Index1);
+				arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 			else
-				array = (long[])p.Identifier.GetArray();
+				arrayObj = p.Identifier.GetArray();
 
+			if (arrayObj is SparseArray<long> sparse)
+			{
+				if (start >= sparse.Length)
+					throw new CodeEE(string.Format(trerror.OoRArrayRemove.Text, start.ToString(), p.Identifier.Name));
+				if (num <= 0)
+					num = sparse.Length;
+				sparse.RemoveRange(start, num);
+				return;
+			}
+
+			long[] array = (long[])arrayObj;
 			if (start >= array.Length)
 				throw new CodeEE(string.Format(trerror.OoRArrayRemove.Text, start.ToString(), p.Identifier.Name));
 			if (num <= 0)
 				num = array.Length;
 			long[] temp = new long[array.Length];
-			//array.CopyTo(temp, 0);
-			//for (int i = 0; i < array.Length; i++)
-			//    array[i] = 0;
-			//Array.Clear(array, 0, array.Length);
 			if (start > 0)
-				//Array.Copy(array, 0, temp, 0, start);
 				Buffer.BlockCopy(array, 0, temp, 0, start * 8);
 			if (start + num < array.Length)
-				//Array.Copy(array, (start + num), temp, start, (array.Length - (start + num)));
 				Buffer.BlockCopy(array, (start + num) * 8, temp, start * 8, (array.Length - (start + num)) * 8);
-			//temp.CopyTo(array, 0);
 			Buffer.BlockCopy(temp, 0, array, 0, temp.Length * 8);
 		}
 		else
 		{
-			string[] arrays;
+			object arrayObj;
 			if (p.Identifier.IsCharacterData)
-				arrays = (string[])p.Identifier.GetArrayChara((int)p.Index1);
+				arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 			else
-				arrays = (string[])p.Identifier.GetArray();
+				arrayObj = p.Identifier.GetArray();
 
+			if (arrayObj is SparseArray<string> sparse)
+			{
+				if (start >= sparse.Length)
+					throw new CodeEE(string.Format(trerror.OoRArrayRemove.Text, start.ToString(), p.Identifier.Name));
+				if (num <= 0)
+					num = sparse.Length;
+				sparse.RemoveRange(start, num);
+				return;
+			}
+
+			string[] arrays = (string[])arrayObj;
 			if (num <= 0)
 				num = arrays.Length;
 			string[] temps = new string[arrays.Length];
-			//arrays.CopyTo(temps, 0);
-			//for (int i = 0; i < arrays.Length; i++)
-			//    arrays[i] = "";
 			if (start > 0)
 				Array.Copy(arrays, 0, temps, 0, start);
 			if (start + num < arrays.Length)
@@ -731,12 +797,26 @@ internal sealed class VariableEvaluator : IDisposable
 			order = SortOrder.ASCENDING;
 		if (p.Identifier.IsInteger)
 		{
-			long[] array;
+			object arrayObj;
 			if (p.Identifier.IsCharacterData)
-				array = (long[])p.Identifier.GetArrayChara((int)p.Index1);
+				arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 			else
-				array = (long[])p.Identifier.GetArray();
+				arrayObj = p.Identifier.GetArray();
 
+			if (arrayObj is SparseArray<long> sparse)
+			{
+				if (start >= sparse.Length)
+					throw new CodeEE(string.Format(trerror.OoRArraySort.Text, start.ToString(), p.Identifier.Name));
+				if (count <= 0)
+					count = sparse.Length - start;
+				var sortEnd = start + count;
+				if (sortEnd > sparse.Length)
+					throw new CodeEE(string.Format(trerror.OoRSumArray.Text, start.ToString(), count.ToString(), p.Identifier.Name));
+				sparse.Sort(order == SortOrder.DESENDING, start, count);
+				return;
+			}
+
+			long[] array = (long[])arrayObj;
 			if (start >= array.Length)
 				throw new CodeEE(string.Format(trerror.OoRArraySort.Text, start.ToString(), p.Identifier.Name));
 			if (count <= 0)
@@ -747,19 +827,32 @@ internal sealed class VariableEvaluator : IDisposable
 				throw new CodeEE(string.Format(trerror.OoRSumArray.Text, start.ToString(), count.ToString(), p.Identifier.Name));
 
 			var reqestSpan = array.AsSpan()[start..end];
-
 			reqestSpan.Sort();
 			if (order == SortOrder.DESENDING)
 				reqestSpan.Reverse();
 		}
 		else
 		{
-			string[] array;
+			object arrayObj;
 			if (p.Identifier.IsCharacterData)
-				array = (string[])p.Identifier.GetArrayChara((int)p.Index1);
+				arrayObj = p.Identifier.GetArrayChara((int)p.Index1);
 			else
-				array = (string[])p.Identifier.GetArray();
+				arrayObj = p.Identifier.GetArray();
 
+			if (arrayObj is SparseArray<string> sparse)
+			{
+				if (start >= sparse.Length)
+					throw new CodeEE(string.Format(trerror.OoRArraySort.Text, start.ToString(), p.Identifier.Name));
+				if (count <= 0)
+					count = sparse.Length - start;
+				var sortEnd = start + count;
+				if (sortEnd > sparse.Length)
+					throw new CodeEE(string.Format(trerror.OoRSumArray.Text, start.ToString(), count.ToString(), p.Identifier.Name));
+				sparse.Sort(order == SortOrder.DESENDING, start, count);
+				return;
+			}
+
+			string[] array = (string[])arrayObj;
 			if (start >= array.Length)
 				throw new CodeEE(string.Format(trerror.OoRArraySort.Text, start.ToString(), p.Identifier.Name));
 			if (count <= 0)
@@ -770,7 +863,6 @@ internal sealed class VariableEvaluator : IDisposable
 				throw new CodeEE(string.Format(trerror.OoRSumArray.Text, start.ToString(), count.ToString(), p.Identifier.Name));
 
 			var reqestSpan = array.AsSpan()[start..end];
-
 			reqestSpan.Sort();
 			if (order == SortOrder.DESENDING)
 				reqestSpan.Reverse();
@@ -785,11 +877,36 @@ internal sealed class VariableEvaluator : IDisposable
 		{
 			if (var1.IsArray1D)
 			{
-				long[] array1 = (long[])var1.GetArray();
-				long[] array2 = (long[])var2.GetArray();
-				int length = array1.Length >= array2.Length ? array2.Length : array1.Length;
-				for (int i = 0; i < length; i++)
-					array2[i] = array1[i];
+				object arr1Obj = var1.GetArray();
+				object arr2Obj = var2.GetArray();
+				if (arr1Obj is SparseArray<long> sparse1 && arr2Obj is SparseArray<long> sparse2)
+				{
+					int length = sparse1.Length >= sparse2.Length ? sparse2.Length : sparse1.Length;
+					for (int i = 0; i < length; i++)
+						sparse2[i] = sparse1[i];
+				}
+				else if (arr1Obj is SparseArray<long> s1)
+				{
+					long[] array2 = (long[])arr2Obj;
+					int length = s1.Length >= array2.Length ? array2.Length : s1.Length;
+					for (int i = 0; i < length; i++)
+						array2[i] = s1[i];
+				}
+				else if (arr2Obj is SparseArray<long> s2)
+				{
+					long[] array1 = (long[])arr1Obj;
+					int length = array1.Length >= s2.Length ? s2.Length : array1.Length;
+					for (int i = 0; i < length; i++)
+						s2[i] = array1[i];
+				}
+				else
+				{
+					long[] array1 = (long[])arr1Obj;
+					long[] array2 = (long[])arr2Obj;
+					int length = array1.Length >= array2.Length ? array2.Length : array1.Length;
+					for (int i = 0; i < length; i++)
+						array2[i] = array1[i];
+				}
 			}
 			else if (var1.IsArray2D)
 			{
@@ -824,11 +941,36 @@ internal sealed class VariableEvaluator : IDisposable
 		{
 			if (var1.IsArray1D)
 			{
-				string[] array1 = (string[])var1.GetArray();
-				string[] array2 = (string[])var2.GetArray();
-				int length = array1.Length >= array2.Length ? array2.Length : array1.Length;
-				for (int i = 0; i < length; i++)
-					array2[i] = array1[i];
+				object arr1Obj = var1.GetArray();
+				object arr2Obj = var2.GetArray();
+				if (arr1Obj is SparseArray<string> sparse1 && arr2Obj is SparseArray<string> sparse2)
+				{
+					int length = sparse1.Length >= sparse2.Length ? sparse2.Length : sparse1.Length;
+					for (int i = 0; i < length; i++)
+						sparse2[i] = sparse1[i];
+				}
+				else if (arr1Obj is SparseArray<string> s1)
+				{
+					string[] array2 = (string[])arr2Obj;
+					int length = s1.Length >= array2.Length ? array2.Length : s1.Length;
+					for (int i = 0; i < length; i++)
+						array2[i] = s1[i];
+				}
+				else if (arr2Obj is SparseArray<string> s2)
+				{
+					string[] array1 = (string[])arr1Obj;
+					int length = array1.Length >= s2.Length ? s2.Length : array1.Length;
+					for (int i = 0; i < length; i++)
+						s2[i] = array1[i];
+				}
+				else
+				{
+					string[] array1 = (string[])arr1Obj;
+					string[] array2 = (string[])arr2Obj;
+					int length = array1.Length >= array2.Length ? array2.Length : array1.Length;
+					for (int i = 0; i < length; i++)
+						array2[i] = array1[i];
+				}
 			}
 			else if (var1.IsArray2D)
 			{
@@ -864,7 +1006,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public string GetHavingItemsString()
 	{
-		long[] array = ITEM;
+		var array = ITEM;
 		string[] itemnames = ITEMNAME;
 		int length = Math.Min(array.Length, itemnames.Length);
 		int count = 0;
@@ -909,7 +1051,7 @@ internal sealed class VariableEvaluator : IDisposable
 		if (target < 0 || target >= varData.CharacterList.Count)
 			throw new CodeEE(trerror.OoRCharaNum.Text);
 		CharacterData chara = varData.CharacterList[(int)target];
-		long[] array;
+		SparseArray<long> array;
 		string[] arrayName;
 		int i;
 		switch (func)
@@ -997,7 +1139,7 @@ internal sealed class VariableEvaluator : IDisposable
 		//    throw new ExeEE("存在しない名称を取得しようとした");
 		CharacterData chara = varData.CharacterList[(int)target];
 		long param = chara.DataIntegerArray[(int)(VariableCode.PALAM & VariableCode.__LOWERCASE__)][paramCode];
-		long[] paramlv = varData.DataIntegerArray[(int)(VariableCode.PALAMLV & VariableCode.__LOWERCASE__)];
+		var paramlv = varData.DataIntegerArray[(int)(VariableCode.PALAMLV & VariableCode.__LOWERCASE__)];
 		string paramName = constant.GetCsvNameList(VariableCode.PALAMNAME)[paramCode];
 		if (param == 0 && string.IsNullOrEmpty(paramName))
 			return null;
@@ -1451,8 +1593,8 @@ internal sealed class VariableEvaluator : IDisposable
 		ASSIPLAY = 0;
 		PREVCOM = -1;
 		NEXTCOM = -1;
-		long[] array;
-		string[] sarray;
+		SparseArray<long> array;
+		SparseArray<string> sarray;
 		array = varData.DataIntegerArray[(int)(VariableCode.TFLAG & VariableCode.__LOWERCASE__)];
 		for (int i = 0; i < array.Length; i++)
 			array[i] = 0;
@@ -1491,7 +1633,7 @@ internal sealed class VariableEvaluator : IDisposable
 	public void UpdateAfterShowUsercom()
 	{
 		//UP = 0,DOWN = 0,LOSEBASE = 0
-		long[] array;
+		SparseArray<long> array;
 		array = varData.DataIntegerArray[(int)(VariableCode.UP & VariableCode.__LOWERCASE__)];
 		for (int i = 0; i < array.Length; i++)
 			array[i] = 0;
@@ -1524,7 +1666,7 @@ internal sealed class VariableEvaluator : IDisposable
 	public void UpdateAfterInputCom()
 	{
 		//本家の仕様にあわせ、選択中以外のキャラクタも全部リセット。
-		long[] array;
+		SparseArray<long> array;
 		foreach (CharacterData chara in varData.CharacterList)
 		{
 			array = chara.DataIntegerArray[(int)(VariableCode.NOWEX & VariableCode.__LOWERCASE__)];
@@ -1537,7 +1679,7 @@ internal sealed class VariableEvaluator : IDisposable
 	public void UpdateAfterSourceCheck()
 	{
 		//本家の仕様にあわせ、選択中以外のキャラクタも全部リセット。
-		long[] array;
+		SparseArray<long> array;
 		foreach (CharacterData chara in varData.CharacterList)
 		{
 			array = chara.DataIntegerArray[(int)(VariableCode.SOURCE & VariableCode.__LOWERCASE__)];
@@ -1551,15 +1693,14 @@ internal sealed class VariableEvaluator : IDisposable
 	//1756 ↑だったのは今は昔の話である
 	public void UpdateInUpcheck(EmueraConsole window, bool skipPrint)
 	{
-		long[] up, down, param;
+		var up = varData.DataIntegerArray[(int)(VariableCode.UP & VariableCode.__LOWERCASE__)];
+		var down = varData.DataIntegerArray[(int)(VariableCode.DOWN & VariableCode.__LOWERCASE__)];
 		string[] paramname = constant.GetCsvNameList(VariableCode.PALAMNAME);
-		up = varData.DataIntegerArray[(int)(VariableCode.UP & VariableCode.__LOWERCASE__)];
-		down = varData.DataIntegerArray[(int)(VariableCode.DOWN & VariableCode.__LOWERCASE__)];
 		long target = TARGET;
 		if (target < 0 || target >= varData.CharacterList.Count)
 			goto end;
 		CharacterData chara = varData.CharacterList[(int)target];
-		param = chara.DataIntegerArray[(int)(VariableCode.PALAM & VariableCode.__LOWERCASE__)];
+		var param = chara.DataIntegerArray[(int)(VariableCode.PALAM & VariableCode.__LOWERCASE__)];
 		int length = param.Length;
 		if (param.Length > up.Length)
 			length = up.Length;
@@ -1607,14 +1748,13 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public void CUpdateInUpcheck(EmueraConsole window, long target, bool skipPrint)
 	{
-		long[] up, down, param;
 		string[] paramname = constant.GetCsvNameList(VariableCode.PALAMNAME);
 		if (target < 0 || target >= varData.CharacterList.Count)
 			return;
 		CharacterData chara = varData.CharacterList[(int)target];
-		up = chara.DataIntegerArray[(int)(VariableCode.CUP & VariableCode.__LOWERCASE__)];
-		down = chara.DataIntegerArray[(int)(VariableCode.CDOWN & VariableCode.__LOWERCASE__)];
-		param = chara.DataIntegerArray[(int)(VariableCode.PALAM & VariableCode.__LOWERCASE__)];
+		var up = chara.DataIntegerArray[(int)(VariableCode.CUP & VariableCode.__LOWERCASE__)];
+		var down = chara.DataIntegerArray[(int)(VariableCode.CDOWN & VariableCode.__LOWERCASE__)];
+		var param = chara.DataIntegerArray[(int)(VariableCode.PALAM & VariableCode.__LOWERCASE__)];
 		int length = param.Length;
 		if (param.Length > up.Length)
 			length = up.Length;
@@ -1660,11 +1800,12 @@ internal sealed class VariableEvaluator : IDisposable
 
 	private static void setDefaultStain(CharacterData chara)
 	{
-		long[] array = chara.DataIntegerArray[(int)(VariableCode.STAIN & VariableCode.__LOWERCASE__)];
+		var array = chara.DataIntegerArray[(int)(VariableCode.STAIN & VariableCode.__LOWERCASE__)];
 		//STAINの配列要素数 < _REPLACE.CSVのSTAIN初期値の指定数の時エラーになるのを対処
 		if (array.Length >= Config.Config.StainDefault.Count)
 		{
-			Config.Config.StainDefault.CopyTo(array);
+			for (int i = 0; i < Config.Config.StainDefault.Count; i++)
+				array[i] = Config.Config.StainDefault[i];
 			for (int i = Config.Config.StainDefault.Count; i < array.Length; i++)
 				array[i] = 0;
 		}
@@ -1690,7 +1831,7 @@ internal sealed class VariableEvaluator : IDisposable
 	/// <returns></returns>
 	public void VarSize(VariableToken varID)
 	{
-		long[] resultArray = RESULT_ARRAY;
+		var resultArray = RESULT_ARRAY;
 		if (varID.IsArray2D)
 		{
 			resultArray[0] = varID.GetLength(0);
@@ -1710,7 +1851,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public bool ItemSales(long itemNo)
 	{
-		long[] itemSales = ITEMSALES;
+		var itemSales = ITEMSALES;
 		string[] itemNames = constant.GetCsvNameList(VariableCode.ITEMNAME);
 		if (itemNo < 0 || itemNo >= itemSales.Length || itemNo >= itemNames.Length)
 			return false;
@@ -1737,7 +1878,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	public void SetEncodingResult(int[] ary)
 	{
-		long[] resary = varData.DataIntegerArray[(int)(VariableCode.RESULT & VariableCode.__LOWERCASE__)];
+		var resary = varData.DataIntegerArray[(int)(VariableCode.RESULT & VariableCode.__LOWERCASE__)];
 		resary[0] = ary.Length;
 		for (int i = 0; i < ary.Length; i++)
 			resary[i + 1] = ary[i];
@@ -2484,7 +2625,7 @@ internal sealed class VariableEvaluator : IDisposable
 
 	#endregion
 	#region Property
-	public long[] RESULT_ARRAY
+	public SparseArray<long> RESULT_ARRAY
 	{
 		get { return varData.DataIntegerArray[(int)(VariableCode.RESULT & VariableCode.__LOWERCASE__)]; }
 	}
@@ -2509,7 +2650,7 @@ internal sealed class VariableEvaluator : IDisposable
 		}
 		set { varData.DataStringArray[(int)(VariableCode.RESULTS & VariableCode.__LOWERCASE__)][0] = value; }
 	}
-	public string[] RESULTS_ARRAY
+	public SparseArray<string> RESULTS_ARRAY
 	{
 		get { return varData.DataStringArray[(int)(VariableCode.RESULTS & VariableCode.__LOWERCASE__)]; }
 	}
@@ -2519,7 +2660,7 @@ internal sealed class VariableEvaluator : IDisposable
 		get { return varData.DataIntegerArray[(int)(VariableCode.TARGET & VariableCode.__LOWERCASE__)][0]; }
 		set { varData.DataIntegerArray[(int)(VariableCode.TARGET & VariableCode.__LOWERCASE__)][0] = value; }
 	}
-	public long[] SELECTCOM_ARRAY
+	public SparseArray<long> SELECTCOM_ARRAY
 	{
 		get { return varData.DataIntegerArray[(int)(VariableCode.SELECTCOM & VariableCode.__LOWERCASE__)]; }
 	}
@@ -2533,7 +2674,7 @@ internal sealed class VariableEvaluator : IDisposable
 		get { return constant.GetCsvNameList(VariableCode.ITEMNAME); }
 	}
 
-	public long[] ITEMSALES
+	public SparseArray<long> ITEMSALES
 	{
 		get { return varData.DataIntegerArray[(int)(VariableCode.ITEMSALES & VariableCode.__LOWERCASE__)]; }
 	}
@@ -2543,12 +2684,12 @@ internal sealed class VariableEvaluator : IDisposable
 		get { return constant.ItemPrice; }
 	}
 
-	private long[] ITEM
+	private SparseArray<long> ITEM
 	{
 		get { return varData.DataIntegerArray[(int)(VariableCode.ITEM & VariableCode.__LOWERCASE__)]; }
 	}
 
-	public long[] RANDDATA
+	public SparseArray<long> RANDDATA
 	{
 		get { return varData.DataIntegerArray[(int)(VariableCode.RANDDATA & VariableCode.__LOWERCASE__)]; }
 	}
@@ -2568,15 +2709,17 @@ internal sealed class VariableEvaluator : IDisposable
 
 	private long get_Variable_canforbid(VariableCode code)
 	{
-		long[] array = varData.DataIntegerArray[(int)(code & VariableCode.__LOWERCASE__)];
-		if (array.Length == 0)
+		var array = varData.DataIntegerArray[(int)(code & VariableCode.__LOWERCASE__)];
+		int length = varData.Constant.VariableIntArrayLength[(int)(code & VariableCode.__LOWERCASE__)];
+		if (length == 0)
 			return -1;
 		return array[0];
 	}
 	private void set_Variable_canforbid(VariableCode code, long value)
 	{
-		long[] array = varData.DataIntegerArray[(int)(code & VariableCode.__LOWERCASE__)];
-		if (array.Length == 0)
+		var array = varData.DataIntegerArray[(int)(code & VariableCode.__LOWERCASE__)];
+		int length = varData.Constant.VariableIntArrayLength[(int)(code & VariableCode.__LOWERCASE__)];
+		if (length == 0)
 			return;
 		array[0] = value;
 	}
