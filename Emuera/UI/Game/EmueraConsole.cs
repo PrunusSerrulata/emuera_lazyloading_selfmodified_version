@@ -2626,22 +2626,6 @@ internal sealed partial class EmueraConsole : IDisposable
 	public void GotoTitleAndLoadAndRepeatInput()
 	{
 		if (!Config.Ctrl_Z_Enabled) return;
-		if (JSONConfig.Data.UseNewRandom)
-		{
-			MessageBox.Show("CtrlZ: JSONConfig.Data.UseNewRandom not supported");
-			return;
-			// It is possible to implement, but I'm not sure if it will be worth it.
-			// * Approach 1 is to implement Random class deep copy:
-			// Would require making a custom Random class, since default one doesn't provide
-			// a way to do deep clone.
-			// https://stackoverflow.com/questions/47750409/deep-clone-of-system-random
-			// https://referencesource.microsoft.com/#mscorlib/system/random.cs
-			// * Approach 2 is to make a new random seed on every save,
-			// that requires a bit less storage but can potentially modify the way game works.
-			// It would probably still require making your 
-			// * Approach 3 is to pretend that UseNewRandom doesn't exist.
-			// I'm not sure what games currently use that anyway.
-		}
 		if (GlobalStatic.ctrlZ.mLastSave < 0) return;
 		if (GlobalStatic.ctrlZ.mInputs.Count == 0) return;
 		if (GlobalStatic.ctrlZ.mRewindInProgress)

@@ -42,6 +42,7 @@ internal sealed class VariableEvaluator : IDisposable
 	public void Randomize(long seed)
 	{
 		rand = new(seed);
+		_newRand = new((int)seed);
 	}
 
 	public void InitRanddata()

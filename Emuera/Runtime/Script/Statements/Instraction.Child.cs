@@ -1810,15 +1810,7 @@ internal sealed partial class FunctionIdentifier
 				iValue = func.Argument.ConstInt;
 			else
 				iValue = ((ExpressionArgument)func.Argument).Term.GetIntValue(exm);
-			if (JSONConfig.Data.UseNewRandom)
-			{
-				ParserMediator.Warn(trerror.IgnoreRandomize.Text, null, 0);
-				ParserMediator.FlushWarningList();
-			}
-			else
-			{
-				exm.VEvaluator.Randomize(iValue);
-			}
+			exm.VEvaluator.Randomize(iValue);
 		}
 	}
 	private sealed class INITRAND_Instruction : AInstruction
