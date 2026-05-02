@@ -23,12 +23,16 @@ internal sealed partial class VariableData : IDisposable
 	#endregion
 	readonly long[] dataInteger;
 	readonly string[] dataString;
+	readonly double[] dataFloat;
 	readonly SparseArray<long>[] dataIntegerArray;
 	readonly SparseArray<string>[] dataStringArray;
+	readonly double[][] dataFloatArray;
 	readonly long[][,] dataIntegerArray2D;
 	readonly string[][,] dataStringArray2D;
+	readonly double[][,] dataFloatArray2D;
 	readonly long[][,,] dataIntegerArray3D;
 	readonly string[][,,] dataStringArray3D;
+	readonly double[][,,] dataFloatArray3D;
 	//readonly VariableLocal<Int64, Int64Calculator> localVars;
 	//readonly VariableLocal<string, StringCalculator> localString;
 	//readonly VariableLocal<Int64, Int64Calculator> argVars;
@@ -36,12 +40,16 @@ internal sealed partial class VariableData : IDisposable
 	readonly List<CharacterData> characterList;
 	public long[] DataInteger { get { return dataInteger; } }
 	public string[] DataString { get { return dataString; } }
+	public double[] DataFloat { get { return dataFloat; } }
 	public SparseArray<long>[] DataIntegerArray { get { return dataIntegerArray; } }
 	public SparseArray<string>[] DataStringArray { get { return dataStringArray; } }
+	public double[][] DataFloatArray { get { return dataFloatArray; } }
 	public long[][,] DataIntegerArray2D { get { return dataIntegerArray2D; } }
 	public string[][,] DataStringArray2D { get { return dataStringArray2D; } }
+	public double[][,] DataFloatArray2D { get { return dataFloatArray2D; } }
 	public long[][,,] DataIntegerArray3D { get { return dataIntegerArray3D; } }
 	public string[][,,] DataStringArray3D { get { return dataStringArray3D; } }
+	public double[][,,] DataFloatArray3D { get { return dataFloatArray3D; } }
 	//public VariableLocal<Int64, Int64Calculator> LocalVars { get { return localVars; } }
 	//public VariableLocal<string, StringCalculator> LocalString { get { return localString; } }
 	//public VariableLocal<Int64, Int64Calculator> ArgVars { get { return argVars; } }
@@ -143,6 +151,13 @@ internal sealed partial class VariableData : IDisposable
 			int length3 = (int)(length64 & 0xFFFFF);
 			dataStringArray3D[i] = new string[length, length2, length3];
 		}
+
+		dataFloat = new double[(int)VariableCode.__COUNT_STRING__];
+		dataFloatArray = new double[(int)VariableCode.__COUNT_STRING_ARRAY__][];
+		for (int i = 0; i < dataFloatArray.Length; i++)
+			dataFloatArray[i] = [];
+		dataFloatArray2D = new double[(int)VariableCode.__COUNT_STRING_ARRAY_2D__][,];
+		dataFloatArray3D = new double[(int)VariableCode.__COUNT_STRING_ARRAY_3D__][,,];
 		for (int i = 0; i < 6; i++)
 		{
 			userDefinedSaveVarList[i] = [];
@@ -412,7 +427,7 @@ internal sealed partial class VariableData : IDisposable
 	public UserDefinedVariableToken CreateUserDefVariable(UserDefinedVariableData data, DimLineWC dimline)
 	{
 		UserDefinedVariableToken ret;
-		if (data.TypeIsStr)
+		if (data.TypeIsStr || data.TypeIsFloat)
 			switch (data.Dimension)
 			{
 				case 1: ret = new StaticStr1DVariableToken(data); break;
@@ -452,7 +467,7 @@ internal sealed partial class VariableData : IDisposable
 		UserDefinedVariableToken ret;
 		if (data.Reference)//参照型
 		{//すべて非Staticなはず
-			if (data.TypeIsStr)
+			if (data.TypeIsStr || data.TypeIsFloat)
 			{
 				switch (data.Dimension)
 				{
@@ -475,7 +490,7 @@ internal sealed partial class VariableData : IDisposable
 		}
 		else if (data.Static)
 		{
-			if (data.TypeIsStr)
+			if (data.TypeIsStr || data.TypeIsFloat)
 			{
 				switch (data.Dimension)
 				{
@@ -499,7 +514,7 @@ internal sealed partial class VariableData : IDisposable
 		}
 		else
 		{
-			if (data.TypeIsStr)
+			if (data.TypeIsStr || data.TypeIsFloat)
 			{
 				switch (data.Dimension)
 				{
@@ -667,6 +682,11 @@ internal sealed partial class VariableData : IDisposable
 			writer.Write(dataIntegerArray[i].ToArray(constant.VariableIntArrayLength[i]));
 		for (int i = 0; i < strArrayCount; i++)
 			writer.Write(dataStringArray[i].ToArray(constant.VariableStrArrayLength[i]));
+
+		for (int i = 0; i < dataFloat.Length; i++)
+			writer.Write(dataFloat[i]);
+		for (int i = 0; i < dataFloatArray.Length; i++)
+			writer.Write(dataFloatArray[i]);
 	}
 
 	public void LoadFromStream(EraDataReader reader)
@@ -688,6 +708,11 @@ internal sealed partial class VariableData : IDisposable
 			reader.ReadStringArray(arr);
 			dataStringArray[i].FromArray(arr);
 		}
+
+		for (int i = 0; i < dataFloat.Length; i++)
+			dataFloat[i] = reader.ReadDouble();
+		for (int i = 0; i < dataFloatArray.Length; i++)
+			reader.ReadDoubleArray(dataFloatArray[i]);
 	}
 
 	public void SaveToStreamExtended(EraDataWriter writer)
@@ -1337,6 +1362,45 @@ internal sealed partial class VariableData : IDisposable
 					reader.ReadStrArray3D(null, true);
 				else
 					reader.ReadStrArray3D((string[,,])vToken.GetArray(), true);
+				break;
+			case EraSaveDataType.Float:
+				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 0)
+					reader.ReadDouble();//該当変数なしで読み捨て
+				else
+					vToken.SetValue((long)reader.ReadDouble(), null);
+				break;
+			case EraSaveDataType.FloatArray:
+				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 1)
+				{
+					int len = reader.ReadInt32();
+					for (int i = 0; i < len; i++) reader.ReadDouble();
+				}
+				else
+				{
+					int len = reader.ReadInt32();
+					object arrObj = vToken.GetArray();
+					if (arrObj is SparseArray<long> sparse)
+					{
+						long[] tmp = new long[len];
+						for (int i = 0; i < len; i++) tmp[i] = (long)reader.ReadDouble();
+						sparse.Length = tmp.Length;
+						sparse.FromArray(tmp);
+					}
+				}
+				break;
+			case EraSaveDataType.FloatArray2D:
+				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 2)
+				{
+					int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32();
+					for (int i = 0; i < d0 * d1; i++) reader.ReadDouble();
+				}
+				break;
+			case EraSaveDataType.FloatArray3D:
+				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 3)
+				{
+					int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32(); int d2 = reader.ReadInt32();
+					for (int i = 0; i < d0 * d1 * d2; i++) reader.ReadDouble();
+				}
 				break;
 			default:
 				throw new FileEE(trerror.AbnormalData.Text);

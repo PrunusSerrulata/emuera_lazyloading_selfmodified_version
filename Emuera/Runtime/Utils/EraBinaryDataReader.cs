@@ -24,6 +24,10 @@ public enum EraSaveDataType : byte
 	IntArray = 0x01,
 	IntArray2D = 0x02,
 	IntArray3D = 0x03,
+	Float = 0x04,
+	FloatArray = 0x05,
+	FloatArray2D = 0x06,
+	FloatArray3D = 0x07,
 	Str = 0x10,
 	StrArray = 0x11,
 	StrArray2D = 0x12,
@@ -163,6 +167,8 @@ internal abstract class EraBinaryDataReader : IDisposable
 	#endregion
 	public abstract string ReadString();
 	public abstract long ReadInt();
+	public abstract double ReadDouble();
+	public abstract int ReadInt32();
 	public abstract void ReadIntArray(long[] refArray, bool needInit);
 	public abstract long[] ReadIntArrayIntoNew(bool needInit);
 	public abstract void ReadIntArray2D(long[,] refArray, bool needInit);
@@ -273,6 +279,14 @@ internal abstract class EraBinaryDataReader : IDisposable
 		public override long ReadInt()
 		{
 			return m_ReadInt();
+		}
+		public override double ReadDouble()
+		{
+			return reader.ReadDouble();
+		}
+		public override int ReadInt32()
+		{
+			return reader.ReadInt32();
 		}
 
 

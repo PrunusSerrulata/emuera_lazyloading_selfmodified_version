@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -70,6 +70,18 @@ internal sealed class EraDataReader : IDisposable
 		return ret;
 	}
 
+	public double ReadDouble()
+	{
+		if (reader == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		string str = reader.ReadLine();
+		if (str == null)
+			throw new FileEE(trerror.NoNumToRead.Text);
+		if (!double.TryParse(str, out double ret))
+			throw new FileEE(trerror.CanNotInterpretNum.Text);
+		return ret;
+	}
+
 
 	public void ReadInt64Array(long[] array)
 	{
@@ -93,8 +105,34 @@ internal sealed class EraDataReader : IDisposable
 				throw new FileEE(trerror.InvalidArray.Text);
 			array[i] = integer;
 		}
-		for (; i < array.Length; i++)//保存されている値が無いなら0に初期化
+		for (; i < array.Length; i++)
 			array[i] = 0;
+	}
+
+	public void ReadDoubleArray(double[] array)
+	{
+		if (reader == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		if (array == null)
+			throw new FileEE(trerror.InvalidArray.Text);
+		int i = -1;
+		string str;
+		while (true)
+		{
+			i++;
+			str = reader.ReadLine();
+			if (str == null)
+				throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+			if (str.Equals(FINISHER, StringComparison.Ordinal))
+				break;
+			if (i >= array.Length)
+				continue;
+			if (!double.TryParse(str, out double val))
+				throw new FileEE(trerror.InvalidArray.Text);
+			array[i] = val;
+		}
+		for (; i < array.Length; i++)
+			array[i] = 0.0;
 	}
 
 	public void ReadStringArray(string[] array)
@@ -481,6 +519,12 @@ internal sealed class EraDataWriter : IDisposable
 		writer.WriteLine(integer.ToString());
 	}
 
+	public void Write(double value)
+	{
+		if (writer == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		writer.WriteLine(value.ToString("G"));
+	}
 
 	public void Write(string str)
 	{
@@ -504,9 +548,22 @@ internal sealed class EraDataWriter : IDisposable
 				count = i;
 		count++;
 		for (int i = 0; i < count; i++)
-			writer.WriteLine(array[i].ToString());
+			writer.WriteLine(array[i]);
 		writer.WriteLine(FINISHER);
 	}
+
+	public void Write(double[] array)
+	{
+		if (writer == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		if (array == null)
+			throw new FileEE(trerror.InvalidArray.Text);
+		for (int i = 0; i < array.Length; i++)
+			writer.WriteLine(array[i].ToString("G"));
+		writer.WriteLine(FINISHER);
+	}
+
+
 	public void Write(string[] array)
 	{
 		if (writer == null)

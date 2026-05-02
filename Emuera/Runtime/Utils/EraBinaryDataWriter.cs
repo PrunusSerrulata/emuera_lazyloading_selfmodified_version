@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -128,6 +128,45 @@ internal sealed class EraBinaryDataWriter : IDisposable
 			writer.Write((byte)EraSaveDataType.IntArray3D);
 			writer.Write(key);
 			writeData((long[,,])v);
+		}
+		else if (v is double)
+		{
+			writer.Write((byte)EraSaveDataType.Float);
+			writer.Write(key);
+			writer.Write((double)v);
+		}
+		else if (v is double[])
+		{
+			writer.Write((byte)EraSaveDataType.FloatArray);
+			writer.Write(key);
+			var arr = (double[])v;
+			writer.Write(arr.Length);
+			for (int i = 0; i < arr.Length; i++)
+				writer.Write(arr[i]);
+		}
+		else if (v is double[,])
+		{
+			writer.Write((byte)EraSaveDataType.FloatArray2D);
+			writer.Write(key);
+			var arr = (double[,])v;
+			writer.Write(arr.GetLength(0));
+			writer.Write(arr.GetLength(1));
+			for (int i = 0; i < arr.GetLength(0); i++)
+				for (int j = 0; j < arr.GetLength(1); j++)
+					writer.Write(arr[i, j]);
+		}
+		else if (v is double[,,])
+		{
+			writer.Write((byte)EraSaveDataType.FloatArray3D);
+			writer.Write(key);
+			var arr = (double[,,])v;
+			writer.Write(arr.GetLength(0));
+			writer.Write(arr.GetLength(1));
+			writer.Write(arr.GetLength(2));
+			for (int i = 0; i < arr.GetLength(0); i++)
+				for (int j = 0; j < arr.GetLength(1); j++)
+					for (int k = 0; k < arr.GetLength(2); k++)
+						writer.Write(arr[i, j, k]);
 		}
 		else if (v is string)
 		{

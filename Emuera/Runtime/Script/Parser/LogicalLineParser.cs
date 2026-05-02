@@ -249,11 +249,13 @@ internal static class LogicalLineParser
 					}
 					break;
 				case var s when s.Equals("DIM", Config.Config.StringComparison) ||
-								s.Equals("DIMS", Config.Config.StringComparison):
+								s.Equals("DIMS", Config.Config.StringComparison) ||
+								s.Equals("DIMF", Config.Config.StringComparison):
 					{
 						var wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
 
-						UserDefinedVariableData data = UserDefinedVariableData.Create(wc, token.SequenceEqual("DIMS"), true, position);
+						bool dimf = token.SequenceEqual("DIMF");
+						UserDefinedVariableData data = UserDefinedVariableData.Create(wc, token.SequenceEqual("DIMS"), dimf, true, position);
 						if (!label.AddPrivateVariable(data))
 						{
 							ParserMediator.Warn(string.Format(trerror.VarNameAlreadyUsed.Text, data.Name), position, 2);

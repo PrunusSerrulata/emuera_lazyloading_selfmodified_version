@@ -1,4 +1,4 @@
-﻿﻿using MinorShift.Emuera.Runtime.Script.Parser;
+﻿﻿﻿﻿﻿using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
@@ -11,6 +11,7 @@ internal sealed class UserDefinedVariableData
 {
 	public string Name;
 	public bool TypeIsStr;
+	public bool TypeIsFloat;
 	public bool Reference;
 	public int Dimension = 1;
 	public int[] Lengths;
@@ -26,15 +27,16 @@ internal sealed class UserDefinedVariableData
 	//1822 Privateの方もDIMだけ遅延させようとしたけどちょっと課題がおおいのでやめとく
 	public static UserDefinedVariableData Create(DimLineWC dimline)
 	{
-		return Create(dimline.WC, dimline.Dims, dimline.IsPrivate, dimline.SC);
+		return Create(dimline.WC, dimline.Dims, dimline.Dimf, dimline.IsPrivate, dimline.SC);
 	}
 
-	public static UserDefinedVariableData Create(WordCollection wc, bool dims, bool isPrivate, ScriptPosition? sc)
+	public static UserDefinedVariableData Create(WordCollection wc, bool dims, bool dimf, bool isPrivate, ScriptPosition? sc)
 	{
-		string dimtype = dims ? "#DIM" : "#DIMS";
+		string dimtype = dimf ? "#DIMF" : (dims ? "#DIMS" : "#DIM");
 		UserDefinedVariableData ret = new()
 		{
-			TypeIsStr = dims
+			TypeIsStr = dims,
+			TypeIsFloat = dimf
 		};
 
 		IdentifierWord idw;
@@ -316,12 +318,14 @@ internal sealed class DimLineWC
 {
 	public WordCollection WC;
 	public bool Dims;
+	public bool Dimf;
 	public bool IsPrivate;
 	public ScriptPosition? SC;
-	public DimLineWC(WordCollection wc, bool isString, bool isPrivate, ScriptPosition? position)
+	public DimLineWC(WordCollection wc, bool isString, bool isFloat, bool isPrivate, ScriptPosition? position)
 	{
 		WC = wc;
 		Dims = isString;
+		Dimf = isFloat;
 		IsPrivate = isPrivate;
 		SC = position;
 	}

@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
@@ -269,6 +269,34 @@ internal static partial class LexicalAnalyzer
 				throw new CodeEE(trerror.CanNotInterpretNum.Text);
 			throw new CodeEE(string.Format(trerror.CanNotInterpretNumValue.Text, strInt.ToString()));
 		}
+	}
+
+	public static double ReadDouble(CharStream st, bool retZero)
+	{
+		int startPos = st.CurrentPosition;
+		if (st.Current == '+' || st.Current == '-')
+			st.ShiftNext();
+		while (!st.EOS && char.IsDigit(st.Current))
+			st.ShiftNext();
+		if (st.Current == '.')
+			st.ShiftNext();
+		while (!st.EOS && char.IsDigit(st.Current))
+			st.ShiftNext();
+		if (st.Current == 'e' || st.Current == 'E')
+		{
+			st.ShiftNext();
+			if (st.Current == '+' || st.Current == '-')
+				st.ShiftNext();
+			while (!st.EOS && char.IsDigit(st.Current))
+				st.ShiftNext();
+		}
+		int endPos = st.CurrentPosition;
+		var str = st.Substring(startPos, endPos - startPos);
+		if (double.TryParse(str.ToString(), out double result))
+			return result;
+		if (retZero)
+			return 0.0;
+		throw new CodeEE(string.Format(trerror.CanNotConvertToInt.Text, str.ToString()));
 	}
 
 	//IsNumericにReadInt64を使うと、本来falseになるべき文字列の一部がCodeEEになってしまうので、新規に追加
@@ -857,7 +885,17 @@ internal static partial class LexicalAnalyzer
 					case '7':
 					case '8':
 					case '9':
-						ret.Add(new LiteralIntegerWord(ReadInt64(st, false)));
+						{
+							int pos = st.CurrentPosition;
+							while (!st.EOS && char.IsDigit(st.Current))
+								st.ShiftNext();
+							bool isFloat = !st.EOS && st.Current == '.';
+							st.CurrentPosition = pos;
+							if (isFloat)
+								ret.Add(new LiteralFloatWord(ReadDouble(st, false)));
+							else
+								ret.Add(new LiteralIntegerWord(ReadInt64(st, false)));
+						}
 						break;
 					case '>':
 						if (endWith == LexEndWith.GreaterThan)

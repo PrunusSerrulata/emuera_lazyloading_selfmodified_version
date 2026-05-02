@@ -50,13 +50,15 @@ B.3-3「指令层」← ✅ 已完成（GetOperandType 分派全清除，ReturnT
   ├─ ArgumentBuilder.cs: GetOperandType → EraType（数量缩减）
   └─ 零散文件: 13 个文件 GetOperandType 批量替换
 
-B.3-4「存储层」← 1.5~1.6
-  ├─ VariableData: dataFloat/dataFloatArray + 存档
-  └─ CharacterData: 角色浮点变量
+B.3-4「存储层」← ✅ 已完成
+  ├─ VariableData: dataFloat/dataFloatArray/dataFloatArray2D/dataFloatArray3D + EraDataWriter/Reader double 支持
+  ├─ EraSaveDataType: Float/FloatArray/FloatArray2D/FloatArray3D 新枚举值
+  └─ VariableData Save/Load: Float 段处理（SaveToStream/LoadFromStream + LoadVariableBinary）
+     （Float 变量实际存储将在 B.3-5 #DIMF 中填充）
 
-B.3-5「语法层」← 1.5 续
-  ├─ 词法分析器: 浮点字面量
-  └─ #DIMF 浮点变量声明
+B.3-5「语法层」← ✅ 已完成
+  ├─ 词法分析器: 浮点字面量 + LiteralFloatWord + ReadDouble
+  └─ #DIMF 浮点变量声明（ErhLoader/ErbLoader/LogicalLineParser/VariableData factory）
 
 B.3-6「验证」
   └─ 端到端测试: 浮点运算 + 存档兼容 + 类型转换
@@ -233,10 +235,10 @@ B.3-6「验证」
 
 | # | 变更点 | 说明 | 完成 |
 |---|--------|------|------|
-| 1 | 新增 `dataFloat` | `double[]` 标量浮点 | ⬜ |
-| 2 | 新增 `dataFloatArray` | `double[][]` 1D 浮点数组 | ⬜ |
-| 3 | 新增 `dataFloatArray2D` | `double[][,]` 2D 浮点数组 | ⬜ |
-| 4 | 新增 `dataFloatArray3D` | `double[][,,]` 3D 浮点数组 | ⬜ |
+| 1 | 新增 `dataFloat` / `dataFloatArray` / `dataFloatArray2D` / `dataFloatArray3D` | `double[]` / `double[][]` / `double[][,]` / `double[][,,]`，空数组占位，B.3-5 #DIMF 填充 | ✅ |
+| 2 | 新增 `DataFloat` / `DataFloatArray` / `DataFloatArray2D` / `DataFloatArray3D` 属性 | 公共只读 getter | ✅ |
+| 3 | SaveToStream / LoadFromStream 浮点段 | 读写 dataFloat / dataFloatArray | ✅ |
+| 4 | EraDataWriter/Reader 新增 `Write(double/double[])` / `ReadDouble()/ReadDoubleArray()` | 文本存档格式扩展 | ✅ |
 
 #### B.3-4b — 存档序列化扩展
 
@@ -244,9 +246,10 @@ B.3-6「验证」
 
 | # | 变更点 | 说明 | 完成 |
 |---|--------|------|------|
-| 1 | `EraSaveDataType.Float` / `.FloatArray` / `.FloatArray2D` / `.FloatArray3D` | 新枚举值 | ⬜ |
-| 2 | 保存时写入 Float 段 | 与 Int/Str 段格式一致 | ⬜ |
-| 3 | 加载时识别 Float 段 | 旧存档无 Float 段，自动跳过 | ⬜ |
+| 1 | `EraSaveDataType.Float` / `.FloatArray` / `.FloatArray2D` / `.FloatArray3D` | 0x04/0x05/0x06/0x07 新枚举值 | ✅ |
+| 2 | EraBinaryDataWriter.WriteWithKey 添加 double/double[]/double[,]/double[,,] 分支 | 二进制存档格式 | ✅ |
+| 3 | EraBinaryDataReader 添加 ReadDouble()/ReadInt32() 抽象 + 实现 | 二进制读档支持 | ✅ |
+| 4 | VariableData.LoadVariableBinary 添加 Float/FloatArray/FloatArray2D/FloatArray3D case | 加载时 Float 段识别（旧存档无 Float 段自动跳过） | ✅ |
 
 ### 2.5 B.3-5「语法层」
 
@@ -256,16 +259,20 @@ B.3-6「验证」
 
 | # | 变更点 | 说明 | 完成 |
 |---|--------|------|------|
-| 1 | `ReadDouble(chars)` | 浮点字面量扫描 | ⬜ |
-| 2 | `LiteralFloatWord` | Word 子类，`Type = 'F'` | ⬜ |
+| 1 | `ReadDouble()` | 双精度字面量扫描（整数部分+小数点+小数部分+科学计数法 e/E） | ✅ |
+| 2 | `LiteralFloatWord` | Word 子类，`Type = 'R'`，含 Float(×1.0) 和 Int(×1.0→long) 属性 | ✅ |
+| 3 | 词法分析器浮点检测 | 数字→预扫描判断是否有 '.' → float/int 分派 | ✅ |
+| 4 | ExpressionParser case 'R' | TermStack.Add(double) → SingleLongTerm（当前截断，Float Term 待 B.3-6） | ✅ |
 
 #### B.3-5b — `#DIMF` 浮点变量声明
 
 | # | 变更点 | 说明 | 完成 |
 |---|--------|------|------|
-| 1 | ErhLoader 支持 `#DIMF` | 解析浮点变量声明 | ⬜ |
-| 2 | ErbLoader 支持 `#DIMF` | 行内声明 | ⬜ |
-| 3 | VariableParser 支持 `#DIMF` | 语法解析 | ⬜ |
+| 1 | ErhLoader 支持 `#DIMF` | sharpID==DIMF → DimLineWC(wc, isString, isFloat=true) 入队 | ✅ |
+| 2 | ErbLoader/LogicalLineParser 支持 `#DIMF` | 函数内 `#DIMF` → CreatePrivateVariable | ✅ |
+| 3 | DimLineWC 新增 `Dimf` 字段 | `bool Dimf` + 构造函数参数 | ✅ |
+| 4 | UserDefinedVariableData 新增 `TypeIsFloat` | Create 重载 + TypeIsFloat 分支 → Str token（临时） | ✅ |
+| 5 | VariableData 工厂方法适配 TypeIsFloat | CreateUserDefVariable / CreatePrivateVariable 三处 `TypeIsFloat` → Str token 路由 | ✅ |
 
 ### 2.6 B.3-6「验证」
 

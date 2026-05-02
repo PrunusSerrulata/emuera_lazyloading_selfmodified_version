@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameProc;
 using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Script.Data;
@@ -118,11 +118,12 @@ internal sealed class ErhLoader
 						analyzeSharpFunction(st, position, sharpID == "FUNCTIONS");
 						break;
 					case var s when s.Equals("DIM", Config.Config.StringComparison) ||
-									s.Equals("DIMS", Config.Config.StringComparison):
+									s.Equals("DIMS", Config.Config.StringComparison) ||
+									s.Equals("DIMF", Config.Config.StringComparison):
 						//1822 #DIMは保留しておいて後でまとめてやる
 						{
 							WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
-							dimlines.Enqueue(new DimLineWC(wc, sharpID.SequenceEqual("DIMS"), false, position));
+							dimlines.Enqueue(new DimLineWC(wc, sharpID.SequenceEqual("DIMS"), sharpID.SequenceEqual("DIMF"), false, position));
 						}
 						//analyzeSharpDim(st, position, sharpID == "DIMS");
 						break;
