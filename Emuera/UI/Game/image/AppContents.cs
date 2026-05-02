@@ -216,10 +216,8 @@ static class AppContents
 		if (string.IsNullOrEmpty(name))
 			return false;
 		name = name.ToUpper(CultureInfo.InvariantCulture);
-
 		if (activeSprites.ContainsKey(name))
 			return true;
-
 		using var cmd = metaDb.CreateCommand();
 		cmd.CommandText = "SELECT Name FROM SpriteMeta WHERE Name = @name";
 		cmd.Parameters.AddWithValue("@name", name);
@@ -385,6 +383,20 @@ static class AppContents
 		foreach (var graph in gList.Values)
 			graph.GDispose();
 		gList.Clear();
+
+		List<string> keysToRemove = [];
+		foreach (var kvp in activeSprites)
+		{
+			if (kvp.Value is SpriteG)
+				keysToRemove.Add(kvp.Key);
+			else if (kvp.Value is SpriteAnime anime && anime.HasGraphicsImageFrame())
+				keysToRemove.Add(kvp.Key);
+		}
+		foreach (var key in keysToRemove)
+		{
+			if (activeSprites.TryRemove(key, out ASprite sprite))
+				sprite.Dispose();
+		}
 	}
 
 	static public void UnloadTempLoadedConstImageNames()

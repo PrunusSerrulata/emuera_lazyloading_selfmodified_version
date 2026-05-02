@@ -1,4 +1,32 @@
 
+2026年5月2日
+修复工具栏「返回标题」后运行时精灵悬空导致立绘透明的问题：
+	问题描述：从工具栏点击「返回标题」后再次读档进入游戏，EagloV 系统合成的底图（如 EagloV__绝壁__服_通常_0）变为纯透明，只看到特效没有身体和表情。
+	根本原因：
+		1. 工具栏「返回标题」调用 GotoTitle() → UnloadGraphicList()，该方法 GDispose 所有 gList 中的 GraphicsImage（彻底销毁 canvas/RealBitmap/drawImgList，不可恢复）。
+		2. 但 activeSprites 字典未被清理。SPRITECREATED() 查询仍返回 true（sprite 索引存在），ERB 跳过重建，渲染时 BaseImage.IsCreated 为 false → 什么都不画 → 透明。
+		3. 同样的问题也影响运行时创建的 SpriteAnime（SPRITEANIMECREATE + SPRITEANIMEADDFRAME），其帧引用 GraphicsImage，GDispose 后帧悬空。
+
+	精灵类型生命周期分析：
+		SpriteG（SPRITECREATE 运行时）：BaseImage 为 GraphicsImage，GDispose 后不可恢复 → 必须清理
+		SpriteF（CSV 预加载 / SPRITECREATEFROMFILE）：BaseImage 为 ConstImage，文件回退，SharedBitmapCache 持久 → 保留
+		SpriteAnime（CSV ANIME 头）：帧引用 ConstImage，不受 GDispose 影响 → 保留
+		SpriteAnime（运行时 SPRITEANIMEADDFRAME）：帧引用 GraphicsImage，GDispose 后悬空 → 必须清理
+		SpriteAnimated（CSV / SPRITECREATEFROMFILE）：文件回退，自动 Reload → 保留
+
+	1. 修复 CroppedImage.cs：
+		- SpriteAnime 新增 HasGraphicsImageFrame() 辅助方法，遍历帧列表判断是否包含 GraphicsImage 引用
+		- 用于区分 CSV 预加载的 SpriteAnime（帧引用 ConstImage）和运行时创建的 SpriteAnime（帧引用 GraphicsImage）
+
+	2. 修复 AppContents.cs UnloadGraphicList()：
+		- GDispose 所有 GraphicsImage 后，按类型清理 activeSprites：
+		  - SpriteG：直接删除并 Dispose（纯运行时，必死）
+		  - SpriteAnime 且 HasGraphicsImageFrame()：删除并 Dispose（运行时创建，帧悬空）
+		  - SpriteF / SpriteAnimated / CSV SpriteAnime：保留（文件回退，存活）
+		- 还原 GetSprite_OnlyCheckExists() 为 ContainsKey 检查（不再依赖 IsCreated 间接判断，运行时精灵已在源头清除）
+
+	3. 同步修复 m-emuera 项目对应文件。
+
 2026年5月1日
 运行时核心重构 Phase 0 + Phase 1 B.1-B.2（基于 REFACTOR_HANDBOOK.md 方案）：
 

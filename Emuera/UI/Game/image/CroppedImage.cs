@@ -293,6 +293,14 @@ internal sealed class SpriteAnime : ASprite
 		get { return true; }
 	}
 
+	internal bool HasGraphicsImageFrame()
+	{
+		foreach (var frame in FrameList)
+			if (frame.BaseImage is GraphicsImage)
+				return true;
+		return false;
+	}
+
 	public override void Dispose()
 	{
 		foreach (var frame in FrameList)
