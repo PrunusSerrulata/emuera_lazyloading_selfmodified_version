@@ -43,6 +43,45 @@ internal readonly struct VariableDescriptor
     public bool IsInteger => (Kind & VariableKind.Integer) != 0;
     public bool IsString => (Kind & VariableKind.String) != 0;
     public bool IsFloat => (Kind & VariableKind.Float) != 0;
+
+    public static VariableDescriptor FromCode(VariableCode code, string name)
+    {
+        var kind = VariableKind.Integer;
+        if ((code & VariableCode.__STRING__) != 0)
+            kind = VariableKind.String;
+
+        var dim = VariableDimension.Scalar;
+        if ((code & VariableCode.__ARRAY_3D__) != 0)
+            dim = VariableDimension.Array3D;
+        else if ((code & VariableCode.__ARRAY_2D__) != 0)
+            dim = VariableDimension.Array2D;
+        else if ((code & VariableCode.__ARRAY_1D__) != 0)
+            dim = VariableDimension.Array1D;
+
+        var attr = VariableAttribute.None;
+        if ((code & VariableCode.__CAN_FORBID__) != 0)
+            attr |= VariableAttribute.CanForbid;
+        if ((code & VariableCode.__CHARACTER_DATA__) != 0)
+            attr |= VariableAttribute.CharacterData;
+        if ((code & VariableCode.__GLOBAL__) != 0)
+            attr |= VariableAttribute.Global;
+        if ((code & VariableCode.__LOCAL__) != 0)
+            attr |= VariableAttribute.Local;
+        if ((code & VariableCode.__UNCHANGEABLE__) != 0)
+            attr |= VariableAttribute.Unchangeable;
+        if ((code & VariableCode.__EXTENDED__) != 0)
+            attr |= VariableAttribute.Extended;
+        if ((code & VariableCode.__SAVE_EXTENDED__) != 0)
+            attr |= VariableAttribute.Save;
+
+        return new VariableDescriptor
+        {
+            Code = code,
+            Kind = kind,
+            Dimension = dim,
+            Attributes = attr
+        };
+    }
 }
 
 internal static class VariableDescriptorTable

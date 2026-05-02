@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.Runtime.Script.Data;
+using MinorShift.Emuera.Runtime.Script;
+using MinorShift.Emuera.Runtime.Script.Data;
 using System;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements.Expression;
@@ -6,12 +7,12 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Expression;
 internal sealed class NullTerm : AExpression
 {
 	public NullTerm(long i)
-		: base(typeof(long))
+		: base(EraType.Integer)
 	{
 	}
 
 	public NullTerm(string s)
-		: base(typeof(string))
+		: base(EraType.String)
 	{
 	}
 }
@@ -21,8 +22,8 @@ internal sealed class NullTerm : AExpression
 /// </summary>
 internal class SingleTerm : AExpression
 {
-	protected SingleTerm(Type type)
-		: base(type)
+	protected SingleTerm(EraType et)
+		: base(et)
 	{
 
 	}
@@ -36,7 +37,7 @@ internal class SingleTerm : AExpression
 internal sealed class SingleStrTerm : SingleTerm
 {
 	public SingleStrTerm(string s)
-		: base(typeof(string))
+		: base(EraType.String)
 	{
 		sValue = s;
 	}
@@ -53,9 +54,6 @@ internal sealed class SingleStrTerm : SingleTerm
 	{
 		get
 		{
-			//チェック済みの上での呼び出し
-			//if (type != typeof(string))
-			//    throw new ExeEE("項の種別が異常");
 			return sValue;
 		}
 	}
@@ -69,7 +67,7 @@ internal sealed class SingleStrTerm : SingleTerm
 internal sealed class SingleLongTerm : SingleTerm
 {
 	public SingleLongTerm(long i)
-		: base(typeof(long))
+		: base(EraType.Integer)
 	{
 		iValue = i;
 	}
@@ -88,9 +86,6 @@ internal sealed class SingleLongTerm : SingleTerm
 	{
 		get
 		{
-			//チェック済みの上での呼び出し
-			//if (type != typeof(Int64))
-			//    throw new ExeEE("項の種別が異常");
 			return iValue;
 		}
 	}
@@ -112,7 +107,7 @@ internal sealed class SingleLongTerm : SingleTerm
 internal sealed class StrFormTerm : AExpression
 {
 	public StrFormTerm(StrForm sf)
-		: base(typeof(string))
+		: base(EraType.String)
 	{
 		sfValue = sf;
 	}
@@ -146,4 +141,3 @@ internal sealed class StrFormTerm : AExpression
 		return this;
 	}
 }
-

@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.Runtime.Script.Data;
+using MinorShift.Emuera.Runtime.Script;
+using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
@@ -9,8 +10,8 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Function;
 
 internal abstract class SuperUserDefinedMethodTerm : AExpression
 {
-	protected SuperUserDefinedMethodTerm(Type returnType)
-		: base(returnType)
+	protected SuperUserDefinedMethodTerm(EraType et)
+		: base(et)
 	{
 	}
 	public abstract UserDefinedFunctionArgument Argument { get; }
@@ -57,7 +58,7 @@ internal sealed class UserDefinedMethodTerm : SuperUserDefinedMethodTerm
 	}
 
 	private UserDefinedMethodTerm(UserDefinedFunctionArgument arg, Type returnType, CalledFunction call)
-		: base(returnType)
+		: base(returnType == typeof(long) ? EraType.Integer : EraType.String)
 	{
 		argment = arg;
 		called = call;
@@ -79,7 +80,7 @@ internal sealed class UserDefinedMethodTerm : SuperUserDefinedMethodTerm
 internal sealed class UserDefinedRefMethodTerm : SuperUserDefinedMethodTerm
 {
 	public UserDefinedRefMethodTerm(UserDefinedRefMethod reffunc, List<AExpression> srcArgs)
-		: base(reffunc.RetType)
+		: base(reffunc.RetType == typeof(long) ? EraType.Integer : EraType.String)
 	{
 		this.srcArgs = srcArgs;
 		this.reffunc = reffunc;
@@ -126,7 +127,7 @@ internal sealed class UserDefinedRefMethodTerm : SuperUserDefinedMethodTerm
 internal sealed class UserDefinedRefMethodNoArgTerm : SuperUserDefinedMethodTerm
 {
 	public UserDefinedRefMethodNoArgTerm(UserDefinedRefMethod reffunc)
-		: base(reffunc.RetType)
+		: base(reffunc.RetType == typeof(long) ? EraType.Integer : EraType.String)
 	{
 		this.reffunc = reffunc;
 	}

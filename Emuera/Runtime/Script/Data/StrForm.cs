@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
@@ -139,12 +139,12 @@ internal sealed class StrForm
 			}
 			if (SWT is CurlyBraceSubWord)
 			{
-				if (operand.GetOperandType() != typeof(long))
+				if (operand.GetEraType() != EraType.Integer)
 					throw new CodeEE(trerror.IsNotNumericBrace.Text);
 				termArray[i] = new FunctionMethodTerm(formatCurlyBrace, [operand, second, third]);
 				continue;
 			}
-			if (operand.GetOperandType() != typeof(string))
+			if (operand.GetEraType() != EraType.String)
 				throw new CodeEE(trerror.IsNotStringPer.Text);
 			termArray[i] = new FunctionMethodTerm(formatPercent, [operand, second, third]);
 		}

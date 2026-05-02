@@ -1,6 +1,7 @@
-﻿using MinorShift.Emuera.GameProc.Function;
+using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
@@ -207,7 +208,7 @@ internal static class LogicalLineParser
 							break;
 						}
 						AExpression arg = ExpressionParser.ReduceIntegerTerm(wc, TermEndWith.EoL);
-						if (arg.Restructure(null) is not SingleLongTerm sizeTerm || sizeTerm.GetOperandType() != typeof(long))
+						if (arg.Restructure(null) is not SingleLongTerm sizeTerm || sizeTerm.GetEraType() != EraType.Integer)
 						{
 							ParserMediator.Warn(string.Format(trerror.SharpHasNotValidValue.Text, token.ToString()), position, 2);
 							break;

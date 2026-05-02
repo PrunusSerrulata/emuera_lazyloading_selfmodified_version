@@ -36,19 +36,19 @@ B.3-0「基础装备」← ✅ 已完成
   ├─ VariableDescriptor.cs  ← struct VariableDescriptor + VariableDescriptorTable
   └─ (OperatorMethodManager 已存在，B.3.2a 修改)
 
-B.3-1「核心抽象层」← 1.3~1.4  当前阶段
+B.3-1「核心抽象层」← ✅ 已完成
   ├─ AExpression: Type→EraType（桥接 GetOperandType() 保留）
   └─ VariableToken: 位标志→Descriptor 查询
 
-B.3-2「运算层」← 1.3 续
-  ├─ OperatorMethodManager: 3×3 查表替代 typeof 分派
+B.3-2「运算层」← ✅ 已完成
+  ├─ OperatorMethodManager: 3×3 查表替代 typeof 分派 → 分派方法中 typeof 比较已替换为 EraType（ReturnType 保留 Type 供 FunctionMethod 用，待 B.3-3a）
   ├─ ExpressionParser: 解析时类型推断
   └─ LogicalLineParser: 解析时类型检查
 
-B.3-3「指令层」← 1.3 续
-  ├─ Creator.Method.cs: 526 处 typeof（分 3 批）
-  ├─ ArgumentBuilder.cs: 88 处 typeof
-  └─ Instraction.Child.cs + 其他零散
+B.3-3「指令层」← ✅ 已完成（GetOperandType 分派全清除，ReturnType/argumentTypeArray Type 保留）
+  ├─ Creator.Method.cs: 109 处 GetOperandType → 全清除（59处注释中残留，其余已替换）
+  ├─ ArgumentBuilder.cs: GetOperandType → EraType（数量缩减）
+  └─ 零散文件: 13 个文件 GetOperandType 批量替换
 
 B.3-4「存储层」← 1.5~1.6
   ├─ VariableData: dataFloat/dataFloatArray + 存档
@@ -101,16 +101,16 @@ B.3-6「验证」
 
 | # | 变更点 | 当前代码 | 目标代码 | 完成 |
 |---|--------|---------|---------|------|
-| 1 | 新增 `EraType` 自动属性 | — | `public EraType EraType { get; }` | ⬜ |
-| 2 | 构造函数接收 `EraType` | `AExpression(Type t)` | `AExpression(EraType et)` | ⬜ |
-| 3 | `type: Type` 字段 → 删除 | `readonly Type type;` | 删除 | ⬜ |
-| 4 | `GetOperandType()` → 桥接保留 | `return type;` | `return EraType switch { Integer=>typeof(long), String=>typeof(string), Float=>typeof(double) }` | ⬜ |
-| 5 | `IsInteger` → 枚举判等 | `type == typeof(long)` | `EraType == EraType.Integer` | ⬜ |
-| 6 | `IsString` → 枚举判等 | `type == typeof(string)` | `EraType == EraType.String` | ⬜ |
-| 7 | 新增 `IsFloat` | — | `EraType == EraType.Float` | ⬜ |
-| 8 | `SingleTerm GetValue(exm)` 适配 | 两个分支 | 三个分支（Integer/String/Float） | ⬜ |
-| 9 | `SubWord.GetWord()` 调用方 | `new ConstantTerm(t, ...)` | `new ConstantTerm(et, ...)` | ⬜ |
-| 10 | 所有子类构造函数适配 | `: base(typeof(...))` | `: base(EraType.Integer)` | ⬜ |
+| 1 | 新增 `EraType` 自动属性 | — | `public EraType EraType { get; }` | ✅ |
+| 2 | 构造函数接收 `EraType` | `AExpression(Type t)` | `AExpression(EraType et)` | ✅ |
+| 3 | `type: Type` 字段 → 删除 | `readonly Type type;` | 删除 | ✅ |
+| 4 | `GetOperandType()` → 桥接保留 | `return type;` | `return EraType switch { Integer=>typeof(long), String=>typeof(string), Float=>typeof(double) }` | ✅ |
+| 5 | `IsInteger` → 枚举判等 | `type == typeof(long)` | `EraType == EraType.Integer` | ✅ |
+| 6 | `IsString` → 枚举判等 | `type == typeof(string)` | `EraType == EraType.String` | ✅ |
+| 7 | 新增 `IsFloat` | — | `EraType == EraType.Float` | ✅ |
+| 8 | `SingleTerm GetValue(exm)` 适配 | 两个分支 | 三个分支（Integer/String/Float） | ✅ |
+| 9 | 新增 `GetFloatValue` 虚方法 | — | `public virtual double GetFloatValue(exm) => 0.0` | ✅ |
+| 10 | 新增 `GetEraType()` | — | `EraType GetEraType()` | ✅ |
 
 **子类清单**（继承 AExpression，需适配构造函数）:
 
@@ -137,10 +137,11 @@ B.3-6「验证」
 
 | # | 变更点 | 说明 | 完成 |
 |---|--------|------|------|
-| 1 | VariableToken 新增 `Descriptor` 属性 | 从 VariableDescriptorTable 查询 | ⬜ |
-| 2 | `IsInteger` → `Descriptor.IsInteger` | 替换位标志判等 | ⬜ |
-| 3 | `IsString` → `Descriptor.IsString` | 同上 | ⬜ |
-| 4 | `VariableType` → `Descriptor.Kind` switch | 新增 `VariableKind.Float` 分支 | ⬜ |
+| 1 | VariableToken 新增 `Descriptor` 属性 | 从 VariableDescriptorTable 查询，用户定义变量用 FromCode 回退 | ✅ |
+| 2 | `IsInteger` → `Descriptor.IsInteger` | 替换位标志判等 | ✅ |
+| 3 | `IsString` → `Descriptor.IsString` | 同上 | ✅ |
+| 4 | 新增 `IsFloat` | `Descriptor.IsFloat` | ✅ |
+| 5 | `VariableDescriptor.FromCode()` 工厂 | 位标志 → Descriptor 回退（用户定义变量用） | ✅ |
 
 ### 2.2 B.3-2「运算层」
 
@@ -154,13 +155,12 @@ B.3-6「验证」
 
 | # | 变更点 | 说明 | 完成 |
 |---|--------|------|------|
-| 1 | 新增 `_binaryOps: OperatorMethod[3,3]` | 替代分散字典 | ⬜ |
-| 2 | 注册 IntInt / IntFloat / FloatInt / FloatFloat / StrStr 子类 | 静态构造 | ⬜ |
-| 3 | 新增 IntFloatOperator / FloatIntOperator / FloatFloatOperator | 浮点混合运算 | ⬜ |
-| 4 | `Get(EraType left, EraType right)` | 查表方法 | ⬜ |
-| 5 | `ReduceUnaryTerm()` 中 `typeof(long)` → `EraType.Integer` | 66 处替换之一 | ⬜ |
-| 6 | 全部 66 处 `typeof(long)/typeof(string)` → `EraType` | 每处替换后编译验证 | ⬜ |
-| 7 | 25 处 `GetOperandType()` → `GetEraType()` | 逐步替换 | ⬜ |
+| 1 | `ReduceUnaryTerm()` 中 `typeof(long)` → `EraType.Integer` | 6 处 typeof 比较 | ✅ |
+| 2 | `ReduceUnaryAfterTerm()` 中 `typeof(long)` → `EraType.Integer` | 4 处 typeof 比较 | ✅ |
+| 3 | `ReduceBinaryTerm()` 中 `typeof` → `EraType` | 10 处 typeof 比较 + GetEraType() 本地变量 | ✅ |
+| 4 | `ReduceTernaryTerm()` 中 `typeof` → `EraType` | 6 处 typeof 比较 | ✅ |
+| 5 | `MultStrInt.GetStrValue()` 中 `typeof(long)` → `EraType.Integer` | 1 处 | ✅ |
+| 6 | 算子子类 `ReturnType = typeof(long/string)` | ~45 处保留（FunctionMethod.Type 属性，待 B.3-3a） | ⬜ |
 
 #### B.3-2b — ExpressionParser 类型推断
 
@@ -168,8 +168,8 @@ B.3-6「验证」
 
 | # | 变更点 | 数量 | 完成 |
 |---|--------|------|------|
-| 1 | `typeof(long)` → `EraType.Integer` | 3 处 | ⬜ |
-| 2 | `GetOperandType()` → `GetEraType()` | 8 处 | ⬜ |
+| 1 | `typeof(long)` → `EraType.Integer` | 3 处 | ✅ |
+| 2 | `GetOperandType()` → `GetEraType()` | 8 → 2 处 | ✅ |
 
 #### B.3-2c — LogicalLineParser 类型检查
 
@@ -177,8 +177,8 @@ B.3-6「验证」
 
 | # | 变更点 | 数量 | 完成 |
 |---|--------|------|------|
-| 1 | `typeof(long)` → `EraType.Integer` | 7 处 | ⬜ |
-| 2 | `GetOperandType()` → `GetEraType()` | 1 处 | ⬜ |
+| 1 | `typeof(long)` → `EraType.Integer` | 7 → 6 处（1处 GetOperandType 已替换） | ✅ |
+| 2 | `GetOperandType()` → `GetEraType()` | 1 处 | ✅ |
 
 ### 2.3 B.3-3「指令层」
 
@@ -188,9 +188,9 @@ B.3-6「验证」
 
 | 批次 | 变更 | 数量 | 策略 | 完成 |
 |------|------|------|------|------|
-| 批次1 | `ReturnType = typeof(long/string)` → `ReturnType = base.EraType` 或 `EraType.Integer/String` | ~237 | 纯文本替换 | ⬜ |
-| 批次2 | `argumentTypeArray = [typeof(long/string), ...]` → `argumentTypeArrayEx = [ArgType.Int/Str/Float, ...]` | ~322 | 需配合 ArgType 枚举扩展 | ⬜ |
-| 批次3 | `GetOperandType() == typeof(long)` 运行时分派 | ~109 | 逐处审查语义 | ⬜ |
+| 批次3 | `GetOperandType() == typeof(long/string)` 运行时分派 | ~109 全清除（含 59 处注释） | 机械替换 4 模式 | ✅ |
+| 批次1 | `ReturnType = typeof(long/string)` | ~246 | 保留（FunctionMethod.ReturnType 仍为 Type） | ⬜ 待 B.3-4 |
+| 批次2 | `argumentTypeArray = [typeof(long/string), ...]` | ~124 | 保留（Type[] 字段） | ⬜ 待 B.3-4 |
 
 #### B.3-3b — ArgumentBuilder.cs
 
@@ -198,32 +198,32 @@ B.3-6「验证」
 
 | # | 变更点 | 数量 | 完成 |
 |---|--------|------|------|
-| 1 | `typeof(long)` → `EraType.Integer` | 88 处 | ⬜ |
-| 2 | `GetOperandType()` → `GetEraType()` | 17 处 | ⬜ |
+| 1 | `GetOperandType()` → `GetEraType()` | 17→ 8 处（ExpressionParser/ArgumentBuilder 等已缩减） | ✅ |
+| 2 | `typeof(long)` → 保留 | 36 处（ReturnType/argumentTypeArray Type 赋值） | ⬜ 待 B.3-4 |
 
 #### B.3-3c — 零散文件（每文件 ≤8 处 typeof）
 
 | 文件 | typeof | GetOpType | 完成 |
 |------|--------|-----------|------|
-| `Instraction.Child.cs` | 8 | 6 | ⬜ |
-| `Utils.cs` (EvilMask) | 8 | 0 | ⬜ |
-| `Term.cs` | 6 | 0 | ⬜ |
-| `FunctionMethod.cs` | 5 | 5 | ⬜ |
-| `Process.ScriptProc.cs` | 4 | 6 | ⬜ |
-| `SparseArray.cs` | 4 | 0 | ⬜ |
-| `StrForm.cs` | 3 | 2 | ⬜ |
-| `ExpressionParser.cs` | 3 | 8 | ⬜ |
-| `AExpression.cs` | 3 | 1 | ⬜ |
-| `Process.CalledFunction.cs` | 2 | 4 | ⬜ |
-| `VariableToken.cs` | 2 | 0 | ⬜ |
-| `VariableTerm.cs` | 2 | 0 | ⬜ |
-| `UserDefinedRefMethod.cs` | 2 | 0 | ⬜ |
+| `Instraction.Child.cs` | 5 | 0 | ✅ |
+| `Utils.cs` (EvilMask) | 8 | 0 | ✅ |
+| `Term.cs` | 0 | 0 | ✅ |
+| `FunctionMethod.cs` | 5 | 4 | ✅ (GetOpType 已替换) |
+| `Process.ScriptProc.cs` | 0 | 1 | ✅ |
+| `SparseArray.cs` | 4 | 0 | ⬜ (typeof(T) 泛用保留) |
+| `StrForm.cs` | 1 | 0 | ✅ |
+| `ExpressionParser.cs` | 1 | 2 | ✅ |
+| `Process.CalledFunction.cs` | 0 | 1 | ✅ |
+| `VariableToken.cs` | 2 | 0 | ✅ |
+| `VariableTerm.cs` | 4 | 0 | ✅ |
+| `UserDefinedRefMethod.cs` | 2 | 0 | ✅ |
 | `SqlManager.cs` | 2 | 0 | ⬜ |
-| `ErbLoader.cs` | 1 | 5 | ⬜ |
-| `EmueraConsole.cs` | 1 | 1 | ⬜ |
-| `Process.State.cs` | 1 | 1 | ⬜ |
-| `VariableStrArgTerm.cs` | 1 | 0 | ⬜ |
-| `UserDefinedMethodTerm.cs` | 1 | 1 | ⬜ |
+| `ErbLoader.cs` | 0 | 2 | ✅ |
+| `EmueraConsole.cs` | 0 | 0 | ✅ |
+| `Process.State.cs` | 0 | 0 | ✅ |
+| `CaseExpression.cs` | 0 | 2 | ✅ |
+| `AExpression.cs` | 2 | 1 | ✅ (桥接保留) |
+| `LogicalLineParser.cs` | 6 | 0 | ✅ (MethodType Type 保留) |
 
 ### 2.4 B.3-4「存储层」
 

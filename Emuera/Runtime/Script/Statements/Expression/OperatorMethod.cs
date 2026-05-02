@@ -1,4 +1,5 @@
 using System;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Statements.Function;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
@@ -90,7 +91,7 @@ internal static class OperatorMethodManager
 			if (var.Identifier.IsConst)
 				throw new CodeEE(trerror.IncrementConst.Text);
 		}
-		if (o1.GetOperandType() == typeof(long))
+		if (o1.GetEraType() == EraType.Integer)
 		{
 			if (op == OperatorCode.Plus)
 				return o1;
@@ -100,9 +101,9 @@ internal static class OperatorMethodManager
 		if (method != null)
 			return new FunctionMethodTerm(method, [o1]);
 		string errMes;
-		if (o1.GetOperandType() == typeof(long))
+		if (o1.GetEraType() == EraType.Integer)
 			errMes = trerror.NumericType.Text;
-		else if (o1.GetOperandType() == typeof(string))
+		else if (o1.GetEraType() == EraType.String)
 			errMes = trerror.StringType.Text;
 		else
 			errMes = trerror.UnknownType.Text;
@@ -120,7 +121,7 @@ internal static class OperatorMethodManager
 			if (var.Identifier.IsConst)
 				throw new CodeEE(trerror.IncrementConst.Text);
 		}
-		if (o1.GetOperandType() == typeof(long))
+		if (o1.GetEraType() == EraType.Integer)
 		{
 			if (unaryAfterDic.TryGetValue(op, out OperatorMethod value))
 				method = value;
@@ -128,9 +129,9 @@ internal static class OperatorMethodManager
 		if (method != null)
 			return new FunctionMethodTerm(method, [o1]);
 		string errMes;
-		if (o1.GetOperandType() == typeof(long))
+		if (o1.GetEraType() == EraType.Integer)
 			errMes = trerror.NumericType.Text;
-		else if (o1.GetOperandType() == typeof(string))
+		else if (o1.GetEraType() == EraType.String)
 			errMes = trerror.StringType.Text;
 		else
 			errMes = trerror.UnknownType.Text;
@@ -141,18 +142,20 @@ internal static class OperatorMethodManager
 	public static AExpression ReduceBinaryTerm(OperatorCode op, AExpression left, AExpression right)
 	{
 		OperatorMethod method = null;
-		if (left.GetOperandType() == typeof(long) && right.GetOperandType() == typeof(long))
+		var lType = left.GetEraType();
+		var rType = right.GetEraType();
+		if (lType == EraType.Integer && rType == EraType.Integer)
 		{
 			if (binaryIntIntDic.TryGetValue(op, out OperatorMethod value))
 				method = value;
 		}
-		else if (left.GetOperandType() == typeof(string) && right.GetOperandType() == typeof(string))
+		else if (lType == EraType.String && rType == EraType.String)
 		{
 			if (binaryStrStrDic.TryGetValue(op, out OperatorMethod value))
 				method = value;
 		}
-		else if (left.GetOperandType() == typeof(long) && right.GetOperandType() == typeof(string)
-			 || left.GetOperandType() == typeof(string) && right.GetOperandType() == typeof(long))
+		else if (lType == EraType.Integer && rType == EraType.String
+			 || lType == EraType.String && rType == EraType.Integer)
 		{
 			if (op == OperatorCode.Mult)
 				method = binaryMultIntStr;
@@ -160,15 +163,15 @@ internal static class OperatorMethodManager
 		if (method != null)
 			return new FunctionMethodTerm(method, [left, right]);
 		string typeName1, typeName2, errMes;
-		if (left.GetOperandType() == typeof(long))
+		if (lType == EraType.Integer)
 			typeName1 = trerror.NumericType.Text;
-		else if (left.GetOperandType() == typeof(string))
+		else if (lType == EraType.String)
 			typeName1 = trerror.StringType.Text;
 		else
 			typeName1 = trerror.UnknownType.Text;
-		if (right.GetOperandType() == typeof(long))
+		if (rType == EraType.Integer)
 			typeName2 = trerror.NumericType.Text;
-		else if (right.GetOperandType() == typeof(string))
+		else if (rType == EraType.String)
 			typeName2 = trerror.StringType.Text;
 		else
 			typeName2 = trerror.UnknownType.Text;
@@ -179,9 +182,12 @@ internal static class OperatorMethodManager
 	public static AExpression ReduceTernaryTerm(AExpression o1, AExpression o2, AExpression o3)
 	{
 		OperatorMethod method = null;
-		if (o1.GetOperandType() == typeof(long) && o2.GetOperandType() == typeof(long) && o3.GetOperandType() == typeof(long))
+		var t1 = o1.GetEraType();
+		var t2 = o2.GetEraType();
+		var t3 = o3.GetEraType();
+		if (t1 == EraType.Integer && t2 == EraType.Integer && t3 == EraType.Integer)
 			method = ternaryIntIntInt;
-		else if (o1.GetOperandType() == typeof(long) && o2.GetOperandType() == typeof(string) && o3.GetOperandType() == typeof(string))
+		else if (t1 == EraType.Integer && t2 == EraType.String && t3 == EraType.String)
 			method = ternaryIntStrStr;
 		if (method != null)
 			return new FunctionMethodTerm(method, [o1, o2, o3]);
@@ -259,7 +265,7 @@ internal static class OperatorMethodManager
 		{
 			string str;
 			long value;
-			if (arguments[0].GetOperandType() == typeof(long))
+			if (arguments[0].GetEraType() == EraType.Integer)
 			{
 				value = arguments[0].GetIntValue(exm);
 				str = arguments[1].GetStrValue(exm);

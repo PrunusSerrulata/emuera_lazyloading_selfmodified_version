@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
@@ -8,9 +9,9 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Variable;
 
 internal class VariableTerm : AExpression
 {
-	protected VariableTerm(VariableToken token) : base(token.VariableType) { }
+	protected VariableTerm(VariableToken token) : base(token.VariableType == typeof(long) ? EraType.Integer : EraType.String) { }
 	public VariableTerm(VariableToken token, AExpression[] args)
-		: base(token.VariableType)
+		: base(token.VariableType == typeof(long) ? EraType.Integer : EraType.String)
 	{
 		Identifier = token;
 		arguments = args;

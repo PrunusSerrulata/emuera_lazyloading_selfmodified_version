@@ -1,16 +1,29 @@
 ﻿using System;
+using MinorShift.Emuera.Runtime.Script;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements.Expression;
 
 internal abstract class AExpression
 {
-	public AExpression(Type t)
+	public AExpression(EraType et)
 	{
-		type = t;
+		eraType = et;
 	}
+
 	public Type GetOperandType()
 	{
-		return type;
+		return eraType switch
+		{
+			EraType.Integer => typeof(long),
+			EraType.String => typeof(string),
+			EraType.Float => typeof(double),
+			_ => typeof(void)
+		};
+	}
+
+	public EraType GetEraType()
+	{
+		return eraType;
 	}
 
 	public virtual long GetIntValue(ExpressionMediator exm)
@@ -21,27 +34,33 @@ internal abstract class AExpression
 	{
 		return "";
 	}
+	public virtual double GetFloatValue(ExpressionMediator exm)
+	{
+		return 0.0;
+	}
 	public virtual SingleTerm GetValue(ExpressionMediator exm)
 	{
-		if (type == typeof(long))
+		if (eraType == EraType.Integer)
 			return new SingleLongTerm(0);
-		else
+		else if (eraType == EraType.String)
 			return new SingleStrTerm("");
+		else
+			return new SingleLongTerm(0);
 	}
 	public bool IsInteger
 	{
-		get { return type == typeof(long); }
+		get { return eraType == EraType.Integer; }
 	}
 	public bool IsString
 	{
-		get { return type == typeof(string); }
+		get { return eraType == EraType.String; }
 	}
-	readonly Type type;
+	public bool IsFloat
+	{
+		get { return eraType == EraType.Float; }
+	}
+	readonly EraType eraType;
 
-	/// <summary>
-	/// 定数を解体して可能ならSingleTerm化する
-	/// defineの都合上、2回以上呼ばれる可能性がある
-	/// </summary>
 	public virtual AExpression Restructure(ExpressionMediator exm)
 	{
 		return this;

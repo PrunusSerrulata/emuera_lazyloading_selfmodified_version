@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Script;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using System.Collections.Generic;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements.Function;
@@ -6,7 +7,7 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Function;
 internal sealed class FunctionMethodTerm : AExpression
 {
 	public FunctionMethodTerm(FunctionMethod meth, List<AExpression> args)
-		: base(meth.ReturnType)
+		: base(meth.ReturnType == typeof(long) ? EraType.Integer : EraType.String)
 	{
 		method = meth;
 		arguments = args;

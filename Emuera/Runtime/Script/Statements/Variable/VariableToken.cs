@@ -23,6 +23,11 @@ internal abstract class VariableToken
 		VarCodeInt = (int)(varCode & VariableCode.__LOWERCASE__);
 		varName = Enums.AsString(varCode);
 		this.varData = varData;
+
+		if (VariableDescriptorTable.TryGetDescriptor(varName, out var d))
+			_descriptor = d;
+		else
+			_descriptor = VariableDescriptor.FromCode(varCode, varName);
 		IsForbid = false;
 		IsPrivate = false;
 		IsReference = false;
@@ -168,18 +173,27 @@ internal abstract class VariableToken
 			return (Code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__;
 		}
 	}
+	public VariableDescriptor Descriptor => _descriptor;
+	VariableDescriptor _descriptor;
 	public bool IsInteger
 	{
 		get
 		{
-			return (Code & VariableCode.__INTEGER__) == VariableCode.__INTEGER__;
+			return _descriptor.IsInteger;
 		}
 	}
 	public bool IsString
 	{
 		get
 		{
-			return (Code & VariableCode.__STRING__) == VariableCode.__STRING__;
+			return _descriptor.IsString;
+		}
+	}
+	public bool IsFloat
+	{
+		get
+		{
+			return _descriptor.IsFloat;
 		}
 	}
 	public bool IsArray1D

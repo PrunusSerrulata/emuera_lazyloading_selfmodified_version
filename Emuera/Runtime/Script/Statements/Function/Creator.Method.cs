@@ -102,9 +102,9 @@ internal static partial class FunctionMethodCreator
 		{
 			XmlDocument doc = null;
 			XmlNodeList nodes = null;
-			if (arguments[0].GetOperandType() == typeof(long) || (byName && arguments[0].GetOperandType() == typeof(string)))
+			if (arguments[0].GetEraType() == EraType.Integer || (byName && arguments[0].GetEraType() == EraType.String))
 			{
-				var idx = arguments[0].GetOperandType() == typeof(string) ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
+				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
 				if (dict.ContainsKey(idx)) doc = dict[idx];
 				else return -1;
@@ -135,7 +135,7 @@ internal static partial class FunctionMethodCreator
 
 			if (arguments.Count >= 3)
 			{
-				if (arguments[2].GetOperandType() == typeof(long) && arguments[2].GetIntValue(exm) != 0)
+				if (arguments[2].GetEraType() == EraType.Integer && arguments[2].GetIntValue(exm) != 0)
 				{
 					for (int i = 0; i < Math.Min(nodes.Count, exm.VEvaluator.RESULTS_ARRAY.Length); i++)
 						OutPutNode(nodes[i], exm.VEvaluator.RESULTS_ARRAY, i, outputStyle);
@@ -599,13 +599,13 @@ internal static partial class FunctionMethodCreator
 					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
 				if (var.IsString)
 				{
-					if (arguments[1].GetOperandType() != typeof(string))
+					if (arguments[1].GetEraType() != EraType.String)
 						return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
 					var.SetValue(arguments[1].GetStrValue(exm), exm);
 				}
 				else
 				{
-					if (arguments[1].GetOperandType() != typeof(long))
+					if (arguments[1].GetEraType() != EraType.Integer)
 						return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
 					var.SetValue(arguments[1].GetIntValue(exm), exm);
 				}
@@ -644,7 +644,7 @@ internal static partial class FunctionMethodCreator
 				if (var.IsString)
 				{
 					var val = string.Empty;
-					if (arguments.Count > 1 && arguments[1].GetOperandType() != typeof(string))
+					if (arguments.Count > 1 && arguments[1].GetEraType() != EraType.String)
 						throw new CodeEE(string.Format(trerror.SetStrToInt.Text, name));
 					if (arguments.Count > 1)
 						val = arguments[1].GetStrValue(exm);
@@ -671,7 +671,7 @@ internal static partial class FunctionMethodCreator
 				else
 				{
 					long val = 0;
-					if (arguments.Count > 1 && arguments[1].GetOperandType() != typeof(long))
+					if (arguments.Count > 1 && arguments[1].GetEraType() != EraType.Integer)
 						throw new CodeEE(string.Format(trerror.SetIntToStr.Text, name));
 					if (arguments.Count > 1)
 						val = arguments[1].GetIntValue(exm);
@@ -851,7 +851,7 @@ internal static partial class FunctionMethodCreator
 		private Operation op;
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			string idx = arguments[0].GetOperandType() == typeof(string) ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
+			string idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 			var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument;
 			if (op == Operation.Create)
 			{
@@ -915,10 +915,10 @@ internal static partial class FunctionMethodCreator
 		{
 			XmlDocument doc;
 			bool saveToArg0 = true;
-			if (arguments[0].GetOperandType() == typeof(long) || (byName && arguments[0].GetOperandType() == typeof(string)))
+			if (arguments[0].GetEraType() == EraType.Integer || (byName && arguments[0].GetEraType() == EraType.String))
 			{
 				saveToArg0 = false;
-				var idx = arguments[0].GetOperandType() == typeof(string) ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
+				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
 				if (dict.ContainsKey(idx)) doc = dict[idx];
 				else return -1;
@@ -979,7 +979,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			string idx = arguments[0].GetOperandType() == typeof(string) ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
+			string idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 			var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument;
 			if (!xmlDict.ContainsKey(idx)) return string.Empty;
 			return xmlDict[idx].OuterXml;
@@ -1091,10 +1091,10 @@ internal static partial class FunctionMethodCreator
 
 			// 2. 加载 XML 文档
 			bool saveToArg0 = true;
-			if (arguments[0].GetOperandType() == typeof(long) || (byName && arguments[0].GetOperandType() == typeof(string)))
+			if (arguments[0].GetEraType() == EraType.Integer || (byName && arguments[0].GetEraType() == EraType.String))
 			{
 				saveToArg0 = false;
-				var idx = arguments[0].GetOperandType() == typeof(string) ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
+				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
 				if (dict.ContainsKey(idx)) doc = dict[idx];
 				else return -1;
@@ -1253,10 +1253,10 @@ internal static partial class FunctionMethodCreator
 			int method = arguments.Count >= 4 ? (int)arguments[3].GetIntValue(exm) : 0;
 			if (method > 2 || method < 0) method = 0;
 			bool saveToArg0 = true;
-			if (arguments[0].GetOperandType() == typeof(long) || (byName && arguments[0].GetOperandType() == typeof(string)))
+			if (arguments[0].GetEraType() == EraType.Integer || (byName && arguments[0].GetEraType() == EraType.String))
 			{
 				saveToArg0 = false;
-				var idx = arguments[0].GetOperandType() == typeof(string) ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
+				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
 				if (dict.ContainsKey(idx)) doc = dict[idx];
 				else return -1;
@@ -1348,10 +1348,10 @@ internal static partial class FunctionMethodCreator
 			}
 			bool saveToArg0 = true;
 			XmlDocument doc = null;
-			if (arguments[0].GetOperandType() == typeof(long) || (byName && arguments[0].GetOperandType() == typeof(string)) || (arguments[0].GetOperandType() == typeof(string) && arguments.Count == 2))
+			if (arguments[0].GetEraType() == EraType.Integer || (byName && arguments[0].GetEraType() == EraType.String) || (arguments[0].GetEraType() == EraType.String && arguments.Count == 2))
 			{
 				saveToArg0 = false;
-				var idx = arguments[0].GetOperandType() == typeof(string) ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
+				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
 				if (!dict.ContainsKey(idx)) return -1;
 				if (arguments.Count == 2)
@@ -1548,7 +1548,7 @@ internal static partial class FunctionMethodCreator
 			Type t = null;
 			if (arguments.Count >= 3)
 			{
-				if (arguments[2].GetOperandType() == typeof(string)) t = Utils.DataTable.NameToType(arguments[2].GetStrValue(exm));
+				if (arguments[2].GetEraType() == EraType.String) t = Utils.DataTable.NameToType(arguments[2].GetStrValue(exm));
 				else t = Utils.DataTable.IntToType(arguments[2].GetIntValue(exm));
 				if (t == null)
 				{
@@ -1599,7 +1599,7 @@ internal static partial class FunctionMethodCreator
 				return;
 			}
 			bool isString = dt.Columns[name].DataType == typeof(string);
-			if (v.GetOperandType() != (isString ? typeof(string) : typeof(long)))
+			if (v.GetEraType() != (isString ? EraType.String : EraType.Integer))
 				throw new CodeEE(string.Format(trerror.DTInvalidDataType.Text, Name, key, name));
 
 			if (isString)
@@ -1661,7 +1661,7 @@ internal static partial class FunctionMethodCreator
 					namesLen = (int)namesSa.Length;
 				}
 				var count = Math.Min(namesLen, arguments[b + 3].GetIntValue(exm));
-				if (arguments[b + 2].GetOperandType() == typeof(string))
+				if (arguments[b + 2].GetEraType() == EraType.String)
 				{
 					var valsObj = (arguments[b + 2] as VariableTerm).Identifier.GetArray();
 					if (valsObj is string[] vals)
@@ -1885,7 +1885,7 @@ internal static partial class FunctionMethodCreator
 				else
 				{
 					bool isString = dt.Columns[name].DataType == typeof(string);
-					if (v.GetOperandType() != (isString ? typeof(string) : typeof(long))) return -2;
+					if (v.GetEraType() != (isString ? EraType.String : EraType.Integer)) return -2;
 
 					if (isString)
 						row[name] = v.GetStrValue(exm);
@@ -3489,7 +3489,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数は省略できません";
 		//	if (arguments[0].GetOperandType() != typeof(Int64))
 		//		return name + "関数の1番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(string)))
+		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetEraType() != EraType.String))
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -4132,7 +4132,7 @@ internal static partial class FunctionMethodCreator
 			if (!isCharaRange)
 			{
 				p.IsArrayRangeValid(start, end, "MATCH", 3L, 4L);
-				if (arguments[0].GetOperandType() == typeof(long))
+				if (arguments[0].GetEraType() == EraType.Integer)
 				{
 					long targetValue = arguments[1].GetIntValue(exm);
 					return VariableEvaluator.GetMatch(p, targetValue, start, end);
@@ -4149,7 +4149,7 @@ internal static partial class FunctionMethodCreator
 				if (start >= charaNum || start < 0 || end > charaNum || end < 0)
 					// throw new CodeEE("CMATCH関数の範囲指定がキャラクタ配列の範囲を超えています(" + start.ToString() + "～" + end.ToString() + ")");
 					throw new CodeEE(string.Format(trerror.CharacterRangeInvalid.Text, Name, start, end));
-				if (arguments[0].GetOperandType() == typeof(long))
+				if (arguments[0].GetEraType() == EraType.Integer)
 				{
 					long targetValue = arguments[1].GetIntValue(exm);
 					return VariableEvaluator.GetMatchChara(p, targetValue, start, end);
@@ -4205,7 +4205,7 @@ internal static partial class FunctionMethodCreator
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			long ret = 0;
-			if (arguments[0].GetOperandType() == typeof(long))
+			if (arguments[0].GetEraType() == EraType.Integer)
 			{
 				long baseValue = arguments[0].GetIntValue(exm);
 				for (int i = 1; i < arguments.Count; i++)
@@ -4256,7 +4256,7 @@ internal static partial class FunctionMethodCreator
 		//}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			if (arguments[0].GetOperandType() == typeof(long))
+			if (arguments[0].GetEraType() == EraType.Integer)
 			{
 				long[] valueArray = new long[arguments.Count];
 				for (int i = 0; i < arguments.Count; i++)
@@ -4311,7 +4311,7 @@ internal static partial class FunctionMethodCreator
 		//}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			if (arguments[0].GetOperandType() == typeof(long))
+			if (arguments[0].GetEraType() == EraType.Integer)
 			{
 				long baseValue = arguments[0].GetIntValue(exm);
 				for (int i = 1; i < arguments.Count; i++)
@@ -4482,7 +4482,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	if (arguments[1] == null)
 		//		return name + "関数の2番目の引数は省略できません";
-		//	if (arguments[1].GetOperandType() != typeof(string))
+		//	if (arguments[1].GetEraType() != EraType.String)
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -4665,7 +4665,7 @@ internal static partial class FunctionMethodCreator
 			FixedVariableTerm p = varTerm.GetFixedVariableTerm(exm);
 			p.IsArrayRangeValid(start, end, funcName, 3L, 4L);
 
-			if (arguments[0].GetOperandType() == typeof(long))
+			if (arguments[0].GetEraType() == EraType.Integer)
 			{
 				long targetValue = arguments[1].GetIntValue(exm);
 				return VariableEvaluator.FindElement(p, targetValue, start, end, isExact, isLast);
@@ -5041,7 +5041,7 @@ internal static partial class FunctionMethodCreator
 
 		//	if (arguments[0] == null)
 		//		return name + "関数の1番目の引数は省略できません";
-		//	if (arguments[0].GetOperandType() != typeof(string))
+		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	//2、３は省略可能
 		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
@@ -5086,7 +5086,7 @@ internal static partial class FunctionMethodCreator
 
 		//	if (arguments[0] == null)
 		//		return name + "関数の1番目の引数は省略できません";
-		//	if (arguments[0].GetOperandType() != typeof(string))
+		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	//2、３は省略可能
 		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
@@ -5146,11 +5146,11 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の引数が多すぎます";
 		//	if (arguments[0] == null)
 		//		return name + "関数の1番目の引数は省略できません";
-		//	if (arguments[0].GetOperandType() != typeof(string))
+		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	if (arguments[1] == null)
 		//		return name + "関数の2番目の引数は省略できません";
-		//	if (arguments[1].GetOperandType() != typeof(string))
+		//	if (arguments[1].GetEraType() != EraType.String)
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	//3つ目は省略可能
 		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
@@ -5233,7 +5233,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数は省略できません";
 		//	if (arguments[0].GetOperandType() != typeof(Int64))
 		//		return name + "関数の1番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(string)))
+		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetEraType() != EraType.String))
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -5386,7 +5386,7 @@ internal static partial class FunctionMethodCreator
 		//	if (arguments.Count > 4)
 		//		return name + "関数の引数が多すぎます";
 		//	for (int i = 0; i < 3; i++)
-		//		if (arguments[i].GetOperandType() != typeof(string))
+		//		if (arguments[i].GetEraType() != EraType.String)
 		//			return string.Format("{0}関数:{1}番目の引数が文字列ではありません", name, i + 1);
 		//	if (arguments.Count == 4 && arguments[3].GetOperandType() != typeof(Int64))
 		//		return string.Format("{0}関数:4番目の引数が整数ではありません", name);
@@ -5601,7 +5601,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の引数が多すぎます";
 		//	if (arguments[0] == null)
 		//		return name + "関数の1番目の引数は省略できません";
-		//	if (arguments[0].GetOperandType() != typeof(string))
+		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
 		//		return name + "関数の2番目の引数の型が正しくありません";
@@ -5743,7 +5743,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数が配列変数ではありません";
 		//	if (arguments.Count == 1)
 		//		return null;
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != typeof(string)))
+		//	if ((arguments[1] != null) && (arguments[1].GetEraType() != EraType.String))
 		//		return name + "関数の2番目の変数が文字列ではありません";
 		//	if (arguments.Count == 2)
 		//		return null;
@@ -6976,7 +6976,7 @@ internal static partial class FunctionMethodCreator
 		//		return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, 0 + 1);
 		//	if (arguments[1] == null)
 		//		return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, 1 + 1);
-		//	if (arguments[0].GetOperandType() != typeof(string))
+		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, 0 + 1);
 		//	if (arguments[1].GetOperandType() != typeof(Int64))
 		//		return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, 1 + 1);
@@ -7944,7 +7944,7 @@ internal static partial class FunctionMethodCreator
 		//		if (arguments[i] == null)
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, i + 1);
 		//		#region EM_私家版_LoadText＆SaveText機能拡張
-		//		if (i == 1 && arguments[i].GetOperandType() == typeof(string)) continue;
+		//		if (i == 1 && arguments[i].GetEraType() == EraType.String) continue;
 		//		#endregion
 		//		if (i < argumentTypeArray.Length && argumentTypeArray[i] != arguments[i].GetOperandType())
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, i + 1);
@@ -7982,7 +7982,7 @@ internal static partial class FunctionMethodCreator
 			bool forceUTF8 = arguments.Count > 3 && (arguments[3].GetIntValue(exm) != 0);
 
 
-			if (arguments[1].GetOperandType() == typeof(long))
+			if (arguments[1].GetEraType() == EraType.Integer)
 			{
 				i64 = arguments[1].GetIntValue(exm);
 				if (i64 < 0 || i64 > int.MaxValue)
@@ -8053,7 +8053,7 @@ internal static partial class FunctionMethodCreator
 		//		if (arguments[i] == null)
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, i + 1);
 		//		#region EM_私家版_LoadText＆SaveText機能拡張
-		//		if (i == 0 && arguments[i].GetOperandType() == typeof(string)) continue;
+		//		if (i == 0 && arguments[i].GetEraType() == EraType.String) continue;
 		//		#endregion
 		//		if (i < argumentTypeArray.Length && argumentTypeArray[i] != arguments[i].GetOperandType())
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, i + 1);
@@ -8088,7 +8088,7 @@ internal static partial class FunctionMethodCreator
 			long i64 = -1;
 			bool forceSavdir = arguments.Count > 1 && (arguments[1].GetIntValue(exm) != 0);
 			bool forceUTF8 = arguments.Count > 2 && (arguments[2].GetIntValue(exm) != 0);
-			if (arguments[0].GetOperandType() == typeof(long))
+			if (arguments[0].GetEraType() == EraType.Integer)
 			{
 				i64 = arguments[0].GetIntValue(exm);
 				if (i64 < 0 || i64 > int.MaxValue)

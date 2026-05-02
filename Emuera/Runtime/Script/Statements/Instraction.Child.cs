@@ -192,7 +192,7 @@ internal sealed partial class FunctionIdentifier
 				var terms = ((SpPrintVArgument)func.Argument).Terms;
 				foreach (AExpression termV in terms)
 				{
-					if (termV.GetOperandType() == typeof(long))
+					if (termV.GetEraType() == EraType.Integer)
 						builder.Append(termV.GetIntValue(exm));
 					else
 						builder.Append(termV.GetStrValue(exm));
@@ -618,9 +618,9 @@ internal sealed partial class FunctionIdentifier
 		{
 			AExpression term = ((MethodArgument)func.Argument).MethodTerm;
 			//Type type = term.GetOperandType();
-			if (term.GetOperandType() == typeof(long))
+			if (term.GetEraType() == EraType.Integer)
 				exm.VEvaluator.RESULT = term.GetIntValue(exm);
-			else// if (func.Argument.MethodTerm.GetOperandType() == typeof(string))
+			else// if (func.Argument.MethodTerm.GetEraType() == EraType.String)
 				exm.VEvaluator.RESULTS = term.GetStrValue(exm);
 			//これら以外の型は現状ない
 			//else

@@ -288,7 +288,7 @@ internal static partial class ArgumentParser
 				}
 				var arg = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.Comma | TermEndWith.KeyWordPx);
 				if (Config.NeedReduceArgumentOnLoad && arg != null) arg = arg.Restructure(exm);
-				if (arg.GetOperandType() == typeof(string))
+				if (arg.GetEraType() == EraType.String)
 				{
 					if (param.Count > 0 || argCount > 3)
 					{
@@ -381,9 +381,9 @@ internal static partial class ArgumentParser
 				if (i == 0 && args[i] == null)
 				{ warn(string.Format(trerror.CanNotOmitArg.Text, i + 1), line, 2, false); return null; }
 
-				if (i == 0 && args[i].GetOperandType() != typeof(string))
+				if (i == 0 && args[i].GetEraType() != EraType.String)
 				{ warn(string.Format(trerror.IncorrectArg.Text, i + 1), line, 2, false); return null; }
-				if (i == 1 && args[i].GetOperandType() != typeof(long))
+				if (i == 1 && args[i].GetEraType() != EraType.Integer)
 				{ warn(string.Format(trerror.IncorrectArg.Text, i + 1), line, 2, false); return null; }
 
 				args[i] = args[i].Restructure(exm);
@@ -424,9 +424,9 @@ internal static partial class ArgumentParser
 			{
 				if (i == 0 && args[i] == null)
 				{ warn(string.Format(trerror.CanNotOmitArg.Text, i + 1), line, 2, false); return null; }
-				if (i == 0 && args[i].GetOperandType() != typeof(string))
+				if (i == 0 && args[i].GetEraType() != EraType.String)
 				{ warn(string.Format(trerror.IncorrectArg.Text, i + 1), line, 2, false); return null; }
-				if (i == 1 && args[i].GetOperandType() != typeof(long))
+				if (i == 1 && args[i].GetEraType() != EraType.Integer)
 				{ warn(string.Format(trerror.IncorrectArg.Text, i + 1), line, 2, false); return null; }
 				args[i] = args[i].Restructure(exm);
 			}
@@ -1943,7 +1943,7 @@ internal static partial class ArgumentParser
 				term4 = terms[3];
 			if (terms.Count > 4)
 				term5 = terms[4];
-			if (index is SingleStrTerm term1 && index.GetOperandType() == typeof(string) && varTerm.Identifier.IsArray1D)
+			if (index is SingleStrTerm term1 && index.GetEraType() == EraType.String && varTerm.Identifier.IsArray1D)
 			{
 				if (!GlobalStatic.ConstantData.isDefined(varTerm.Identifier.Code, term1.Str))
 				{ warn(string.Format(trerror.NotDefinedKey.Text, varTerm.Identifier.Name, index.GetStrValue(null)), line, 2, false); return null; }
@@ -2360,7 +2360,7 @@ internal static partial class ArgumentParser
 			var terms = popTerms(line);
 			for (int i = 0; i < terms.Count; i++)
 			{
-				if (terms[i] != null && terms[i].GetOperandType() != typeof(long))
+				if (terms[i] != null && terms[i].GetEraType() != EraType.Integer)
 				{
 					warn(string.Format(trerror.DifferentArgType.Text, i + 1), line, 2, false);
 					return null;

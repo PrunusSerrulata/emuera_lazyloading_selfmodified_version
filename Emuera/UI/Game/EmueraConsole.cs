@@ -3,6 +3,7 @@ using MinorShift.Emuera.Forms;
 //using MinorShift.Emuera.GameData;
 using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.Runtime;
+using MinorShift.Emuera.Runtime.Script;
 
 //using System.Diagnostics.Eventing.Reader;
 //using System.Linq.Expressions;
@@ -2155,7 +2156,7 @@ internal sealed partial class EmueraConsole : IDisposable
 				AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
 				if (term == null)
 					throw new CodeEE(trerror.CanNotInterpretedLine.Text);
-				if (term.GetOperandType() == typeof(long))
+				if (term.GetEraType() == EraType.Integer)
 				{
 					if (outputDebugConsole)
 						com = "DEBUGPRINTFORML {" + com + "}";

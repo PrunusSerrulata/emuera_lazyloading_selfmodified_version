@@ -689,7 +689,7 @@ internal sealed class ErbLoader
 					{
 						if (canDef)// && label.ArgOptional)
 						{
-							if (vTerm.GetOperandType() == typeof(long))
+							if (vTerm.GetEraType() == EraType.Integer)
 								def = new SingleLongTerm(0);
 							else
 								def = new SingleStrTerm("");

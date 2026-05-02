@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Script;
+using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System.Collections.Generic;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
@@ -12,7 +13,7 @@ internal sealed class VariableStrArgTerm : AExpression
 	// public VariableStrArgTerm(VariableCode code, IOperandTerm strTerm, int index)
 	public VariableStrArgTerm(VariableCode code, AExpression strTerm, int index, string varname)
 	#endregion
-		: base(typeof(long))
+		: base(EraType.Integer)
 	{
 		this.strTerm = strTerm;
 		parentCode = code;

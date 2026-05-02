@@ -1,4 +1,5 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
@@ -112,13 +113,13 @@ internal static class ExpressionParser
 						AExpression term = reduceTerm(wc, false, termEndWith, VariableCode.__NULL__);
 						if (term == null)
 							throw new CodeEE(trerror.NoExpressionAfterEqual.Text);
-						if (term.GetOperandType() != terms.Last.Value.GetOperandType())
+						if (term.GetEraType() != terms.Last.Value.GetEraType())
 							throw new CodeEE(trerror.DoesNotMatchEqual.Text);
 						terms.AddLast(term);
 					}
 					else
 					{
-						if (terms.Last.Value.GetOperandType() == typeof(long))
+						if (terms.Last.Value.GetEraType() == EraType.Integer)
 							terms.AddLast(new NullTerm(0));
 						else
 							terms.AddLast(new NullTerm(""));
@@ -166,7 +167,7 @@ internal static class ExpressionParser
 		AExpression term = reduceTerm(wc, false, endwith, VariableCode.__NULL__);
 		if (term == null)
 			throw new CodeEE(trerror.CanNotInterpretedExpression.Text);
-		if (term.GetOperandType() != typeof(long))
+		if (term.GetEraType() != EraType.Integer)
 			throw new CodeEE(trerror.ExpressionResultIsNotNumeric.Text);
 		return term;
 	}
@@ -358,7 +359,7 @@ internal static class ExpressionParser
 			id = wc.Current as IdentifierWord;
 			if (id != null && id.Code.Equals("TO", Config.Config.StringComparison))
 				throw new CodeEE(trerror.DuplicateTo.Text);
-			if (ret.LeftTerm.GetOperandType() != ret.RightTerm.GetOperandType())
+			if (ret.LeftTerm.GetEraType() != ret.RightTerm.GetEraType())
 				throw new CodeEE(trerror.DoesNotMatchTo.Text);
 			return ret;
 		}
