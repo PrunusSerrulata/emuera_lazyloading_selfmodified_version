@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -164,9 +164,11 @@ internal abstract class EraBinaryDataReader : IDisposable
 	public abstract string ReadString();
 	public abstract long ReadInt();
 	public abstract void ReadIntArray(long[] refArray, bool needInit);
+	public abstract long[] ReadIntArrayIntoNew(bool needInit);
 	public abstract void ReadIntArray2D(long[,] refArray, bool needInit);
 	public abstract void ReadIntArray3D(long[,,] refArray, bool needInit);
 	public abstract void ReadStrArray(string[] refArray, bool needInit);
+	public abstract string[] ReadStrArrayIntoNew(bool needInit);
 	public abstract void ReadStrArray2D(string[,] refArray, bool needInit);
 	public abstract void ReadStrArray3D(string[,,] refArray, bool needInit);
 	public abstract KeyValuePair<string, EraSaveDataType> ReadVariableCode();
@@ -334,6 +336,43 @@ internal abstract class EraBinaryDataReader : IDisposable
 					oriArray[x] = refArray[x];
 			}
 			return;
+		}
+		public override long[] ReadIntArrayIntoNew(bool needInit)
+		{
+			int saveLength0 = reader.ReadInt32();
+			long[] result = new long[saveLength0];
+			int x = 0;
+			byte b;
+			while (true)
+			{
+				b = reader.ReadByte();
+				if (b == Ebdb.EoD)
+					break;
+				if (b == Ebdb.Zero)
+				{
+					int cnt = (int)m_ReadInt();
+					if (needInit)
+						for (int i = 0; i < cnt; i++)
+							result[x + i] = 0;
+					x += cnt;
+					continue;
+				}
+				if (b <= Ebdb.Byte)
+					result[x] = b;
+				else if (b == Ebdb.Int16)
+					result[x] = reader.ReadInt16();
+				else if (b == Ebdb.Int32)
+					result[x] = reader.ReadInt32();
+				else if (b == Ebdb.Int64)
+					result[x] = reader.ReadInt64();
+				else
+					throw new FileEE(trerror.AbnormalBinaryData.Text);
+				x++;
+			}
+			if (needInit)
+				for (; x < saveLength0; x++)
+					result[x] = 0;
+			return result;
 		}
 		public override void ReadIntArray2D(long[,] refArray, bool needInit)
 		{
@@ -603,6 +642,37 @@ internal abstract class EraBinaryDataReader : IDisposable
 					oriArray[x] = refArray[x];
 			}
 			return;
+		}
+		public override string[] ReadStrArrayIntoNew(bool needInit)
+		{
+			int saveLength0 = reader.ReadInt32();
+			string[] result = new string[saveLength0];
+			int x = 0;
+			byte b;
+			while (true)
+			{
+				b = reader.ReadByte();
+				if (b == Ebdb.EoD)
+					break;
+				if (b == Ebdb.Zero)
+				{
+					int cnt = (int)m_ReadInt();
+					if (needInit)
+						for (int i = 0; i < cnt; i++)
+							result[x + i] = null;
+					x += cnt;
+					continue;
+				}
+				if (b == Ebdb.String)
+					result[x] = ReadString();
+				else
+					throw new FileEE(trerror.AbnormalBinaryData.Text);
+				x++;
+			}
+			if (needInit)
+				for (; x < saveLength0; x++)
+					result[x] = null;
+			return result;
 		}
 		public override void ReadStrArray2D(string[,] refArray, bool needInit)
 		{

@@ -2123,7 +2123,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			else
 			{
-				refVar.SetRef((Array)srcVar.GetArray());
+				refVar.SetRef(srcVar.GetArray());
 				exm.VEvaluator.RESULT = 1;
 			}
 			return;

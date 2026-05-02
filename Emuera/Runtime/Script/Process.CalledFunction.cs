@@ -20,7 +20,7 @@ internal sealed class UserDefinedFunctionArgument
 		Arguments = srcArgs;
 		TransporterInt = new long[Arguments.Length];
 		TransporterStr = new string[Arguments.Length];
-		TransporterRef = new Array[Arguments.Length];
+		TransporterRef = new object[Arguments.Length];
 		isRef = new bool[Arguments.Length];
 		for (int i = 0; i < Arguments.Length; i++)
 		{
@@ -30,7 +30,7 @@ internal sealed class UserDefinedFunctionArgument
 	public readonly AExpression[] Arguments;
 	public readonly long[] TransporterInt;
 	public readonly string[] TransporterStr;
-	public readonly Array[] TransporterRef;
+	public readonly object[] TransporterRef;
 	public readonly bool[] isRef;
 	public void SetTransporter(ExpressionMediator exm)
 	{
@@ -46,10 +46,10 @@ internal sealed class UserDefinedFunctionArgument
 					long charaNo = vTerm.GetElementInt(0, exm);
 					if (charaNo < 0 || charaNo >= GlobalStatic.VariableData.CharacterList.Count)
 						throw new CodeEE(string.Format(trerror.OoRCharaVarArg.Text, vTerm.Identifier.Name, "1", charaNo.ToString()));
-					TransporterRef[i] = (Array)vTerm.Identifier.GetArrayChara((int)charaNo);
+					TransporterRef[i] = vTerm.Identifier.GetArrayChara((int)charaNo);
 				}
 				else
-					TransporterRef[i] = (Array)vTerm.Identifier.GetArray();
+					TransporterRef[i] = vTerm.Identifier.GetArray();
 
 			}
 			else if (Arguments[i].GetOperandType() == typeof(long))

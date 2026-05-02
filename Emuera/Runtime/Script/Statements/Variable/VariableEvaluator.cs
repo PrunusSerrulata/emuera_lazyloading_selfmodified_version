@@ -812,7 +812,7 @@ internal sealed class VariableEvaluator : IDisposable
 				var sortEnd = start + count;
 				if (sortEnd > sparse.Length)
 					throw new CodeEE(string.Format(trerror.OoRSumArray.Text, start.ToString(), count.ToString(), p.Identifier.Name));
-				sparse.Sort(order == SortOrder.DESENDING, start, count);
+				sparse.Sort(order != SortOrder.DESENDING, start, count);
 				return;
 			}
 
@@ -848,7 +848,7 @@ internal sealed class VariableEvaluator : IDisposable
 				var sortEnd = start + count;
 				if (sortEnd > sparse.Length)
 					throw new CodeEE(string.Format(trerror.OoRSumArray.Text, start.ToString(), count.ToString(), p.Identifier.Name));
-				sparse.Sort(order == SortOrder.DESENDING, start, count);
+				sparse.Sort(order != SortOrder.DESENDING, start, count);
 				return;
 			}
 

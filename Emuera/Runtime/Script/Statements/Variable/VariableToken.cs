@@ -432,8 +432,8 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 		arrayList = [];
 		IsForbid = false;
 	}
-	protected List<Array> arrayList;
-	protected Array array;
+	protected List<object> arrayList;
+	protected object array;
 
 	public override void SetDefault()
 	{//Defaultのセットは参照元がやるべき
@@ -444,35 +444,76 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 			throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 		if (Dimension != 1)
 			throw new CodeEE(string.Format(trerror.GetSizeDimError.Text, Dimension.ToString(), varName));
-		return array.Length;
+		if (array is Array arr)
+			return arr.Length;
+		if (array is SparseArray<long> saLong)
+			return (int)saLong.Length;
+		if (array is SparseArray<string> saStr)
+			return (int)saStr.Length;
+		throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 	}
 
 	public override int GetLength(int dimension)
 	{
 		if (array == null)
 			throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-		if (dimension < Dimension)
-			return array.GetLength(dimension);
+		if (array is Array arr)
+		{
+			if (dimension < Dimension)
+				return arr.GetLength(dimension);
+		}
+		else if (array is SparseArray<long> saLong)
+			return (int)saLong.Length;
+		else if (array is SparseArray<string> saStr)
+			return (int)saStr.Length;
 		throw new CodeEE(string.Format(trerror.GetSizeNonExistDim.Text, varName));
 	}
 	public override void CheckElement(long[] arguments, bool[] doCheck)
 	{
 		if (array == null)
 			throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-		if (doCheck[0] && ((arguments[0] < 0) || (arguments[0] >= array.GetLength(0))))
-			throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "1", arguments[0].ToString()));
-		if (Dimension >= 2 && ((arguments[1] < 0) || (arguments[1] >= array.GetLength(1))))
-			throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "2", arguments[1].ToString()));
-		if (Dimension >= 3 && ((arguments[2] < 0) || (arguments[2] >= array.GetLength(2))))
-			throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "3", arguments[2].ToString()));
+		if (array is Array arr)
+		{
+			if (doCheck[0] && ((arguments[0] < 0) || (arguments[0] >= arr.GetLength(0))))
+				throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "1", arguments[0].ToString()));
+			if (Dimension >= 2 && ((arguments[1] < 0) || (arguments[1] >= arr.GetLength(1))))
+				throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "2", arguments[1].ToString()));
+			if (Dimension >= 3 && ((arguments[2] < 0) || (arguments[2] >= arr.GetLength(2))))
+				throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "3", arguments[2].ToString()));
+		}
+		else
+		{
+			long len = 0;
+			if (array is SparseArray<long> saLong)
+				len = saLong.Length;
+			else if (array is SparseArray<string> saStr)
+				len = saStr.Length;
+			if (doCheck[0] && ((arguments[0] < 0) || (arguments[0] >= len)))
+				throw new CodeEE(string.Format(trerror.OoRVarArg.Text, varName, "1", arguments[0].ToString()));
+		}
 	}
 	public override void IsArrayRangeValid(long[] arguments, long index1, long index2, string funcName, long i1, long i2)
 	{
 		CheckElement(arguments);
-		if ((index1 < 0) || (index1 > array.GetLength(Dimension - 1)))
-			throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i1.ToString(), index1.ToString(), varName));
-		if ((index2 < 0) || (index2 > array.GetLength(Dimension - 1)))
-			throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i2.ToString(), index2.ToString(), varName));
+		if (array is Array arr)
+		{
+			if ((index1 < 0) || (index1 > arr.GetLength(Dimension - 1)))
+				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i1.ToString(), index1.ToString(), varName));
+			if ((index2 < 0) || (index2 > arr.GetLength(Dimension - 1)))
+				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i2.ToString(), index2.ToString(), varName));
+		}
+		else
+		{
+			long len = 0;
+			if (array is SparseArray<long> saLong)
+				len = saLong.Length;
+			else if (array is SparseArray<string> saStr)
+				len = saStr.Length;
+			if ((index1 < 0) || (index1 > len))
+				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i1.ToString(), index1.ToString(), varName));
+			if ((index2 < 0) || (index2 > len))
+				throw new CodeEE(string.Format(trerror.OoRInstructionArg.Text, funcName, i2.ToString(), index2.ToString(), varName));
+		}
 	}
 
 	int counter;
@@ -503,7 +544,7 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 		return array;
 	}
 
-	public void SetRef(Array refArray)
+	public void SetRef(object refArray)
 	{
 		array = refArray;
 	}
@@ -1535,12 +1576,14 @@ internal sealed partial class VariableData
 			var ctx = GlobalStatic.Process?.State?.CurrentContext;
 			if (ctx != null)
 			{
-				return Code switch
+				var arr = Code switch
 				{
 					VariableCode.LOCAL => ctx.LocalIntegers,
 					VariableCode.ARG => ctx.ArgIntegers,
-					_ => FallbackArray()
+					_ => null
 				};
+				if (arr != null)
+					return arr;
 			}
 			return FallbackArray();
 		}
@@ -1554,8 +1597,9 @@ internal sealed partial class VariableData
 
 		public override void SetDefault()
 		{
-			if (array != null)
-				Array.Clear(array, 0, size);
+			var a = GetArrayLocal();
+			if (a != null)
+				Array.Clear(a, 0, Math.Min(size, a.Length));
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
@@ -1593,9 +1637,7 @@ internal sealed partial class VariableData
 
 		public override object GetArray()
 		{
-			if (array == null)
-				array = new long[size];
-			return array;
+			return GetArrayLocal();
 		}
 
 		public override void resize(int newSize)
@@ -1618,12 +1660,14 @@ internal sealed partial class VariableData
 			var ctx = GlobalStatic.Process?.State?.CurrentContext;
 			if (ctx != null)
 			{
-				return Code switch
+				var arr = Code switch
 				{
 					VariableCode.LOCALS => ctx.LocalStrings,
 					VariableCode.ARGS => ctx.ArgStrings,
-					_ => FallbackArray()
+					_ => null
 				};
+				if (arr != null)
+					return arr;
 			}
 			return FallbackArray();
 		}
@@ -1637,8 +1681,9 @@ internal sealed partial class VariableData
 
 		public override void SetDefault()
 		{
-			if (array != null)
-				Array.Clear(array, 0, size);
+			var a = GetArrayLocal();
+			if (a != null)
+				Array.Clear(a, 0, Math.Min(size, a.Length));
 		}
 
 		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
@@ -1669,9 +1714,7 @@ internal sealed partial class VariableData
 
 		public override object GetArray()
 		{
-			if (array == null)
-				array = new string[size];
-			return array;
+			return GetArrayLocal();
 		}
 
 		public override void resize(int newSize)
@@ -2527,14 +2570,19 @@ internal sealed partial class VariableData
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			return ((long[])array)[arguments[0]];
+			if (array is long[] arr)
+				return arr[arguments[0]];
+			return ((SparseArray<long>)array)[arguments[0]];
 		}
 
 		public override void SetValue(long value, long[] arguments)
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			((long[])array)[arguments[0]] = value;
+			if (array is long[] arr)
+				arr[arguments[0]] = value;
+			else
+				((SparseArray<long>)array)[arguments[0]] = value;
 		}
 
 		public override void SetValue(long[] values, long[] arguments)
@@ -2543,24 +2591,48 @@ internal sealed partial class VariableData
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[0];
 			int end = start + values.Length;
-			for (int i = start; i < end; i++)
-				((long[])array)[i] = values[i - start];
+			if (array is long[] arr)
+			{
+				for (int i = start; i < end; i++)
+					arr[i] = values[i - start];
+			}
+			else
+			{
+				var sa = (SparseArray<long>)array;
+				for (int i = start; i < end; i++)
+					sa[i] = values[i - start];
+			}
 		}
 
 		public override void SetValueAll(long value, int start, int end, int charaPos)
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			for (int i = start; i < end; i++)
-				((long[])array)[i] = value;
+			if (array is long[] arr)
+			{
+				for (int i = start; i < end; i++)
+					arr[i] = value;
+			}
+			else
+			{
+				var sa = (SparseArray<long>)array;
+				for (int i = start; i < end; i++)
+					sa[i] = value;
+			}
 		}
 
 		public override long PlusValue(long value, long[] arguments)
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			((long[])array)[arguments[0]] += value;
-			return ((long[])array)[arguments[0]];
+			if (array is long[] arr)
+			{
+				arr[arguments[0]] += value;
+				return arr[arguments[0]];
+			}
+			var sa = (SparseArray<long>)array;
+			sa[arguments[0]] = SafeArithmetic.SafeAdd(sa[arguments[0]], value);
+			return sa[arguments[0]];
 		}
 
 	}
@@ -2601,8 +2673,9 @@ internal sealed partial class VariableData
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			int a1 = array.GetLength(0);
-			int a2 = array.GetLength(1);
+			var arr = (Array)array;
+			int a1 = arr.GetLength(0);
+			int a2 = arr.GetLength(1);
 			for (int i = 0; i < a1; i++)
 				for (int j = 0; j < a2; j++)
 					((long[,])array)[i, j] = value;
@@ -2654,9 +2727,10 @@ internal sealed partial class VariableData
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			int a1 = array.GetLength(0);
-			int a2 = array.GetLength(1);
-			int a3 = array.GetLength(2);
+			var arr = (Array)array;
+			int a1 = arr.GetLength(0);
+			int a2 = arr.GetLength(1);
+			int a3 = arr.GetLength(2);
 			for (int i = 0; i < a1; i++)
 				for (int j = 0; j < a2; j++)
 					for (int k = 0; k < a3; k++)
@@ -2685,14 +2759,19 @@ internal sealed partial class VariableData
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			return ((string[])array)[arguments[0]];
+			if (array is string[] arr)
+				return arr[arguments[0]];
+			return ((SparseArray<string>)array)[arguments[0]];
 		}
 
 		public override void SetValue(string value, long[] arguments)
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			((string[])array)[arguments[0]] = value;
+			if (array is string[] arr)
+				arr[arguments[0]] = value;
+			else
+				((SparseArray<string>)array)[arguments[0]] = value;
 		}
 
 		public override void SetValue(string[] values, long[] arguments)
@@ -2701,16 +2780,34 @@ internal sealed partial class VariableData
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[0];
 			int end = start + values.Length;
-			for (int i = start; i < end; i++)
-				((string[])array)[i] = values[i - start];
+			if (array is string[] arr)
+			{
+				for (int i = start; i < end; i++)
+					arr[i] = values[i - start];
+			}
+			else
+			{
+				var sa = (SparseArray<string>)array;
+				for (int i = start; i < end; i++)
+					sa[i] = values[i - start];
+			}
 		}
 
 		public override void SetValueAll(string value, int start, int end, int charaPos)
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			for (int i = start; i < end; i++)
-				((string[])array)[i] = value;
+			if (array is string[] arr)
+			{
+				for (int i = start; i < end; i++)
+					arr[i] = value;
+			}
+			else
+			{
+				var sa = (SparseArray<string>)array;
+				for (int i = start; i < end; i++)
+					sa[i] = value;
+			}
 		}
 	}
 
@@ -2750,8 +2847,9 @@ internal sealed partial class VariableData
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			int a1 = array.GetLength(0);
-			int a2 = array.GetLength(1);
+			var arr = (Array)array;
+			int a1 = arr.GetLength(0);
+			int a2 = arr.GetLength(1);
 			for (int i = 0; i < a1; i++)
 				for (int j = 0; j < a2; j++)
 					((string[,])array)[i, j] = value;
@@ -2794,9 +2892,10 @@ internal sealed partial class VariableData
 		{
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
-			int a1 = array.GetLength(0);
-			int a2 = array.GetLength(1);
-			int a3 = array.GetLength(2);
+			var arr = (Array)array;
+			int a1 = arr.GetLength(0);
+			int a2 = arr.GetLength(1);
+			int a3 = arr.GetLength(2);
 			for (int i = 0; i < a1; i++)
 				for (int j = 0; j < a2; j++)
 					for (int k = 0; k < a3; k++)
@@ -2844,7 +2943,7 @@ internal sealed partial class VariableData
 		public override long PlusValue(long value, long[] arguments)
 		{
 			var array = (SparseArray<long>)GetArrayChara((int)arguments[0]);
-			array[arguments[1]] += value;
+			array[arguments[1]] = SafeArithmetic.SafeAdd(array[arguments[1]], value);
 			return array[arguments[1]];
 		}
 	}

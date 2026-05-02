@@ -426,7 +426,7 @@ internal sealed partial class Process
 					Color c = Color.FromName(colorName);
 					if (c.A == 0)
 					{
-						if (str.Equals("transparent", StringComparison.OrdinalIgnoreCase))
+						if (colorName.Equals("transparent", StringComparison.OrdinalIgnoreCase))
 							throw new CodeEE(trerror.TransparentUnsupported.Text);
 						throw new CodeEE(string.Format(trerror.InvalidColorName.Text, colorName));
 					}
@@ -473,7 +473,7 @@ internal sealed partial class Process
 					Color c = Color.FromName(colorName);
 					if (c.A == 0)
 					{
-						if (str.Equals("transparent", StringComparison.OrdinalIgnoreCase))
+						if (colorName.Equals("transparent", StringComparison.OrdinalIgnoreCase))
 							throw new CodeEE(trerror.TransparentUnsupported.Text);
 						throw new CodeEE(string.Format(trerror.InvalidColorName.Text, colorName));
 					}

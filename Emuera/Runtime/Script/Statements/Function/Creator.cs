@@ -84,6 +84,11 @@ internal static partial class FunctionMethodCreator
 			["SIGN"] = new SignMethod(),
 			["LIMIT"] = new GetLimitMethod(),
 
+			["UNCHECKED_ADD"] = new UncheckedAddMethod(),
+			["UNCHECKED_SUB"] = new UncheckedSubtractMethod(),
+			["UNCHECKED_MUL"] = new UncheckedMultiplyMethod(),
+			["UNCHECKED_NEG"] = new UncheckedNegateMethod(),
+
 			//変数操作系
 			["SUMARRAY"] = new SumArrayMethod(),
 			["SUMCARRAY"] = new SumArrayMethod(true),

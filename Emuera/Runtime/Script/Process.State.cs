@@ -509,11 +509,12 @@ internal sealed class ProcessState
 					}
 				}
 		}
+		if (srcArgs != null)
+			srcArgs.SetTransporter(exm);
 		var ctx = new ExecutionContext(call.TopLabel, CurrentContext);
 		PushContext(ctx);
 		if (srcArgs != null)
 		{
-			srcArgs.SetTransporter(exm);
 			if (call.TopLabel.hasPrivDynamicVar)
 				call.TopLabel.ScopeIn();
 			for (int i = 0; i < call.TopLabel.Arg.Length; i++)

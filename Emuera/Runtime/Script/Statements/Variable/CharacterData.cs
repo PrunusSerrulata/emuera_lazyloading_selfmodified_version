@@ -67,7 +67,7 @@ internal sealed class CharacterData : IDisposable
 				switch (d.Dimension)
 				{
 					case 1:
-						array = new string[d.Lengths[0]];
+						array = new SparseArray<string> { Length = d.Lengths[0] };
 						break;
 					case 2:
 						array = new string[d.Lengths[0], d.Lengths[1]];
@@ -82,7 +82,7 @@ internal sealed class CharacterData : IDisposable
 				switch (d.Dimension)
 				{
 					case 1:
-						array = new long[d.Lengths[0]];
+						array = new SparseArray<long> { Length = d.Lengths[0] };
 						break;
 					case 2:
 						array = new long[d.Lengths[0], d.Lengths[1]];
@@ -259,9 +259,11 @@ internal sealed class CharacterData : IDisposable
 				{
 					if (var.IsArray1D)
 					{
-						int length = ((string[])UserDefCVarDataList[var.ArrayIndex]).GetLength(0);
-						for (int i = 0; i < length; i++)
-							((string[])other.UserDefCVarDataList[var.ArrayIndex])[i] = ((string[])UserDefCVarDataList[var.ArrayIndex])[i];
+						var src = (SparseArray<string>)UserDefCVarDataList[var.ArrayIndex];
+						var dst = (SparseArray<string>)other.UserDefCVarDataList[var.ArrayIndex];
+						dst.Clear();
+						for (int i = 0; i < src.Length; i++)
+							dst[i] = src[i];
 					}
 					else if (var.IsArray2D)
 					{
@@ -276,9 +278,11 @@ internal sealed class CharacterData : IDisposable
 				{
 					if (var.IsArray1D)
 					{
-						int length = ((long[])UserDefCVarDataList[var.ArrayIndex]).GetLength(0);
-						for (int i = 0; i < length; i++)
-							((long[])other.UserDefCVarDataList[var.ArrayIndex])[i] = ((long[])UserDefCVarDataList[var.ArrayIndex])[i];
+						var src = (SparseArray<long>)UserDefCVarDataList[var.ArrayIndex];
+						var dst = (SparseArray<long>)other.UserDefCVarDataList[var.ArrayIndex];
+						dst.Clear();
+						for (int i = 0; i < src.Length; i++)
+							dst[i] = src[i];
 					}
 					else if (var.IsArray2D)
 					{
@@ -504,7 +508,13 @@ internal sealed class CharacterData : IDisposable
 			{
 				if (!var.IsSavedata || !var.IsCharacterData || var.IsGlobal)
 					continue;
-				writer.WriteWithKey(var.Name, UserDefCVarDataList[var.ArrayIndex]);
+				var data = UserDefCVarDataList[var.ArrayIndex];
+				if (data is SparseArray<long> sparseLong)
+					writer.WriteWithKey(var.Name, sparseLong.ToArray(sparseLong.Length));
+				else if (data is SparseArray<string> sparseStr)
+					writer.WriteWithKey(var.Name, sparseStr.ToArray(sparseStr.Length));
+				else
+					writer.WriteWithKey(var.Name, data);
 			}
 		}
 
@@ -560,7 +570,17 @@ internal sealed class CharacterData : IDisposable
 					break;
 				case EraSaveDataType.IntArray:
 					if (userDefineData && array != null)
-						reader.ReadIntArray(array as long[], true);
+					{
+						var sparseArr = array as SparseArray<long>;
+						if (sparseArr != null)
+						{
+							var tmpArr = new long[sparseArr.Length];
+							reader.ReadIntArray(tmpArr, true);
+							sparseArr.FromArray(tmpArr);
+						}
+						else
+							reader.ReadIntArray(array as long[], true);
+					}
 					else if (vToken == null || !vToken.IsInteger || vToken.Dimension != 1)
 						reader.ReadIntArray(null, true);
 					else
@@ -572,7 +592,17 @@ internal sealed class CharacterData : IDisposable
 					break;
 				case EraSaveDataType.StrArray:
 					if (userDefineData && array != null)
-						reader.ReadStrArray(array as string[], true);
+					{
+						var sparseArr = array as SparseArray<string>;
+						if (sparseArr != null)
+						{
+							var tmpArr = new string[sparseArr.Length];
+							reader.ReadStrArray(tmpArr, true);
+							sparseArr.FromArray(tmpArr);
+						}
+						else
+							reader.ReadStrArray(array as string[], true);
+					}
 					else if (vToken == null || !vToken.IsString || vToken.Dimension != 1)
 						reader.ReadStrArray(null, true);
 					else

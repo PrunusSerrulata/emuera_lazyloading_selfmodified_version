@@ -1086,13 +1086,27 @@ internal sealed partial class VariableData : IDisposable
 			VariableToken var = pair.Value;
 			if (var.IsSavedata && !var.IsCharacterData && var.IsGlobal)
 			{
-				writer.WriteWithKey(pair.Key, var.GetArray());
+				object arr = var.GetArray();
+				if (arr is SparseArray<long> sparseLong)
+					writer.WriteWithKey(pair.Key, sparseLong.ToArray(sparseLong.Length));
+				else if (arr is SparseArray<string> sparseStr)
+					writer.WriteWithKey(pair.Key, sparseStr.ToArray(sparseStr.Length));
+				else
+					writer.WriteWithKey(pair.Key, arr);
 			}
 		}
 		foreach (UserDefinedVariableToken var in userDefinedGlobalVarList)
 		{
 			if (var.IsSavedata)
-				writer.WriteWithKey(var.Name, var.GetArray());
+			{
+				object arr = var.GetArray();
+				if (arr is SparseArray<long> sparseLong)
+					writer.WriteWithKey(var.Name, sparseLong.ToArray(sparseLong.Length));
+				else if (arr is SparseArray<string> sparseStr)
+					writer.WriteWithKey(var.Name, sparseStr.ToArray(sparseStr.Length));
+				else
+					writer.WriteWithKey(var.Name, arr);
+			}
 		}
 	}
 
@@ -1103,13 +1117,27 @@ internal sealed partial class VariableData : IDisposable
 			VariableToken var = pair.Value;
 			if (var.IsSavedata && !var.IsCharacterData && !var.IsGlobal)
 			{
-				writer.WriteWithKey(pair.Key, var.GetArray());
+				object arr = var.GetArray();
+				if (arr is SparseArray<long> sparseLong)
+					writer.WriteWithKey(pair.Key, sparseLong.ToArray(sparseLong.Length));
+				else if (arr is SparseArray<string> sparseStr)
+					writer.WriteWithKey(pair.Key, sparseStr.ToArray(sparseStr.Length));
+				else
+					writer.WriteWithKey(pair.Key, arr);
 			}
 		}
 		foreach (UserDefinedVariableToken var in userDefinedStaticVarList)
 		{
 			if (var.IsSavedata)
-				writer.WriteWithKey(var.Name, var.GetArray());
+			{
+				object arr = var.GetArray();
+				if (arr is SparseArray<long> sparseLong)
+					writer.WriteWithKey(var.Name, sparseLong.ToArray(sparseLong.Length));
+				else if (arr is SparseArray<string> sparseStr)
+					writer.WriteWithKey(var.Name, sparseStr.ToArray(sparseStr.Length));
+				else
+					writer.WriteWithKey(var.Name, arr);
+			}
 		}
 	}
 
@@ -1261,7 +1289,11 @@ internal sealed partial class VariableData : IDisposable
 				{
 					object arrObj = vToken.GetArray();
 					if (arrObj is SparseArray<long> sparse)
-						reader.ReadIntArray(sparse.ToArray(sparse.Length), true);
+					{
+						long[] tmp = reader.ReadIntArrayIntoNew(true);
+						sparse.Length = tmp.Length;
+						sparse.FromArray(tmp);
+					}
 					else
 						reader.ReadIntArray((long[])arrObj, true);
 				}
@@ -1285,7 +1317,11 @@ internal sealed partial class VariableData : IDisposable
 				{
 					object arrObj = vToken.GetArray();
 					if (arrObj is SparseArray<string> sparse)
-						reader.ReadStrArray(sparse.ToArray(sparse.Length), true);
+					{
+						string[] tmp = reader.ReadStrArrayIntoNew(true);
+						sparse.Length = tmp.Length;
+						sparse.FromArray(tmp);
+					}
 					else
 						reader.ReadStrArray((string[])arrObj, true);
 				}

@@ -142,9 +142,18 @@ internal static partial class FunctionMethodCreator
 				}
 				else
 				{
-					var arr = (arguments[2] as VariableTerm).Identifier.GetArray() as string[];
-					for (int i = 0; i < Math.Min(nodes.Count, arr.Length); i++)
-						OutPutNode(nodes[i], arr, i, outputStyle);
+					var arrObj = (arguments[2] as VariableTerm).Identifier.GetArray();
+					if (arrObj is string[] arr)
+					{
+						for (int i = 0; i < Math.Min(nodes.Count, arr.Length); i++)
+							OutPutNode(nodes[i], arr, i, outputStyle);
+					}
+					else
+					{
+						var sa = (SparseArray<string>)arrObj;
+						for (int i = 0; i < Math.Min(nodes.Count, (int)sa.Length); i++)
+							OutPutNode(nodes[i], sa, i, outputStyle);
+					}
 				}
 			}
 			return nodes.Count;
@@ -229,9 +238,19 @@ internal static partial class FunctionMethodCreator
 			int outputlength;
 			if (arguments.Count == 2)
 			{
-				string[] output = (arguments[1] as VariableTerm).Identifier.GetArray() as string[];
-				outputlength = Math.Min(output.Length, ret.Length);
-				Array.Copy(ret, output, outputlength);
+				var arrObj = (arguments[1] as VariableTerm).Identifier.GetArray();
+				if (arrObj is string[] output)
+				{
+					outputlength = Math.Min(output.Length, ret.Length);
+					Array.Copy(ret, output, outputlength);
+				}
+				else
+				{
+					var sa = (SparseArray<string>)arrObj;
+					outputlength = Math.Min((int)sa.Length, ret.Length);
+					for (int i = 0; i < outputlength; i++)
+						sa[i] = ret[i];
+				}
 			}
 			else
 			{
@@ -273,9 +292,19 @@ internal static partial class FunctionMethodCreator
 			int ret;
 			if (arguments.Count == 4)
 			{
-				string[] output = (arguments[3] as VariableTerm).Identifier.GetArray() as string[];
-				ret = Math.Min(files.Length, output.Length);
-				Array.Copy(files, output, ret);
+				var arrObj = (arguments[3] as VariableTerm).Identifier.GetArray();
+				if (arrObj is string[] output)
+				{
+					ret = Math.Min(files.Length, output.Length);
+					Array.Copy(files, output, ret);
+				}
+				else
+				{
+					var sa = (SparseArray<string>)arrObj;
+					ret = Math.Min(files.Length, (int)sa.Length);
+					for (int i = 0; i < ret; i++)
+						sa[i] = files[i];
+				}
 			}
 			else
 			{
@@ -474,31 +503,46 @@ internal static partial class FunctionMethodCreator
 
 		private bool ApplySortToVariable(VariableTerm term, int[] indices)
 		{
-			Array array = (Array)term.Identifier.GetArray();
-			int dim = array.Rank;
-			if (dim < 1 || dim > 3)
-				throw new ExeEE(trerror.AbnormalArray.Text);
-			if (array.GetLength(0) < indices.Length) return false;
-
-			Array clone = (Array)array.Clone();
-			for (int i = 0; i < indices.Length; i++)
+			object arrObj = term.Identifier.GetArray();
+			if (arrObj is Array array)
 			{
-				int src = indices[i];
-				if (dim == 1)
+				int dim = array.Rank;
+				if (dim < 1 || dim > 3)
+					throw new ExeEE(trerror.AbnormalArray.Text);
+				if (array.GetLength(0) < indices.Length) return false;
+
+				Array clone = (Array)array.Clone();
+				for (int i = 0; i < indices.Length; i++)
 				{
-					array.SetValue(clone.GetValue(src), i);
+					int src = indices[i];
+					if (dim == 1)
+						array.SetValue(clone.GetValue(src), i);
+					else if (dim == 2)
+					{
+						for (int x = 0; x < array.GetLength(1); x++)
+							array.SetValue(clone.GetValue(src, x), i, x);
+					}
+					else
+					{
+						for (int x = 0; x < array.GetLength(1); x++)
+							for (int y = 0; y < array.GetLength(2); y++)
+								array.SetValue(clone.GetValue(src, x, y), i, x, y);
+					}
 				}
-				else if (dim == 2)
-				{
-					for (int x = 0; x < array.GetLength(1); x++)
-						array.SetValue(clone.GetValue(src, x), i, x);
-				}
-				else
-				{
-					for (int x = 0; x < array.GetLength(1); x++)
-						for (int y = 0; y < array.GetLength(2); y++)
-							array.SetValue(clone.GetValue(src, x, y), i, x, y);
-				}
+			}
+			else if (arrObj is SparseArray<long> saLong)
+			{
+				if ((int)saLong.Length < indices.Length) return false;
+				var clone = saLong.ToArray(saLong.Length);
+				for (int i = 0; i < indices.Length; i++)
+					saLong[i] = clone[indices[i]];
+			}
+			else if (arrObj is SparseArray<string> saStr)
+			{
+				if ((int)saStr.Length < indices.Length) return false;
+				var clone = saStr.ToArray(saStr.Length);
+				for (int i = 0; i < indices.Length; i++)
+					saStr[i] = clone[indices[i]];
 			}
 			return true;
 		}
@@ -775,7 +819,14 @@ internal static partial class FunctionMethodCreator
 			if (arguments.Count == 4)
 			{
 				(arguments[2] as VariableTerm).SetValue(reg.GetGroupNumbers().Length, exm);
-				if (ret > 0) Output(matches, reg, (arguments[3] as VariableTerm).Identifier.GetArray() as string[]);
+				if (ret > 0)
+				{
+					var arrObj = (arguments[3] as VariableTerm).Identifier.GetArray();
+					if (arrObj is string[] strArr)
+						Output(matches, reg, strArr);
+					else
+						Output(matches, reg, (SparseArray<string>)arrObj);
+				}
 			}
 			return ret;
 		}
@@ -1460,8 +1511,16 @@ internal static partial class FunctionMethodCreator
 			{
 				if (arguments.Count > 1 && arguments[1] is VariableTerm v)
 				{
-					string[] output = v.Identifier.GetArray() as string[];
-					for (int i = 0; i < dt.Columns.Count; i++) output[i] = dt.Columns[i].ColumnName;
+					var arrObj = v.Identifier.GetArray();
+					if (arrObj is string[] output)
+					{
+						for (int i = 0; i < dt.Columns.Count; i++) output[i] = dt.Columns[i].ColumnName;
+					}
+					else
+					{
+						var sa = (SparseArray<string>)arrObj;
+						for (int i = 0; i < dt.Columns.Count; i++) sa[i] = dt.Columns[i].ColumnName;
+					}
 				}
 				else
 				{
@@ -1585,22 +1644,57 @@ internal static partial class FunctionMethodCreator
 			}
 			if (arguments.Count == b + 4)
 			{
-				var names = (arguments[b + 1] as VariableTerm).Identifier.GetArray() as string[];
-				var count = Math.Min(names.Length, arguments[b + 3].GetIntValue(exm));
+				var namesObj = (arguments[b + 1] as VariableTerm).Identifier.GetArray();
+				string[] names;
+				SparseArray<string> namesSa;
+				int namesLen;
+				if (namesObj is string[] na)
+				{
+					names = na;
+					namesSa = null;
+					namesLen = names.Length;
+				}
+				else
+				{
+					names = null;
+					namesSa = (SparseArray<string>)namesObj;
+					namesLen = (int)namesSa.Length;
+				}
+				var count = Math.Min(namesLen, arguments[b + 3].GetIntValue(exm));
 				if (arguments[b + 2].GetOperandType() == typeof(string))
 				{
-					var vals = (arguments[b + 2] as VariableTerm).Identifier.GetArray() as string[];
-					count = Math.Min(vals.Length, count);
-					for (int i = 0; i < count; i++)
-						SetValue(row, dt, names[i], key, vals[i]);
+					var valsObj = (arguments[b + 2] as VariableTerm).Identifier.GetArray();
+					if (valsObj is string[] vals)
+					{
+						count = Math.Min(vals.Length, count);
+						for (int i = 0; i < count; i++)
+							SetValue(row, dt, names != null ? names[i] : namesSa[i], key, vals[i]);
+					}
+					else
+					{
+						var valsSa = (SparseArray<string>)valsObj;
+						count = Math.Min((int)valsSa.Length, count);
+						for (int i = 0; i < count; i++)
+							SetValue(row, dt, names != null ? names[i] : namesSa[i], key, valsSa[i]);
+					}
 					cCount += count;
 				}
 				else
 				{
-					var vals = (arguments[b + 2] as VariableTerm).Identifier.GetArray() as long[];
-					count = Math.Min(vals.Length, count);
-					for (int i = 0; i < count; i++)
-						SetValue(row, dt, names[i], key, vals[i]);
+					var valsObj = (arguments[b + 2] as VariableTerm).Identifier.GetArray();
+					if (valsObj is long[] vals)
+					{
+						count = Math.Min(vals.Length, count);
+						for (int i = 0; i < count; i++)
+							SetValue(row, dt, names != null ? names[i] : namesSa[i], key, vals[i]);
+					}
+					else
+					{
+						var valsSa = (SparseArray<long>)valsObj;
+						count = Math.Min((int)valsSa.Length, count);
+						for (int i = 0; i < count; i++)
+							SetValue(row, dt, names != null ? names[i] : namesSa[i], key, valsSa[i]);
+					}
 					cCount += count;
 				}
 			}
@@ -1663,12 +1757,25 @@ internal static partial class FunctionMethodCreator
 			if (arguments.Count == 3)
 			{
 				StringBuilder sb = new();
-				var array = (arguments[1] as VariableTerm).Identifier.GetArray() as long[];
-				var count = Math.Min((int)arguments[2].GetIntValue(exm), array.Length);
-				if (count <= 0) return 0;
-				sb.Append('(');
-				for (int i = 0; i < count; i++)
-					sb.Append(i == 0 ? array[i].ToString() : "," + array[i]);
+				var arrObj = (arguments[1] as VariableTerm).Identifier.GetArray();
+				int count;
+				if (arrObj is long[] array)
+				{
+					count = Math.Min((int)arguments[2].GetIntValue(exm), array.Length);
+					if (count <= 0) return 0;
+					sb.Append('(');
+					for (int i = 0; i < count; i++)
+						sb.Append(i == 0 ? array[i].ToString() : "," + array[i]);
+				}
+				else
+				{
+					var sa = (SparseArray<long>)arrObj;
+					count = Math.Min((int)arguments[2].GetIntValue(exm), (int)sa.Length);
+					if (count <= 0) return 0;
+					sb.Append('(');
+					for (int i = 0; i < count; i++)
+						sb.Append(i == 0 ? sa[i].ToString() : "," + sa[i]);
+				}
 				sb.Append(')');
 				rows = dt.Select("id IN " + sb.ToString());
 				if (rows == null) return 0;
@@ -1829,13 +1936,27 @@ internal static partial class FunctionMethodCreator
 			}
 			else
 			{
-				long[] output = (arguments[3] as VariableTerm).Identifier.GetArray() as long[];
-				if (res != null)
+				var arrObj = (arguments[3] as VariableTerm).Identifier.GetArray();
+				if (arrObj is long[] output)
 				{
-					int count = Math.Min(res.Length, output.Length);
-					for (int i = 0; i < count; i++)
-						output[i] = (long)res[i][0];
-					return res.Length;
+					if (res != null)
+					{
+						int count = Math.Min(res.Length, output.Length);
+						for (int i = 0; i < count; i++)
+							output[i] = (long)res[i][0];
+						return res.Length;
+					}
+				}
+				else
+				{
+					var sa = (SparseArray<long>)arrObj;
+					if (res != null)
+					{
+						int count = Math.Min(res.Length, (int)sa.Length);
+						for (int i = 0; i < count; i++)
+							sa[i] = (long)res[i][0];
+						return res.Length;
+					}
 				}
 				return 0;
 			}
@@ -1864,7 +1985,13 @@ internal static partial class FunctionMethodCreator
 			{
 				dt.WriteXmlSchema(sw);
 				if (arguments.Count > 1)
-					((arguments[1] as VariableTerm).Identifier.GetArray() as string[])[0] = sb.ToString();
+				{
+					var arrObj = (arguments[1] as VariableTerm).Identifier.GetArray();
+					if (arrObj is string[] sArr)
+						sArr[0] = sb.ToString();
+					else
+						((SparseArray<string>)arrObj)[0] = sb.ToString();
+				}
 				else
 					GlobalStatic.VEvaluator.RESULTS_ARRAY[1] = sb.ToString();
 				sb.Clear();
@@ -2016,15 +2143,29 @@ internal static partial class FunctionMethodCreator
 				{
 					var Term = arguments[1] as VariableTerm;
 					if (arguments[2].GetIntValue(exm) == 0) return "";
-					string[] array = Term.Identifier.GetArray() as string[];
-					foreach (var k in sMap.Keys)
+					var arrObj = Term.Identifier.GetArray();
+					if (arrObj is string[] array)
 					{
-						if (count >= array.Length) break;
-						array[count] = k;
-						count++;
+						foreach (var k in sMap.Keys)
+						{
+							if (count >= array.Length) break;
+							array[count] = k;
+							count++;
+						}
+					}
+					else
+					{
+						var sa = (SparseArray<string>)arrObj;
+						foreach (var k in sMap.Keys)
+						{
+							if (count >= sa.Length) break;
+							sa[count] = k;
+							count++;
+						}
 					}
 				}
 				else if (arguments.Count == 2)
+
 				{
 					if (arguments[1].GetIntValue(exm) == 0) return "";
 					var array = exm.VEvaluator.RESULTS_ARRAY;
@@ -2126,12 +2267,25 @@ internal static partial class FunctionMethodCreator
 				{
 					var Term = arguments[1] as VariableTerm;
 					if (arguments[2].GetIntValue(exm) == 0) return "";
-					string[] array = Term.Identifier.GetArray() as string[];
-					foreach (var v in sMap.Values)
+					var arrObj = Term.Identifier.GetArray();
+					if (arrObj is string[] array)
 					{
-						if (count >= array.Length) break;
-						array[count] = v;
-						count++;
+						foreach (var v in sMap.Values)
+						{
+							if (count >= array.Length) break;
+							array[count] = v;
+							count++;
+						}
+					}
+					else
+					{
+						var sa = (SparseArray<string>)arrObj;
+						foreach (var v in sMap.Values)
+						{
+							if (count >= sa.Length) break;
+							sa[count] = v;
+							count++;
+						}
 					}
 				}
 				else if (arguments.Count == 2)
@@ -3775,6 +3929,69 @@ internal static partial class FunctionMethodCreator
 			return ret;
 		}
 	}
+
+	private sealed class UncheckedAddMethod : FunctionMethod
+	{
+		public UncheckedAddMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = [typeof(long), typeof(long)];
+			CanRestructure = true;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long a = arguments[0].GetIntValue(exm);
+			long b = arguments[1].GetIntValue(exm);
+			return unchecked(a + b);
+		}
+	}
+
+	private sealed class UncheckedSubtractMethod : FunctionMethod
+	{
+		public UncheckedSubtractMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = [typeof(long), typeof(long)];
+			CanRestructure = true;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long a = arguments[0].GetIntValue(exm);
+			long b = arguments[1].GetIntValue(exm);
+			return unchecked(a - b);
+		}
+	}
+
+	private sealed class UncheckedMultiplyMethod : FunctionMethod
+	{
+		public UncheckedMultiplyMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = [typeof(long), typeof(long)];
+			CanRestructure = true;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long a = arguments[0].GetIntValue(exm);
+			long b = arguments[1].GetIntValue(exm);
+			return unchecked(a * b);
+		}
+	}
+
+	private sealed class UncheckedNegateMethod : FunctionMethod
+	{
+		public UncheckedNegateMethod()
+		{
+			ReturnType = typeof(long);
+			argumentTypeArray = [typeof(long)];
+			CanRestructure = true;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long a = arguments[0].GetIntValue(exm);
+			return unchecked(-a);
+		}
+	}
 	#endregion
 
 	#region 変数操作系
@@ -5200,16 +5417,27 @@ internal static partial class FunctionMethodCreator
 						{
 							if (!(arguments[2] is VariableTerm varTerm) || varTerm.Identifier.IsCalc || !varTerm.Identifier.IsArray1D || !varTerm.Identifier.IsString || varTerm.Identifier.IsConst)
 								throw new CodeEE(string.Format(trerror.ArgIsNotNDStrArray.Text, Name, 3, 1));
-							var items = (arguments[2] as VariableTerm).Identifier.GetArray() as string[];
+							var itemsObj = (arguments[2] as VariableTerm).Identifier.GetArray();
 							int idx = 0;
-							return reg.Replace(baseString, (Match match) =>
+							if (itemsObj is string[] items)
 							{
-								if (idx < items.Length)
+								return reg.Replace(baseString, (Match match) =>
 								{
-									return items[idx++];
-								}
-								return string.Empty;
-							});
+									if (idx < items.Length)
+										return items[idx++];
+									return string.Empty;
+								});
+							}
+							else
+							{
+								var itemsSa = (SparseArray<string>)itemsObj;
+								return reg.Replace(baseString, (Match match) =>
+								{
+									if (idx < itemsSa.Length)
+										return itemsSa[idx++];
+									return string.Empty;
+								});
+							}
 						}
 					case 2:
 						{
@@ -8990,11 +9218,19 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			var arrObj = (arguments[0] as VariableTerm).Identifier.GetArray();
 			long idx = arguments[1].GetIntValue(exm);
 			long val = arguments.Count > 2 && arguments[2] != null ? arguments[2].GetIntValue(exm) : 1;
 			long length = arguments.Count > 3 && arguments[3] != null ? arguments[3].GetIntValue(exm) : 1;
-			BitArrayManager.BitSet(array, idx, val, length);
+			if (arrObj is long[] array)
+				BitArrayManager.BitSet(array, idx, val, length);
+			else
+			{
+				var sa = (SparseArray<long>)arrObj;
+				var tmp = sa.ToArray((int)sa.Length);
+				BitArrayManager.BitSet(tmp, idx, val, length);
+				sa.FromArray(tmp);
+			}
 			return 1;
 		}
 	}
@@ -9011,9 +9247,12 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			var arrObj = (arguments[0] as VariableTerm).Identifier.GetArray();
 			long idx = arguments[1].GetIntValue(exm);
-			return BitArrayManager.BitGet(array, idx);
+			if (arrObj is long[] array)
+				return BitArrayManager.BitGet(array, idx);
+			var sa = (SparseArray<long>)arrObj;
+			return BitArrayManager.BitGet(sa.ToArray((int)sa.Length), idx);
 		}
 	}
 
@@ -9029,9 +9268,15 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			var arrObj = (arguments[0] as VariableTerm).Identifier.GetArray();
 			long idx = arguments[1].GetIntValue(exm);
-			return BitArrayManager.BitToggle(array, idx);
+			if (arrObj is long[] array)
+				return BitArrayManager.BitToggle(array, idx);
+			var sa = (SparseArray<long>)arrObj;
+			var tmp = sa.ToArray((int)sa.Length);
+			var ret = BitArrayManager.BitToggle(tmp, idx);
+			sa.FromArray(tmp);
+			return ret;
 		}
 	}
 
@@ -9047,9 +9292,12 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			var array = (arguments[0] as VariableTerm).Identifier.GetArray() as long[];
+			var arrObj = (arguments[0] as VariableTerm).Identifier.GetArray();
 			long val = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetIntValue(exm) : 0;
-			return BitArrayManager.BitIndexOfFirst(array, val);
+			if (arrObj is long[] array)
+				return BitArrayManager.BitIndexOfFirst(array, val);
+			var sa = (SparseArray<long>)arrObj;
+			return BitArrayManager.BitIndexOfFirst(sa.ToArray((int)sa.Length), val);
 		}
 	}
 	#endregion

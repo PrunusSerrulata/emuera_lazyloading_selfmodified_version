@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Script.Parser;
+﻿﻿using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
@@ -59,11 +59,12 @@ internal sealed class UserDefinedVariableData
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "SAVEDATA"), sc);
 					if (ret.Reference)
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "REF"), sc);
-					if (!ret.Static)
+					if (staticDefined && !ret.Static)
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "DYNAMIC"), sc);
 					if (ret.Const)
 						throw new CodeEE(string.Format(trerror.DuplicateKeyword.Text, keyword), sc);
 					ret.Const = true;
+					ret.Static = true;
 					break;
 				case var s when s.Equals("REF", cmp):
 					//throw new CodeEE("未実装の機能です", sc);
@@ -123,21 +124,16 @@ internal sealed class UserDefinedVariableData
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "REF"), sc);
 					if (ret.Const)
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "CONST"), sc);
-					if (staticDefined)
-						if (ret.Static)
-							throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, "STATIC", "GLOBAL"), sc);
-						else
-							throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, "DYNAMIC", "GLOBAL"), sc);
+					if (staticDefined && !ret.Static)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, "DYNAMIC", "GLOBAL"), sc);
 					ret.Global = true;
+					ret.Static = true;
 					break;
 				case var s when s.Equals("SAVEDATA", cmp):
 					if (isPrivate)
 						throw new CodeEE(string.Format(trerror.CanNotUseKeywordLocalVar.Text, keyword), sc);
-					if (staticDefined)
-						if (ret.Static)
-							throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, "STATIC", "SAVEDATA"), sc);
-						else
-							throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, "DYNAMIC", "SAVEDATA"), sc);
+					if (staticDefined && !ret.Static)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, "DYNAMIC", "SAVEDATA"), sc);
 					if (ret.Reference)
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "REF"), sc);
 					if (ret.Const)
@@ -145,6 +141,7 @@ internal sealed class UserDefinedVariableData
 					if (ret.Save)
 						throw new CodeEE(string.Format(trerror.DuplicateKeyword.Text, keyword), sc);
 					ret.Save = true;
+					ret.Static = true;
 					break;
 				case var s when s.Equals("CHARADATA", cmp):
 					if (isPrivate)
@@ -153,16 +150,14 @@ internal sealed class UserDefinedVariableData
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "REF"), sc);
 					if (ret.Const)
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "CONST"), sc);
-					if (staticDefined)
-						if (ret.Static)
-							throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "STATIC"), sc);
-						else
-							throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "DYNAMIC"), sc);
+					if (staticDefined && !ret.Static)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "DYNAMIC"), sc);
 					if (ret.Global)
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "GLOBAL"), sc);
 					if (ret.CharaData)
 						throw new CodeEE(string.Format(trerror.DuplicateKeyword.Text, keyword), sc);
 					ret.CharaData = true;
+					ret.Static = true;
 					break;
 				default:
 					ret.Name = keyword;
