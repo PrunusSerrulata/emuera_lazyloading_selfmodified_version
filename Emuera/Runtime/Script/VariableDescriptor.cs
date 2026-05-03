@@ -46,6 +46,9 @@ internal readonly struct VariableDescriptor
 
     public static VariableDescriptor FromCode(VariableCode code, string name)
     {
+        if (VariableDescriptorTable.TryGetDescriptorByCode(code, out var registered))
+            return registered;
+
         var kind = VariableKind.Integer;
         if ((code & VariableCode.__STRING__) != 0)
             kind = VariableKind.String;
@@ -87,6 +90,7 @@ internal readonly struct VariableDescriptor
 internal static class VariableDescriptorTable
 {
     private static readonly Dictionary<string, VariableDescriptor> _descriptors = new(Config.Config.StrComper);
+    private static readonly Dictionary<VariableCode, VariableDescriptor> _codeIndex = new();
 
     static VariableDescriptorTable()
     {
@@ -178,10 +182,12 @@ internal static class VariableDescriptorTable
     private static void Register(string name, VariableCode code, VariableKind kind,
         VariableDimension dim, VariableAttribute attr)
     {
-        _descriptors[name] = new VariableDescriptor
+        var descriptor = new VariableDescriptor
         {
             Code = code, Kind = kind, Dimension = dim, Attributes = attr
         };
+        _descriptors[name] = descriptor;
+        _codeIndex[code] = descriptor;
     }
 
     public static bool TryGetDescriptor(string name, out VariableDescriptor descriptor)
@@ -189,13 +195,15 @@ internal static class VariableDescriptorTable
         return _descriptors.TryGetValue(name, out descriptor);
     }
 
+    public static bool TryGetDescriptorByCode(VariableCode code, out VariableDescriptor descriptor)
+    {
+        return _codeIndex.TryGetValue(code, out descriptor);
+    }
+
     public static VariableDescriptor GetDescriptorByCode(VariableCode code)
     {
-        foreach (var kvp in _descriptors)
-        {
-            if (kvp.Value.Code == code)
-                return kvp.Value;
-        }
+        if (_codeIndex.TryGetValue(code, out var descriptor))
+            return descriptor;
         return VariableDescriptor.FromCode(code, "");
     }
 }

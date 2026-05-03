@@ -174,42 +174,40 @@ internal sealed class CharacterData : IDisposable
 	public static int[] CharacterVarLength(VariableCode code, ConstantData constant)
 	{
 		int[] ret = null;
-		VariableCode type = code & (VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ |
-			VariableCode.__ARRAY_3D__ | VariableCode.__INTEGER__ | VariableCode.__STRING__);
+		var desc = VariableDescriptor.FromCode(code, "");
 		int i = (int)(code & VariableCode.__LOWERCASE__);
 		if (i >= 0xF0)
 			return null;
 		long length64;
-		switch (type)
+		if (desc.IsInteger)
 		{
-			case VariableCode.__STRING__:
-			case VariableCode.__INTEGER__:
-				ret = [];
-				break;
-			case VariableCode.__INTEGER__ | VariableCode.__ARRAY_1D__:
-				ret = new int[1];
-				ret[0] = constant.CharacterIntArrayLength[i];
-				break;
-			case VariableCode.__STRING__ | VariableCode.__ARRAY_1D__:
-				ret = new int[1];
-				ret[0] = constant.CharacterStrArrayLength[i];
-				break;
-			case VariableCode.__INTEGER__ | VariableCode.__ARRAY_2D__:
-				ret = new int[2];
-				length64 = constant.CharacterIntArray2DLength[i];
-				ret[0] = (int)(length64 >> 32);
-				ret[1] = (int)(length64 & 0x7FFFFFFF);
-				break;
-			case VariableCode.__STRING__ | VariableCode.__ARRAY_2D__:
-				ret = new int[2];
-				length64 = constant.CharacterStrArray2DLength[i];
-				ret[0] = (int)(length64 >> 32);
-				ret[1] = (int)(length64 & 0x7FFFFFFF);
-				break;
-			case VariableCode.__INTEGER__ | VariableCode.__ARRAY_3D__:
-				throw new NotImplCodeEE();
-			case VariableCode.__STRING__ | VariableCode.__ARRAY_3D__:
-				throw new NotImplCodeEE();
+			switch (desc.Dimension)
+			{
+				case VariableDimension.Scalar: ret = []; break;
+				case VariableDimension.Array1D: ret = [constant.CharacterIntArrayLength[i]]; break;
+				case VariableDimension.Array2D:
+					ret = new int[2];
+					length64 = constant.CharacterIntArray2DLength[i];
+					ret[0] = (int)(length64 >> 32);
+					ret[1] = (int)(length64 & 0x7FFFFFFF);
+					break;
+				case VariableDimension.Array3D: throw new NotImplCodeEE();
+			}
+		}
+		else if (desc.IsString)
+		{
+			switch (desc.Dimension)
+			{
+				case VariableDimension.Scalar: ret = []; break;
+				case VariableDimension.Array1D: ret = [constant.CharacterStrArrayLength[i]]; break;
+				case VariableDimension.Array2D:
+					ret = new int[2];
+					length64 = constant.CharacterStrArray2DLength[i];
+					ret[0] = (int)(length64 >> 32);
+					ret[1] = (int)(length64 & 0x7FFFFFFF);
+					break;
+				case VariableDimension.Array3D: throw new NotImplCodeEE();
+			}
 		}
 		return ret;
 	}
@@ -255,7 +253,8 @@ internal sealed class CharacterData : IDisposable
 			{
 				if (!var.IsCharacterData)
 					continue;
-				if (var.IsString)
+				var eraType = var.GetEraType();
+				if (eraType == EraType.String)
 				{
 					if (var.IsArray1D)
 					{
@@ -274,7 +273,7 @@ internal sealed class CharacterData : IDisposable
 								((string[,])other.UserDefCVarDataList[var.ArrayIndex])[i, j] = ((string[,])UserDefCVarDataList[var.ArrayIndex])[i, j];
 					}
 				}
-				else
+				else if (eraType == EraType.Integer)
 				{
 					if (var.IsArray1D)
 					{
@@ -340,19 +339,19 @@ internal sealed class CharacterData : IDisposable
 		List<VariableCode> codeList;
 
 		//dataString
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Scalar);
 		foreach (VariableCode code in codeList)
 			writer.WriteExtended(code.ToString(), dataString[(int)VariableCode.__LOWERCASE__ & (int)code]);
 		writer.EmuSeparete();
 
 		//datainteger
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Scalar);
 		foreach (VariableCode code in codeList)
 			writer.WriteExtended(code.ToString(), dataInteger[(int)VariableCode.__LOWERCASE__ & (int)code]);
 		writer.EmuSeparete();
 
 		//dataStringArray
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_1D__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array1D);
 		foreach (VariableCode code in codeList)
 		{
 			int idx = (int)VariableCode.__LOWERCASE__ & (int)code;
@@ -361,7 +360,7 @@ internal sealed class CharacterData : IDisposable
 		writer.EmuSeparete();
 
 		//dataIntegerArray
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_1D__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Array1D);
 		foreach (VariableCode code in codeList)
 		{
 			int idx = (int)VariableCode.__LOWERCASE__ & (int)code;
@@ -370,13 +369,13 @@ internal sealed class CharacterData : IDisposable
 		writer.EmuSeparete();
 
 		//dataStringArray2D
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_2D__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array2D);
 		foreach (VariableCode code in codeList)
 			writer.WriteExtended(code.ToString(), dataStringArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
 		writer.EmuSeparete();
 
 		//dataIntegerArray2D
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_2D__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Array2D);
 		foreach (VariableCode code in codeList)
 			writer.WriteExtended(code.ToString(), dataIntegerArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
 		writer.EmuSeparete();
@@ -393,35 +392,35 @@ internal sealed class CharacterData : IDisposable
 
 		List<VariableCode> codeList;
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Scalar);
 		foreach (VariableCode code in codeList)
 			if (strDic.ContainsKey(code.ToString()))
 				dataString[(int)VariableCode.__LOWERCASE__ & (int)code] = strDic[code.ToString()];
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Scalar);
 		foreach (VariableCode code in codeList)
 			if (intDic.ContainsKey(code.ToString()))
 				dataInteger[(int)VariableCode.__LOWERCASE__ & (int)code] = intDic[code.ToString()];
 
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_1D__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array1D);
 		foreach (VariableCode code in codeList)
 			if (strListDic.ContainsKey(code.ToString()))
 				copyListToSparseArray(strListDic[code.ToString()], dataStringArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_1D__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Array1D);
 		foreach (VariableCode code in codeList)
 			if (intListDic.ContainsKey(code.ToString()))
 				copyListToSparseArray(intListDic[code.ToString()], dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
 
 		//dataStringArray2D
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_2D__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array2D);
 		foreach (VariableCode code in codeList)
 			if (int2DListDic.ContainsKey(code.ToString()))
 				copyListToArray2D(str2DListDic[code.ToString()], dataStringArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
 
 		//dataIntegerArray2D
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_2D__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Array2D);
 		foreach (VariableCode code in codeList)
 			if (int2DListDic.ContainsKey(code.ToString()))
 				copyListToArray2D(int2DListDic[code.ToString()], dataIntegerArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
@@ -436,23 +435,23 @@ internal sealed class CharacterData : IDisposable
 
 		List<VariableCode> codeList;
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Scalar);
 		foreach (VariableCode code in codeList)
 			if (strDic.ContainsKey(code.ToString()))
 				dataString[(int)VariableCode.__LOWERCASE__ & (int)code] = strDic[code.ToString()];
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Scalar);
 		foreach (VariableCode code in codeList)
 			if (intDic.ContainsKey(code.ToString()))
 				dataInteger[(int)VariableCode.__LOWERCASE__ & (int)code] = intDic[code.ToString()];
 
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_1D__ | VariableCode.__STRING__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array1D);
 		foreach (VariableCode code in codeList)
 			if (strListDic.ContainsKey(code.ToString()))
 				copyListToSparseArray(strListDic[code.ToString()], dataStringArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
 
-		codeList = VariableIdentifier.GetExtSaveList(VariableCode.__CHARACTER_DATA__ | VariableCode.__ARRAY_1D__ | VariableCode.__INTEGER__);
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Array1D);
 		foreach (VariableCode code in codeList)
 			if (intListDic.ContainsKey(code.ToString()))
 				copyListToSparseArray(intListDic[code.ToString()], dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
@@ -468,34 +467,37 @@ internal sealed class CharacterData : IDisposable
 			if (!var.IsSavedata || !var.IsCharacterData || var.IsGlobal)
 				continue;
 			VariableCode code = var.Code;
-			VariableCode flag = code & (VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ | VariableCode.__ARRAY_3D__ | VariableCode.__STRING__ | VariableCode.__INTEGER__);
 			int CodeInt = var.CodeInt;
-			switch (flag)
+			var desc = VariableDescriptor.FromCode(code, "");
+			if (desc.IsInteger)
 			{
-				case VariableCode.__INTEGER__:
-					writer.WriteWithKey(code.ToString(), dataInteger[CodeInt]);
-					break;
-				case VariableCode.__STRING__:
-					writer.WriteWithKey(code.ToString(), dataString[CodeInt]);
-					break;
-				case VariableCode.__INTEGER__ | VariableCode.__ARRAY_1D__:
-					writer.WriteWithKey(code.ToString(), dataIntegerArray[CodeInt].ToArray(dataIntegerArray[CodeInt].Length));
-					break;
-				case VariableCode.__STRING__ | VariableCode.__ARRAY_1D__:
-					writer.WriteWithKey(code.ToString(), dataStringArray[CodeInt].ToArray(dataStringArray[CodeInt].Length));
-					break;
-				case VariableCode.__INTEGER__ | VariableCode.__ARRAY_2D__:
-					writer.WriteWithKey(code.ToString(), dataIntegerArray2D[CodeInt]);
-					break;
-				case VariableCode.__STRING__ | VariableCode.__ARRAY_2D__:
-					writer.WriteWithKey(code.ToString(), dataStringArray2D[CodeInt]);
-					break;
-					//case VariableCode.__INTEGER__ | VariableCode.__ARRAY_3D__:
-					//    writer.Write(code.ToString(), dataIntegerArray3D[CodeInt]);
-					//    break;
-					//case VariableCode.__STRING__ | VariableCode.__ARRAY_3D__:
-					//    writer.Write(code.ToString(), dataStringArray3D[CodeInt]);
-					//    break;
+				switch (desc.Dimension)
+				{
+					case VariableDimension.Scalar:
+						writer.WriteWithKey(code.ToString(), dataInteger[CodeInt]);
+						break;
+					case VariableDimension.Array1D:
+						writer.WriteWithKey(code.ToString(), dataIntegerArray[CodeInt].ToArray(dataIntegerArray[CodeInt].Length));
+						break;
+					case VariableDimension.Array2D:
+						writer.WriteWithKey(code.ToString(), dataIntegerArray2D[CodeInt]);
+						break;
+				}
+			}
+			else if (desc.IsString)
+			{
+				switch (desc.Dimension)
+				{
+					case VariableDimension.Scalar:
+						writer.WriteWithKey(code.ToString(), dataString[CodeInt]);
+						break;
+					case VariableDimension.Array1D:
+						writer.WriteWithKey(code.ToString(), dataStringArray[CodeInt].ToArray(dataStringArray[CodeInt].Length));
+						break;
+					case VariableDimension.Array2D:
+						writer.WriteWithKey(code.ToString(), dataStringArray2D[CodeInt]);
+						break;
+				}
 			}
 		}
 
@@ -557,13 +559,13 @@ internal sealed class CharacterData : IDisposable
 				case EraSaveDataType.EOC:
 					goto whilebreak;
 				case EraSaveDataType.Int:
-					if (vToken == null || !vToken.IsInteger || vToken.Dimension != 0)
+					if (vToken == null || vToken.GetEraType() != EraType.Integer || vToken.Dimension != 0)
 						reader.ReadInt();
 					else
 						dataInteger[codeInt] = reader.ReadInt();
 					break;
 				case EraSaveDataType.Str:
-					if (vToken == null || !vToken.IsString || vToken.Dimension != 0)
+					if (vToken == null || vToken.GetEraType() != EraType.String || vToken.Dimension != 0)
 						reader.ReadString();
 					else
 						dataString[codeInt] = reader.ReadString();
@@ -581,7 +583,7 @@ internal sealed class CharacterData : IDisposable
 						else
 							reader.ReadIntArray(array as long[], true);
 					}
-					else if (vToken == null || !vToken.IsInteger || vToken.Dimension != 1)
+					else if (vToken == null || vToken.GetEraType() != EraType.Integer || vToken.Dimension != 1)
 						reader.ReadIntArray(null, true);
 					else
 					{
@@ -603,7 +605,7 @@ internal sealed class CharacterData : IDisposable
 						else
 							reader.ReadStrArray(array as string[], true);
 					}
-					else if (vToken == null || !vToken.IsString || vToken.Dimension != 1)
+					else if (vToken == null || vToken.GetEraType() != EraType.String || vToken.Dimension != 1)
 						reader.ReadStrArray(null, true);
 					else
 					{
@@ -615,7 +617,7 @@ internal sealed class CharacterData : IDisposable
 				case EraSaveDataType.IntArray2D:
 					if (userDefineData && array != null)
 						reader.ReadIntArray2D(array as long[,], true);
-					else if (vToken == null || !vToken.IsInteger || vToken.Dimension != 2)
+					else if (vToken == null || vToken.GetEraType() != EraType.Integer || vToken.Dimension != 2)
 						reader.ReadIntArray2D(null, true);
 					else
 						reader.ReadIntArray2D(dataIntegerArray2D[codeInt], true);
@@ -623,19 +625,19 @@ internal sealed class CharacterData : IDisposable
 				case EraSaveDataType.StrArray2D:
 					if (userDefineData && array != null)
 						reader.ReadStrArray2D(array as string[,], true);
-					else if (vToken == null || !vToken.IsString || vToken.Dimension != 2)
+					else if (vToken == null || vToken.GetEraType() != EraType.String || vToken.Dimension != 2)
 						reader.ReadStrArray2D(null, true);
 					else
 						reader.ReadStrArray2D(dataStringArray2D[codeInt], true);
 					break;
 				//case EraSaveDataType.IntArray3D:
-				//    if (vToken == null || !vToken.IsInteger || vToken.Dimension != 3)
+				//    if (vToken == null || vToken.GetEraType() != EraType.Integer || vToken.Dimension != 3)
 				//        reader.ReadIntArray3D(null, true);
 				//    else
 				//        reader.ReadIntArray3D(dataIntegerArray3D[codeInt], true);
 				//    break;
 				//case EraSaveDataType.StrArray3D:
-				//    if (vToken == null || !vToken.IsString || vToken.Dimension != 3)
+				//    if (vToken == null || vToken.GetEraType() != EraType.String || vToken.Dimension != 3)
 				//        reader.ReadStrArray3D(null, true);
 				//    else
 				//        reader.ReadStrArray3D(dataStringArray3D[codeInt], true);
@@ -787,7 +789,8 @@ internal sealed class CharacterData : IDisposable
 		//チェック済み
 		//if (!sortkey.IsCharacterData)
 		//    throw new ExeEE("キャラクタ変数でない");
-		if (sortkey.IsString)
+		var sortkeyEraType = sortkey.GetEraType();
+		if (sortkeyEraType == EraType.String)
 		{
 			if (sortkey.IsArray2D)
 			{
@@ -832,7 +835,7 @@ internal sealed class CharacterData : IDisposable
 					temp_SortKey = "";
 			}
 		}
-		else
+		else if (sortkeyEraType == EraType.Integer)
 		{
 			if (sortkey.IsArray2D)
 			{
