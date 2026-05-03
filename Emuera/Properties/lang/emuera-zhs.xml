@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <lang>
     <name>简体中文</name>
     <culture>zh-hans</culture>
@@ -248,7 +248,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.NotSpecifiedLR"><![CDATA[,'之后没有RIGHT或LEFT]]></tr>
     <tr id="Error.OtherThanLR"><![CDATA[,'出现RIGHT或LEFT以外的内容]]></tr>
     <tr id="Error.ExtraCharacterLR"><![CDATA[RIGHT或LEFT之后出现多余的文本]]></tr>
-    <tr id="Error.IsNotNumericBrace"><![CDATA[{{}}中的表达式结果不是整数]]></tr>
+    <tr id="Error.IsNotNumericBrace"><![CDATA[{{}}中的表达式结果不是数值]]></tr>
     <tr id="Error.IsNotStringPer"><![CDATA[%%中的表达式结果不是字符串]]></tr>
     <tr id="Error.OoRForcekanaArg"><![CDATA[命令FORCEKANA的参数超过可指定范围(0～3)]]></tr>
     <tr id="Error.MaxBarNotPositive"><![CDATA[BAR的最大值不为正值]]></tr>
@@ -262,7 +262,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.NoExpressionAfterEqual"><![CDATA[='之后没有表达式]]></tr>
     <tr id="Error.DoesNotMatchEqual"><![CDATA[='前后的类型不一致]]></tr>
     <tr id="Error.CanNotInterpretedExpression"><![CDATA[段落无法被解析为表达式]]></tr>
-    <tr id="Error.ExpressionResultIsNotNumeric"><![CDATA[表达式的结果不是整数]]></tr>
+    <tr id="Error.ExpressionResultIsNotNumeric"><![CDATA[表达式的结果不是数值]]></tr>
     <tr id="Error.EmptyStream"><![CDATA[传入了空的单词流]]></tr>
     <tr id="Error.SBracketsFuncNotImprement"><![CDATA[尚未实现使用[]的功能]]></tr>
     <tr id="Error.ThrowFailed"><![CDATA[抛出错误失败]]></tr>
@@ -292,8 +292,9 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.SpriteTimeOut"><![CDATA[SpriteAnime:动画超时]]></tr>
     <tr id="Error.IncrementNonVar"><![CDATA[不能对非变量进行自增运算]]></tr>
     <tr id="Error.IncrementConst"><![CDATA[不能对常量进行自增运算]]></tr>
-    <tr id="Error.NumericType"><![CDATA[整数型]]></tr>
+    <tr id="Error.NumericType"><![CDATA[数值型]]></tr>
     <tr id="Error.StringType"><![CDATA[字符串型]]></tr>
+    <tr id="Error.FloatType"><![CDATA[浮点型]]></tr>
     <tr id="Error.UnknownType"><![CDATA[未知类型]]></tr>
     <tr id="Error.RefType"><![CDATA[引用型]]></tr>
     <tr id="Error.MultidimType"><![CDATA[多维数组类型]]></tr>
@@ -371,6 +372,8 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.CallIntAsStr"><![CDATA[非字符串变量"{0}"被当作字符串调用]]></tr>
     <tr id="Error.CallNDStrAsInt"><![CDATA[非数值数组变量"{0}"被当作数值调用]]></tr>
     <tr id="Error.CallNDIntAsStr"><![CDATA[非字符串数组变量"{0}"被当作字符串调用]]></tr>
+    <tr id="Error.CallNonFloatAsFloat"><![CDATA[非浮点型变量"{0}"被当作浮点型调用]]></tr>
+    <tr id="Error.CallNonFloatArrayAsFloat"><![CDATA[非浮点型数组变量"{0}"被当作浮点型数组调用]]></tr>
     <tr id="Error.GetSize0DVar"><![CDATA[试图获取一个非数组变量"{0}"的长度]]></tr>
     <tr id="Error.CallCharaVarAsVar"><![CDATA[角色变量"{0}"被当作非角色变量调用]]></tr>
     <tr id="Error.CallVarAsCharaVar"><![CDATA[非角色变量"{0}"被当作角色变量调用]]></tr>

@@ -301,10 +301,13 @@ internal abstract class FunctionMethod
 	//実際の計算。
 	public virtual long GetIntValue(ExpressionMediator exm, List<AExpression> arguments) { throw new ExeEE(trerror.ReturnTypeDifferentOrNotImpelemnt.Text); }
 	public virtual string GetStrValue(ExpressionMediator exm, List<AExpression> arguments) { throw new ExeEE(trerror.ReturnTypeDifferentOrNotImpelemnt.Text); }
+	public virtual double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments) { throw new ExeEE(trerror.ReturnTypeDifferentOrNotImpelemnt.Text); }
 	public virtual SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
 	{
 		if (ReturnType == typeof(long))
 			return new SingleLongTerm(GetIntValue(exm, arguments));
+		else if (ReturnType == typeof(double))
+			return new SingleFloatTerm(GetFloatValue(exm, arguments));
 		else
 			return new SingleStrTerm(GetStrValue(exm, arguments));
 	}

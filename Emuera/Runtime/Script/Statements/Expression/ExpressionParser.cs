@@ -583,7 +583,7 @@ internal static class ExpressionParser
 			throw new CodeEE(trerror.UnrecognizedSyntax.Text);
 		}
 		public void Add(long i) { Add(new SingleLongTerm(i)); }
-		public void Add(double d) { Add(new SingleLongTerm((long)d)); }
+		public void Add(double d) { Add(new SingleFloatTerm(d)); }
 		public void Add(string s) { Add(new SingleStrTerm(s)); }
 		public void Add(AExpression term)
 		{

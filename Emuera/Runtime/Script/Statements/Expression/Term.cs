@@ -100,6 +100,46 @@ internal sealed class SingleLongTerm : SingleTerm
 	}
 }
 
+internal sealed class SingleFloatTerm : SingleTerm
+{
+	public SingleFloatTerm(double d)
+		: base(EraType.Float)
+	{
+		fValue = d;
+	}
+	readonly double fValue;
+
+	public override double GetFloatValue(ExpressionMediator exm)
+	{
+		return fValue;
+	}
+	public override long GetIntValue(ExpressionMediator exm)
+	{
+		return (long)fValue;
+	}
+	public override SingleTerm GetValue(ExpressionMediator exm)
+	{
+		return this;
+	}
+
+	public double Float
+	{
+		get
+		{
+			return fValue;
+		}
+	}
+	public override string ToString()
+	{
+		return fValue.ToString();
+	}
+
+	public override AExpression Restructure(ExpressionMediator exm)
+	{
+		return this;
+	}
+}
+
 
 /// <summary>
 /// 項。一単語だけ。

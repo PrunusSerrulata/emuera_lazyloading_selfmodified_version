@@ -28,9 +28,12 @@ internal static class OperatorMethodManager
 	readonly static Dictionary<OperatorCode, OperatorMethod> unaryAfterDic = [];
 	readonly static Dictionary<OperatorCode, OperatorMethod> binaryIntIntDic = [];
 	readonly static Dictionary<OperatorCode, OperatorMethod> binaryStrStrDic = [];
+	readonly static Dictionary<OperatorCode, OperatorMethod> binaryFloatFloatDic = [];
+	readonly static Dictionary<OperatorCode, OperatorMethod> binaryMixedFloatDic;
 	readonly static OperatorMethod binaryMultIntStr;
 	readonly static OperatorMethod ternaryIntIntInt;
 	readonly static OperatorMethod ternaryIntStrStr;
+	readonly static OperatorMethod ternaryIntFloatFloat;
 
 	static OperatorMethodManager()
 	{
@@ -74,9 +77,48 @@ internal static class OperatorMethodManager
 		binaryStrStrDic[OperatorCode.LessEqual] = new LessEqualStrStr();
 		binaryStrStrDic[OperatorCode.NotEqual] = new NotEqualStrStr();
 
+		binaryFloatFloatDic[OperatorCode.Plus] = new PlusFloatFloat();
+		binaryFloatFloatDic[OperatorCode.Minus] = new MinusFloatFloat();
+		binaryFloatFloatDic[OperatorCode.Mult] = new MultFloatFloat();
+		binaryFloatFloatDic[OperatorCode.Div] = new DivFloatFloat();
+		binaryFloatFloatDic[OperatorCode.Equal] = new EqualFloatFloat();
+		binaryFloatFloatDic[OperatorCode.NotEqual] = new NotEqualFloatFloat();
+		binaryFloatFloatDic[OperatorCode.Less] = new LessFloatFloat();
+		binaryFloatFloatDic[OperatorCode.Greater] = new GreaterFloatFloat();
+		binaryFloatFloatDic[OperatorCode.LessEqual] = new LessEqualFloatFloat();
+		binaryFloatFloatDic[OperatorCode.GreaterEqual] = new GreaterEqualFloatFloat();
+
+		var mixedPlus = new PlusMixedFloat();
+		var mixedMinus = new MinusMixedFloat();
+		var mixedMult = new MultMixedFloat();
+		var mixedDiv = new DivMixedFloat();
+		var mixedEqual = new EqualMixedFloat();
+		var mixedNotEqual = new NotEqualMixedFloat();
+		var mixedLess = new LessMixedFloat();
+		var mixedGreater = new GreaterMixedFloat();
+		var mixedLessEqual = new LessEqualMixedFloat();
+		var mixedGreaterEqual = new GreaterEqualMixedFloat();
+		binaryMixedFloatDic = new Dictionary<OperatorCode, OperatorMethod>
+		{
+			[OperatorCode.Plus] = mixedPlus,
+			[OperatorCode.Minus] = mixedMinus,
+			[OperatorCode.Mult] = mixedMult,
+			[OperatorCode.Div] = mixedDiv,
+			[OperatorCode.Equal] = mixedEqual,
+			[OperatorCode.NotEqual] = mixedNotEqual,
+			[OperatorCode.Less] = mixedLess,
+			[OperatorCode.Greater] = mixedGreater,
+			[OperatorCode.LessEqual] = mixedLessEqual,
+			[OperatorCode.GreaterEqual] = mixedGreaterEqual,
+		};
+
+		unaryDic[OperatorCode.Plus] = new PlusInt();
+		unaryDic[OperatorCode.Minus] = new MinusInt();
+
 		binaryMultIntStr = new MultStrInt();
 		ternaryIntIntInt = new TernaryIntIntInt();
 		ternaryIntStrStr = new TernaryIntStrStr();
+		ternaryIntFloatFloat = new TernaryIntFloatFloat();
 	}
 
 
@@ -98,6 +140,13 @@ internal static class OperatorMethodManager
 			if (unaryDic.TryGetValue(op, out OperatorMethod value))
 				method = value;
 		}
+		else if (o1.GetEraType() == EraType.Float)
+		{
+			if (op == OperatorCode.Plus)
+				return o1;
+			if (op == OperatorCode.Minus)
+				method = new MinusFloat();
+		}
 		if (method != null)
 			return new FunctionMethodTerm(method, [o1]);
 		string errMes;
@@ -105,6 +154,8 @@ internal static class OperatorMethodManager
 			errMes = trerror.NumericType.Text;
 		else if (o1.GetEraType() == EraType.String)
 			errMes = trerror.StringType.Text;
+		else if (o1.GetEraType() == EraType.Float)
+			errMes = trerror.FloatType.Text;
 		else
 			errMes = trerror.UnknownType.Text;
 		errMes = string.Format(trerror.CanNotAppliedUnaryOp.Text, errMes, OperatorManager.ToOperatorString(op));
@@ -160,6 +211,17 @@ internal static class OperatorMethodManager
 			if (op == OperatorCode.Mult)
 				method = binaryMultIntStr;
 		}
+		else if (lType == EraType.Float && rType == EraType.Float)
+		{
+			if (binaryFloatFloatDic.TryGetValue(op, out OperatorMethod value))
+				method = value;
+		}
+		else if (lType == EraType.Integer && rType == EraType.Float
+			 || lType == EraType.Float && rType == EraType.Integer)
+		{
+			if (binaryMixedFloatDic.TryGetValue(op, out OperatorMethod value))
+				method = value;
+		}
 		if (method != null)
 			return new FunctionMethodTerm(method, [left, right]);
 		string typeName1, typeName2, errMes;
@@ -167,12 +229,16 @@ internal static class OperatorMethodManager
 			typeName1 = trerror.NumericType.Text;
 		else if (lType == EraType.String)
 			typeName1 = trerror.StringType.Text;
+		else if (lType == EraType.Float)
+			typeName1 = trerror.FloatType.Text;
 		else
 			typeName1 = trerror.UnknownType.Text;
 		if (rType == EraType.Integer)
 			typeName2 = trerror.NumericType.Text;
 		else if (rType == EraType.String)
 			typeName2 = trerror.StringType.Text;
+		else if (rType == EraType.Float)
+			typeName2 = trerror.FloatType.Text;
 		else
 			typeName2 = trerror.UnknownType.Text;
 		errMes = string.Format(trerror.CanNotAppliedBinaryOp.Text, typeName1, typeName2, OperatorManager.ToOperatorString(op));
@@ -189,6 +255,8 @@ internal static class OperatorMethodManager
 			method = ternaryIntIntInt;
 		else if (t1 == EraType.Integer && t2 == EraType.String && t3 == EraType.String)
 			method = ternaryIntStrStr;
+		else if (t1 == EraType.Integer && t2 == EraType.Float && t3 == EraType.Float)
+			method = ternaryIntFloatFloat;
 		if (method != null)
 			return new FunctionMethodTerm(method, [o1, o2, o3]);
 		throw new CodeEE(trerror.InvalidTernaryOp.Text);
@@ -845,6 +913,339 @@ internal static class OperatorMethodManager
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return arguments[0].GetIntValue(exm) != 0 ? arguments[1].GetStrValue(exm) : arguments[2].GetStrValue(exm);
+		}
+	}
+
+	private sealed class TernaryIntFloatFloat : OperatorMethod
+	{
+		public TernaryIntFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetIntValue(exm) != 0 ? arguments[1].GetFloatValue(exm) : arguments[2].GetFloatValue(exm);
+		}
+	}
+
+	private sealed class PlusFloatFloat : OperatorMethod
+	{
+		public PlusFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) + arguments[1].GetFloatValue(exm);
+		}
+	}
+
+	private sealed class MinusFloatFloat : OperatorMethod
+	{
+		public MinusFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) - arguments[1].GetFloatValue(exm);
+		}
+	}
+
+	private sealed class MultFloatFloat : OperatorMethod
+	{
+		public MultFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) * arguments[1].GetFloatValue(exm);
+		}
+	}
+
+	private sealed class DivFloatFloat : OperatorMethod
+	{
+		public DivFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double divisor = arguments[1].GetFloatValue(exm);
+			if (divisor == 0.0)
+				throw new CodeEE(trerror.DivideByZero.Text);
+			return arguments[0].GetFloatValue(exm) / divisor;
+		}
+	}
+
+	private sealed class EqualFloatFloat : OperatorMethod
+	{
+		public EqualFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) == arguments[1].GetFloatValue(exm) ? 1L : 0L;
+		}
+	}
+
+	private sealed class NotEqualFloatFloat : OperatorMethod
+	{
+		public NotEqualFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) != arguments[1].GetFloatValue(exm) ? 1L : 0L;
+		}
+	}
+
+	private sealed class LessFloatFloat : OperatorMethod
+	{
+		public LessFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) < arguments[1].GetFloatValue(exm) ? 1L : 0L;
+		}
+	}
+
+	private sealed class GreaterFloatFloat : OperatorMethod
+	{
+		public GreaterFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) > arguments[1].GetFloatValue(exm) ? 1L : 0L;
+		}
+	}
+
+	private sealed class LessEqualFloatFloat : OperatorMethod
+	{
+		public LessEqualFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) <= arguments[1].GetFloatValue(exm) ? 1L : 0L;
+		}
+	}
+
+	private sealed class GreaterEqualFloatFloat : OperatorMethod
+	{
+		public GreaterEqualFloatFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return arguments[0].GetFloatValue(exm) >= arguments[1].GetFloatValue(exm) ? 1L : 0L;
+		}
+	}
+
+	private sealed class PlusMixedFloat : OperatorMethod
+	{
+		public PlusMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a + b;
+		}
+	}
+
+	private sealed class MinusMixedFloat : OperatorMethod
+	{
+		public MinusMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a - b;
+		}
+	}
+
+	private sealed class MultMixedFloat : OperatorMethod
+	{
+		public MultMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a * b;
+		}
+	}
+
+	private sealed class DivMixedFloat : OperatorMethod
+	{
+		public DivMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			if (b == 0.0)
+				throw new CodeEE(trerror.DivideByZero.Text);
+			return a / b;
+		}
+	}
+
+	private sealed class EqualMixedFloat : OperatorMethod
+	{
+		public EqualMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a == b ? 1L : 0L;
+		}
+	}
+
+	private sealed class NotEqualMixedFloat : OperatorMethod
+	{
+		public NotEqualMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a != b ? 1L : 0L;
+		}
+	}
+
+	private sealed class LessMixedFloat : OperatorMethod
+	{
+		public LessMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a < b ? 1L : 0L;
+		}
+	}
+
+	private sealed class GreaterMixedFloat : OperatorMethod
+	{
+		public GreaterMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a > b ? 1L : 0L;
+		}
+	}
+
+	private sealed class LessEqualMixedFloat : OperatorMethod
+	{
+		public LessEqualMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a <= b ? 1L : 0L;
+		}
+	}
+
+	private sealed class GreaterEqualMixedFloat : OperatorMethod
+	{
+		public GreaterEqualMixedFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(long);
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double a = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : arguments[0].GetFloatValue(exm);
+			double b = arguments[1].GetEraType() == EraType.Integer ? arguments[1].GetIntValue(exm) : arguments[1].GetFloatValue(exm);
+			return a >= b ? 1L : 0L;
+		}
+	}
+
+	private sealed class MinusFloat : OperatorMethod
+	{
+		public MinusFloat()
+		{
+			CanRestructure = true;
+			ReturnType = typeof(double);
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return -arguments[0].GetFloatValue(exm);
 		}
 	}
 

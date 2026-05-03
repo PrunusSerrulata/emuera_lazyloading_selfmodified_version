@@ -5262,16 +5262,17 @@ internal static partial class FunctionMethodCreator
 		public ToIntMethod()
 		{
 			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArray = null;
 			CanRestructure = true;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
+			if (arguments[0].GetEraType() == EraType.Float)
+				return (long)arguments[0].GetFloatValue(exm);
 			string str = arguments[0].GetStrValue(exm);
 			if (str == null || string.IsNullOrEmpty(str))
 				return 0;
-			//全角文字が入ってるなら無条件で0を返す
 			if (str.Length < LangManager.GetStrlenLang(str))
 				return 0;
 			CharStream st = new(str);
@@ -5299,7 +5300,54 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 
-	//TOUPPER等の処理を汎用化するためのenum
+	private sealed class ToFloatMethod : FunctionMethod
+	{
+		public ToFloatMethod()
+		{
+			ReturnType = typeof(double);
+			argumentTypeArray = [typeof(string)];
+			CanRestructure = true;
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string str = arguments[0].GetStrValue(exm);
+			if (str == null || string.IsNullOrEmpty(str))
+				return 0.0;
+			if (str.Length < LangManager.GetStrlenLang(str))
+				return 0.0;
+			if (double.TryParse(str, out double result))
+				return result;
+			return 0.0;
+		}
+	}
+
+	private sealed class ToStrfMethod : FunctionMethod
+	{
+		public ToStrfMethod()
+		{
+			ReturnType = typeof(string);
+			argumentTypeArray = [typeof(double), typeof(string)];
+			CanRestructure = true;
+		}
+
+		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double value = arguments[0].GetFloatValue(exm);
+			if (arguments.Count < 2 || arguments[1] == null)
+				return value.ToString();
+			string format = arguments[1].GetStrValue(exm);
+			try
+			{
+				return value.ToString(format);
+			}
+			catch (FormatException)
+			{
+				throw new CodeEE(string.Format(trerror.InvalidFormat.Text, Name, 2));
+			}
+		}
+	}
+
 	enum StrFormType
 	{
 		Upper = 0,

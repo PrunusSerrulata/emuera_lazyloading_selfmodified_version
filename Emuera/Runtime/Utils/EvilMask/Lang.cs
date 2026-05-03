@@ -507,6 +507,7 @@ internal sealed partial class Lang
 
 		[Managed] public static TranslatableString NumericType { get; } = new TranslatableString("数値型");
 		[Managed] public static TranslatableString StringType { get; } = new TranslatableString("文字列型");
+		[Managed] public static TranslatableString FloatType { get; } = new TranslatableString("浮動小数点型");
 		[Managed] public static TranslatableString UnknownType { get; } = new TranslatableString("不定型");
 		[Managed] public static TranslatableString RefType { get; } = new TranslatableString("参照型");
 		[Managed] public static TranslatableString MultidimType { get; } = new TranslatableString("多次元型");
@@ -586,6 +587,8 @@ internal sealed partial class Lang
 		[Managed] public static TranslatableString CallIntAsStr { get; } = new TranslatableString("文字列型でない変数\"{0}\"を文字列型として呼び出しました");
 		[Managed] public static TranslatableString CallNDStrAsInt { get; } = new TranslatableString("整数型配列でない変数\"{0}\"を整数型配列として呼び出しました");
 		[Managed] public static TranslatableString CallNDIntAsStr { get; } = new TranslatableString("文字列型配列でない変数\"{0}\"を文字列型配列として呼び出しました");
+		[Managed] public static TranslatableString CallNonFloatAsFloat { get; } = new TranslatableString("浮動小数点型でない変数\"{0}\"を浮動小数点型として呼び出しました");
+		[Managed] public static TranslatableString CallNonFloatArrayAsFloat { get; } = new TranslatableString("浮動小数点型配列でない変数\"{0}\"を浮動小数点型配列として呼び出しました");
 		[Managed] public static TranslatableString GetSize0DVar { get; } = new TranslatableString("配列型でない変数\"{0}\"の長さを取得しようとしました");
 		[Managed] public static TranslatableString CallCharaVarAsVar { get; } = new TranslatableString("キャラクタ変数\"{0}\"を非キャラ変数として呼び出しました");
 		[Managed] public static TranslatableString CallVarAsCharaVar { get; } = new TranslatableString("非キャラクタ変数\"{0}\"をキャラ変数として呼び出しました");

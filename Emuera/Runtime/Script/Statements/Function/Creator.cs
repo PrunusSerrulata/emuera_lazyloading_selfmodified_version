@@ -124,6 +124,8 @@ internal static partial class FunctionMethodCreator
 			["STRCOUNT"] = new StrCountMethod(),
 			["TOSTR"] = new ToStrMethod(),
 			["TOINT"] = new ToIntMethod(),
+			["TOFLOAT"] = new ToFloatMethod(),
+			["TOSTRF"] = new ToStrfMethod(),
 			["TOUPPER"] = new StrChangeStyleMethod(StrFormType.Upper),
 			["TOLOWER"] = new StrChangeStyleMethod(StrFormType.Lower),
 			["TOHALF"] = new StrChangeStyleMethod(StrFormType.Half),

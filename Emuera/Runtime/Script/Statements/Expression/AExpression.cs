@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿﻿using System;
 using MinorShift.Emuera.Runtime.Script;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements.Expression;
@@ -45,7 +45,7 @@ internal abstract class AExpression
 		else if (eraType == EraType.String)
 			return new SingleStrTerm("");
 		else
-			return new SingleLongTerm(0);
+			return new SingleFloatTerm(0.0);
 	}
 	public bool IsInteger
 	{

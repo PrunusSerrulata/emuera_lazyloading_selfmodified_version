@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿using MinorShift.Emuera.Runtime.Script.Parser;
+﻿﻿﻿﻿using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
@@ -17,6 +17,7 @@ internal sealed class UserDefinedVariableData
 	public int[] Lengths;
 	public long[] DefaultInt;
 	public string[] DefaultStr;
+	public double[] DefaultFloat;
 	public bool Global;
 	public bool Save;
 	public bool Static = true;
@@ -257,7 +258,9 @@ internal sealed class UserDefinedVariableData
 				if (ret.Const && terms.Count != size)
 					throw new CodeEE(trerror.ConstInitialValueDifferentArraySize.Text);
 			}
-			if (dims)
+			if (dimf)
+				ret.DefaultFloat = new double[terms.Count];
+			else if (dims)
 				ret.DefaultStr = new string[terms.Count];
 			else
 				ret.DefaultInt = new long[terms.Count];
@@ -269,9 +272,18 @@ internal sealed class UserDefinedVariableData
 				terms[i] = terms[i].Restructure(GlobalStatic.EMediator);
 				if (terms[i] is not SingleTerm sTerm)
 					throw new CodeEE(trerror.InitialValueOnlyConst.Text);
-				if (dims != sTerm.IsString)
+				if (dimf)
+				{
+					if (sTerm is SingleFloatTerm floatTerm)
+						ret.DefaultFloat[i] = floatTerm.Float;
+					else if (sTerm is SingleLongTerm longTerm)
+						ret.DefaultFloat[i] = longTerm.Int;
+					else
+						throw new CodeEE(trerror.NotMatchVarTypeAndInitialValue.Text);
+				}
+				else if (dims != sTerm.IsString)
 					throw new CodeEE(trerror.NotMatchVarTypeAndInitialValue.Text);
-				if (dims)
+				else if (dims)
 					ret.DefaultStr[i] = ((SingleStrTerm)sTerm).Str;
 				else
 					ret.DefaultInt[i] = ((SingleLongTerm)sTerm).Int;

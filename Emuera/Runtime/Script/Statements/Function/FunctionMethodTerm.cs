@@ -7,7 +7,7 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Function;
 internal sealed class FunctionMethodTerm : AExpression
 {
 	public FunctionMethodTerm(FunctionMethod meth, List<AExpression> args)
-		: base(meth.ReturnType == typeof(long) ? EraType.Integer : EraType.String)
+		: base(meth.ReturnType == typeof(long) ? EraType.Integer : meth.ReturnType == typeof(double) ? EraType.Float : EraType.String)
 	{
 		method = meth;
 		arguments = args;
@@ -23,6 +23,10 @@ internal sealed class FunctionMethodTerm : AExpression
 	public override string GetStrValue(ExpressionMediator exm)
 	{
 		return method.GetStrValue(exm, arguments);
+	}
+	public override double GetFloatValue(ExpressionMediator exm)
+	{
+		return method.GetFloatValue(exm, arguments);
 	}
 	public override SingleTerm GetValue(ExpressionMediator exm)
 	{

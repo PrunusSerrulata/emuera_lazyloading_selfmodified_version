@@ -9,9 +9,9 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Variable;
 
 internal class VariableTerm : AExpression
 {
-	protected VariableTerm(VariableToken token) : base(token.VariableType == typeof(long) ? EraType.Integer : EraType.String) { }
+	protected VariableTerm(VariableToken token) : base(token.GetEraType()) { }
 	public VariableTerm(VariableToken token, AExpression[] args)
-		: base(token.VariableType == typeof(long) ? EraType.Integer : EraType.String)
+		: base(token.GetEraType())
 	{
 		Identifier = token;
 		arguments = args;
@@ -80,6 +80,22 @@ internal class VariableTerm : AExpression
 			throw;
 		}
 	}
+	public override double GetFloatValue(ExpressionMediator exm)
+	{
+		try
+		{
+			if (!allArgIsConst)
+				for (int i = 0; i < arguments.Length; i++)
+					transporter[i] = arguments[i].GetIntValue(exm);
+			return Identifier.GetFloatValue(exm, transporter);
+		}
+		catch (Exception e)
+		{
+			if (e is IndexOutOfRangeException || e is ArgumentOutOfRangeException || e is OverflowException)
+				Identifier.CheckElement(transporter);
+			throw;
+		}
+	}
 	public virtual void SetValue(long value, ExpressionMediator exm)
 	{
 		try
@@ -97,6 +113,23 @@ internal class VariableTerm : AExpression
 		}
 	}
 	public virtual void SetValue(string value, ExpressionMediator exm)
+	{
+		try
+		{
+			if (!allArgIsConst)
+				for (int i = 0; i < arguments.Length; i++)
+					transporter[i] = arguments[i].GetIntValue(exm);
+			Identifier.SetValue(value, transporter);
+		}
+		catch (Exception e)
+		{
+			if (e is IndexOutOfRangeException || e is ArgumentOutOfRangeException || e is OverflowException)
+				Identifier.CheckElement(transporter);
+			throw;
+		}
+	}
+
+	public virtual void SetValue(double value, ExpressionMediator exm)
 	{
 		try
 		{
@@ -152,6 +185,26 @@ internal class VariableTerm : AExpression
 		}
 	}
 
+	public virtual void SetValue(double[] array, ExpressionMediator exm)
+	{
+		try
+		{
+			if (!allArgIsConst)
+				for (int i = 0; i < arguments.Length; i++)
+					transporter[i] = arguments[i].GetIntValue(exm);
+			Identifier.SetValue(array, transporter);
+		}
+		catch (Exception e)
+		{
+			if (e is IndexOutOfRangeException || e is ArgumentOutOfRangeException || e is OverflowException)
+			{
+				Identifier.CheckElement(transporter);
+				throw new CodeEE(string.Format(trerror.AssignToVarOoR.Text, Identifier.Name));
+			}
+			throw;
+		}
+	}
+
 	public virtual long ChangeValue(long value, ExpressionMediator exm)
 	{
 		try
@@ -170,24 +223,30 @@ internal class VariableTerm : AExpression
 	}
 	public override SingleTerm GetValue(ExpressionMediator exm)
 	{
-		if (Identifier.VariableType == typeof(long))
-			return new SingleLongTerm(GetIntValue(exm));
-		else
-			return new SingleStrTerm(GetStrValue(exm));
+		switch (Identifier.GetEraType())
+		{
+			case EraType.Integer: return new SingleLongTerm(GetIntValue(exm));
+			case EraType.Float: return new SingleFloatTerm(GetFloatValue(exm));
+			default: return new SingleStrTerm(GetStrValue(exm));
+		}
 	}
 	public virtual void SetValue(SingleTerm value, ExpressionMediator exm)
 	{
 		if (value is SingleLongTerm singleLongTerm)
 			SetValue(singleLongTerm.Int, exm);
+		else if (value is SingleFloatTerm singleFloatTerm)
+			SetValue(singleFloatTerm.Float, exm);
 		else
 			SetValue(((SingleStrTerm)value).Str, exm);
 	}
 	public virtual void SetValue(AExpression value, ExpressionMediator exm)
 	{
-		if (Identifier.VariableType == typeof(long))
-			SetValue(value.GetIntValue(exm), exm);
-		else
-			SetValue(value.GetStrValue(exm), exm);
+		switch (Identifier.GetEraType())
+		{
+			case EraType.Integer: SetValue(value.GetIntValue(exm), exm); break;
+			case EraType.Float: SetValue(value.GetFloatValue(exm), exm); break;
+			default: SetValue(value.GetStrValue(exm), exm); break;
+		}
 	}
 	public int GetLength()
 	{

@@ -139,7 +139,7 @@ internal sealed class StrForm
 			}
 			if (SWT is CurlyBraceSubWord)
 			{
-				if (operand.GetEraType() != EraType.Integer)
+				if (operand.GetEraType() != EraType.Integer && operand.GetEraType() != EraType.Float)
 					throw new CodeEE(trerror.IsNotNumericBrace.Text);
 				termArray[i] = new FunctionMethodTerm(formatCurlyBrace, [operand, second, third]);
 				continue;
@@ -232,13 +232,17 @@ internal sealed class StrForm
 	{
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			string ret = arguments[0].GetIntValue(exm).ToString();
+			string ret;
+			if (arguments[0].GetEraType() == EraType.Float)
+				ret = arguments[0].GetFloatValue(exm).ToString();
+			else
+				ret = arguments[0].GetIntValue(exm).ToString();
 			if (arguments[1] == null)
 				return ret;
 			if (arguments[2] != null)
-				ret = ret.PadRight((int)arguments[1].GetIntValue(exm), ' ');//LEFT
+				ret = ret.PadRight((int)arguments[1].GetIntValue(exm), ' ');
 			else
-				ret = ret.PadLeft((int)arguments[1].GetIntValue(exm), ' ');//RIGHT
+				ret = ret.PadLeft((int)arguments[1].GetIntValue(exm), ' ');
 			return ret;
 		}
 	}

@@ -280,6 +280,7 @@ Settings apply only at start]]></tr>
     <tr id="Error.IncrementConst"><![CDATA[Cannot increment a read-only variable]]></tr>
     <tr id="Error.NumericType"><![CDATA[Numeric type]]></tr>
     <tr id="Error.StringType"><![CDATA[String type]]></tr>
+    <tr id="Error.FloatType"><![CDATA[Floating-point type]]></tr>
     <tr id="Error.UnknownType"><![CDATA[Unknown type]]></tr>
     <tr id="Error.RefType"><![CDATA[Reference type]]></tr>
     <tr id="Error.MultidimType"><![CDATA[Multidimensional type]]></tr>
@@ -357,6 +358,8 @@ Settings apply only at start]]></tr>
     <tr id="Error.CallIntAsStr"><![CDATA[Non-string variable "{0}" is called as a string]]></tr>
     <tr id="Error.CallNDStrAsInt"><![CDATA[Non-integer array variable "{0}" is called as an integer]]></tr>
     <tr id="Error.CallNDIntAsStr"><![CDATA[Non-string array variable "{0}" is called as a string]]></tr>
+    <tr id="Error.CallNonFloatAsFloat"><![CDATA[Non-float variable "{0}" is called as a float]]></tr>
+    <tr id="Error.CallNonFloatArrayAsFloat"><![CDATA[Non-float array variable "{0}" is called as a float array]]></tr>
     <tr id="Error.GetSize0DVar"><![CDATA[Attempted to get the size of a non-array variable "{0}"]]></tr>
     <tr id="Error.CallCharaVarAsVar"><![CDATA[Character variable "{0}" is called as a non-character variable]]></tr>
     <tr id="Error.CallVarAsCharaVar"><![CDATA[Non-character variable "{0}" is called as a character variable]]></tr>

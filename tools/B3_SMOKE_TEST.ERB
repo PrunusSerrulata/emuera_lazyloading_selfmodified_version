@@ -37,6 +37,7 @@
 ;   3. 表达式运算 IntInt/StrStr 路径不受影响
 ;==========================================================
 @TEST_B3_TYPE_SYSTEM
+	#DIM DYNAMIC temp_var, 10
 	PRINTL ----------------------------------------
 	PRINTL  [B.3-1] 类型系统基础设施
 	PRINTL ----------------------------------------
@@ -116,7 +117,6 @@
 	ENDIF
 
 	;--- 测试9：#DIM DYNAMIC 不受影响 ---
-	#DIM DYNAMIC temp_var, 10
 	temp_var:0 = 999
 	IF temp_var:0 == 999
 		PRINTL  [PASS] #DIM DYNAMIC 读写正常
@@ -133,11 +133,11 @@
 		PRINTL  [FAIL] 内置函数 MAX 异常
 	ENDIF
 
-	LOCAL:0 = STRLEN("abc")
+	LOCAL:0 = STRLENS("abc")
 	IF LOCAL:0 == 3
-		PRINTL  [PASS] 内置函数 STRLEN 正常
+		PRINTL  [PASS] 内置函数 STRLENS 正常
 	ELSE
-		PRINTL  [FAIL] 内置函数 STRLEN 异常
+		PRINTL  [FAIL] 内置函数 STRLENS 异常
 	ENDIF
 
 	PRINTL
@@ -154,54 +154,47 @@
 ;   5. Float↔String 显式转换 TOFLOAT()/TOSTRF()
 ;==========================================================
 @TEST_B3_FLOAT_BASIC
+	#DIMF FVAL = 3.14
+	#DIMF RATE = 1.5
+	#DIM _I = 42
+	#DIMF _F = 3.14
 	PRINTL ----------------------------------------
 	PRINTL  [B.3-5] 浮点变量基本运算
 	PRINTL ----------------------------------------
 
-;注：此段在 B.3-5 实现 #DIMF 后才可运行，当前为草案
 
-;	#DIMF FVAL = 3.14
-;	#DIMF RATE = 1.5
-;
-;	PRINTFORML  FVAL = {FVAL}
-;	PRINTFORML  RATE = {RATE}
-;
-;	; Int↔Float 隐式提升
-;	LOCAL:0 = 100
-;	FVAL = LOCAL:0 * RATE
-;	PRINTFORML  100 * 1.5 = {FVAL}
-;	IF FVAL == 150.0
-;		PRINTL  [PASS] Int*Float 隐式提升正常
-;	ELSE
-;		PRINTL  [FAIL] Int*Float 隐式提升异常
-;	ENDIF
-;
-;	; Float→Int 截断
-;	LOCAL:0 = TOINT(3.14)
-;	IF LOCAL:0 == 3
-;		PRINTL  [PASS] TOINT(3.14)=3 截断正常
-;	ELSE
-;		PRINTL  [FAIL] TOINT 截断异常
-;	ENDIF
-;
-;	; Float 比较
-;	IF 1.0 < 2.0
-;		PRINTL  [PASS] Float 比较正常
-;	ELSE
-;		PRINTL  [FAIL] Float 比较异常
-;	ENDIF
-;
-;	; #DIM 和 #DIMF 共存
-;	#DIM I = 42
-;	#DIMF F = 3.14
-;	I = I + TOINT(F)
-;	IF I == 45
-;		PRINTL  [PASS] Int/Float 混合运算正常
-;	ELSE
-;		PRINTL  [FAIL] Int/Float 混合运算异常
-;	ENDIF
+	PRINTFORML  FVAL = {FVAL}
+	PRINTFORML  RATE = {RATE}
 
-	PRINTL  [SKIP] 浮点变量测试待 B.3-5 实现 #DIMF 后启用
+	LOCAL:0 = 100
+	FVAL = LOCAL:0 * RATE
+	PRINTFORML  100 * 1.5 = {FVAL}
+	IF FVAL == 150.0
+		PRINTL  [PASS] Int*Float 隐式提升正常
+	ELSE
+		PRINTL  [FAIL] Int*Float 隐式提升异常
+	ENDIF
+
+	LOCAL:0 = TOINT(3.14)
+	IF LOCAL:0 == 3
+		PRINTL  [PASS] TOINT(3.14)=3 截断正常
+	ELSE
+		PRINTL  [FAIL] TOINT 截断异常
+	ENDIF
+
+	IF 1.0 < 2.0
+		PRINTL  [PASS] Float 比较正常
+	ELSE
+		PRINTL  [FAIL] Float 比较异常
+	ENDIF
+
+	_I = _I + TOINT(_F)
+	IF _I == 45
+		PRINTL  [PASS] Int/Float 混合运算正常
+	ELSE
+		PRINTL  [FAIL] Int/Float 混合运算异常
+	ENDIF
+
 	PRINTL
 	RETURN
 
@@ -218,8 +211,9 @@
 	PRINTL ----------------------------------------
 
 	CALL TEST_B3_TYPE_SYSTEM
-;	CALL TEST_B3_FLOAT_BASIC
-;	CALL Phase01Bugfix
+	CALL TEST_B3_FLOAT_BASIC
+	PRINTFORML  ; CALL Phase01Bugfix  ; 验证现有脚本零影响
+	CALL Phase01Bugfix
 
 	PRINTL
 	RETURN
