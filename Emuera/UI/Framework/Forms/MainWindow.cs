@@ -1,4 +1,4 @@
-using MinorShift.Emuera.GameView;
+﻿using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Statements;
@@ -122,47 +122,100 @@ namespace MinorShift.Emuera.Forms
 			catch (Exception)
 			{
 				// OpenGL不可用，切换到SKControl
-				EraPictureBox.UseOpenGL = false;
-				
-				// 移除现有的mainPicBox并替换为SKControl
-				Controls.Remove(mainPicBox);
-				mainPicBox.Dispose();
-				
-				// 创建新的SKControl实例
-				var newControl = EraPictureBox.CreateInstance();
-				newControl.Name = "mainPicBox";
-				newControl.Location = new System.Drawing.Point(0, 24);
-				newControl.Size = new System.Drawing.Size(640, 480);
-				newControl.TabIndex = 0;
-				// 补上丢失的布局属性，确保窗口拉伸正常
-				newControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-				newControl.BackColor = Color.Black;
-				newControl.Margin = new Padding(0);
-				
-				// 添加新控件到表单
-				Controls.Add(newControl);
-				Controls.SetChildIndex(newControl, 0);
-				
-				// 更新mainPicBox引用
-				mainPicBox = (SKControl)newControl;
-				
-				// 重新绑定鼠标事件
-				mainPicBox.MouseWheel += new MouseEventHandler(richTextBox1_MouseWheel);
-				mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
-				mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
-				mainPicBox.MouseDown += mainPicBox_MouseDown;
-				mainPicBox.MouseLeave += mainPicBox_MouseLeave;
-				mainPicBox.MouseMove += mainPicBox_MouseMove;
+				SwitchToSKControl();
+				return;
 			}
-			
+
+			// 订阅运行时OpenGL失败事件
+			EraPictureBox.OpenGLFailed += OnOpenGLFailed;
+
 			// 根据控件类型绑定正确的Paint事件
+			BindPaintEvent();
+		}
+
+		private void OnOpenGLFailed()
+		{
+			if (InvokeRequired)
+			{
+				BeginInvoke(new Action(SwitchToSKControl));
+			}
+			else
+			{
+				SwitchToSKControl();
+			}
+		}
+
+		private void SwitchToSKControl()
+		{
+			// 重置所有静态状态
+			EraPictureBox.UseOpenGL = false;
+			EraPictureBox.OpenGLFailed -= OnOpenGLFailed;
+			EraPictureBox.failureCount = 0;
+
+			// 移除现有的mainPicBox并替换为SKControl
+			Controls.Remove(mainPicBox);
+			mainPicBox.Dispose();
+
+			// 强制垃圾回收，确保OpenGL资源被释放
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			GC.Collect();
+
+			// 创建新的SKControl实例
+			var newControl = EraPictureBox.CreateInstance();
+			newControl.Name = "mainPicBox";
+			newControl.Location = new System.Drawing.Point(0, 24);
+			newControl.Size = new System.Drawing.Size(640, 480);
+			newControl.TabIndex = 0;
+			newControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+			newControl.BackColor = Color.Black;
+			newControl.Margin = new Padding(0);
+
+			Controls.Add(newControl);
+			Controls.SetChildIndex(newControl, 0);
+
+			mainPicBox = (SKControl)newControl;
+
+			// 重新绑定鼠标事件
+			mainPicBox.MouseWheel += new MouseEventHandler(richTextBox1_MouseWheel);
+			mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
+			mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
+			mainPicBox.MouseDown += mainPicBox_MouseDown;
+			mainPicBox.MouseLeave += mainPicBox_MouseLeave;
+			mainPicBox.MouseMove += mainPicBox_MouseMove;
+
+			// 绑定Paint事件
+			BindPaintEvent();
+
+			// 清除背景缓存，强制重新计算
+			console?.InvalidateBackgroundCache();
+
+			// 延迟重绘，等待控件完全初始化
+			BeginInvoke(new Action(() =>
+			{
+				console?.InvalidateBackgroundCache();
+				Invalidate();
+				mainPicBox?.Invalidate();
+			}));
+		}
+
+		private void BindPaintEvent()
+		{
 			if (mainPicBox is SKGLControl glControl)
 			{
-				glControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
+				glControl.PaintSurface += (s, e) =>
+				{
+					if (e?.Surface == null) return;
+					RenderConsole(e.Surface.Canvas);
+				};
 			}
 			else if (mainPicBox is SKControl skControl)
 			{
-				skControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
+				skControl.PaintSurface += (s, e) =>
+				{
+					if (e?.Surface == null) return;
+					RenderConsole(e.Surface.Canvas);
+				};
 			}
 		}
 		

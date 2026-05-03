@@ -1,4 +1,4 @@
-using MinorShift.Emuera.Runtime.Utils;
+﻿using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.UI;
 using SkiaSharp;
 using System;

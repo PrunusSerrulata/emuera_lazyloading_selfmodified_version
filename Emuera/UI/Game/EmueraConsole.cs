@@ -722,6 +722,22 @@ internal sealed partial class EmueraConsole : IDisposable
 			BakeBackground();
 		}
 	}
+
+	public void InvalidateBackgroundCache()
+	{
+		if (bakedBackground != null)
+		{
+			bakedBackground.Dispose();
+			bakedBackground = null;
+		}
+	}
+
+	public void ForceFullRedraw()
+	{
+		InvalidateBackgroundCache();
+		window?.Invalidate();
+		window?.MainPicBox?.Invalidate();
+	}
 	private void BakeBackground()
 	{
 		if (bakedBackground == null)

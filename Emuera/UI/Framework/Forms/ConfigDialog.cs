@@ -118,6 +118,14 @@ namespace MinorShift.Emuera.Forms
 			label18.Text = Lang.UI.ConfigDialog.Display.TextDrawingMode.Text; // 恢复为"渲染API"
 			label18.ForeColor = System.Drawing.Color.Black;
 			comboBoxTextDrawingMode.Enabled = false;
+
+			var labelRenderingBackend = new System.Windows.Forms.Label();
+			labelRenderingBackend.AutoSize = true;
+			labelRenderingBackend.ForeColor = System.Drawing.Color.DarkGray;
+			labelRenderingBackend.Name = "labelRenderingBackend";
+			flowLayoutPanel17.Controls.Add(labelRenderingBackend);
+			labelRenderingBackend.Text = MinorShift.Emuera.UI.Framework.Forms.EraPictureBox.RenderingBackend;
+
 			labelSkiaImageQuality.Text = Lang.UI.ConfigDialog.Display.SkiaImageQuality.Text;
 			labelSkiaFontHinting.Text = Lang.UI.ConfigDialog.Display.SkiaFontHinting.Text;
 			labelSkiaFontEdging.Text = Lang.UI.ConfigDialog.Display.SkiaFontEdging.Text;
