@@ -427,7 +427,13 @@ internal sealed partial class VariableData : IDisposable
 	public UserDefinedVariableToken CreateUserDefVariable(UserDefinedVariableData data, DimLineWC dimline)
 	{
 		UserDefinedVariableToken ret;
-		if (data.TypeIsStr || data.TypeIsFloat)
+		if (data.TypeIsFloat)
+			switch (data.Dimension)
+			{
+				case 1: ret = new StaticFloat1DVariableToken(data); break;
+				default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
+			}
+		else if (data.TypeIsStr)
 			switch (data.Dimension)
 			{
 				case 1: ret = new StaticStr1DVariableToken(data); break;
@@ -465,9 +471,17 @@ internal sealed partial class VariableData : IDisposable
 	public UserDefinedVariableToken CreatePrivateVariable(UserDefinedVariableData data)
 	{
 		UserDefinedVariableToken ret;
-		if (data.Reference)//参照型
-		{//すべて非Staticなはず
-			if (data.TypeIsStr || data.TypeIsFloat)
+		if (data.Reference)
+		{
+			if (data.TypeIsFloat)
+			{
+				switch (data.Dimension)
+				{
+					case 1: ret = new PrivateFloat1DVariableToken(data); break;
+					default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
+				}
+			}
+			else if (data.TypeIsStr)
 			{
 				switch (data.Dimension)
 				{
@@ -490,7 +504,15 @@ internal sealed partial class VariableData : IDisposable
 		}
 		else if (data.Static)
 		{
-			if (data.TypeIsStr || data.TypeIsFloat)
+			if (data.TypeIsFloat)
+			{
+				switch (data.Dimension)
+				{
+					case 1: ret = new StaticFloat1DVariableToken(data); break;
+					default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
+				}
+			}
+			else if (data.TypeIsStr)
 			{
 				switch (data.Dimension)
 				{
@@ -514,7 +536,15 @@ internal sealed partial class VariableData : IDisposable
 		}
 		else
 		{
-			if (data.TypeIsStr || data.TypeIsFloat)
+			if (data.TypeIsFloat)
+			{
+				switch (data.Dimension)
+				{
+					case 1: ret = new PrivateFloat1DVariableToken(data); break;
+					default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
+				}
+			}
+			else if (data.TypeIsStr)
 			{
 				switch (data.Dimension)
 				{
@@ -1364,13 +1394,13 @@ internal sealed partial class VariableData : IDisposable
 					reader.ReadStrArray3D((string[,,])vToken.GetArray(), true);
 				break;
 			case EraSaveDataType.Float:
-				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 0)
-					reader.ReadDouble();//該当変数なしで読み捨て
+				if (vToken == null || !vToken.IsFloat || vToken.Dimension != 0)
+					reader.ReadDouble();
 				else
-					vToken.SetValue((long)reader.ReadDouble(), null);
+					vToken.SetValue(reader.ReadDouble(), null);
 				break;
 			case EraSaveDataType.FloatArray:
-				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 1)
+				if (vToken == null || !vToken.IsFloat || vToken.Dimension != 1)
 				{
 					int len = reader.ReadInt32();
 					for (int i = 0; i < len; i++) reader.ReadDouble();
@@ -1379,27 +1409,57 @@ internal sealed partial class VariableData : IDisposable
 				{
 					int len = reader.ReadInt32();
 					object arrObj = vToken.GetArray();
-					if (arrObj is SparseArray<long> sparse)
+					if (arrObj is SparseArray<double> sparse)
 					{
-						long[] tmp = new long[len];
-						for (int i = 0; i < len; i++) tmp[i] = (long)reader.ReadDouble();
+						double[] tmp = new double[len];
+						for (int i = 0; i < len; i++) tmp[i] = reader.ReadDouble();
 						sparse.Length = tmp.Length;
 						sparse.FromArray(tmp);
+					}
+					else
+					{
+						double[] arr = (double[])arrObj;
+						for (int i = 0; i < Math.Min(len, arr.Length); i++) arr[i] = reader.ReadDouble();
+						for (int i = Math.Min(len, arr.Length); i < len; i++) reader.ReadDouble();
 					}
 				}
 				break;
 			case EraSaveDataType.FloatArray2D:
-				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 2)
+				if (vToken == null || !vToken.IsFloat || vToken.Dimension != 2)
 				{
 					int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32();
 					for (int i = 0; i < d0 * d1; i++) reader.ReadDouble();
 				}
+				else
+				{
+					int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32();
+					double[,] arr = (double[,])vToken.GetArray();
+					int len0 = Math.Min(d0, arr.GetLength(0));
+					int len1 = Math.Min(d1, arr.GetLength(1));
+					for (int i0 = 0; i0 < len0; i0++)
+						for (int i1 = 0; i1 < len1; i1++)
+							arr[i0, i1] = reader.ReadDouble();
+					for (int i = len0 * len1; i < d0 * d1; i++) reader.ReadDouble();
+				}
 				break;
 			case EraSaveDataType.FloatArray3D:
-				if (vToken == null || !vToken.IsInteger || vToken.Dimension != 3)
+				if (vToken == null || !vToken.IsFloat || vToken.Dimension != 3)
 				{
 					int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32(); int d2 = reader.ReadInt32();
 					for (int i = 0; i < d0 * d1 * d2; i++) reader.ReadDouble();
+				}
+				else
+				{
+					int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32(); int d2 = reader.ReadInt32();
+					double[,,] arr = (double[,,])vToken.GetArray();
+					int len0 = Math.Min(d0, arr.GetLength(0));
+					int len1 = Math.Min(d1, arr.GetLength(1));
+					int len2 = Math.Min(d2, arr.GetLength(2));
+					for (int i0 = 0; i0 < len0; i0++)
+						for (int i1 = 0; i1 < len1; i1++)
+							for (int i2 = 0; i2 < len2; i2++)
+								arr[i0, i1, i2] = reader.ReadDouble();
+					for (int i = len0 * len1 * len2; i < d0 * d1 * d2; i++) reader.ReadDouble();
 				}
 				break;
 			default:

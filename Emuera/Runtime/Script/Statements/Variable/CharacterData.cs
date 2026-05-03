@@ -640,6 +640,27 @@ internal sealed class CharacterData : IDisposable
 				//    else
 				//        reader.ReadStrArray3D(dataStringArray3D[codeInt], true);
 				//    break;
+				case EraSaveDataType.Float:
+					reader.ReadDouble();
+					break;
+				case EraSaveDataType.FloatArray:
+					{
+						int len = reader.ReadInt32();
+						for (int i = 0; i < len; i++) reader.ReadDouble();
+					}
+					break;
+				case EraSaveDataType.FloatArray2D:
+					{
+						int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32();
+						for (int i = 0; i < d0 * d1; i++) reader.ReadDouble();
+					}
+					break;
+				case EraSaveDataType.FloatArray3D:
+					{
+						int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32(); int d2 = reader.ReadInt32();
+						for (int i = 0; i < d0 * d1 * d2; i++) reader.ReadDouble();
+					}
+					break;
 				default:
 					throw new FileEE(trerror.AbnormalData.Text);
 			}
