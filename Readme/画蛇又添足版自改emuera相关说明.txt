@@ -1,4 +1,20 @@
 
+2026年5月4日
+修复 SKGLControl OpenGL 上下文丢失导致 NullReferenceException 崩溃的问题：
+	问题描述：部分玩家环境（双显卡笔记本、虚拟机、远程桌面等）中，SKGLControl 的 OpenGL 上下文在运行时丢失或初始化失败，
+	         OnPaint 内部访问 null 的 GRContext 导致未捕获的 NullReferenceException，程序直接崩溃。
+	根本原因：
+		1. SKGLControl.OnPaint 在 OpenGL 上下文未就绪时，内部 GRContext 为 null，后续操作抛出 NullReferenceException。
+		2. 双显卡笔记本（如 Intel 集显 + AMD 独显）的 GPU 切换、驱动重置、锁屏恢复等场景会导致 OpenGL 上下文丢失。
+		3. 原 CheckOpenGLCompatibility() 仅在启动时检测一次，无法应对运行时上下文丢失。
+	修复方案：
+		1. EraPictureBox.cs：重写 OnPaint()，用 try-catch 捕获 NullReferenceException，捕获后设置 UseOpenGL = false 并触发 OnOpenGLFailure 事件。
+		2. MainWindow.cs：新增 SwapToSoftwareRendering() 方法，将 SKGLControl 替换为 SKControl（CPU 渲染），重新绑定鼠标事件和 PaintSurface。
+		3. MainWindow.cs：新增 HandleOpenGLFailure() 订阅 OnOpenGLFailure 事件，线程安全地调用 SwapToSoftwareRendering()。
+		4. MainWindow.cs：RenderConsole() 增加 try-catch 保护，当 console.OnPaint 抛出 NullReferenceException 时自动降级。
+		5. MainWindow.cs：CheckOpenGLCompatibility() 重构，启动时检测失败也复用 SwapToSoftwareRendering()，消除重复代码。
+	效果：OpenGL 不可用时自动无缝降级到 CPU 软件渲染，玩家无感知，不再崩溃。
+
 2026年5月2日
 修复工具栏「返回标题」后运行时精灵悬空导致立绘透明的问题：
 	问题描述：从工具栏点击「返回标题」后再次读档进入游戏，EagloV 系统合成的底图（如 EagloV__绝壁__服_通常_0）变为纯透明，只看到特效没有身体和表情。

@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Forms;
 using SkiaSharp.Views.Desktop;
 
@@ -5,16 +6,15 @@ namespace MinorShift.Emuera.UI.Framework.Forms
 {
 	internal sealed class EraPictureBox : SKGLControl
 	{
-		// 静态属性，用于控制是否使用OpenGL加速
 		public static bool UseOpenGL { get; set; } = true;
+
+		public static event Action OnOpenGLFailure;
 
 		public EraPictureBox()
 		{
-			//背景描画カット
 			SetStyle(ControlStyles.Opaque, true);
 		}
 
-		// 创建EraPictureBox实例的工厂方法
 		public static Control CreateInstance()
 		{
 			if (UseOpenGL)
@@ -23,19 +23,31 @@ namespace MinorShift.Emuera.UI.Framework.Forms
 			}
 			else
 			{
-				// 使用基于CPU的SKControl作为备选
 				return new EraSKControl();
 			}
 		}
 
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			try
+			{
+				base.OnPaint(e);
+			}
+			catch (NullReferenceException)
+			{
+				if (UseOpenGL)
+				{
+					UseOpenGL = false;
+					OnOpenGLFailure?.Invoke();
+				}
+			}
+		}
 	}
 
-	// SKControl的子类，用于设置ControlStyles
 	internal sealed class EraSKControl : SKControl
 	{
 		public EraSKControl()
 		{
-			//背景描画カット
 			SetStyle(ControlStyles.Opaque, true);
 		}
 	}

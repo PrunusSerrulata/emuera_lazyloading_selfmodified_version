@@ -105,57 +105,25 @@ namespace MinorShift.Emuera.Forms
 			#endregion
 		}
 
-		// 检查OpenGL兼容性并在必要时切换到SKControl
 		private void CheckOpenGLCompatibility()
 		{
+			EraPictureBox.OnOpenGLFailure += HandleOpenGLFailure;
+
 			try
 			{
-				// 尝试创建一个临时的SKGLControl来测试OpenGL是否可用
 				using (var testControl = new SKGLControl())
 				{
-					// 尝试初始化OpenGL
 					testControl.CreateControl();
-					// 如果没有抛出异常，则OpenGL可用
 					EraPictureBox.UseOpenGL = true;
 				}
 			}
 			catch (Exception)
 			{
-				// OpenGL不可用，切换到SKControl
 				EraPictureBox.UseOpenGL = false;
-				
-				// 移除现有的mainPicBox并替换为SKControl
-				Controls.Remove(mainPicBox);
-				mainPicBox.Dispose();
-				
-				// 创建新的SKControl实例
-				var newControl = EraPictureBox.CreateInstance();
-				newControl.Name = "mainPicBox";
-				newControl.Location = new System.Drawing.Point(0, 24);
-				newControl.Size = new System.Drawing.Size(640, 480);
-				newControl.TabIndex = 0;
-				// 补上丢失的布局属性，确保窗口拉伸正常
-				newControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-				newControl.BackColor = Color.Black;
-				newControl.Margin = new Padding(0);
-				
-				// 添加新控件到表单
-				Controls.Add(newControl);
-				Controls.SetChildIndex(newControl, 0);
-				
-				// 更新mainPicBox引用
-				mainPicBox = (SKControl)newControl;
-				
-				// 重新绑定鼠标事件
-				mainPicBox.MouseWheel += new MouseEventHandler(richTextBox1_MouseWheel);
-				mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
-				mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
-				mainPicBox.MouseDown += mainPicBox_MouseDown;
-				mainPicBox.MouseLeave += mainPicBox_MouseLeave;
-				mainPicBox.MouseMove += mainPicBox_MouseMove;
+				SwapToSoftwareRendering();
+				return;
 			}
-			
-			// 根据控件类型绑定正确的Paint事件
+
 			if (mainPicBox is SKGLControl glControl)
 			{
 				glControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
@@ -165,12 +133,65 @@ namespace MinorShift.Emuera.Forms
 				skControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
 			}
 		}
-		
-		// 通用的渲染方法
+
+		private void HandleOpenGLFailure()
+		{
+			if (InvokeRequired)
+			{
+				BeginInvoke(new Action(HandleOpenGLFailure));
+				return;
+			}
+			SwapToSoftwareRendering();
+		}
+
+		private void SwapToSoftwareRendering()
+		{
+			if (!(mainPicBox is SKGLControl))
+				return;
+
+			var oldControl = mainPicBox;
+			Controls.Remove(oldControl);
+			oldControl.Dispose();
+
+			var newControl = EraPictureBox.CreateInstance();
+			newControl.Name = "mainPicBox";
+			newControl.Location = new System.Drawing.Point(0, 24);
+			newControl.Size = new System.Drawing.Size(640, 480);
+			newControl.TabIndex = 0;
+			newControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+			newControl.BackColor = Color.Black;
+			newControl.Margin = new Padding(0);
+
+			Controls.Add(newControl);
+			Controls.SetChildIndex(newControl, 0);
+
+			mainPicBox = (SKControl)newControl;
+
+			mainPicBox.MouseWheel += new MouseEventHandler(richTextBox1_MouseWheel);
+			mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
+			mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
+			mainPicBox.MouseDown += mainPicBox_MouseDown;
+			mainPicBox.MouseLeave += mainPicBox_MouseLeave;
+			mainPicBox.MouseMove += mainPicBox_MouseMove;
+
+			if (mainPicBox is SKControl skControl)
+			{
+				skControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
+			}
+		}
+
 		private void RenderConsole(SKCanvas canvas)
 		{
 			if (console == null) return;
-			console.OnPaint(canvas);
+			try
+			{
+				console.OnPaint(canvas);
+			}
+			catch (NullReferenceException) when (mainPicBox is SKGLControl)
+			{
+				EraPictureBox.UseOpenGL = false;
+				BeginInvoke(new Action(SwapToSoftwareRendering));
+			}
 		}
 		private ToolStripMenuItem[] macroMenuItems = new ToolStripMenuItem[KeyMacro.MaxFkey];
 		//private System.Diagnostics.FileVersionInfo emueraVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
