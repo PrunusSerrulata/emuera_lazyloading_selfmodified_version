@@ -10,8 +10,8 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Function;
 
 internal abstract class FunctionMethod
 {
-	public Type ReturnType { get; protected set; }
-	protected Type[] argumentTypeArray;
+	public EraType ReturnType { get; protected set; }
+	protected EraType[] argumentTypeArray;
 	protected string Name { get; private set; }
 	#region EM_私家版_Emuera多言語化改造
 	protected enum ArgType
@@ -59,7 +59,7 @@ internal abstract class FunctionMethod
 		{
 			type = t;
 		}
-		public Type Type { get { return Int ? typeof(long) : typeof(string); } }
+		public EraType EraType { get { return Int ? EraType.Integer : EraType.String; } }
 		public ArgType type = ArgType.Invalid;
 		public bool AllowConstRef { get { return (type & ArgType.AllowConstRef) != 0; } }
 		public bool DisallowVoid { get { return (type & ArgType.DisallowVoid) != 0; } }
@@ -156,8 +156,8 @@ internal abstract class FunctionMethod
 						else continue;
 					}
 					bool typeNotMatch = rule.SameAsFirst
-						? arguments[0].GetOperandType() != arguments[i].GetOperandType()
-						: !rule.Any && rule.Type != arguments[i].GetOperandType();
+					? arguments[0].GetEraType() != arguments[i].GetEraType()
+					: !rule.Any && rule.EraType != arguments[i].GetEraType();
 					if (rule.Ref)
 					{
 						if (rule.CharacterData && (!(arguments[i] is VariableTerm cvarTerm) || !cvarTerm.Identifier.IsCharacterData))
@@ -219,9 +219,9 @@ internal abstract class FunctionMethod
 					}
 					else if (typeNotMatch)
 					{
-						var type = rule.SameAsFirst ? arguments[0].GetOperandType() : rule.Type;
+						var eraType = rule.SameAsFirst ? arguments[0].GetEraType() : rule.EraType;
 						// 引数の型が違う
-						errMsg[idx] = type == typeof(string) ? string.Format(trerror.ArgIsNotStr.Text, name, i + 1)
+						errMsg[idx] = eraType == EraType.String ? string.Format(trerror.ArgIsNotStr.Text, name, i + 1)
 							: string.Format(trerror.ArgIsNotInt.Text, name, i + 1);
 						break;
 					}
@@ -282,9 +282,9 @@ internal abstract class FunctionMethod
 				if (arguments[i] == null)
 					// return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, i + 1);
 					return string.Format(trerror.ArgCanNotBeNull.Text, name, i + 1);
-				if (argumentTypeArray[i] != arguments[i].GetOperandType())
+				if (argumentTypeArray[i] != arguments[i].GetEraType())
 					// return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, i + 1);
-					return argumentTypeArray[i] == typeof(string) ? string.Format(trerror.ArgIsNotStr.Text, name, i + 1)
+					return argumentTypeArray[i] == EraType.String ? string.Format(trerror.ArgIsNotStr.Text, name, i + 1)
 							: string.Format(trerror.ArgIsNotInt.Text, name, i + 1);
 			}
 		}
@@ -304,12 +304,15 @@ internal abstract class FunctionMethod
 	public virtual double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments) { throw new ExeEE(trerror.ReturnTypeDifferentOrNotImpelemnt.Text); }
 	public virtual SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
 	{
-		if (ReturnType == typeof(long))
-			return new SingleLongTerm(GetIntValue(exm, arguments));
-		else if (ReturnType == typeof(double))
-			return new SingleFloatTerm(GetFloatValue(exm, arguments));
-		else
-			return new SingleStrTerm(GetStrValue(exm, arguments));
+		switch (ReturnType)
+		{
+			case EraType.Integer:
+				return new SingleLongTerm(GetIntValue(exm, arguments));
+			case EraType.Float:
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			default:
+				return new SingleStrTerm(GetStrValue(exm, arguments));
+		}
 	}
 
 	/// <summary>

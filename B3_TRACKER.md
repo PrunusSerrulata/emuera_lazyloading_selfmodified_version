@@ -569,7 +569,7 @@ B.3-15 分批（15a-15k）：全部 ✅。
 
 | 批次 | 文件 | 处数 | 策略 | 风险 |
 |------|------|------|------|------|
-| **16a** | FunctionMethod.cs | ~6 | **手动** — ReturnType/argumentTypeArray/EraType 属性 + CheckArgumentType/GetReturnValue | 🔴 基类 |
+| **16a** | FunctionMethod.cs | ~6 | **手动** — ReturnType/argumentTypeArray/EraType 属性 + CheckArgumentType/GetReturnValue | 🔴 基类 | ✅ |
 | **16b** | Creator.Method.cs | 364 | **脚本** `b3_16_replace.py --apply` | 🟡 量大机械 |
 | **16c** | ArgumentBuilder.cs | 51 | **脚本** + 手动加 `'F'` 分支 | 🟡 |
 | **16d** | OperatorMethod.cs | 62 | **脚本** `--apply --all-files` | 🟡 |
