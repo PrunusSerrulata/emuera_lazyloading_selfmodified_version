@@ -253,6 +253,33 @@ internal sealed class EraDataReader : IDisposable
 		return intList;
 	}
 
+	public Dictionary<string, double> ReadDoubleExtended()
+	{
+		if (reader == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		Dictionary<string, double> doubleList = [];
+		string str;
+		while (true)
+		{
+			str = reader.ReadLine();
+			if (str == null)
+				throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+			if (str.Equals(FINISHER, StringComparison.Ordinal))
+				throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
+				break;
+			int index = str.IndexOf(':', StringComparison.Ordinal);
+			if (index < 0)
+				throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+			string key = str[..index];
+			string valueStr = str.Substring(index + 1, str.Length - index - 1);
+			if (!double.TryParse(valueStr, out double value))
+				throw new FileEE(trerror.InvalidArray.Text);
+			doubleList.TryAdd(key, value);
+		}
+		return doubleList;
+	}
+
 	public Dictionary<string, List<long>> ReadInt64ArrayExtended()
 	{
 		if (reader == null)
@@ -741,6 +768,15 @@ internal sealed class EraDataWriter : IDisposable
 		if (writer == null)
 			throw new FileEE(trerror.InvalidStream.Text);
 		if (value == 0)
+			return;
+		writer.WriteLine(string.Format("{0}:{1}", key, value));
+	}
+
+	public void WriteExtended(string key, double value)
+	{
+		if (writer == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		if (value == 0.0)
 			return;
 		writer.WriteLine(string.Format("{0}:{1}", key, value));
 	}

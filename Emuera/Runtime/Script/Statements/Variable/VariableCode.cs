@@ -1,4 +1,4 @@
-﻿namespace MinorShift.Emuera.Runtime.Script.Statements.Variable;
+namespace MinorShift.Emuera.Runtime.Script.Statements.Variable;
 
 internal enum VariableCode
 {
@@ -126,6 +126,9 @@ internal enum VariableCode
 	__COUNT_SAVE_CHARACTER_INTEGER__ = 0x02,//こいつらは配列ではないらしい。
 	__COUNT_CHARACTER_INTEGER__ = 0x02,
 
+	__COUNT_SAVE_CHARACTER_FLOAT__ = 0x00,
+	__COUNT_CHARACTER_FLOAT__ = 0x00,
+
 	BASE = 0x00 | __INTEGER__ | __CHARACTER_DATA__ | __ARRAY_1D__ | __CAN_FORBID__,//基礎パラメータ。
 	MAXBASE = 0x01 | __INTEGER__ | __CHARACTER_DATA__ | __ARRAY_1D__ | __CAN_FORBID__,//基礎パラメータの最大値。
 	ABL = 0x02 | __INTEGER__ | __CHARACTER_DATA__ | __ARRAY_1D__ | __CAN_FORBID__,//能力。ABL.CSV
@@ -152,6 +155,9 @@ internal enum VariableCode
 	__COUNT_SAVE_CHARACTER_INTEGER_ARRAY__ = 0x11,
 	__COUNT_CHARACTER_INTEGER_ARRAY__ = 0x54,
 
+	__COUNT_SAVE_CHARACTER_FLOAT_ARRAY__ = 0x00,
+	__COUNT_CHARACTER_FLOAT_ARRAY__ = 0x00,
+
 	NAME = 0x00 | __STRING__ | __CHARACTER_DATA__,//名前//登録番号で呼び出す
 	CALLNAME = 0x01 | __STRING__ | __CHARACTER_DATA__,//呼び名
 	NICKNAME = 0x02 | __STRING__ | __CHARACTER_DATA__ | __SAVE_EXTENDED__ | __EXTENDED__,//あだ名
@@ -168,6 +174,8 @@ internal enum VariableCode
 	CDFLAG = 0x00 | __INTEGER__ | __CHARACTER_DATA__ | __ARRAY_2D__ | __SAVE_EXTENDED__ | __EXTENDED__ | __CAN_FORBID__,
 
 	__COUNT_CHARACTER_INTEGER_ARRAY_2D__ = 0x01,
+
+	__COUNT_CHARACTER_FLOAT_ARRAY_2D__ = 0x00,
 
 	__COUNT_CHARACTER_STRING_ARRAY_2D__ = 0x00,
 

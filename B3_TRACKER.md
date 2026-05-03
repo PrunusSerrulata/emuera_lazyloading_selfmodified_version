@@ -532,254 +532,86 @@ python tools/b3_16_replace.py --verify --all-files
 | SparseArray.cs typeof(T) 6 处 | 泛型模式，含 double 分支 | 🔒 无需替换 |
 | SqlManager.cs typeof 2 处 | SQLite 列类型映射，非 EraType 范畴 | 🔒 无需替换 |
 
-**B.3 当前状态：B.3-0~11 已完成，B.3-12a/b 已完成，B.3-12 待手动运行引擎验证。B.3-13~16 为二元判定抽象后续任务。**
+**B.3 当前状态：B.3-0~15 ✅ 全部完成（含 B.3-13~15 二元判定抽象 + 3 个遗漏项目 B.3.4c/5c/5d）。仅剩 B.3-16（typeof→EraType 批量替换）。**
 
-**最新 typeof 统计（2026-05-04 第三次盘点，b3_16_replace.py --verify --all-files）**：
+**最新 typeof 统计（2026-05-04，b3_16_replace.py --verify --all-files）**：
 ```
-typeof(long)  : 336  (Creator.Method.cs=313, ArgumentBuilder.cs=23, OperatorMethod.cs=48, Instraction.Child.cs=2, ...)
-typeof(string): 154  (Creator.Method.cs=165, ArgumentBuilder.cs=30, OperatorMethod.cs=5, LogicalLineParser.cs=3, ...)
-typeof(double):  18  (OperatorMethod.cs=10, VariableToken.cs=2, FunctionMethod.cs=1, ...)
+typeof(long): 336  (Creator.Method.cs=246, ArgumentBuilder.cs=23, OperatorMethod.cs=48, 其他=19)
+typeof(string): 154  (Creator.Method.cs=116, ArgumentBuilder.cs=17, OperatorMethod.cs=4, 其他=17)
+typeof(double):  18  (OperatorMethod.cs=10, VariableToken.cs=2, FunctionMethod.cs=1, 其他=5)
 typeof(void)  :  14  (ArgumentBuilder.cs=10, AExpression.cs=1, LogicalLine.cs=2, CaseExpression.cs=1)
 总计: 522 处（不含 SparseArray.cs 6处🔒 + SqlManager.cs 2处🔒）
 ```
-> 注：以上包含 🔒 有意延迟项（SparseArray/SqlManager ~8 处 + 桥接保留 ~4 处）。
-> 实际需关注的核心 typeof（运算分派/类型检查）已在 B.3-1~3 中清除。
-> ReturnType/argumentTypeArray 待 FunctionMethod 基类 ReturnType 从 Type 迁移到 EraType 后批量替换。
-> **辅助工具**：`tools/b3_16_replace.py --dry-run --all-files` 可预览全部 495 处替换；`--checklist` 生成 CSV 对照清单。
+> 以上均为 B.3-16 范围（ReturnType/argumentTypeArray 的 Type 声明 + 零散 typeof 比较）。
 
-### 3.3 二元判定全体审查与抽象方案（2026-05-03 初审，2026-05-03 重整）
+### 3.3 B.3-15 完成总结（原二元判定抽象，2026-05-04 终审全部通过）
 
-> **背景**：FVAL 被识别为 String 的根因是 VariableToken 基类构造函数按 varCode 位标志判断类型——
-> `__INTEGER__` 位 → typeof(long)，否则 → typeof(string)。Float token 无 `__INTEGER__` 位，被错误识别。
-> 这暴露了原类型系统的**6 大二元判定模式**，全部需要抽象为 N 元（EraType 驱动）。
->
-> **已完成**：B.3-13（LoadVariableBinary Float 段 bug 修复）、B.3-14（VariableType→EraType 直接查询）。
-> **待完成**：B.3-15（位标志 switch 消灭）、B.3-16（FunctionMethod ReturnType 迁移）。
+> **B.3-13~15 已全部完成，以下仅保留摘要供 B.3-16 上下文参考。**
 
-#### 6 大二元判定模式（2026-05-03 精确统计）
+6 大二元判定模式均已消灭：
+| 模式 | 原状 | 处理 | 状态 |
+|------|------|------|------|
+| A. 位标志 `__INTEGER__`/`__STRING__` 判定 | ~78 处活跃 | → `Descriptor.Kind` | ✅ B.3-15 |
+| B. `IsInteger`/`IsString` 属性判定 | 50+28 处 | → Float 分支 / Descriptor 驱动 | ✅ B.3-15 |
+| C. `VariableType == typeof(...)` | 0 处 | ✅ 已在 B.3-14 清除 | ✅ |
+| D. `ReturnType`/`argumentTypeArray` Type | 522 处 | → B.3-16（下一任务） | ⬜ B.3-16 |
+| E. `VariableCode` 位标志 switch | 2 处（必要回退） | → Descriptor 查询 | ✅ B.3-15 |
+| F. 隐式二元判定 | ~92 处 | → 全部补 Float 分支 | ✅ B.3-15 |
 
-| 模式 | 标识 | 处数 | 危害 | 抽象方案 | 状态 |
-|------|------|------|------|----------|------|
-| A. `VariableCode.__INTEGER__/__STRING__` 位标志判定 | 位标志 switch/if | ~85 | 🔴 Float 无位标志 | → `Descriptor.Kind` + `Descriptor.Dimension` | ⬜ B.3-15 |
-| B. `IsInteger`/`IsString` 属性判定 | if-else 无 Float | 125 | 🔴 LoadVariableBinary 数据丢失（已修复） | → `switch (GetEraType())` | 🔶 B.3-13✅ B.3-15⬜ |
-| C. `VariableType == typeof(...)` 比较 | Type 比较 | 0 | ✅ 已清除 | VariableToken.GetEraType() | ✅ B.3-14 |
-| D. `ReturnType = typeof()` / `argumentTypeArray` | Type 声明 | ~527 | ⚪ 有意延迟 | FunctionMethod ReturnType Type→EraType | ⬜ B.3-16 |
-| E. `VariableCode` 位标志 switch | 位标志 switch | ~37 | 🟡 扩展性障碍 | → Descriptor 查询 | ⬜ B.3-15 |
-| F. 隐式二元判定 | if-else 无 Float | ~107 | 🟡 静默遗漏 | → `switch (GetEraType())` | ⬜ B.3-15 |
+B.3-15 分批（15a-15k）：全部 ✅。
+遗漏项目（B.3.4c/5c/5d）：全部 ✅（2026-05-04 完成）。
 
-> **统计方法**：模式 B=125 处 `.IsInteger`/`.IsString` 调用（ripgrep 精确计数：IsInteger 77 + IsString 48，16 文件）；
-> 模式 F=107 处 `if (.IsInteger)`/`if (.IsString)` 条件判定（含注释中 ~15 处，实际活跃 ~92 处）；
-> 模式 A=271 处 `__INTEGER__`/`__STRING__` 引用（含 VariableCode.cs 枚举定义 193 处，活跃代码 ~78 处）；
-> 模式 C=0 处（B.3-14 已清除所有 `VariableType == typeof(...)` 比较）。
-> 注：PowerShell Select-String 因 `\b` 边界差异，计数可能比 ripgrep 少 ~6 处，以 ripgrep 为准。
+---
 
-#### 抽象的统一原则
+## 4. B.3-16 实施方案：typeof→EraType 批量替换
 
-```
-之前（二元）：                    之后（N元）：
-  if (IsInteger) { ... }           switch (GetEraType()) {
-  else if (IsString) { ... }         case EraType.Integer: ...; break;
-  // Float 被遗漏                    case EraType.String:  ...; break;
-                                     case EraType.Float:   ...; break;
-                                     default: throw new NotSupportedException();
-                                   }
-```
+### 4.1 执行策略
 
-新增类型时的工作量：`VariableKind` 加标志 → `VariableDescriptorTable` 注册 → `EraType` 加枚举值 → switch 加 case。**O(1) 而非 O(n)**。
-
-#### 逐文件审阅清单（2026-05-03 精确扫描）
-
-> 🔶 = 部分完成（B.3-13/14 已修复核心 bug），⬜ = 待处理，✅ = 已完成，🔒 = 有意延迟
-
-##### 模式 A+E：位标志判定 + 位标志 switch（~85+37=~122 处活跃代码）
-
-| 文件 | 处数 | 当前代码 | 危害 | 目标 | 状态 |
-|------|------|---------|------|------|------|
-| **VariableCode.cs** | 193 | 枚举定义 `__INTEGER__`/`__STRING__` 位标志 | 🔴 Float 无位标志 | 🔒 保留（枚举定义不可删除，仅停止新增使用） | 🔒 |
-| **VariableIdentifier.cs** | 28 | `IsInteger`/`IsString` 从位标志计算 + `extSaveListDic` 位标志 key + 断言 | 🟡 Float 无标志→断言失败 | B.3-15: 从 Descriptor 查询 | ⬜ |
-| **VariableToken.cs** | 10 | L22 VariableType 从位标志 + L57-88 IsSavedata 位标志 switch | 🟡 无 Float case | B.3-15: Descriptor.Kind+Dimension | ✅ |
-| **VariableData.cs** | 16 | `GetExtSaveList(__STRING__/__INTEGER__\|__ARRAY_*)` 位标志查询 | 🟡 无 Float 存档段 | B.3-15: Descriptor 查询 | ✅ |
-| **CharacterData.cs** | 36 | L178-211/L471-496 位标志 switch + L343-455 GetExtSaveList | 🟡 无 Float case | B.3-15: Descriptor.Kind+Dimension | ⬜ |
-| **VariableDescriptor.cs** | 1 | `FromCode()` 中 `if ((code & __STRING__) != 0) kind = String` | 🟡 Float 无位标志→默认 Integer | B.3-15: FromCode 先查注册表再回退位标志 | ✅ |
-
-##### 模式 B：IsInteger/IsString 属性判定（125 处，16 文件）
-
-| 文件 | 处数 | 用途 | 危害 | 目标 | 状态 |
-|------|------|------|------|------|------|
-| **VariableData.cs** | 9 | LoadVariableBinary 类型匹配 | � Float 段 bug（已修复） | B.3-13 修复 Float 段 | 🔶 Float段✅ 其余⬜ |
-| **CharacterData.cs** | 10 | LoadVariableBinary + 排序 | 🟡 无 Float 段处理 | B.3-15: 三路 | ⬜ |
-| **Creator.Method.cs** | 31 | 变量类型分派 + REF 参数检查 | 🟡 Float 进错分支 | B.3-15: switch(GetEraType()) | ⬜ |
-| **Instraction.Child.cs** | 11 | 指令执行时类型分派 | 🟡 Float 进错分支 | B.3-15: 三路 | ✅ |
-| **ArgumentBuilder.cs** | 17 | 参数类型检查 | 🟡 Float 进错分支 | B.3-15: 三路 | ⬜ |
-| **EmueraConsole.cs** | 8 | 按钮输入类型判断 | ⚪ UI 层 IsInteger=按钮有整数值（非变量类型判定） | 🔒 无需修改 | 🔒 |
-| **VariableEvaluator.cs** | 8 | 变量求值/赋值类型分派 | 🟡 Float 进错分支 | B.3-15: 三路 | ⬜ |
-| **ConstantData.cs** | 9 | CSV 加载时变量类型分派 | 🟡 Float 变量 CSV 加载 | B.3-15: 三路 | ⬜ |
-| **Process.ScriptProc.cs** | 9 | SWAP/CVARSET 类型检查 | 🟡 Float 进错分支 | B.3-15: 三路 | ⬜ |
-| **VariableToken.cs** | 5 | IsInteger/IsString 属性定义 + 比较 | ✅ 已走 Descriptor | — | ✅ |
-| **UserDefinedRefMethod.cs** | 3 | REF 参数类型匹配 | 🟡 Float 无匹配 | B.3-15: 三路 | ⬜ |
-| **UserDefinedVariable.cs** | 1 | 维度类型检查 | 🟡 Float 类型不匹配 | B.3-15: 三路 | ⬜ |
-| **VariableParser.cs** | 1 | 参数类型检查 | 🟡 Float 进错分支 | B.3-15: 三路 | ⬜ |
-| **PluginMethodParameter.cs** | 1 | 插件参数类型检查 | 🟡 Float 进错分支 | B.3-15: 三路 | ✅ |
-| **Process.CalledFunction.cs** | 1 | 参数类型转换 | 🟡 Float 进错分支 | B.3-15: 三路 | ⬜ |
-| **ConsoleButtonString.cs** | 1 | 按钮输入类型 | ⚪ UI 层 | 🔒 无需修改 | 🔒 |
-
-##### 模式 C：VariableType == typeof 比较 — ✅ 已全部清除
-
-B.3-14 已完成：VariableToken.GetEraType() + VariableTerm 构造函数/GetValue/SetValue 全部改为 EraType 驱动。
-VariableToken 基类构造函数 L22 从位标志→Descriptor 查询。VariableType 属性仍保留（3 处引用），待 B.3-15 进一步清理。
-
-##### 模式 D：ReturnType/argumentTypeArray Type 声明 — 🔒 有意延迟 → B.3-16
-
-| 文件 | 处数 | 说明 |
-|------|------|------|
-| **Creator.Method.cs** | 353 | ReturnType=typeof + argumentTypeArray=typeof（脚本可替换） |
-| **ArgumentBuilder.cs** | 41 | argumentTypeArray 赋值 typeof + typeof(void)（脚本可替换 + 1处动态构建路径手动） |
-| **OperatorMethod.cs** | 62 | ReturnType=typeof（算子子类，脚本可替换） |
-| **FunctionMethod.cs** | 5 | ReturnType/argumentTypeArray 属性定义 + CheckArgumentType（16a 手动） |
-| **其他** | 34 | LogicalLineParser/Instraction.Child/UserDefinedMethodTerm/ExpressionParser/AExpression/StrForm/UserDefinedRefMethod/EvilMask.Utils/VariableToken/FunctionMethodTerm/LogicalLine/CaseExpression（手动） |
-
-##### 模式 F：隐式二元判定（if-else 无 Float 分支，~92 处活跃代码）
-
-> 以下仅列出**需要修改**的文件（排除 🔒 UI 层和已正确处理的部分）
-
-| 文件 | 活跃处数 | 典型代码 | 危害 | 目标 |
-|------|---------|---------|------|------|
-| **Creator.Method.cs** | ~20 | `if (!var.IsInteger)` / `if (token.IsInteger) res|=1; if (token.IsString) res|=2` | 🟡 Float 进错分支/无 bit | B.3-15: 三路 | ✅ |
-| **ArgumentBuilder.cs** | ~14 | `if (varTerm.IsString)` / `if (!term.IsInteger)` | 🟡 Float 进错分支 | B.3-15: 三路 | ✅ |
-| **Instraction.Child.cs** | ~7 | `if (arg.VariableDest.IsInteger)` / `if (var.IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 | ✅ |
-| **VariableEvaluator.cs** | ~6 | `if (!p.Identifier.IsInteger)` / `if (p.IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 |
-| **ConstantData.cs** | ~9 | `if (id.IsInteger)` / `else if (id.IsString)` | 🟡 Float CSV 加载 | B.3-15: 三路 |
-| **Process.ScriptProc.cs** | ~5 | `if (dest.Identifier.IsInteger)` / `IsInteger&&IsString` | 🟡 Float 进错分支 | B.3-15: 三路 |
-| **UserDefinedRefMethod.cs** | ~3 | `if (vToken.IsInteger)` / `if (vToken.IsString)` | 🟡 Float 无匹配 | B.3-15: 三路 |
-| **UserDefinedVariable.cs** | 1 | `else if (dims != sTerm.IsString)` | 🟡 Float 类型不匹配 | B.3-15: 三路 |
-| **VariableParser.cs** | 1 | `if (terms[i].IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 |
-| **PluginMethodParameter.cs** | 1 | `if (term.IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 |
-| **CharacterData.cs** | ~3 | `if (var.IsString)` / `if (sortkey.IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 |
-| **VariableData.cs** | 1 | `if (!ret.IsString) type++` | 🟡 Float 变量进错列表 | B.3-15: 三路 | ✅ |
-
-#### 已完成任务
-
-**B.3-13 ✅**：修复 LoadVariableBinary Float 段 bug
-- VariableData.cs：`!vToken.IsInteger` → `!vToken.IsFloat`（4 处）；`(long)ReadDouble()` → `ReadDouble()`；`SparseArray<long>` → `SparseArray<double>`；补全 FloatArray2D/3D 加载逻辑
-- CharacterData.cs：补全 Float/FloatArray/FloatArray2D/FloatArray3D 丢弃读取 case
-
-**B.3-14 ✅**：VariableType 消灭 → EraType 直接查询
-- VariableToken 新增 `public EraType GetEraType()` 方法
-- VariableTerm 构造函数：`token.VariableType == typeof(long) ? ...` → `token.GetEraType()`
-- VariableTerm.GetValue()：`Identifier.VariableType == typeof(long)` → `switch (Identifier.GetEraType())`
-- VariableTerm.SetValue(AExpression)：同上
-- VariableToken 基类构造函数 L22：从位标志→Descriptor 查询
-- **残留**：VariableType 属性仍保留（3 处引用），待 B.3-15 进一步清理
-
-#### 待完成任务
-
-##### B.3-15：位标志 switch 消灭 → Descriptor 查询
-
-**P2 优先级 — 扩展性障碍消除**
-
-**范围**：~122 处位标志代码 + ~92 处隐式二元判定 = ~214 处需修改
-
-**分批计划**（每批 1-3 文件，独立可编译）：
-
-| 批次 | 文件 | 变更 | 处数 | 风险 |
+| 批次 | 文件 | 处数 | 策略 | 风险 |
 |------|------|------|------|------|
-| 15a | VariableIdentifier.cs | IsInteger/IsString→Descriptor 查询；断言改为 Kind 检查；extSaveListDic key 改为 (Kind,Dimension) | ~28 | 🟡 extSaveListDic key 变更影响存档 | ✅ |
-| 15b | VariableToken.cs | IsSavedata 位标志 switch→Descriptor 查询；VariableType 属性标记 Obsolete | ~10 | 🟢 低风险 | ✅ |
-| 15c | VariableData.cs | GetExtSaveList 位标志查询→Descriptor 查询；userDefinedSaveVarList 扩展为 9 槽位；`!ret.IsString → type++` 三路分派 | ~17 | 🔴 userDefinedSaveVarList 扩展影响存档格式 |
-| 15d | CharacterData.cs | 位标志 switch→Descriptor 查询；GetExtSaveList 改造；LoadVariableBinary Float 段处理 | ~46 | 🟡 大文件，需仔细 | ✅ |
-| 15e | VariableDescriptor.cs | FromCode() Float 变量走注册表而非位标志回退 | ~1 | 🟢 低风险 | ✅ |
-| 15f | Creator.Method.cs | IsInteger/IsString 二元判定→三路 | ~20 | 🟡 最大文件，需分批 | ✅ |
-| 15g | ArgumentBuilder.cs | IsInteger/IsString 二元判定→三路 | ~14 | 🟡 | ✅ |
-| 15h | Instraction.Child.cs | IsInteger/IsString 二元判定→三路 | ~7 | 🟡 | ✅ |
-| 15i | VariableEvaluator.cs | IsInteger/IsString 二元判定→三路 | ~6 | 🟡 | ✅ |
-| 15j | ConstantData.cs | IsInteger/IsString 二元判定→三路 | ~9 | 🟡 | ✅ |
-| 15k | Process.ScriptProc.cs + UserDefinedRefMethod.cs + 零散文件 | IsInteger/IsString 二元判定→三路 | ~10 | 🟢 | ✅ |
+| **16a** | FunctionMethod.cs | ~6 | **手动** — ReturnType/argumentTypeArray/EraType 属性 + CheckArgumentType/GetReturnValue | 🔴 基类 |
+| **16b** | Creator.Method.cs | 364 | **脚本** `b3_16_replace.py --apply` | 🟡 量大机械 |
+| **16c** | ArgumentBuilder.cs | 51 | **脚本** + 手动加 `'F'` 分支 | 🟡 |
+| **16d** | OperatorMethod.cs | 62 | **脚本** `--apply --all-files` | 🟡 |
+| **16e** | 零散 12 文件 | 39 | **手动**（每文件 ≤8 处） | 🟢 |
+| **16f** | AExpression + 桥接 | 5 | **手动** — 评估可移除性 | 🟢 |
 
-**验证**：每批编译通过 + 位标志 switch 残留统计 + IsInteger/IsString 残留统计
+### 4.2 16a 基类变更详解（FunctionMethod.cs）
 
-##### B.3-15 遗漏项目（手册依赖链中规划但未启动）
+| 行号 | 当前 | 目标 |
+|------|------|------|
+| L13 | `public Type ReturnType` | `public EraType ReturnType` |
+| L14 | `protected Type[] argumentTypeArray` | `protected EraType[] argumentTypeArray` |
+| L56 | `_ArgType.Type` → `typeof(long/string)` | `_ArgType.EraType` → `EraType.Integer/String/Float` |
+| L224 | `type == typeof(string)` | `type == EraType.String` |
+| L287 | `argumentTypeArray[i] == typeof(string)` | `argumentTypeArray[i] == EraType.String` |
+| L307-309 | `if (ReturnType == typeof(long)) ... else if (ReturnType == typeof(double))` | `switch (ReturnType) { case EraType.Integer: ... case EraType.Float: ... }` |
 
-> 来源：`REFACTOR_HANDBOOK.md` B.3.4c / B.3.5c / ExecutionContext 方案
-
-| 编号 | 文件 | 任务 | 处数 | 风险 | 状态 |
-|------|------|------|------|------|------|
-| B.3.4c | CharacterData.cs | 角色浮点变量支持：添加 `dataFloat`/`dataFloatArray`/`dataFloatArray2D`/`dataFloatArray3D` 字段 + `__COUNT_CHARACTER_FLOAT__` 常量；LoadFromStreamBinary/SaveToStream 中 Float 段从跳过读取改为实际存储/恢复 | ~46 | 🔴 存档关键路径，无此则角色变量无法声明 Float、存档中角色浮点数据无法保存/恢复 | ⬜ 未开始 |
-| B.3.5c | Instraction.Child.cs | TIMES 指令语义修正：当前 `GetIntValue * double → (long)` 截断，应改为 `switch(GetEraType())` Float 变量走 `GetFloatValue * double → SetValue(double)` | ~1 | 🟡 运算精度 | ⬜ 未开始 |
-| B.3.5d | ExecutionContext.cs | LocalFloats 浮点局部变量接入：添加 `double[] LocalFloats` + `double[] ArgFloats` 字段；构造函数中分配数组；ScopeIn/ScopeOut 传参适配 | ~3 | 🟡 函数作用域，无此则 LOCALF/ARGF 无法工作 | ⬜ 未开始 |
-
-**B.3.4c 是最关键的遗漏**——没有它，角色变量（如 BASE、TALENT、ABL 等）无法声明为 Float 类型，存档中角色浮点数据也无法保存/恢复。
-
-##### B.3-16：FunctionMethod ReturnType 迁移
-
-**P3 优先级 — typeof 批量替换（522 处，不含 🔒 文件）**
-
-**执行策略**：
-1. **16a 手动改**：FunctionMethod.cs 基类（`Type ReturnType` → `EraType ReturnType`、`Type[] argumentTypeArray` → `EraType[] argumentTypeArray`、`_ArgType.Type` 属性、`GetReturnValue()`、`CheckArgumentType()`）
-2. **16b 脚本批量替换**：Creator.Method.cs（353 处 typeof → EraType）
-3. **16c 脚本批量替换**：ArgumentBuilder.cs（41 处 typeof → EraType）+ 手动改动态构建路径（加 `'F'` 分支）
-4. **16d~16f 手动替换**：零散文件（101 处）
-
-**辅助工具**：`tools/b3_16_replace.py`
-- `--dry-run`：预览替换，不修改文件
-- `--checklist`：生成 CSV 对照清单（Batch/File/Line/Pattern/Original/Replaced/Verified）
-- `--apply`：应用替换（自动检测 UTF-8 BOM 编码）
-- `--verify --all-files`：统计 typeof 残留
-- `--diff`：显示 unified diff
-
-| 批次 | 文件 | 变更 | 处数 | 策略 | 风险 |
-|------|------|------|------|------|------|
-| 16a | FunctionMethod.cs | `ReturnType Type→EraType`；`argumentTypeArray Type[]→EraType[]`；`_ArgType.Type` 属性→`EraType`；`GetReturnValue()` typeof→EraType switch；`CheckArgumentType()` Type 比较→EraType 比较 | 5 | **手动** | 🔴 基类变更，影响所有子类 |
-| 16b | Creator.Method.cs | `ReturnType=typeof→EraType`；`argumentTypeArray=typeof→EraType` | 353 | **脚本** `b3_16_replace.py --apply` | 🟡 机械替换，量大 |
-| 16c | ArgumentBuilder.cs | `argumentTypeArray` 赋值 `typeof→EraType` + 动态构建路径加 `'F'` 分支 | 41+1 | **脚本** + **手动** | 🟡 动态构建路径需手动 |
-| 16d | OperatorMethod.cs | `ReturnType=typeof→EraType`（算子子类） | 62 | **脚本** `--apply --all-files` | 🟡 |
-| 16e | 其他文件（12 个） | 零散 `typeof` 替换 | 34 | **手动**（每文件 ≤4 处） | 🟢 |
-| 16f | AExpression.cs + FunctionMethodTerm.cs + UserDefinedMethodTerm.cs | `GetOperandType()` 桥接评估；`ReturnType == typeof` 比较 | 5 | **手动** | 🟢 需评估桥接是否可移除 |
-
-**16a 基类变更详细清单**（FunctionMethod.cs）：
-
-| 行号 | 当前代码 | 目标代码 | 说明 |
-|------|---------|---------|------|
-| L13 | `public Type ReturnType { get; protected set; }` | `public EraType ReturnType { get; protected set; }` | 属性类型变更 |
-| L14 | `protected Type[] argumentTypeArray;` | `protected EraType[] argumentTypeArray;` | 字段类型变更 |
-| L56 | `public Type Type { get { return Int ? typeof(long) : typeof(string); } }` | `public EraType EraType { get { return Int ? EraType.Integer : String ? EraType.String : Float ? EraType.Float : EraType.Integer; } }` | `_ArgType.Type` 属性重构 |
-| L224 | `type == typeof(string) ? ... : ...` | `type == EraType.String ? ... : ...` | CheckArgumentTypeEx 类型比较 |
-| L287 | `argumentTypeArray[i] == typeof(string) ? ... : ...` | `argumentTypeArray[i] == EraType.String ? ... : ...` | CheckArgumentType 类型比较 |
-| L307-309 | `if (ReturnType == typeof(long)) ... else if (ReturnType == typeof(double)) ...` | `switch (ReturnType) { case EraType.Integer: ... case EraType.Float: ... case EraType.String: ... }` | GetReturnValue 重构 |
-
-**16c 动态构建路径**（ArgumentBuilder.cs L163-171）：
+### 4.3 16c 动态构建路径（ArgumentBuilder.cs）
 
 ```csharp
-// 当前代码（二元）
-if (argstr[i] == 'I')
-    types[i] = typeof(long);
-else if (argstr[i] == 'S')
-    types[i] = typeof(string);
-
-// 目标代码（三元 + EraType）
-if (argstr[i] == 'I')
-    types[i] = EraType.Integer;
-else if (argstr[i] == 'S')
-    types[i] = EraType.String;
-else if (argstr[i] == 'F')
-    types[i] = EraType.Float;
+// 当前 → 目标
+if (argstr[i] == 'I') types[i] = typeof(long);  → EraType.Integer;
+else if (argstr[i] == 'S') types[i] = typeof(string); → EraType.String;
+// 新增
+else if (argstr[i] == 'F') types[i] = EraType.Float;
 ```
 
-**16f 桥接评估**（AExpression.cs L17-20）：
+### 4.4 16f 桥接评估（AExpression.GetOperandType()）
 
-```csharp
-// 当前桥接代码
-EraType.Integer => typeof(long),
-EraType.String => typeof(string),
-EraType.Float => typeof(double),
-_ => typeof(void)
+当前 82 处 `GetOperandType()` 调用中 59 处在 Creator.Method.cs 注释，23 处在 11 个文件中。
+16e 完成后评估是否移除桥接。
 
-// 评估：GetOperandType() 的 93 处调用方是否已全部迁移到 GetEraType()
-// 若是，可移除桥接；否则保留（标记 Obsolete）
+### 4.5 工具与验证
+
+```powershell
+python tools/b3_16_replace.py --dry-run --all-files  # 预览
+python tools/b3_16_replace.py --apply                 # 16b+16c
+python tools/b3_16_replace.py --apply --all-files     # 全部
+python tools/b3_16_replace.py --verify --all-files    # 残留统计
 ```
 
-**验证**：编译通过 + `b3_16_replace.py --verify --all-files` typeof 残留统计 + 全量回归
-
-### 3.1 每次子任务完成后的验证流水线
+### 3.1 B.3-16 验证流水线
 
 ```powershell
 # B.3-15 批次验证
@@ -824,7 +656,7 @@ B.3-1a 修改 `AExpression` 构造函数后，以下子类必须同步适配：
 
 ---
 
-## 4. 来源引用索引
+## 5. 来源引用索引
 
 | 内容 | 位置 |
 |------|------|
@@ -846,12 +678,12 @@ B.3-1a 修改 `AExpression` 构造函数后，以下子类必须同步适配：
 
 ---
 
-## 5. m-emuera 迁移上下文
+## 6. m-emuera 迁移上下文
 
 > 本节记录 B.3 各子任务在 emuera-lazyloading 完成后，迁移到 m-emuera 时需要的注意事项。
 > m-emuera 的代码结构、命名空间、项目配置与 emuera-lazyloading 有差异，迁移时需逐项确认。
 
-### 5.1 B.3-15a 迁移记录
+### 6.1 B.3-15a 迁移记录
 
 **已完成文件（emuera-lazyloading → m-emuera 映射）**:
 

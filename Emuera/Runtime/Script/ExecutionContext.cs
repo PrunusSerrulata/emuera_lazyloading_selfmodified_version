@@ -9,8 +9,10 @@ internal sealed class ExecutionContext
     public FunctionLabelLine Function { get; }
     public long[] LocalIntegers { get; }
     public string[] LocalStrings { get; }
+    public double[] LocalFloats { get; }
     public long[] ArgIntegers { get; }
     public string[] ArgStrings { get; }
+    public double[] ArgFloats { get; }
 
     private ExecutionContext _parent;
     private readonly List<ExecutionContext> _children = new();
@@ -59,8 +61,10 @@ internal sealed class ExecutionContext
 
         LocalIntegers = new long[localLen];
         LocalStrings = new string[localsLen];
+        LocalFloats = new double[0];
         ArgIntegers = new long[argLen];
         ArgStrings = new string[argsLen];
+        ArgFloats = new double[0];
     }
 
     public ExecutionContext Parent => _parent;

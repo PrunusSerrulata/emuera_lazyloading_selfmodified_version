@@ -12,16 +12,22 @@ internal sealed class CharacterData : IDisposable
 {
 	readonly long[] dataInteger;
 	readonly string[] dataString;
+	readonly double[] dataFloat;
 	readonly SparseArray<long>[] dataIntegerArray;
 	readonly SparseArray<string>[] dataStringArray;
+	readonly SparseArray<double>[] dataFloatArray;
 	readonly long[][,] dataIntegerArray2D;
 	readonly string[][,] dataStringArray2D;
+	readonly double[][,] dataFloatArray2D;
 	public long[] DataInteger { get { return dataInteger; } }
 	public string[] DataString { get { return dataString; } }
+	public double[] DataFloat { get { return dataFloat; } }
 	public SparseArray<long>[] DataIntegerArray { get { return dataIntegerArray; } }
 	public SparseArray<string>[] DataStringArray { get { return dataStringArray; } }
+	public SparseArray<double>[] DataFloatArray { get { return dataFloatArray; } }
 	public long[][,] DataIntegerArray2D { get { return dataIntegerArray2D; } }
 	public string[][,] DataStringArray2D { get { return dataStringArray2D; } }
+	public double[][,] DataFloatArray2D { get { return dataFloatArray2D; } }
 
 	public List<object> UserDefCVarDataList { get; set; }
 
@@ -29,10 +35,13 @@ internal sealed class CharacterData : IDisposable
 	{
 		dataInteger = new long[(int)VariableCode.__COUNT_CHARACTER_INTEGER__];
 		dataString = new string[(int)VariableCode.__COUNT_CHARACTER_STRING__];
+		dataFloat = new double[(int)VariableCode.__COUNT_CHARACTER_FLOAT__];
 		dataIntegerArray = new SparseArray<long>[(int)VariableCode.__COUNT_CHARACTER_INTEGER_ARRAY__];
 		dataStringArray = new SparseArray<string>[(int)VariableCode.__COUNT_CHARACTER_STRING_ARRAY__];
+		dataFloatArray = new SparseArray<double>[(int)VariableCode.__COUNT_CHARACTER_FLOAT_ARRAY__];
 		dataIntegerArray2D = new long[(int)VariableCode.__COUNT_CHARACTER_INTEGER_ARRAY_2D__][,];
 		dataStringArray2D = [];
+		dataFloatArray2D = new double[(int)VariableCode.__COUNT_CHARACTER_FLOAT_ARRAY_2D__][,];
 		for (int i = 0; i < dataIntegerArray.Length; i++)
 		{
 			dataIntegerArray[i] = new SparseArray<long>();
@@ -42,6 +51,11 @@ internal sealed class CharacterData : IDisposable
 		{
 			dataStringArray[i] = new SparseArray<string>();
 			dataStringArray[i].Length = constant.CharacterStrArrayLength[i];
+		}
+		for (int i = 0; i < dataFloatArray.Length; i++)
+		{
+			dataFloatArray[i] = new SparseArray<double>();
+			dataFloatArray[i].Length = constant.CharacterFloatArrayLength[i];
 		}
 		for (int i = 0; i < dataIntegerArray2D.Length; i++)
 		{
@@ -56,6 +70,13 @@ internal sealed class CharacterData : IDisposable
 			int length = (int)(length64 >> 32);
 			int length2 = (int)(length64 & 0x7FFFFFFF);
 			dataStringArray2D[i] = new string[length, length2];
+		}
+		for (int i = 0; i < dataFloatArray2D.Length; i++)
+		{
+			long length64 = constant.CharacterFloatArray2DLength[i];
+			int length = (int)(length64 >> 32);
+			int length2 = (int)(length64 & 0x7FFFFFFF);
+			dataFloatArray2D[i] = new double[length, length2];
 		}
 		UserDefCVarDataList = [];
 		for (int i = 0; i < varData.UserDefinedCharaVarList.Count; i++)
@@ -74,6 +95,21 @@ internal sealed class CharacterData : IDisposable
 						break;
 					case 3:
 						array = new string[d.Lengths[0], d.Lengths[1], d.Lengths[2]];
+						break;
+				}
+			}
+			else if (d.TypeIsFloat)
+			{
+				switch (d.Dimension)
+				{
+					case 1:
+						array = new SparseArray<double> { Length = d.Lengths[0] };
+						break;
+					case 2:
+						array = new double[d.Lengths[0], d.Lengths[1]];
+						break;
+					case 3:
+						array = new double[d.Lengths[0], d.Lengths[1], d.Lengths[2]];
 						break;
 				}
 			}
@@ -194,6 +230,21 @@ internal sealed class CharacterData : IDisposable
 				case VariableDimension.Array3D: throw new NotImplCodeEE();
 			}
 		}
+		else if (desc.IsFloat)
+		{
+			switch (desc.Dimension)
+			{
+				case VariableDimension.Scalar: ret = []; break;
+				case VariableDimension.Array1D: ret = [constant.CharacterFloatArrayLength[i]]; break;
+				case VariableDimension.Array2D:
+					ret = new int[2];
+					length64 = constant.CharacterFloatArray2DLength[i];
+					ret[0] = (int)(length64 >> 32);
+					ret[1] = (int)(length64 & 0x7FFFFFFF);
+					break;
+				case VariableDimension.Array3D: throw new NotImplCodeEE();
+			}
+		}
 		else if (desc.IsString)
 		{
 			switch (desc.Dimension)
@@ -217,6 +268,8 @@ internal sealed class CharacterData : IDisposable
 			other.dataInteger[i] = dataInteger[i];
 		for (int i = 0; i < dataString.Length; i++)
 			other.dataString[i] = dataString[i];
+		for (int i = 0; i < dataFloat.Length; i++)
+			other.dataFloat[i] = dataFloat[i];
 
 		for (int i = 0; i < dataIntegerArray.Length; i++)
 		{
@@ -229,6 +282,12 @@ internal sealed class CharacterData : IDisposable
 			int len = dataStringArray[i].Length;
 			for (int j = 0; j < len; j++)
 				other.dataStringArray[i][j] = dataStringArray[i][j];
+		}
+		for (int i = 0; i < dataFloatArray.Length; i++)
+		{
+			int len = dataFloatArray[i].Length;
+			for (int j = 0; j < len; j++)
+				other.dataFloatArray[i][j] = dataFloatArray[i][j];
 		}
 
 		for (int i = 0; i < dataIntegerArray2D.Length; i++)
@@ -246,6 +305,14 @@ internal sealed class CharacterData : IDisposable
 			for (int j = 0; j < length1; j++)
 				for (int k = 0; k < length2; k++)
 					other.dataStringArray2D[i][j, k] = dataStringArray2D[i][j, k];
+		}
+		for (int i = 0; i < dataFloatArray2D.Length; i++)
+		{
+			int length1 = dataFloatArray2D[i].GetLength(0);
+			int length2 = dataFloatArray2D[i].GetLength(1);
+			for (int j = 0; j < length1; j++)
+				for (int k = 0; k < length2; k++)
+					other.dataFloatArray2D[i][j, k] = dataFloatArray2D[i][j, k];
 		}
 		if (UserDefCVarDataList.Count > 0)
 		{
@@ -292,14 +359,35 @@ internal sealed class CharacterData : IDisposable
 								((long[,])other.UserDefCVarDataList[var.ArrayIndex])[i, j] = ((long[,])UserDefCVarDataList[var.ArrayIndex])[i, j];
 					}
 				}
+				else if (eraType == EraType.Float)
+				{
+					if (var.IsArray1D)
+					{
+						var src = (SparseArray<double>)UserDefCVarDataList[var.ArrayIndex];
+						var dst = (SparseArray<double>)other.UserDefCVarDataList[var.ArrayIndex];
+						dst.Clear();
+						for (int i = 0; i < src.Length; i++)
+							dst[i] = src[i];
+					}
+					else if (var.IsArray2D)
+					{
+						int length1 = ((double[,])UserDefCVarDataList[var.ArrayIndex]).GetLength(0);
+						int length2 = ((double[,])UserDefCVarDataList[var.ArrayIndex]).GetLength(1);
+						for (int i = 0; i < length1; i++)
+							for (int j = 0; j < length2; j++)
+								((double[,])other.UserDefCVarDataList[var.ArrayIndex])[i, j] = ((double[,])UserDefCVarDataList[var.ArrayIndex])[i, j];
+					}
+				}
 			}
 		}
 	}
 
 	const int strCount = (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING__;
 	const int intCount = (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER__;
+	const int floatCount = (int)VariableCode.__COUNT_SAVE_CHARACTER_FLOAT__;
 	const int intArrayCount = (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER_ARRAY__;
 	const int strArrayCount = (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING_ARRAY__;
+	const int floatArrayCount = (int)VariableCode.__COUNT_SAVE_CHARACTER_FLOAT_ARRAY__;
 
 	public void SaveToStream(EraDataWriter writer)
 	{
@@ -308,10 +396,14 @@ internal sealed class CharacterData : IDisposable
 			writer.Write(dataString[i]);
 		for (int i = 0; i < intCount; i++)
 			writer.Write(dataInteger[i]);
+		for (int i = 0; i < floatCount; i++)
+			writer.Write(dataFloat[i]);
 		for (int i = 0; i < intArrayCount; i++)
 			writer.Write(dataIntegerArray[i].ToArray(dataIntegerArray[i].Length));
 		for (int i = 0; i < strArrayCount; i++)
 			writer.Write(dataStringArray[i].ToArray(dataStringArray[i].Length));
+		for (int i = 0; i < floatArrayCount; i++)
+			writer.Write(dataFloatArray[i].ToArray(dataFloatArray[i].Length));
 	}
 
 	public void LoadFromStream(EraDataReader reader)
@@ -321,6 +413,8 @@ internal sealed class CharacterData : IDisposable
 			dataString[i] = reader.ReadString();
 		for (int i = 0; i < intCount; i++)
 			dataInteger[i] = reader.ReadInt64();
+		for (int i = 0; i < floatCount; i++)
+			dataFloat[i] = reader.ReadDouble();
 		for (int i = 0; i < intArrayCount; i++)
 		{
 			var arr = new long[dataIntegerArray[i].Length];
@@ -332,6 +426,12 @@ internal sealed class CharacterData : IDisposable
 			var arr = new string[dataStringArray[i].Length];
 			reader.ReadStringArray(arr);
 			dataStringArray[i].FromArray(arr);
+		}
+		for (int i = 0; i < floatArrayCount; i++)
+		{
+			var arr = new double[dataFloatArray[i].Length];
+			reader.ReadDoubleArray(arr);
+			dataFloatArray[i].FromArray(arr);
 		}
 	}
 	public void SaveToStreamExtended(EraDataWriter writer)
@@ -348,6 +448,12 @@ internal sealed class CharacterData : IDisposable
 		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Integer, VariableDimension.Scalar);
 		foreach (VariableCode code in codeList)
 			writer.WriteExtended(code.ToString(), dataInteger[(int)VariableCode.__LOWERCASE__ & (int)code]);
+		writer.EmuSeparete();
+
+		//dataFloat
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Float, VariableDimension.Scalar);
+		foreach (VariableCode code in codeList)
+			writer.WriteExtended(code.ToString(), dataFloat[(int)VariableCode.__LOWERCASE__ & (int)code]);
 		writer.EmuSeparete();
 
 		//dataStringArray
@@ -368,6 +474,15 @@ internal sealed class CharacterData : IDisposable
 		}
 		writer.EmuSeparete();
 
+		//dataFloatArray
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Float, VariableDimension.Array1D);
+		foreach (VariableCode code in codeList)
+		{
+			int idx = (int)VariableCode.__LOWERCASE__ & (int)code;
+			writer.WriteExtended(code.ToString(), dataFloatArray[idx].ToArray(dataFloatArray[idx].Length));
+		}
+		writer.EmuSeparete();
+
 		//dataStringArray2D
 		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array2D);
 		foreach (VariableCode code in codeList)
@@ -379,16 +494,25 @@ internal sealed class CharacterData : IDisposable
 		foreach (VariableCode code in codeList)
 			writer.WriteExtended(code.ToString(), dataIntegerArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
 		writer.EmuSeparete();
+
+		//dataFloatArray2D
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Float, VariableDimension.Array2D);
+		foreach (VariableCode code in codeList)
+			writer.WriteExtended(code.ToString(), dataFloatArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
+		writer.EmuSeparete();
 	}
 
 	public void LoadFromStreamExtended(EraDataReader reader)
 	{
 		Dictionary<string, string> strDic = reader.ReadStringExtended();
 		Dictionary<string, long> intDic = reader.ReadInt64Extended();
+		Dictionary<string, double> floatDic = reader.ReadDoubleExtended();
 		Dictionary<string, List<string>> strListDic = reader.ReadStringArrayExtended();
 		Dictionary<string, List<long>> intListDic = reader.ReadInt64ArrayExtended();
+		Dictionary<string, List<double>> floatListDic = reader.ReadDoubleArrayExtended();
 		Dictionary<string, List<string[]>> str2DListDic = reader.ReadStringArray2DExtended();
 		Dictionary<string, List<long[]>> int2DListDic = reader.ReadInt64Array2DExtended();
+		Dictionary<string, List<double[]>> float2DListDic = reader.ReadDoubleArray2DExtended();
 
 		List<VariableCode> codeList;
 
@@ -402,6 +526,11 @@ internal sealed class CharacterData : IDisposable
 			if (intDic.ContainsKey(code.ToString()))
 				dataInteger[(int)VariableCode.__LOWERCASE__ & (int)code] = intDic[code.ToString()];
 
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Float, VariableDimension.Scalar);
+		foreach (VariableCode code in codeList)
+			if (floatDic.ContainsKey(code.ToString()))
+				dataFloat[(int)VariableCode.__LOWERCASE__ & (int)code] = floatDic[code.ToString()];
+
 
 		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array1D);
 		foreach (VariableCode code in codeList)
@@ -412,6 +541,11 @@ internal sealed class CharacterData : IDisposable
 		foreach (VariableCode code in codeList)
 			if (intListDic.ContainsKey(code.ToString()))
 				copyListToSparseArray(intListDic[code.ToString()], dataIntegerArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
+
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Float, VariableDimension.Array1D);
+		foreach (VariableCode code in codeList)
+			if (floatListDic.ContainsKey(code.ToString()))
+				copyListToSparseArray(floatListDic[code.ToString()], dataFloatArray[(int)VariableCode.__LOWERCASE__ & (int)code]);
 
 		//dataStringArray2D
 		codeList = VariableIdentifier.GetExtSaveList(VariableKind.String, VariableDimension.Array2D);
@@ -424,6 +558,12 @@ internal sealed class CharacterData : IDisposable
 		foreach (VariableCode code in codeList)
 			if (int2DListDic.ContainsKey(code.ToString()))
 				copyListToArray2D(int2DListDic[code.ToString()], dataIntegerArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
+
+		//dataFloatArray2D
+		codeList = VariableIdentifier.GetExtSaveList(VariableKind.Float, VariableDimension.Array2D);
+		foreach (VariableCode code in codeList)
+			if (float2DListDic.ContainsKey(code.ToString()))
+				copyListToArray2D(float2DListDic[code.ToString()], dataFloatArray2D[(int)VariableCode.__LOWERCASE__ & (int)code]);
 	}
 
 	public void LoadFromStreamExtended_Old1802(EraDataReader reader)
@@ -499,6 +639,21 @@ internal sealed class CharacterData : IDisposable
 						break;
 				}
 			}
+			else if (desc.IsFloat)
+			{
+				switch (desc.Dimension)
+				{
+					case VariableDimension.Scalar:
+						writer.WriteWithKey(code.ToString(), dataFloat[CodeInt]);
+						break;
+					case VariableDimension.Array1D:
+						writer.WriteWithKey(code.ToString(), dataFloatArray[CodeInt].ToArray(dataFloatArray[CodeInt].Length));
+						break;
+					case VariableDimension.Array2D:
+						writer.WriteWithKey(code.ToString(), dataFloatArray2D[CodeInt]);
+						break;
+				}
+			}
 		}
 
 		//1813追加
@@ -515,6 +670,8 @@ internal sealed class CharacterData : IDisposable
 					writer.WriteWithKey(var.Name, sparseLong.ToArray(sparseLong.Length));
 				else if (data is SparseArray<string> sparseStr)
 					writer.WriteWithKey(var.Name, sparseStr.ToArray(sparseStr.Length));
+				else if (data is SparseArray<double> sparseFloat)
+					writer.WriteWithKey(var.Name, sparseFloat.ToArray(sparseFloat.Length));
 				else
 					writer.WriteWithKey(var.Name, data);
 			}
@@ -643,24 +800,100 @@ internal sealed class CharacterData : IDisposable
 				//        reader.ReadStrArray3D(dataStringArray3D[codeInt], true);
 				//    break;
 				case EraSaveDataType.Float:
-					reader.ReadDouble();
+					if (vToken == null || vToken.GetEraType() != EraType.Float || vToken.Dimension != 0)
+						reader.ReadDouble();
+					else
+						dataFloat[codeInt] = reader.ReadDouble();
 					break;
 				case EraSaveDataType.FloatArray:
+					if (userDefineData && array != null)
+					{
+						var sparseArr = array as SparseArray<double>;
+						if (sparseArr != null)
+						{
+							int saveLen = reader.ReadInt32();
+							var tmpArr = new double[sparseArr.Length];
+							int copyLen = Math.Min(saveLen, sparseArr.Length);
+							for (int i = 0; i < copyLen; i++)
+								tmpArr[i] = reader.ReadDouble();
+							for (int i = copyLen; i < saveLen; i++)
+								reader.ReadDouble();
+							sparseArr.FromArray(tmpArr);
+						}
+						else
+						{
+							int saveLen = reader.ReadInt32();
+							for (int i = 0; i < saveLen; i++) reader.ReadDouble();
+						}
+					}
+					else if (vToken == null || vToken.GetEraType() != EraType.Float || vToken.Dimension != 1)
 					{
 						int len = reader.ReadInt32();
 						for (int i = 0; i < len; i++) reader.ReadDouble();
+					}
+					else
+					{
+						int saveLen = reader.ReadInt32();
+						var tmpArr = new double[dataFloatArray[codeInt].Length];
+						int copyLen = Math.Min(saveLen, tmpArr.Length);
+						for (int i = 0; i < copyLen; i++)
+							tmpArr[i] = reader.ReadDouble();
+						for (int i = copyLen; i < saveLen; i++)
+							reader.ReadDouble();
+						dataFloatArray[codeInt].FromArray(tmpArr);
 					}
 					break;
 				case EraSaveDataType.FloatArray2D:
 					{
 						int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32();
-						for (int i = 0; i < d0 * d1; i++) reader.ReadDouble();
+						int total = d0 * d1;
+						if (userDefineData && array is double[,] arr2D)
+						{
+							int d0Copy = Math.Min(d0, arr2D.GetLength(0));
+							int d1Copy = Math.Min(d1, arr2D.GetLength(1));
+							for (int i = 0; i < d0Copy; i++)
+								for (int j = 0; j < d1Copy; j++)
+									arr2D[i, j] = reader.ReadDouble();
+							for (int k = d0Copy * d1Copy; k < total; k++)
+								reader.ReadDouble();
+						}
+						else if (vToken != null && vToken.GetEraType() == EraType.Float && vToken.Dimension == 2)
+						{
+							var target = dataFloatArray2D[codeInt];
+							int d0Copy = Math.Min(d0, target.GetLength(0));
+							int d1Copy = Math.Min(d1, target.GetLength(1));
+							for (int i = 0; i < d0Copy; i++)
+								for (int j = 0; j < d1Copy; j++)
+									target[i, j] = reader.ReadDouble();
+							for (int k = d0Copy * d1Copy; k < total; k++)
+								reader.ReadDouble();
+						}
+						else
+						{
+							for (int i = 0; i < total; i++) reader.ReadDouble();
+						}
 					}
 					break;
 				case EraSaveDataType.FloatArray3D:
 					{
 						int d0 = reader.ReadInt32(); int d1 = reader.ReadInt32(); int d2 = reader.ReadInt32();
-						for (int i = 0; i < d0 * d1 * d2; i++) reader.ReadDouble();
+						int total = d0 * d1 * d2;
+						if (userDefineData && array is double[,,] arr3D)
+						{
+							int d0Copy = Math.Min(d0, arr3D.GetLength(0));
+							int d1Copy = Math.Min(d1, arr3D.GetLength(1));
+							int d2Copy = Math.Min(d2, arr3D.GetLength(2));
+							for (int i = 0; i < d0Copy; i++)
+								for (int j = 0; j < d1Copy; j++)
+									for (int k = 0; k < d2Copy; k++)
+										arr3D[i, j, k] = reader.ReadDouble();
+							for (int k = d0Copy * d1Copy * d2Copy; k < total; k++)
+								reader.ReadDouble();
+						}
+						else
+						{
+							for (int i = 0; i < total; i++) reader.ReadDouble();
+						}
 					}
 					break;
 				default:
@@ -709,6 +942,11 @@ internal sealed class CharacterData : IDisposable
 		dataString[varInt] = value;
 	}
 
+	public void setValueAll(int varInt, double value)
+	{
+		dataFloat[varInt] = value;
+	}
+
 	public void setValueAll1D(int varInt, long value, int start, int end)
 	{
 		var array = dataIntegerArray[varInt];
@@ -719,6 +957,13 @@ internal sealed class CharacterData : IDisposable
 	public void setValueAll1D(int varInt, string value, int start, int end)
 	{
 		var array = dataStringArray[varInt];
+		for (int i = start; i < end; i++)
+			array[i] = value;
+	}
+
+	public void setValueAll1D(int varInt, double value, int start, int end)
+	{
+		var array = dataFloatArray[varInt];
 		for (int i = start; i < end; i++)
 			array[i] = value;
 	}
@@ -743,6 +988,16 @@ internal sealed class CharacterData : IDisposable
 				array[i, j] = value;
 	}
 
+	public void setValueAll2D(int varInt, double value)
+	{
+		double[,] array = dataFloatArray2D[varInt];
+		int a1 = array.GetLength(0);
+		int a2 = array.GetLength(1);
+		for (int i = 0; i < a1; i++)
+			for (int j = 0; j < a2; j++)
+				array[i, j] = value;
+	}
+
 	#region IDisposable メンバ
 
 	public void Dispose()
@@ -751,6 +1006,8 @@ internal sealed class CharacterData : IDisposable
 			dataIntegerArray[i].Clear();
 		for (int i = 0; i < dataStringArray.Length; i++)
 			dataStringArray[i].Clear();
+		for (int i = 0; i < dataFloatArray.Length; i++)
+			dataFloatArray[i].Clear();
 		for (int i = 0; i < dataIntegerArray2D.Length; i++)
 			dataIntegerArray2D[i] = null;
 	}

@@ -1435,7 +1435,12 @@ internal sealed partial class FunctionIdentifier
 		{
 			SpTimesArgument timesArg = (SpTimesArgument)func.Argument;
 			VariableTerm var = timesArg.VariableDest;
-			if (Config.TimesNotRigorousCalculation)
+			if (var.GetEraType() == EraType.Float)
+			{
+				double d = var.GetFloatValue(exm) * timesArg.DoubleValue;
+				var.SetValue(d, exm);
+			}
+			else if (Config.TimesNotRigorousCalculation)
 			{
 				double d = var.GetIntValue(exm) * timesArg.DoubleValue;
 				try
