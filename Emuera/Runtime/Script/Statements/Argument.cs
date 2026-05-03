@@ -98,6 +98,7 @@ internal abstract class Argument
 	public bool IsConst;
 	public string ConstStr;
 	public long ConstInt;
+	public double ConstFloat;
 }
 
 /// <summary>
@@ -628,10 +629,17 @@ internal sealed class SpSetArrayArgument : Argument
 		TermList = termList;
 		ConstStrList = constList;
 	}
+	public SpSetArrayArgument(VariableTerm var, List<AExpression> termList, double[] constList)
+	{
+		VariableDest = var;
+		TermList = termList;
+		ConstFloatList = constList;
+	}
 	readonly public VariableTerm VariableDest;
 	readonly public List<AExpression> TermList;
 	readonly public long[] ConstIntList;
 	readonly public string[] ConstStrList;
+	readonly public double[] ConstFloatList;
 }
 #endregion
 

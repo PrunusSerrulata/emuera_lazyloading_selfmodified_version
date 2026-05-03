@@ -71,4 +71,16 @@ internal sealed class CaseExpression
 		}
 		return LeftTerm.GetStrValue(exm) == Is;
 	}
+
+	public bool GetBool(double Is, ExpressionMediator exm)
+	{
+		if (CaseType == CaseExpressionType.To)
+			return LeftTerm.GetFloatValue(exm) <= Is && Is <= RightTerm.GetFloatValue(exm);
+		if (CaseType == CaseExpressionType.Is)
+		{
+			AExpression term = OperatorMethodManager.ReduceBinaryTerm(Operator, new SingleFloatTerm(Is), LeftTerm);
+			return term.GetIntValue(exm) != 0;
+		}
+		return LeftTerm.GetFloatValue(exm) == Is;
+	}
 }

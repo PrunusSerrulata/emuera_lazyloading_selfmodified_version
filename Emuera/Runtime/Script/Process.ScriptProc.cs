@@ -632,15 +632,20 @@ internal sealed partial class Process
 					}
 					else
 						num = -1;
-					if (dest.Identifier.IsInteger)
+					if (dest.Identifier.IsFloat)
 					{
-						long def = arrayArg.Num2.GetIntValue(exm);
+						double def = arrayArg.Num2.GetFloatValue(exm);
 						VariableEvaluator.ShiftArray(dest, shift, def, start, num);
 					}
-					else
+					else if (dest.Identifier.IsString)
 					{
 						string defs = arrayArg.Num2.GetStrValue(exm);
 						VariableEvaluator.ShiftArray(dest, shift, defs, start, num);
+					}
+					else
+					{
+						long def = arrayArg.Num2.GetIntValue(exm);
+						VariableEvaluator.ShiftArray(dest, shift, def, start, num);
 					}
 					break;
 				}
@@ -711,18 +716,18 @@ internal sealed partial class Process
 							throw new CodeEE(string.Format(trerror.ArraycopyArgIsConst.Text, "2", names[1]));
 						if ((vars[0].IsArray1D && !vars[1].IsArray1D) || (vars[0].IsArray2D && !vars[1].IsArray2D) || (vars[0].IsArray3D && !vars[1].IsArray3D))
 							throw new CodeEE(trerror.DifferentArraycopyArgsDim.Text);
-						if ((vars[0].IsInteger && vars[1].IsString) || (vars[0].IsString && vars[1].IsInteger))
+						if (vars[0].GetEraType() != vars[1].GetEraType())
 							throw new CodeEE(trerror.DifferentArraycopyArgsType.Text);
-					}
-					else
-					{
-						vars[0] = GlobalStatic.IdentifierDictionary.GetVariableToken(((SingleStrTerm)varName1).Str, null, true);
-						vars[1] = GlobalStatic.IdentifierDictionary.GetVariableToken(((SingleStrTerm)varName2).Str, null, true);
-						if ((vars[0].IsInteger && vars[1].IsString) || (vars[0].IsString && vars[1].IsInteger))
-							throw new CodeEE(trerror.DifferentArraycopyArgsType.Text);
-					}
-					VariableEvaluator.CopyArray(vars[0], vars[1]);
 				}
+				else
+				{
+					vars[0] = GlobalStatic.IdentifierDictionary.GetVariableToken(((SingleStrTerm)varName1).Str, null, true);
+					vars[1] = GlobalStatic.IdentifierDictionary.GetVariableToken(((SingleStrTerm)varName2).Str, null, true);
+					if (vars[0].GetEraType() != vars[1].GetEraType())
+						throw new CodeEE(trerror.DifferentArraycopyArgsType.Text);
+				}
+				VariableEvaluator.CopyArray(vars[0], vars[1]);
+			}
 				break;
 			case FunctionCode.ENCODETOUNI:
 				{

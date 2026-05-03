@@ -124,6 +124,8 @@ internal abstract class VariableToken
 	{ throw new CodeEE(string.Format(trerror.CallNonFloatArrayAsFloat.Text, varName)); }
 	public virtual long PlusValue(long value, long[] arguments)
 	{ throw new CodeEE(string.Format(trerror.CallStrAsInt.Text, varName)); }
+	public virtual double PlusValue(double value, long[] arguments)
+	{ throw new CodeEE(string.Format(trerror.CallNonFloatArrayAsFloat.Text, varName)); }
 	public virtual int GetLength()
 	{ throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName)); }
 	public virtual int GetLength(int dimension)
@@ -2538,6 +2540,13 @@ internal sealed partial class VariableData
 			return array;
 		}
 
+		public override double PlusValue(double value, long[] arguments)
+		{
+			IfNullInitArray();
+			array[arguments[0]] += value;
+			return array[arguments[0]];
+		}
+
 		public override void ScopeIn() { }
 		public override void ScopeOut() { }
 	}
@@ -2592,6 +2601,11 @@ internal sealed partial class VariableData
 				array[i] = value;
 		}
 		public override object GetArray() { return array; }
+		public override double PlusValue(double value, long[] arguments)
+		{
+			array[arguments[0]] += value;
+			return array[arguments[0]];
+		}
 		public override void ScopeIn()
 		{
 			if (array != null)

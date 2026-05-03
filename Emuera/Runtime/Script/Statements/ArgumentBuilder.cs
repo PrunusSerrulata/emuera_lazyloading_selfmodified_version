@@ -585,7 +585,7 @@ internal static partial class ArgumentParser
 			{ warn(trerror.WrongFormat.Text, line, 2, false); return null; }
 			if (!(term.Restructure(exm) is VariableTerm varTerm))
 			{ warn(string.Format(trerror.ArgIsNotVariable.Text, "1"), line, 2, false); return null; }
-			else if (varTerm.IsString)
+			else if (varTerm.GetEraType() == EraType.String)
 			{ warn(string.Format(trerror.ArgIsStrVar.Text, "1"), line, 2, false); return null; }
 			else if (varTerm.Identifier.IsConst)
 			{ warn(string.Format(trerror.ArgIsConst.Text, "1"), line, 2, false); return null; }
@@ -857,7 +857,7 @@ internal static partial class ArgumentParser
 					term3 = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.Comma);
 					if (term3 == null)
 					{ warn(string.Format(trerror.CanNotRecognizeArg.Text, "3"), line, 2, false); return null; }
-					if (!term3.IsInteger)
+					if (term3.GetEraType() != EraType.Integer)
 					{ warn(string.Format(trerror.ArgIsNotNumber.Text, "3"), line, 2, false); return null; }
 					wc.ShiftNext();
 					if (!wc.EOL)
@@ -865,7 +865,7 @@ internal static partial class ArgumentParser
 						term4 = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.Comma);
 						if (term4 == null)
 						{ warn(string.Format(trerror.CanNotRecognizeArg.Text, "4"), line, 2, false); return null; }
-						if (!term4.IsInteger)
+						if (term4.GetEraType() != EraType.Integer)
 						{ warn(string.Format(trerror.ArgIsNotNumber.Text, "4"), line, 2, false); return null; }
 						wc.ShiftNext();
 						if (!wc.EOL)
@@ -1066,137 +1066,52 @@ internal static partial class ArgumentParser
 				st = new CharStream("");
 			OperatorCode op = line.AssignOperator;
 			AExpression src;
-			if (varTerm.IsInteger)
+			switch (varTerm.GetEraType())
 			{
-				if (op == OperatorCode.AssignmentStr)
+			case EraType.Integer:
+			case EraType.Float:
 				{
-					assignwarn(string.Format(trerror.InvalidOpWithInt.Text, OperatorManager.ToOperatorString(op)), line, 2, false);
-					return null;
-				}
-				if ((op == OperatorCode.Increment) || (op == OperatorCode.Decrement))
-				{
-					LexicalAnalyzer.SkipWhiteSpace(st);
-					if (!st.EOS)
+					if (op == OperatorCode.AssignmentStr)
 					{
-						if (op == OperatorCode.Increment)
-						{
-							assignwarn(trerror.InvalidOpWithIncrement.Text, line, 2, false);
-							return null;
-						}
-						else
-						{
-							assignwarn(trerror.InvalidOpWithDecrement.Text, line, 2, false);
-							return null;
-						}
-					}
-					ret = new SpSetArgument(varTerm, null)
-					{
-						IsConst = true,
-						ConstInt = op == OperatorCode.Increment ? 1 : -1,
-						AddConst = true
-					};
-					return ret;
-				}
-				WordCollection srcWc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
-				var srcTerms = ExpressionParser.ReduceArguments(srcWc, ArgsEndWith.EoL, false);
-
-				if ((srcTerms.Count == 0) || (srcTerms[0] == null))
-				{
-					assignwarn(trerror.CanNotReadRight.Text, line, 2, false);
-					return null;
-				}
-				if (srcTerms.Count != 1)
-				{
-					if (op != OperatorCode.Assignment)
-					{
-						assignwarn(trerror.CanNotContainMultipleValue.Text, line, 2, false);
+						assignwarn(string.Format(trerror.InvalidOpWithInt.Text, OperatorManager.ToOperatorString(op)), line, 2, false);
 						return null;
 					}
-					bool allConst = true;
-					long[] constValues = new long[srcTerms.Count];
-					for (int i = 0; i < srcTerms.Count; i++)
+					if ((op == OperatorCode.Increment) || (op == OperatorCode.Decrement))
 					{
-						if (srcTerms[i] == null)
+						LexicalAnalyzer.SkipWhiteSpace(st);
+						if (!st.EOS)
 						{
-							assignwarn(trerror.CanNotOmitRight.Text, line, 2, false);
-							return null;
+							if (op == OperatorCode.Increment)
+							{
+								assignwarn(trerror.InvalidOpWithIncrement.Text, line, 2, false);
+								return null;
+							}
+							else
+							{
+								assignwarn(trerror.InvalidOpWithDecrement.Text, line, 2, false);
+								return null;
+							}
 						}
-						if (!srcTerms[i].IsInteger)
+						if (varTerm.GetEraType() == EraType.Float)
 						{
-							assignwarn(trerror.CanNotAssignStrToInt.Text, line, 2, false);
-							return null;
+							ret = new SpSetArgument(varTerm, null)
+							{
+								IsConst = true,
+								ConstFloat = op == OperatorCode.Increment ? 1.0 : -1.0,
+								AddConst = true
+							};
 						}
-						srcTerms[i] = srcTerms[i].Restructure(exm);
-						if (allConst && (srcTerms[i] is SingleTerm))
-							constValues[i] = srcTerms[i].GetIntValue(null);
 						else
-							allConst = false;
-					}
-					var arrayarg = new SpSetArrayArgument(varTerm, srcTerms, constValues)
-					{
-						IsConst = allConst
-					};
-					return arrayarg;
-				}
-				if (!srcTerms[0].IsInteger)
-				{
-					assignwarn(trerror.CanNotAssignStrToInt.Text, line, 2, false);
-					return null;
-				}
-				src = srcTerms[0].Restructure(exm);
-				if (op == OperatorCode.Assignment)
-				{
-					ret = new SpSetArgument(varTerm, src);
-					if (src is SingleTerm)
-					{
-						ret.IsConst = true;
-						ret.AddConst = false;
-						ret.ConstInt = src.GetIntValue(null);
-					}
-					return ret;
-				}
-				if ((op == OperatorCode.Plus) || (op == OperatorCode.Minus))
-				{
-					if (src is SingleTerm)
-					{
-						ret = new SpSetArgument(varTerm, null)
 						{
-							IsConst = true,
-							ConstInt = op == OperatorCode.Plus ? src.GetIntValue(null) : -src.GetIntValue(null),
-							AddConst = true
-						};
+							ret = new SpSetArgument(varTerm, null)
+							{
+								IsConst = true,
+								ConstInt = op == OperatorCode.Increment ? 1 : -1,
+								AddConst = true
+							};
+						}
 						return ret;
 					}
-				}
-				src = OperatorMethodManager.ReduceBinaryTerm(op, varTerm, src);
-				return new SpSetArgument(varTerm, src);
-
-			}
-			else
-			{
-				if (op == OperatorCode.Assignment)
-				{
-					if (Config.SystemIgnoreStringSet)
-					{
-						assignwarn(trerror.StrAssignIsPrihibited.Text, line, 2, false);
-						return null;
-					}
-					LexicalAnalyzer.SkipHalfSpace(st);//文字列の代入なら半角スペースだけを読み飛ばす
-													  //eramakerは代入文では妙なTrim()をする。半端にしか再現できないがとりあえずtrim = true
-					StrFormWord sfwt = LexicalAnalyzer.AnalyseFormattedString(st, FormStrEndWith.EoL, true);
-					AExpression term = ExpressionParser.ToStrFormTerm(sfwt);
-					src = term.Restructure(exm);
-					ret = new SpSetArgument(varTerm, src);
-					if (src is SingleTerm)
-					{
-						ret.IsConst = true;
-						ret.AddConst = false;
-						ret.ConstStr = src.GetStrValue(null);
-					}
-					return ret;
-				}
-				else if ((op == OperatorCode.Mult) || (op == OperatorCode.Plus) || (op == OperatorCode.AssignmentStr))
-				{
 					WordCollection srcWc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
 					var srcTerms = ExpressionParser.ReduceArguments(srcWc, ArgsEndWith.EoL, false);
 
@@ -1205,63 +1120,207 @@ internal static partial class ArgumentParser
 						assignwarn(trerror.CanNotReadRight.Text, line, 2, false);
 						return null;
 					}
-					if (op == OperatorCode.AssignmentStr)
+					if (srcTerms.Count != 1)
 					{
-						if (srcTerms.Count == 1)
+						if (op != OperatorCode.Assignment)
 						{
-							if (srcTerms[0].IsInteger)
+							assignwarn(trerror.CanNotContainMultipleValue.Text, line, 2, false);
+							return null;
+						}
+						bool allConst = true;
+						if (varTerm.GetEraType() == EraType.Float)
+						{
+							double[] constValues = new double[srcTerms.Count];
+							for (int i = 0; i < srcTerms.Count; i++)
 							{
-								assignwarn(trerror.CanNotAssignIntToStr.Text, line, 2, false);
-								return null;
+								if (srcTerms[i] == null)
+								{
+									assignwarn(trerror.CanNotOmitRight.Text, line, 2, false);
+									return null;
+								}
+								if (srcTerms[i].GetEraType() == EraType.String)
+								{
+									assignwarn(trerror.CanNotAssignStrToInt.Text, line, 2, false);
+									return null;
+								}
+								srcTerms[i] = srcTerms[i].Restructure(exm);
+								if (allConst && (srcTerms[i] is SingleTerm))
+									constValues[i] = srcTerms[i].GetFloatValue(null);
+								else
+									allConst = false;
 							}
-							src = srcTerms[0].Restructure(exm);
-							ret = new SpSetArgument(varTerm, src);
-							if (src is SingleTerm)
+							var arrayarg = new SpSetArrayArgument(varTerm, srcTerms, constValues)
 							{
-								ret.IsConst = true;
-								ret.AddConst = false;
-								ret.ConstStr = src.GetStrValue(null);
+								IsConst = allConst
+							};
+							return arrayarg;
+						}
+						else
+						{
+							long[] constValues = new long[srcTerms.Count];
+							for (int i = 0; i < srcTerms.Count; i++)
+							{
+								if (srcTerms[i] == null)
+								{
+									assignwarn(trerror.CanNotOmitRight.Text, line, 2, false);
+									return null;
+								}
+								if (srcTerms[i].GetEraType() == EraType.String)
+								{
+									assignwarn(trerror.CanNotAssignStrToInt.Text, line, 2, false);
+									return null;
+								}
+								srcTerms[i] = srcTerms[i].Restructure(exm);
+								if (allConst && (srcTerms[i] is SingleTerm))
+									constValues[i] = srcTerms[i].GetIntValue(null);
+								else
+									allConst = false;
+							}
+							var arrayarg = new SpSetArrayArgument(varTerm, srcTerms, constValues)
+							{
+								IsConst = allConst
+							};
+							return arrayarg;
+						}
+					}
+					if (srcTerms[0].GetEraType() == EraType.String)
+					{
+						assignwarn(trerror.CanNotAssignStrToInt.Text, line, 2, false);
+						return null;
+					}
+					src = srcTerms[0].Restructure(exm);
+					if (op == OperatorCode.Assignment)
+					{
+						ret = new SpSetArgument(varTerm, src);
+						if (src is SingleTerm)
+						{
+							ret.IsConst = true;
+							ret.AddConst = false;
+							if (varTerm.GetEraType() == EraType.Float)
+								ret.ConstFloat = src.GetFloatValue(null);
+							else
+								ret.ConstInt = src.GetIntValue(null);
+						}
+						return ret;
+					}
+					if ((op == OperatorCode.Plus) || (op == OperatorCode.Minus))
+					{
+						if (src is SingleTerm)
+						{
+							if (varTerm.GetEraType() == EraType.Float)
+							{
+								ret = new SpSetArgument(varTerm, null)
+								{
+									IsConst = true,
+									ConstFloat = op == OperatorCode.Plus ? src.GetFloatValue(null) : -src.GetFloatValue(null),
+									AddConst = true
+								};
+							}
+							else
+							{
+								ret = new SpSetArgument(varTerm, null)
+								{
+									IsConst = true,
+									ConstInt = op == OperatorCode.Plus ? src.GetIntValue(null) : -src.GetIntValue(null),
+									AddConst = true
+								};
 							}
 							return ret;
 						}
-						bool allConst = true;
-						string[] constValues = new string[srcTerms.Count];
-						for (int i = 0; i < srcTerms.Count; i++)
-						{
-							if (srcTerms[i] == null)
-							{
-								assignwarn(trerror.CanNotOmitRight.Text, line, 2, false);
-								return null;
-							}
-							if (srcTerms[i].IsInteger)
-							{
-								assignwarn(trerror.CanNotAssignIntToStr.Text, line, 2, false);
-								return null;
-							}
-							srcTerms[i] = srcTerms[i].Restructure(exm);
-							if (allConst && (srcTerms[i] is SingleTerm))
-								constValues[i] = srcTerms[i].GetStrValue(null);
-							else
-								allConst = false;
-						}
-						var arrayarg = new SpSetArrayArgument(varTerm, srcTerms, constValues)
-						{
-							IsConst = allConst
-						};
-						return arrayarg;
 					}
-					if (srcTerms.Count != 1)
-					{
-						assignwarn(trerror.RightHasExtraComma.Text, line, 2, false);
-						return null;
-					}
-
-					src = srcTerms[0].Restructure(exm);
 					src = OperatorMethodManager.ReduceBinaryTerm(op, varTerm, src);
 					return new SpSetArgument(varTerm, src);
 				}
-				assignwarn(trerror.InvalidAssignmentOp.Text, line, 2, false);
-				return null;
+			default:
+				{
+					if (op == OperatorCode.Assignment)
+					{
+						if (Config.SystemIgnoreStringSet)
+						{
+							assignwarn(trerror.StrAssignIsPrihibited.Text, line, 2, false);
+							return null;
+						}
+						LexicalAnalyzer.SkipHalfSpace(st);
+						StrFormWord sfwt = LexicalAnalyzer.AnalyseFormattedString(st, FormStrEndWith.EoL, true);
+						AExpression term = ExpressionParser.ToStrFormTerm(sfwt);
+						src = term.Restructure(exm);
+						ret = new SpSetArgument(varTerm, src);
+						if (src is SingleTerm)
+						{
+							ret.IsConst = true;
+							ret.AddConst = false;
+							ret.ConstStr = src.GetStrValue(null);
+						}
+						return ret;
+					}
+					else if ((op == OperatorCode.Mult) || (op == OperatorCode.Plus) || (op == OperatorCode.AssignmentStr))
+					{
+						WordCollection srcWc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+						var srcTerms = ExpressionParser.ReduceArguments(srcWc, ArgsEndWith.EoL, false);
+
+						if ((srcTerms.Count == 0) || (srcTerms[0] == null))
+						{
+							assignwarn(trerror.CanNotReadRight.Text, line, 2, false);
+							return null;
+						}
+						if (op == OperatorCode.AssignmentStr)
+						{
+							if (srcTerms.Count == 1)
+							{
+								if (srcTerms[0].GetEraType() != EraType.String)
+								{
+									assignwarn(trerror.CanNotAssignIntToStr.Text, line, 2, false);
+									return null;
+								}
+								src = srcTerms[0].Restructure(exm);
+								ret = new SpSetArgument(varTerm, src);
+								if (src is SingleTerm)
+								{
+									ret.IsConst = true;
+									ret.AddConst = false;
+									ret.ConstStr = src.GetStrValue(null);
+								}
+								return ret;
+							}
+							bool allConst = true;
+							string[] constValues = new string[srcTerms.Count];
+							for (int i = 0; i < srcTerms.Count; i++)
+							{
+								if (srcTerms[i] == null)
+								{
+									assignwarn(trerror.CanNotOmitRight.Text, line, 2, false);
+									return null;
+								}
+								if (srcTerms[i].GetEraType() != EraType.String)
+								{
+									assignwarn(trerror.CanNotAssignIntToStr.Text, line, 2, false);
+									return null;
+								}
+								srcTerms[i] = srcTerms[i].Restructure(exm);
+								if (allConst && (srcTerms[i] is SingleTerm))
+									constValues[i] = srcTerms[i].GetStrValue(null);
+								else
+									allConst = false;
+							}
+							var arrayarg = new SpSetArrayArgument(varTerm, srcTerms, constValues)
+							{
+								IsConst = allConst
+							};
+							return arrayarg;
+						}
+						if (srcTerms.Count != 1)
+						{
+							assignwarn(trerror.RightHasExtraComma.Text, line, 2, false);
+							return null;
+						}
+
+						src = srcTerms[0].Restructure(exm);
+						src = OperatorMethodManager.ReduceBinaryTerm(op, varTerm, src);
+						return new SpSetArgument(varTerm, src);
+					}
+					assignwarn(trerror.InvalidAssignmentOp.Text, line, 2, false);
+					return null;
+				}
 			}
 		}
 	}
@@ -1347,7 +1406,7 @@ internal static partial class ArgumentParser
 			}
 			if (terms.Count > 0)
 			{
-				if (terms[0] == null || !terms[0].IsInteger)
+				if (terms[0] == null || terms[0].GetEraType() != EraType.Integer)
 				{
 					warn(trerror.IgnoreArgBecauseNotInt.Text, line, 1, false);
 					ret = new SpInputsArgument(term, null, null);
@@ -1714,7 +1773,7 @@ internal static partial class ArgumentParser
 				step = terms[3];
 			else
 				step = new SingleLongTerm(1);
-			if (!start.IsInteger)
+			if (start.GetEraType() != EraType.Integer)
 			{ warn(string.Format(trerror.DifferentArgType.Text, "2"), line, 2, false); return null; }
 			return new SpForNextArgment(varTerm, start, end, step);
 		}
@@ -1875,10 +1934,12 @@ internal static partial class ArgumentParser
 				term = terms[1];
 			else
 			{
-				if (varTerm.IsString)
-					term = new SingleStrTerm("");
-				else
-					term = new SingleLongTerm(0);
+				switch (varTerm.GetEraType())
+				{
+				case EraType.String: term = new SingleStrTerm(""); break;
+				case EraType.Float: term = new SingleFloatTerm(0.0); break;
+				default: term = new SingleLongTerm(0); break;
+				}
 			}
 			if (varTerm is VariableNoArgTerm)
 			{
@@ -1934,10 +1995,12 @@ internal static partial class ArgumentParser
 				term = terms[2];
 			else
 			{
-				if (varTerm.IsString)
-					term = new SingleStrTerm("");
-				else
-					term = new SingleLongTerm(0);
+				switch (varTerm.GetEraType())
+				{
+				case EraType.String: term = new SingleStrTerm(""); break;
+				case EraType.Float: term = new SingleFloatTerm(0.0); break;
+				default: term = new SingleLongTerm(0); break;
+				}
 			}
 			if (terms.Count > 3)
 				term4 = terms[3];
@@ -2255,7 +2318,7 @@ internal static partial class ArgumentParser
 			if (byname)
 			{
 				name = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
-				if (name == null || name.IsInteger || !wc.EOL)
+				if (name == null || name.GetEraType() != EraType.String || !wc.EOL)
 				{ warn(trerror.WrongFormat.Text, line, 2, false); return null; }
 				name = name.Restructure(exm);
 				if (name is SingleTerm)
@@ -2450,7 +2513,7 @@ internal static partial class ArgumentParser
 					warn(trerror.DifferentArraycopyArgsDim.Text, line, 2, false);
 					return null;
 				}
-				if ((vars[0].IsInteger && vars[1].IsString) || (vars[0].IsString && vars[1].IsInteger))
+				if (vars[0].GetEraType() != vars[1].GetEraType())
 				{
 					warn(trerror.DifferentArraycopyArgsType.Text, line, 2, false);
 					return null;

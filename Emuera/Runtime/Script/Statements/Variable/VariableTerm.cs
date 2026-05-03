@@ -221,6 +221,22 @@ internal class VariableTerm : AExpression
 			throw;
 		}
 	}
+	public virtual double ChangeValue(double value, ExpressionMediator exm)
+	{
+		try
+		{
+			if (!allArgIsConst)
+				for (int i = 0; i < arguments.Length; i++)
+					transporter[i] = arguments[i].GetIntValue(exm);
+			return Identifier.PlusValue(value, transporter);
+		}
+		catch (Exception e)
+		{
+			if (e is IndexOutOfRangeException || e is ArgumentOutOfRangeException || e is OverflowException)
+				Identifier.CheckElement(transporter);
+			throw;
+		}
+	}
 	public override SingleTerm GetValue(ExpressionMediator exm)
 	{
 		switch (Identifier.GetEraType())

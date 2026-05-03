@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
@@ -89,6 +89,11 @@ internal sealed class ConstantData
 	public int[] CharacterStrArrayLength;
 	public long[] CharacterIntArray2DLength;
 	public long[] CharacterStrArray2DLength;
+	public int[] VariableFloatArrayLength;
+	public long[] VariableFloatArray2DLength;
+	public long[] VariableFloatArray3DLength;
+	public int[] CharacterFloatArrayLength;
+	public long[] CharacterFloatArray2DLength;
 
 	#region EM_私家版_セーブ拡張
 	public HashSet<string> GlobalSaveMaps { get; private set; } = [];
@@ -179,6 +184,11 @@ internal sealed class ConstantData
 		CharacterStrArrayLength = new int[(int)VariableCode.__COUNT_CHARACTER_STRING_ARRAY__];
 		CharacterIntArray2DLength = new long[(int)VariableCode.__COUNT_CHARACTER_INTEGER_ARRAY_2D__];
 		CharacterStrArray2DLength = [];
+		VariableFloatArrayLength = [];
+		VariableFloatArray2DLength = [];
+		VariableFloatArray3DLength = [];
+		CharacterFloatArrayLength = [];
+		CharacterFloatArray2DLength = [];
 		for (int i = 0; i < VariableIntArrayLength.Length; i++)
 			VariableIntArrayLength[i] = 1000;
 		VariableIntArrayLength[(int)(VariableCode.__LOWERCASE__ & VariableCode.FLAG)] = 10000;
@@ -454,6 +464,8 @@ internal sealed class ConstantData
 							long length64 = ((long)length << 32) + length2;
 							if (id.IsInteger)
 								CharacterIntArray2DLength[id.CodeInt] = length64;
+							else if (id.IsFloat)
+								CharacterFloatArray2DLength[id.CodeInt] = length64;
 							else if (id.IsString)
 								CharacterStrArray2DLength[id.CodeInt] = length64;
 						}
@@ -461,6 +473,8 @@ internal sealed class ConstantData
 						{
 							if (id.IsInteger)
 								CharacterIntArrayLength[id.CodeInt] = length;
+							else if (id.IsFloat)
+								CharacterFloatArrayLength[id.CodeInt] = length;
 							else if (id.IsString)
 								CharacterStrArrayLength[id.CodeInt] = length;
 						}
@@ -470,15 +484,18 @@ internal sealed class ConstantData
 						long length64 = ((long)length << 32) + length2;
 						if (id.IsInteger)
 							VariableIntArray2DLength[id.CodeInt] = length64;
+						else if (id.IsFloat)
+							VariableFloatArray2DLength[id.CodeInt] = length64;
 						else if (id.IsString)
 							VariableStrArray2DLength[id.CodeInt] = length64;
 					}
 					else if (id.IsArray3D)
 					{
-						//Int64 length3d = ((Int64)length << 32) + ((Int64)length2 << 16) + (Int64)length3;
 						long length3d = ((long)length << 40) + ((long)length2 << 20) + length3;
 						if (id.IsInteger)
 							VariableIntArray3DLength[id.CodeInt] = length3d;
+						else if (id.IsFloat)
+							VariableFloatArray3DLength[id.CodeInt] = length3d;
 						else
 							VariableStrArray3DLength[id.CodeInt] = length3d;
 					}
@@ -486,6 +503,8 @@ internal sealed class ConstantData
 					{
 						if (id.IsInteger)
 							VariableIntArrayLength[id.CodeInt] = length;
+						else if (id.IsFloat)
+							VariableFloatArrayLength[id.CodeInt] = length;
 						else if (id.IsString)
 							VariableStrArrayLength[id.CodeInt] = length;
 					}

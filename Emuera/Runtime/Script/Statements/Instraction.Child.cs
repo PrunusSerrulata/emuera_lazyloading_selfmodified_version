@@ -642,49 +642,77 @@ internal sealed partial class FunctionIdentifier
 		{
 			if (func.Argument is SpSetArrayArgument arg)
 			{
-				if (arg.VariableDest.IsInteger)
+				switch (arg.VariableDest.GetEraType())
 				{
-					if (arg.IsConst)
-						arg.VariableDest.SetValue(arg.ConstIntList, exm);
-					else
-					{
-						long[] values = new long[arg.TermList.Count];
-						for (int i = 0; i < values.Length; i++)
+					case EraType.Integer:
+						if (arg.IsConst)
+							arg.VariableDest.SetValue(arg.ConstIntList, exm);
+						else
 						{
-							values[i] = arg.TermList[i].GetIntValue(exm);
+							long[] values = new long[arg.TermList.Count];
+							for (int i = 0; i < values.Length; i++)
+							{
+								values[i] = arg.TermList[i].GetIntValue(exm);
+							}
+							arg.VariableDest.SetValue(values, exm);
 						}
-						arg.VariableDest.SetValue(values, exm);
-					}
-				}
-				else
-				{
-					if (arg.IsConst)
-						arg.VariableDest.SetValue(arg.ConstStrList, exm);
-					else
-					{
-						string[] values = new string[arg.TermList.Count];
-						for (int i = 0; i < values.Length; i++)
+						break;
+					case EraType.Float:
+						if (arg.IsConst)
+							arg.VariableDest.SetValue(arg.ConstFloatList, exm);
+						else
 						{
-							values[i] = arg.TermList[i].GetStrValue(exm);
+							double[] values = new double[arg.TermList.Count];
+							for (int i = 0; i < values.Length; i++)
+							{
+								values[i] = arg.TermList[i].GetFloatValue(exm);
+							}
+							arg.VariableDest.SetValue(values, exm);
 						}
-						arg.VariableDest.SetValue(values, exm);
-					}
+						break;
+					default:
+						if (arg.IsConst)
+							arg.VariableDest.SetValue(arg.ConstStrList, exm);
+						else
+						{
+							string[] values = new string[arg.TermList.Count];
+							for (int i = 0; i < values.Length; i++)
+							{
+								values[i] = arg.TermList[i].GetStrValue(exm);
+							}
+							arg.VariableDest.SetValue(values, exm);
+						}
+						break;
 				}
 				return;
 			}
 			SpSetArgument spsetarg = (SpSetArgument)func.Argument;
-			if (spsetarg.VariableDest.IsInteger)
+			switch (spsetarg.VariableDest.GetEraType())
 			{
-				long src = spsetarg.IsConst ? spsetarg.ConstInt : spsetarg.Term.GetIntValue(exm);
-				if (spsetarg.AddConst)
-					spsetarg.VariableDest.ChangeValue(src, exm);
-				else
-					spsetarg.VariableDest.SetValue(src, exm);
-			}
-			else
-			{
-				string src = spsetarg.IsConst ? spsetarg.ConstStr : spsetarg.Term.GetStrValue(exm);
-				spsetarg.VariableDest.SetValue(src, exm);
+				case EraType.Integer:
+					{
+						long src = spsetarg.IsConst ? spsetarg.ConstInt : spsetarg.Term.GetIntValue(exm);
+						if (spsetarg.AddConst)
+							spsetarg.VariableDest.ChangeValue(src, exm);
+						else
+							spsetarg.VariableDest.SetValue(src, exm);
+					}
+					break;
+				case EraType.Float:
+					{
+						double src = spsetarg.IsConst ? spsetarg.ConstFloat : spsetarg.Term.GetFloatValue(exm);
+						if (spsetarg.AddConst)
+							spsetarg.VariableDest.ChangeValue(src, exm);
+						else
+							spsetarg.VariableDest.SetValue(src, exm);
+					}
+					break;
+				default:
+					{
+						string src = spsetarg.IsConst ? spsetarg.ConstStr : spsetarg.Term.GetStrValue(exm);
+						spsetarg.VariableDest.SetValue(src, exm);
+					}
+					break;
 			}
 		}
 	}
@@ -1298,13 +1326,17 @@ internal sealed partial class FunctionIdentifier
 				if (rowArg is VariableTerm)
 				{
 					var varTerm = (VariableTerm)rowArg;
-					if (varTerm.IsString)
+					switch (varTerm.GetEraType())
 					{
-						varTerm.SetValue(pluginArgs[i].strValue, exm);
-					}
-					else
-					{
-						varTerm.SetValue(pluginArgs[i].intValue, exm);
+						case EraType.String:
+							varTerm.SetValue(pluginArgs[i].strValue, exm);
+							break;
+						case EraType.Float:
+							varTerm.SetValue(pluginArgs[i].floatValue, exm);
+							break;
+						default:
+							varTerm.SetValue(pluginArgs[i].intValue, exm);
+							break;
 					}
 				}
 			}
@@ -1726,15 +1758,26 @@ internal sealed partial class FunctionIdentifier
 					(end, start) = (start, end);
 				}
 			}
-			if (var.IsString)
+			switch (var.GetEraType())
 			{
-				string src = spvarsetarg.Term.GetStrValue(exm);
-				VariableEvaluator.SetValueAll(p, src, start, end);
-			}
-			else
-			{
-				long src = spvarsetarg.Term.GetIntValue(exm);
-				VariableEvaluator.SetValueAll(p, src, start, end);
+				case EraType.String:
+					{
+						string src = spvarsetarg.Term.GetStrValue(exm);
+						VariableEvaluator.SetValueAll(p, src, start, end);
+					}
+					break;
+				case EraType.Float:
+					{
+						double src = spvarsetarg.Term.GetFloatValue(exm);
+						VariableEvaluator.SetValueAll(p, src, start, end);
+					}
+					break;
+				default:
+					{
+						long src = spvarsetarg.Term.GetIntValue(exm);
+						VariableEvaluator.SetValueAll(p, src, start, end);
+					}
+					break;
 			}
 		}
 	}
@@ -1782,15 +1825,26 @@ internal sealed partial class FunctionIdentifier
 				if (!GlobalStatic.ConstantData.isDefined(p.Identifier.Code, singleStrTerm.Str))
 					throw new CodeEE(string.Format(trerror.NotDefinedKey.Text, p.Identifier.Name, singleStrTerm.Str));
 			}
-			if (p.Identifier.IsString)
+			switch (p.Identifier.GetEraType())
 			{
-				string src = spvarsetarg.Term.GetStrValue(exm);
-				exm.VEvaluator.SetValueAllEachChara(p, index, src, start, end);
-			}
-			else
-			{
-				long src = spvarsetarg.Term.GetIntValue(exm);
-				exm.VEvaluator.SetValueAllEachChara(p, index, src, start, end);
+				case EraType.String:
+					{
+						string src = spvarsetarg.Term.GetStrValue(exm);
+						exm.VEvaluator.SetValueAllEachChara(p, index, src, start, end);
+					}
+					break;
+				case EraType.Float:
+					{
+						double src = spvarsetarg.Term.GetFloatValue(exm);
+						exm.VEvaluator.SetValueAllEachChara(p, index, src, start, end);
+					}
+					break;
+				default:
+					{
+						long src = spvarsetarg.Term.GetIntValue(exm);
+						exm.VEvaluator.SetValueAllEachChara(p, index, src, start, end);
+					}
+					break;
 			}
 		}
 	}
@@ -3278,15 +3332,14 @@ internal sealed partial class FunctionIdentifier
 			AExpression selectValue = ((ExpressionArgument)func.Argument).Term;
 			string sValue = null;
 			long iValue = 0;
-			if (selectValue.IsInteger)
-				iValue = selectValue.GetIntValue(exm);
-			else
-				sValue = selectValue.GetStrValue(exm);
-			//チェック済み
-			//if (func.IfCaseList == null)
-			//	throw new ExeEE("SELECTCASEのCASEリストが適正に作成されていない");
-			//if (func.JumpTo == null)
-			//	throw new ExeEE("SELECTCASEに対応するENDSELECTが設定されていない");
+			double fValue = 0;
+			EraType selType = selectValue.GetEraType();
+			switch (selType)
+			{
+				case EraType.Integer: iValue = selectValue.GetIntValue(exm); break;
+				case EraType.Float: fValue = selectValue.GetFloatValue(exm); break;
+				default: sValue = selectValue.GetStrValue(exm); break;
+			}
 			foreach (var line in func.IfCaseList)
 			{
 				if (line.IsError)
@@ -3297,40 +3350,54 @@ internal sealed partial class FunctionIdentifier
 					break;
 				}
 				CaseArgument caseArg = (CaseArgument)line.Argument;
-				//チェック済み
-				//if (caseArg == null)
-				//	throw new ExeEE("CASEチェック中。引数が解析されていない。", func.IfCaseList[i].Position);
 
 				state.CurrentLine = line;
-				if (selectValue.IsInteger)
+				switch (selType)
 				{
-					long Is = iValue;
-					foreach (CaseExpression caseExp in caseArg.CaseExps)
-					{
-						if (caseExp.GetBool(Is, exm))
+					case EraType.Integer:
 						{
-							caseJumpto = line;
-							goto casefound;
+							long Is = iValue;
+							foreach (CaseExpression caseExp in caseArg.CaseExps)
+							{
+								if (caseExp.GetBool(Is, exm))
+								{
+									caseJumpto = line;
+									goto casefound;
+								}
+							}
 						}
-					}
-				}
-				else
-				{
-					string Is = sValue;
-					foreach (CaseExpression caseExp in caseArg.CaseExps)
-					{
-						if (caseExp.GetBool(Is, exm))
+						break;
+					case EraType.Float:
 						{
-							caseJumpto = line;
-							goto casefound;
+							double Is = fValue;
+							foreach (CaseExpression caseExp in caseArg.CaseExps)
+							{
+								if (caseExp.GetBool(Is, exm))
+								{
+									caseJumpto = line;
+									goto casefound;
+								}
+							}
 						}
-					}
+						break;
+					default:
+						{
+							string Is = sValue;
+							foreach (CaseExpression caseExp in caseArg.CaseExps)
+							{
+								if (caseExp.GetBool(Is, exm))
+								{
+									caseJumpto = line;
+									goto casefound;
+								}
+							}
+						}
+						break;
 				}
 
 			}
 		casefound:
 			state.JumpTo(caseJumpto);
-			//state.RunningLine = null;
 		}
 	}
 

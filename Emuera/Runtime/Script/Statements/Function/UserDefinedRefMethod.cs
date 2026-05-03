@@ -46,7 +46,7 @@ internal sealed class UserDefinedRefMethod
 			{
 				UserDifinedFunctionDataArgType type = UserDifinedFunctionDataArgType.__Ref;
 				type += vToken.Dimension;
-				if (vToken.IsInteger)
+				if (vToken.IsInteger || vToken.IsFloat)
 					type |= UserDifinedFunctionDataArgType.Int;
 				else
 					type |= UserDifinedFunctionDataArgType.Str;
@@ -55,7 +55,7 @@ internal sealed class UserDefinedRefMethod
 			}
 			else
 			{
-				if (vToken.IsInteger && ArgTypeList[i] != UserDifinedFunctionDataArgType.Int)
+				if ((vToken.IsInteger || vToken.IsFloat) && ArgTypeList[i] != UserDifinedFunctionDataArgType.Int)
 					return false;
 				if (vToken.IsString && ArgTypeList[i] != UserDifinedFunctionDataArgType.Str)
 					return false;

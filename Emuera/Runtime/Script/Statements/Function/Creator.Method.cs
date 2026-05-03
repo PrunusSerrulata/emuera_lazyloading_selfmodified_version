@@ -340,7 +340,7 @@ internal static partial class FunctionMethodCreator
 			{
 				if (var.Identifier == null)
 					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
-				if (!var.IsInteger)
+				if (var.GetEraType() != EraType.Integer)
 					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
 				return var.GetIntValue(exm);
 			}
@@ -370,7 +370,7 @@ internal static partial class FunctionMethodCreator
 			{
 				if (var.Identifier == null)
 					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
-				if (!var.IsString)
+				if (var.GetEraType() != EraType.String)
 					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
 				return var.GetStrValue(exm);
 			}
@@ -397,8 +397,12 @@ internal static partial class FunctionMethodCreator
 				if (token != null)
 				{
 					long res = 0;
-					if (token.IsInteger) res |= 1;
-					if (token.IsString) res |= 2;
+					switch (token.GetEraType())
+					{
+						case EraType.Integer: res |= 1; break;
+						case EraType.String: res |= 2; break;
+						case EraType.Float: res |= 32; break;
+					}
 					if (token.IsConst) res |= 4;
 					if (token.IsArray2D) res |= 8;
 					if (token.IsArray3D) res |= 16;
@@ -461,43 +465,65 @@ internal static partial class FunctionMethodCreator
 
 		private int[] GetSortedIndices(VariableTerm baseVar, bool ascending, int fixedLength)
 		{
-			if (baseVar.IsInteger)
+			switch (baseVar.GetEraType())
 			{
-				object arrObj = baseVar.Identifier.GetArray();
-				long[] array = arrObj is SparseArray<long> sparse ? sparse.ToArray(sparse.Length) : (long[])arrObj;
-				int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
-				if (fixedLength == -1)
+				case EraType.Integer:
 				{
-					for (int i = 0; i < length; i++)
+					object arrObj = baseVar.Identifier.GetArray();
+					long[] array = arrObj is SparseArray<long> sparse ? sparse.ToArray(sparse.Length) : (long[])arrObj;
+					int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
+					if (fixedLength == -1)
 					{
-						if (array[i] == 0) { length = i; break; }
+						for (int i = 0; i < length; i++)
+						{
+							if (array[i] == 0) { length = i; break; }
+						}
 					}
+					var indices = Enumerable.Range(0, length).ToArray();
+					if (ascending)
+						Array.Sort(indices, (a, b) => array[a].CompareTo(array[b]));
+					else
+						Array.Sort(indices, (a, b) => array[b].CompareTo(array[a]));
+					return indices;
 				}
-				var indices = Enumerable.Range(0, length).ToArray();
-				if (ascending)
-					Array.Sort(indices, (a, b) => array[a].CompareTo(array[b]));
-				else
-					Array.Sort(indices, (a, b) => array[b].CompareTo(array[a]));
-				return indices;
-			}
-			else
-			{
-				object arrObj = baseVar.Identifier.GetArray();
-				string[] array = arrObj is SparseArray<string> sparse ? sparse.ToArray(sparse.Length) : (string[])arrObj;
-				int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
-				if (fixedLength == -1)
+				case EraType.Float:
 				{
-					for (int i = 0; i < length; i++)
+					object arrObj = baseVar.Identifier.GetArray();
+					double[] array = arrObj is SparseArray<double> sparse ? sparse.ToArray(sparse.Length) : (double[])arrObj;
+					int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
+					if (fixedLength == -1)
 					{
-						if (string.IsNullOrEmpty(array[i])) { length = i; break; }
+						for (int i = 0; i < length; i++)
+						{
+							if (array[i] == 0.0) { length = i; break; }
+						}
 					}
+					var indices = Enumerable.Range(0, length).ToArray();
+					if (ascending)
+						Array.Sort(indices, (a, b) => array[a].CompareTo(array[b]));
+					else
+						Array.Sort(indices, (a, b) => array[b].CompareTo(array[a]));
+					return indices;
 				}
-				var indices = Enumerable.Range(0, length).ToArray();
-				if (ascending)
-					Array.Sort(indices, (a, b) => string.Compare(array[a], array[b], StringComparison.Ordinal));
-				else
-					Array.Sort(indices, (a, b) => string.Compare(array[b], array[a], StringComparison.Ordinal));
-				return indices;
+				default:
+				{
+					object arrObj = baseVar.Identifier.GetArray();
+					string[] array = arrObj is SparseArray<string> sparse ? sparse.ToArray(sparse.Length) : (string[])arrObj;
+					int length = fixedLength > 0 ? Math.Min(fixedLength, array.Length) : array.Length;
+					if (fixedLength == -1)
+					{
+						for (int i = 0; i < length; i++)
+						{
+							if (string.IsNullOrEmpty(array[i])) { length = i; break; }
+						}
+					}
+					var indices = Enumerable.Range(0, length).ToArray();
+					if (ascending)
+						Array.Sort(indices, (a, b) => string.Compare(array[a], array[b], StringComparison.Ordinal));
+					else
+						Array.Sort(indices, (a, b) => string.Compare(array[b], array[a], StringComparison.Ordinal));
+					return indices;
+				}
 			}
 		}
 
@@ -597,17 +623,26 @@ internal static partial class FunctionMethodCreator
 			{
 				if (var.Identifier == null || var.Identifier.IsConst)
 					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
-				if (var.IsString)
+				switch (var.GetEraType())
 				{
-					if (arguments[1].GetEraType() != EraType.String)
-						return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
-					var.SetValue(arguments[1].GetStrValue(exm), exm);
-				}
-				else
-				{
-					if (arguments[1].GetEraType() != EraType.Integer)
-						return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
-					var.SetValue(arguments[1].GetIntValue(exm), exm);
+					case EraType.String:
+						if (arguments[1].GetEraType() != EraType.String)
+							return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
+						var.SetValue(arguments[1].GetStrValue(exm), exm);
+						break;
+					case EraType.Float:
+						if (arguments[1].GetEraType() == EraType.Integer)
+							var.SetValue((double)arguments[1].GetIntValue(exm), exm);
+						else if (arguments[1].GetEraType() == EraType.Float)
+							var.SetValue(arguments[1].GetFloatValue(exm), exm);
+						else
+							return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
+						break;
+					default:
+						if (arguments[1].GetEraType() != EraType.Integer)
+							return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
+						var.SetValue(arguments[1].GetIntValue(exm), exm);
+						break;
 				}
 				return 1;
 			}
@@ -641,77 +676,134 @@ internal static partial class FunctionMethodCreator
 					: (var.Identifier.IsArray2D ? var.Identifier.GetLength(1)
 					: (var.Identifier.IsArray2D ? var.Identifier.GetLength(2) : 0))));
 				bool setAllDims = arguments.Count >= 3 ? arguments[2].GetIntValue(exm) != 0 : true;
-				if (var.IsString)
+				switch (var.GetEraType())
 				{
-					var val = string.Empty;
-					if (arguments.Count > 1 && arguments[1].GetEraType() != EraType.String)
-						throw new CodeEE(string.Format(trerror.SetStrToInt.Text, name));
-					if (arguments.Count > 1)
-						val = arguments[1].GetStrValue(exm);
-					if (var.Identifier.IsArray1D)
-						var.Identifier.SetValueAll(val, start, end, 0);
-					else if (var.Identifier.IsArray2D)
+					case EraType.String:
 					{
-						var array = var.Identifier.GetArray() as string[,];
-						var idx1 = var.GetElementInt(0, exm);
-						var idx2 = var.GetElementInt(1, exm);
-						for (int i = Math.Max(start, (int)idx2); i < end; i++)
-							array[idx1, i] = val;
-					}
-					if (var.Identifier.IsArray3D)
-					{
-						var idx1 = var.GetElementInt(0, exm);
-						var idx2 = var.GetElementInt(1, exm);
-						var idx3 = var.GetElementInt(2, exm);
-						var array = var.Identifier.GetArray() as string[,,];
-						for (int i = Math.Max(start, (int)idx3); i < end; i++)
-							array[idx2, idx1, i] = val;
-					}
-				}
-				else
-				{
-					long val = 0;
-					if (arguments.Count > 1 && arguments[1].GetEraType() != EraType.Integer)
-						throw new CodeEE(string.Format(trerror.SetIntToStr.Text, name));
-					if (arguments.Count > 1)
-						val = arguments[1].GetIntValue(exm);
-					if (var.Identifier.IsArray1D)
-						var.Identifier.SetValueAll(val, start, end, 0);
-					else if (var.Identifier.IsArray2D)
-					{
-						var array = var.Identifier.GetArray() as long[,];
-						var idx1 = var.GetElementInt(0, exm);
-						var idx2 = var.GetElementInt(1, exm);
-						if (setAllDims)
+						var val = string.Empty;
+						if (arguments.Count > 1 && arguments[1].GetEraType() != EraType.String)
+							throw new CodeEE(string.Format(trerror.SetStrToInt.Text, name));
+						if (arguments.Count > 1)
+							val = arguments[1].GetStrValue(exm);
+						if (var.Identifier.IsArray1D)
+							var.Identifier.SetValueAll(val, start, end, 0);
+						else if (var.Identifier.IsArray2D)
 						{
-							for (int j = 0; j < array.GetLength(0); j++)
-								for (int i = Math.Max(start, (int)idx2); i < end; i++)
-									array[j, i] = val;
-						}
-						else
-						{
+							var array = var.Identifier.GetArray() as string[,];
+							var idx1 = var.GetElementInt(0, exm);
+							var idx2 = var.GetElementInt(1, exm);
 							for (int i = Math.Max(start, (int)idx2); i < end; i++)
 								array[idx1, i] = val;
 						}
-					}
-					if (var.Identifier.IsArray3D)
-					{
-						var idx1 = var.GetElementInt(0, exm);
-						var idx2 = var.GetElementInt(1, exm);
-						var idx3 = var.GetElementInt(2, exm);
-						var array = var.Identifier.GetArray() as long[,,];
-						if (setAllDims)
+						if (var.Identifier.IsArray3D)
 						{
-							for (int k = 0; k < array.GetLength(0); k++)
-								for (int j = 0; j < array.GetLength(1); j++)
-									for (int i = Math.Max(start, (int)idx3); i < end; i++)
-										array[k, j, i] = val;
-						}
-						else
-						{
+							var idx1 = var.GetElementInt(0, exm);
+							var idx2 = var.GetElementInt(1, exm);
+							var idx3 = var.GetElementInt(2, exm);
+							var array = var.Identifier.GetArray() as string[,,];
 							for (int i = Math.Max(start, (int)idx3); i < end; i++)
 								array[idx2, idx1, i] = val;
 						}
+						break;
+					}
+					case EraType.Float:
+					{
+						double val = 0.0;
+						if (arguments.Count > 1)
+						{
+							if (arguments[1].GetEraType() == EraType.Integer)
+								val = (double)arguments[1].GetIntValue(exm);
+							else if (arguments[1].GetEraType() == EraType.Float)
+								val = arguments[1].GetFloatValue(exm);
+							else
+								throw new CodeEE(string.Format(trerror.SetIntToStr.Text, name));
+						}
+						if (var.Identifier.IsArray1D)
+							var.Identifier.SetValueAll(val, start, end, 0);
+						else if (var.Identifier.IsArray2D)
+						{
+							var array = var.Identifier.GetArray() as double[,];
+							var idx1 = var.GetElementInt(0, exm);
+							var idx2 = var.GetElementInt(1, exm);
+							if (setAllDims)
+							{
+								for (int j = 0; j < array.GetLength(0); j++)
+									for (int i = Math.Max(start, (int)idx2); i < end; i++)
+										array[j, i] = val;
+							}
+							else
+							{
+								for (int i = Math.Max(start, (int)idx2); i < end; i++)
+									array[idx1, i] = val;
+							}
+						}
+						if (var.Identifier.IsArray3D)
+						{
+							var idx1 = var.GetElementInt(0, exm);
+							var idx2 = var.GetElementInt(1, exm);
+							var idx3 = var.GetElementInt(2, exm);
+							var array = var.Identifier.GetArray() as double[,,];
+							if (setAllDims)
+							{
+								for (int k = 0; k < array.GetLength(0); k++)
+									for (int j = 0; j < array.GetLength(1); j++)
+										for (int i = Math.Max(start, (int)idx3); i < end; i++)
+											array[k, j, i] = val;
+							}
+							else
+							{
+								for (int i = Math.Max(start, (int)idx3); i < end; i++)
+									array[idx2, idx1, i] = val;
+							}
+						}
+						break;
+					}
+					default:
+					{
+						long val = 0;
+						if (arguments.Count > 1 && arguments[1].GetEraType() != EraType.Integer)
+							throw new CodeEE(string.Format(trerror.SetIntToStr.Text, name));
+						if (arguments.Count > 1)
+							val = arguments[1].GetIntValue(exm);
+						if (var.Identifier.IsArray1D)
+							var.Identifier.SetValueAll(val, start, end, 0);
+						else if (var.Identifier.IsArray2D)
+						{
+							var array = var.Identifier.GetArray() as long[,];
+							var idx1 = var.GetElementInt(0, exm);
+							var idx2 = var.GetElementInt(1, exm);
+							if (setAllDims)
+							{
+								for (int j = 0; j < array.GetLength(0); j++)
+									for (int i = Math.Max(start, (int)idx2); i < end; i++)
+										array[j, i] = val;
+							}
+							else
+							{
+								for (int i = Math.Max(start, (int)idx2); i < end; i++)
+									array[idx1, i] = val;
+							}
+						}
+						if (var.Identifier.IsArray3D)
+						{
+							var idx1 = var.GetElementInt(0, exm);
+							var idx2 = var.GetElementInt(1, exm);
+							var idx3 = var.GetElementInt(2, exm);
+							var array = var.Identifier.GetArray() as long[,,];
+							if (setAllDims)
+							{
+								for (int k = 0; k < array.GetLength(0); k++)
+									for (int j = 0; j < array.GetLength(1); j++)
+										for (int i = Math.Max(start, (int)idx3); i < end; i++)
+											array[k, j, i] = val;
+							}
+							else
+							{
+								for (int i = Math.Max(start, (int)idx3); i < end; i++)
+									array[idx2, idx1, i] = val;
+							}
+						}
+						break;
 					}
 				}
 				return 1;
@@ -2944,15 +3036,26 @@ internal static partial class FunctionMethodCreator
 				// throw new CodeEE((isLast ? "" : "") + "関数の第4引数(" + lastindex.ToString() + ")はキャラクタ位置の範囲外です");
 				throw new CodeEE(string.Format(trerror.CharacterIndexOutOfRange.Text, Name, 4, lastindex));
 			long ret;
-			if (varID.IsString)
+			switch (varID.GetEraType())
 			{
-				string word = arguments[1].GetStrValue(exm);
-				ret = VariableEvaluator.FindChara(varID, elem, word, startindex, lastindex, isLast);
-			}
-			else
-			{
-				long word = arguments[1].GetIntValue(exm);
-				ret = VariableEvaluator.FindChara(varID, elem, word, startindex, lastindex, isLast);
+				case EraType.String:
+				{
+					string word = arguments[1].GetStrValue(exm);
+					ret = VariableEvaluator.FindChara(varID, elem, word, startindex, lastindex, isLast);
+					break;
+				}
+				case EraType.Float:
+				{
+					double word = arguments[1].GetFloatValue(exm);
+					ret = VariableEvaluator.FindChara(varID, elem, word, startindex, lastindex, isLast);
+					break;
+				}
+				default:
+				{
+					long word = arguments[1].GetIntValue(exm);
+					ret = VariableEvaluator.FindChara(varID, elem, word, startindex, lastindex, isLast);
+					break;
+				}
 			}
 			return ret;
 		}
@@ -4841,140 +4944,217 @@ internal static partial class FunctionMethodCreator
 		{
 			VariableTerm varTerm = arguments[0] as VariableTerm;
 			int[] sortedArray;
-			if (varTerm.Identifier.IsInteger)
+			switch (varTerm.Identifier.GetEraType())
 			{
-				List<KeyValuePair<long, int>> sortList = [];
-				object arrObj = varTerm.Identifier.GetArray();
-				long[] array = arrObj is SparseArray<long> sparse ? sparse.ToArray(sparse.Length) : (long[])arrObj;
-				for (int i = 0; i < array.Length; i++)
+				case EraType.Integer:
 				{
-					if (array[i] == 0)
-						break;
-					if (array[i] < long.MinValue || array[i] > long.MaxValue)
-						return 0;
-					sortList.Add(new KeyValuePair<long, int>(array[i], i));
+					List<KeyValuePair<long, int>> sortList = [];
+					object arrObj = varTerm.Identifier.GetArray();
+					long[] array = arrObj is SparseArray<long> sparse ? sparse.ToArray(sparse.Length) : (long[])arrObj;
+					for (int i = 0; i < array.Length; i++)
+					{
+						if (array[i] == 0)
+							break;
+						if (array[i] < long.MinValue || array[i] > long.MaxValue)
+							return 0;
+						sortList.Add(new KeyValuePair<long, int>(array[i], i));
+					}
+					sortList.Sort((a, b) => { return Math.Sign(a.Key - b.Key); });
+					sortedArray = new int[sortList.Count];
+					for (int i = 0; i < sortedArray.Length; i++)
+						sortedArray[i] = sortList[i].Value;
+					break;
 				}
-				//素ではintの範囲しか扱えないので一工夫
-				sortList.Sort((a, b) => { return Math.Sign(a.Key - b.Key); });
-				sortedArray = new int[sortList.Count];
-				for (int i = 0; i < sortedArray.Length; i++)
-					sortedArray[i] = sortList[i].Value;
-			}
-			else
-			{
-				List<KeyValuePair<string, int>> sortList = [];
-				object arrObj = varTerm.Identifier.GetArray();
-				string[] array = arrObj is SparseArray<string> sparse ? sparse.ToArray(sparse.Length) : (string[])arrObj;
-				for (int i = 0; i < array.Length; i++)
+				case EraType.Float:
 				{
-					if (string.IsNullOrEmpty(array[i]))
-						#region EM_私家版_ARRAYMSORT_文字列配列処理修正
-						//return 0;
-						break;
-					#endregion
-					sortList.Add(new KeyValuePair<string, int>(array[i], i));
+					List<KeyValuePair<double, int>> sortList = [];
+					object arrObj = varTerm.Identifier.GetArray();
+					double[] array = arrObj is SparseArray<double> sparse ? sparse.ToArray(sparse.Length) : (double[])arrObj;
+					for (int i = 0; i < array.Length; i++)
+					{
+						if (array[i] == 0.0)
+							break;
+						sortList.Add(new KeyValuePair<double, int>(array[i], i));
+					}
+					sortList.Sort((a, b) => a.Key.CompareTo(b.Key));
+					sortedArray = new int[sortList.Count];
+					for (int i = 0; i < sortedArray.Length; i++)
+						sortedArray[i] = sortList[i].Value;
+					break;
 				}
-				sortList.Sort((a, b) => { return a.Key.CompareTo(b.Key); });
-				sortedArray = new int[sortList.Count];
-				for (int i = 0; i < sortedArray.Length; i++)
-					sortedArray[i] = sortList[i].Value;
+				default:
+				{
+					List<KeyValuePair<string, int>> sortList = [];
+					object arrObj = varTerm.Identifier.GetArray();
+					string[] array = arrObj is SparseArray<string> sparse ? sparse.ToArray(sparse.Length) : (string[])arrObj;
+					for (int i = 0; i < array.Length; i++)
+					{
+						if (string.IsNullOrEmpty(array[i]))
+							break;
+						sortList.Add(new KeyValuePair<string, int>(array[i], i));
+					}
+					sortList.Sort((a, b) => { return a.Key.CompareTo(b.Key); });
+					sortedArray = new int[sortList.Count];
+					for (int i = 0; i < sortedArray.Length; i++)
+						sortedArray[i] = sortList[i].Value;
+					break;
+				}
 			}
-			foreach (VariableTerm term in arguments.Cast<VariableTerm>())//もう少し賢い方法はないものだろうか
+			foreach (VariableTerm term in arguments.Cast<VariableTerm>())
 			{
 				if (term.Identifier.IsArray1D)
 				{
-					if (term.IsInteger)
+					switch (term.GetEraType())
 					{
-						object arrObj = term.Identifier.GetArray();
-						if (arrObj is SparseArray<long> sparseArr)
+						case EraType.Integer:
 						{
-							var clone = sparseArr.ToArray(sparseArr.Length);
-							if (sparseArr.Length < sortedArray.Length)
-								return 0;
-							for (int i = 0; i < sortedArray.Length; i++)
-								sparseArr[i] = clone[sortedArray[i]];
+							object arrObj = term.Identifier.GetArray();
+							if (arrObj is SparseArray<long> sparseArr)
+							{
+								var clone = sparseArr.ToArray(sparseArr.Length);
+								if (sparseArr.Length < sortedArray.Length)
+									return 0;
+								for (int i = 0; i < sortedArray.Length; i++)
+									sparseArr[i] = clone[sortedArray[i]];
+							}
+							else
+							{
+								var array = (long[])arrObj;
+								var clone = (long[])array.Clone();
+								if (array.Length < sortedArray.Length)
+									return 0;
+								for (int i = 0; i < sortedArray.Length; i++)
+									array[i] = clone[sortedArray[i]];
+							}
+							break;
 						}
-						else
+						case EraType.Float:
 						{
-							var array = (long[])arrObj;
-							var clone = (long[])array.Clone();
-							if (array.Length < sortedArray.Length)
-								return 0;
-							for (int i = 0; i < sortedArray.Length; i++)
-								array[i] = clone[sortedArray[i]];
+							object arrObj = term.Identifier.GetArray();
+							if (arrObj is SparseArray<double> sparseArr)
+							{
+								var clone = sparseArr.ToArray(sparseArr.Length);
+								if (sparseArr.Length < sortedArray.Length)
+									return 0;
+								for (int i = 0; i < sortedArray.Length; i++)
+									sparseArr[i] = clone[sortedArray[i]];
+							}
+							else
+							{
+								var array = (double[])arrObj;
+								var clone = (double[])array.Clone();
+								if (array.Length < sortedArray.Length)
+									return 0;
+								for (int i = 0; i < sortedArray.Length; i++)
+									array[i] = clone[sortedArray[i]];
+							}
+							break;
 						}
-					}
-					else
-					{
-						object arrObj = term.Identifier.GetArray();
-						if (arrObj is SparseArray<string> sparseArr)
+						default:
 						{
-							var clone = sparseArr.ToArray(sparseArr.Length);
-							if (sparseArr.Length < sortedArray.Length)
-								return 0;
-							for (int i = 0; i < sortedArray.Length; i++)
-								sparseArr[i] = clone[sortedArray[i]];
-						}
-						else
-						{
-							var array = (string[])arrObj;
-							var clone = (string[])array.Clone();
-							if (array.Length < sortedArray.Length)
-								return 0;
-							for (int i = 0; i < sortedArray.Length; i++)
-								array[i] = clone[sortedArray[i]];
+							object arrObj = term.Identifier.GetArray();
+							if (arrObj is SparseArray<string> sparseArr)
+							{
+								var clone = sparseArr.ToArray(sparseArr.Length);
+								if (sparseArr.Length < sortedArray.Length)
+									return 0;
+								for (int i = 0; i < sortedArray.Length; i++)
+									sparseArr[i] = clone[sortedArray[i]];
+							}
+							else
+							{
+								var array = (string[])arrObj;
+								var clone = (string[])array.Clone();
+								if (array.Length < sortedArray.Length)
+									return 0;
+								for (int i = 0; i < sortedArray.Length; i++)
+									array[i] = clone[sortedArray[i]];
+							}
+							break;
 						}
 					}
 				}
 				else if (term.Identifier.IsArray2D)
 				{
-					if (term.IsInteger)
+					switch (term.GetEraType())
 					{
-						var array = (long[,])term.Identifier.GetArray();
-						var clone = (long[,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								array[i, x] = clone[sortedArray[i], x];
-					}
-					else
-					{
-						var array = (string[,])term.Identifier.GetArray();
-						var clone = (string[,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								array[i, x] = clone[sortedArray[i], x];
+						case EraType.Integer:
+						{
+							var array = (long[,])term.Identifier.GetArray();
+							var clone = (long[,])array.Clone();
+							if (array.GetLength(0) < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								for (int x = 0; x < array.GetLength(1); x++)
+									array[i, x] = clone[sortedArray[i], x];
+							break;
+						}
+						case EraType.Float:
+						{
+							var array = (double[,])term.Identifier.GetArray();
+							var clone = (double[,])array.Clone();
+							if (array.GetLength(0) < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								for (int x = 0; x < array.GetLength(1); x++)
+									array[i, x] = clone[sortedArray[i], x];
+							break;
+						}
+						default:
+						{
+							var array = (string[,])term.Identifier.GetArray();
+							var clone = (string[,])array.Clone();
+							if (array.GetLength(0) < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								for (int x = 0; x < array.GetLength(1); x++)
+									array[i, x] = clone[sortedArray[i], x];
+							break;
+						}
 					}
 				}
 				else if (term.Identifier.IsArray3D)
 				{
-					if (term.IsInteger)
+					switch (term.GetEraType())
 					{
-						var array = (long[,,])term.Identifier.GetArray();
-						var clone = (long[,,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								for (int y = 0; y < array.GetLength(2); y++)
-									array[i, x, y] = clone[sortedArray[i], x, y];
-					}
-					else
-					{
-						var array = (string[,,])term.Identifier.GetArray();
-						var clone = (string[,,])array.Clone();
-						if (array.GetLength(0) < sortedArray.Length)
-							return 0;
-						for (int i = 0; i < sortedArray.Length; i++)
-							for (int x = 0; x < array.GetLength(1); x++)
-								for (int y = 0; y < array.GetLength(2); y++)
-									array[i, x, y] = clone[sortedArray[i], x, y];
+						case EraType.Integer:
+						{
+							var array = (long[,,])term.Identifier.GetArray();
+							var clone = (long[,,])array.Clone();
+							if (array.GetLength(0) < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								for (int x = 0; x < array.GetLength(1); x++)
+									for (int y = 0; y < array.GetLength(2); y++)
+										array[i, x, y] = clone[sortedArray[i], x, y];
+							break;
+						}
+						case EraType.Float:
+						{
+							var array = (double[,,])term.Identifier.GetArray();
+							var clone = (double[,,])array.Clone();
+							if (array.GetLength(0) < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								for (int x = 0; x < array.GetLength(1); x++)
+									for (int y = 0; y < array.GetLength(2); y++)
+										array[i, x, y] = clone[sortedArray[i], x, y];
+							break;
+						}
+						default:
+						{
+							var array = (string[,,])term.Identifier.GetArray();
+							var clone = (string[,,])array.Clone();
+							if (array.GetLength(0) < sortedArray.Length)
+								return 0;
+							for (int i = 0; i < sortedArray.Length; i++)
+								for (int x = 0; x < array.GetLength(1); x++)
+									for (int y = 0; y < array.GetLength(2); y++)
+										array[i, x, y] = clone[sortedArray[i], x, y];
+							break;
+						}
 					}
 				}
-				// else { throw new ExeEE("異常な配列"); }
 				else { throw new ExeEE(trerror.AbnormalArray.Text); }
 			}
 			return 1;
@@ -5463,7 +5643,7 @@ internal static partial class FunctionMethodCreator
 				{
 					case 1:
 						{
-							if (!(arguments[2] is VariableTerm varTerm) || varTerm.Identifier.IsCalc || !varTerm.Identifier.IsArray1D || !varTerm.Identifier.IsString || varTerm.Identifier.IsConst)
+							if (!(arguments[2] is VariableTerm varTerm) || varTerm.Identifier.IsCalc || !varTerm.Identifier.IsArray1D || varTerm.Identifier.GetEraType() != EraType.String || varTerm.Identifier.IsConst)
 								throw new CodeEE(string.Format(trerror.ArgIsNotNDStrArray.Text, Name, 3, 1));
 							var itemsObj = (arguments[2] as VariableTerm).Identifier.GetArray();
 							int idx = 0;
@@ -8586,7 +8766,7 @@ internal static partial class FunctionMethodCreator
 				else
 					return arguments[1].GetIntValue(exm);
 			}
-			else if (!term.IsInteger)
+			else if (term.GetEraType() != EraType.Integer)
 				throw new CodeEE(string.Format(trerror.IsNotInt.Text, name));
 			else
 				return term.GetIntValue(exm);
@@ -8616,7 +8796,7 @@ internal static partial class FunctionMethodCreator
 				else
 					return arguments[1].GetStrValue(exm);
 			}
-			else if (!term.IsString)
+			else if (term.GetEraType() != EraType.String)
 				throw new CodeEE(string.Format(trerror.IsNotStr.Text, name));
 			else
 				return term.GetStrValue(exm);
@@ -8651,8 +8831,12 @@ internal static partial class FunctionMethodCreator
 			else
 			{
 				Int64 res = 0;
-				if (term.IsInteger) res |= 1;
-				if (term.IsString) res |= 2;
+				switch (term.GetEraType())
+				{
+					case EraType.Integer: res |= 1; break;
+					case EraType.String: res |= 2; break;
+					case EraType.Float: res |= 32; break;
+				}
 				return res;
 			}
 		}
@@ -9043,10 +9227,12 @@ internal static partial class FunctionMethodCreator
 				// 绑定当前上下文 (极其重要，解析 LOCAL 等变量)
 				term = term.Restructure(exm);
 
-				if (term.IsInteger)
+				if (term.GetEraType() == EraType.Integer)
 					return term.GetIntValue(exm);
+				else if (term.GetEraType() == EraType.Float)
+					return (long)term.GetFloatValue(exm);
 				else
-					return defaultValue; // 类型不匹配，返回默认值
+					return defaultValue;
 			}
 			catch (EmueraException)
 			{
@@ -9090,8 +9276,10 @@ internal static partial class FunctionMethodCreator
 
 				term = term.Restructure(exm);
 
-				if (term.IsString)
+				if (term.GetEraType() == EraType.String)
 					return term.GetStrValue(exm);
+				else if (term.GetEraType() == EraType.Float)
+					return term.GetFloatValue(exm).ToString();
 				else
 					return defaultValue;
 			}

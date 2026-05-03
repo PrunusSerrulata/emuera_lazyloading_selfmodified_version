@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Script.Statements;
+using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 
 namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
@@ -17,9 +17,18 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 			intValue = initialValue;
 		}
 
+		public PluginMethodParameter(double initialValue)
+		{
+			isString = false;
+			isFloat = true;
+			floatValue = initialValue;
+		}
+
 		public bool isString;
+		public bool isFloat;
 		public string strValue;
 		public long intValue;
+		public double floatValue;
 	}
 
 	internal static class PluginMethodParameterBuilder
@@ -30,10 +39,13 @@ namespace MinorShift.Emuera.Runtime.Utils.PluginSystem
 			{
 				return new PluginMethodParameter(term.GetStrValue(exm));
 			}
+			else if (term.IsFloat)
+			{
+				return new PluginMethodParameter(term.GetFloatValue(exm));
+			}
 			else
 			{
 				return new PluginMethodParameter(term.GetIntValue(exm));
-
 			}
 		}
 	}
