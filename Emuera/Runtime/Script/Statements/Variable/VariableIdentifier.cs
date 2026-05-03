@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils;
 using System;
 using System.Collections.Generic;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
@@ -13,11 +13,19 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Variable;
 internal sealed class VariableIdentifier
 {
 	private VariableIdentifier(VariableCode code)
-	{ this.code = code; }
+	{
+		this.code = code;
+		descriptor = VariableDescriptorTable.GetDescriptorByCode(code);
+	}
 	private VariableIdentifier(VariableCode code, string scope)
-	{ this.code = code; this.scope = scope; }
+	{
+		this.code = code;
+		this.scope = scope;
+		descriptor = VariableDescriptorTable.GetDescriptorByCode(code);
+	}
 	readonly VariableCode code;
 	readonly string scope;
+	readonly VariableDescriptor descriptor;
 	public VariableCode Code
 	{ get { return code; } }
 	public string Scope
@@ -26,20 +34,9 @@ internal sealed class VariableIdentifier
 	{ get { return (int)(code & VariableCode.__LOWERCASE__); } }
 	public VariableCode CodeFlag
 	{ get { return code & VariableCode.__UPPERCASE__; } }
-	//public int Dimension
-	//{
-	//    get
-	//    {
-	//        int dim = 0;
-	//        if ((code & VariableCode.__ARRAY_1D__) == VariableCode.__ARRAY_1D__)
-	//            dim++;
-	//        if ((code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__)
-	//            dim++;
-	//        if ((code & VariableCode.__ARRAY_2D__) == VariableCode.__ARRAY_2D__)
-	//            dim += 2;
-	//        return dim;
-	//    }
-	//}
+
+	public VariableDescriptor Descriptor
+	{ get { return descriptor; } }
 
 	public bool IsNull
 	{
@@ -52,42 +49,49 @@ internal sealed class VariableIdentifier
 	{
 		get
 		{
-			return (code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__;
+			return descriptor.Attributes.HasFlag(VariableAttribute.CharacterData);
 		}
 	}
 	public bool IsInteger
 	{
 		get
 		{
-			return (code & VariableCode.__INTEGER__) == VariableCode.__INTEGER__;
+			return descriptor.Kind == VariableKind.Integer;
 		}
 	}
 	public bool IsString
 	{
 		get
 		{
-			return (code & VariableCode.__STRING__) == VariableCode.__STRING__;
+			return descriptor.Kind == VariableKind.String;
+		}
+	}
+	public bool IsFloat
+	{
+		get
+		{
+			return descriptor.Kind == VariableKind.Float;
 		}
 	}
 	public bool IsArray1D
 	{
 		get
 		{
-			return (code & VariableCode.__ARRAY_1D__) == VariableCode.__ARRAY_1D__;
+			return descriptor.Dimension == VariableDimension.Array1D;
 		}
 	}
 	public bool IsArray2D
 	{
 		get
 		{
-			return (code & VariableCode.__ARRAY_2D__) == VariableCode.__ARRAY_2D__;
+			return descriptor.Dimension == VariableDimension.Array2D;
 		}
 	}
 	public bool IsArray3D
 	{
 		get
 		{
-			return (code & VariableCode.__ARRAY_3D__) == VariableCode.__ARRAY_3D__;
+			return descriptor.Dimension == VariableDimension.Array3D;
 		}
 	}
 	public bool Readonly
@@ -101,33 +105,38 @@ internal sealed class VariableIdentifier
 	{
 		get
 		{
-			return (code & VariableCode.__CALC__) == VariableCode.__CALC__;
+			return descriptor.Attributes.HasFlag(VariableAttribute.Calc);
 		}
 	}
 	public bool IsLocal
 	{
 		get
 		{
-			return (code & VariableCode.__LOCAL__) == VariableCode.__LOCAL__;
+			return descriptor.Attributes.HasFlag(VariableAttribute.Local);
 		}
 	}
-	//public bool IsConstant
-	//{
-	//    get
-	//    {
-	//        return ((code & VariableCode.__CONSTANT__) == VariableCode.__CONSTANT__);
-	//    }
-	//}
 	public bool CanForbid
 	{
 		get
 		{
-			return (code & VariableCode.__CAN_FORBID__) == VariableCode.__CAN_FORBID__;
+			return descriptor.Attributes.HasFlag(VariableAttribute.CanForbid);
 		}
 	}
+
+	public EraType GetEraType()
+	{
+		return descriptor.Kind switch
+		{
+			VariableKind.Integer => EraType.Integer,
+			VariableKind.String => EraType.String,
+			VariableKind.Float => EraType.Float,
+			_ => EraType.Integer
+		};
+	}
+
 	readonly static Dictionary<string, VariableCode> nameDic = [];
 	readonly static Dictionary<string, VariableCode> localvarNameDic = [];
-	readonly static Dictionary<VariableCode, List<VariableCode>> extSaveListDic = [];
+	readonly static Dictionary<(VariableKind, VariableDimension), List<VariableCode>> extSaveListDic = [];
 
 	static VariableIdentifier()
 	{
@@ -149,12 +158,13 @@ internal sealed class VariableIdentifier
 				if ((code & VariableCode.__ARRAY_1D__) == VariableCode.__ARRAY_1D__)
 					throw new ExeEE("ARRAY2DとARRAY1Dは排他");
 			}
-			if (((code & VariableCode.__INTEGER__) != VariableCode.__INTEGER__)
-				&& ((code & VariableCode.__STRING__) != VariableCode.__STRING__))
-				throw new ExeEE("INTEGERとSTRINGのどちらかは必須");
-			if (((code & VariableCode.__INTEGER__) == VariableCode.__INTEGER__)
-				&& ((code & VariableCode.__STRING__) == VariableCode.__STRING__))
-				throw new ExeEE("INTEGERとSTRINGは排他");
+			{
+				var desc = VariableDescriptor.FromCode(code, key);
+				if ((desc.Kind & (VariableKind.Integer | VariableKind.String | VariableKind.Float)) == 0)
+					throw new ExeEE("INTEGER, STRING, FLOATのどれかは必須");
+				if (desc.Kind != VariableKind.Integer && desc.Kind != VariableKind.String && desc.Kind != VariableKind.Float)
+					throw new ExeEE("KindはInteger, String, Floatのいずれか一つでなければならない");
+			}
 			if ((code & VariableCode.__EXTENDED__) != VariableCode.__EXTENDED__)
 			{
 				if ((code & VariableCode.__SAVE_EXTENDED__) == VariableCode.__SAVE_EXTENDED__)
@@ -178,81 +188,33 @@ internal sealed class VariableIdentifier
 				throw new ExeEE("STRINGかつARRAY2DのSAVE_EXTENDEDは未実装");
 #endif
 			nameDic.Add(key, code);
-			////セーブが必要な変数リストの作成
-
-			////__SAVE_EXTENDED__フラグ持ち
-			//if ((code & VariableCode.__SAVE_EXTENDED__) == VariableCode.__SAVE_EXTENDED__)
-			//{
-			//    if ((code & VariableCode.__CHARACTER_DATA__) == VariableCode.__CHARACTER_DATA__)
-			//        charaSaveDataList.Add(code);
-			//    else
-			//        saveDataList.Add(code);
-			//}
-			//else if ( ((code & VariableCode.__EXTENDED__) != VariableCode.__EXTENDED__)
-			//    && ((code & VariableCode.__CALC__) != VariableCode.__CALC__)
-			//    && ((code & VariableCode.__UNCHANGEABLE__) != VariableCode.__UNCHANGEABLE__)
-			//    && ((code & VariableCode.__LOCAL__) != VariableCode.__LOCAL__)
-			//    && (!key.StartsWith("NOTUSE_")) )
-			//{//eramaker由来の変数でセーブするもの
-
-			//    VariableCode flag = code & (VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ | VariableCode.__ARRAY_3D__ | VariableCode.__STRING__ | VariableCode.__INTEGER__ | VariableCode.__CHARACTER_DATA__);
-			//    int codeInt = (int)VariableCode.__LOWERCASE__ & (int)code;
-			//    switch (flag)
-			//    {
-			//        case VariableCode.__CHARACTER_DATA__ | VariableCode.__INTEGER__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER__)
-			//                charaSaveDataList.Add(code);
-			//            break;
-			//        case VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING__)
-			//                charaSaveDataList.Add(code);
-			//            break;
-			//        case VariableCode.__CHARACTER_DATA__ | VariableCode.__INTEGER__ | VariableCode.__ARRAY_1D__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER_ARRAY__)
-			//                charaSaveDataList.Add(code);
-			//            break;
-			//        case VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__ | VariableCode.__ARRAY_1D__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING_ARRAY__)
-			//                charaSaveDataList.Add(code);
-			//            break;
-			//        case VariableCode.__INTEGER__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_INTEGER__)
-			//                saveDataList.Add(code);
-			//            break;
-			//        case VariableCode.__STRING__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_STRING__)
-			//                saveDataList.Add(code);
-			//            break;
-			//        case VariableCode.__INTEGER__ | VariableCode.__ARRAY_1D__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_INTEGER_ARRAY__)
-			//                saveDataList.Add(code);
-			//            break;
-			//        case VariableCode.__STRING__ | VariableCode.__ARRAY_1D__:
-			//            if (codeInt < (int)VariableCode.__COUNT_SAVE_STRING_ARRAY__)
-			//                saveDataList.Add(code);
-			//            break;
-			//    }
-			//}
-
 
 			if ((code & VariableCode.__LOCAL__) == VariableCode.__LOCAL__)
 				localvarNameDic.Add(key, code);
 			if ((code & VariableCode.__SAVE_EXTENDED__) == VariableCode.__SAVE_EXTENDED__)
 			{
-				VariableCode flag = code &
-					(VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ | VariableCode.__ARRAY_3D__ | VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__ | VariableCode.__INTEGER__);
-				if (!extSaveListDic.ContainsKey(flag))
-					extSaveListDic.Add(flag, []);
-				extSaveListDic[flag].Add(code);
+				var desc = VariableDescriptor.FromCode(code, key);
+				var dicKey = (desc.Kind, desc.Dimension);
+				if (!extSaveListDic.ContainsKey(dicKey))
+					extSaveListDic.Add(dicKey, []);
+				extSaveListDic[dicKey].Add(code);
 			}
 		}
 	}
 
 	public static List<VariableCode> GetExtSaveList(VariableCode flag)
 	{
-		VariableCode gFlag = flag &
-			(VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ | VariableCode.__ARRAY_3D__ | VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__ | VariableCode.__INTEGER__);
-		if (!extSaveListDic.TryGetValue(gFlag, out List<VariableCode> value))
+		var desc = VariableDescriptor.FromCode(flag, "");
+		var dicKey = (desc.Kind, desc.Dimension);
+		if (!extSaveListDic.TryGetValue(dicKey, out List<VariableCode> value))
+			return [];
+		return value;
+	}
+
+	public static List<VariableCode> GetExtSaveList(VariableKind kind, VariableDimension dim)
+	{
+		var dicKey = (kind, dim);
+		if (!extSaveListDic.TryGetValue(dicKey, out List<VariableCode> value))
 			return [];
 		return value;
 	}

@@ -548,8 +548,8 @@ GetOperandType:  93
 |------|------|---------|------|------|------|
 | **VariableCode.cs** | 193 | 枚举定义 `__INTEGER__`/`__STRING__` 位标志 | 🔴 Float 无位标志 | 🔒 保留（枚举定义不可删除，仅停止新增使用） | 🔒 |
 | **VariableIdentifier.cs** | 28 | `IsInteger`/`IsString` 从位标志计算 + `extSaveListDic` 位标志 key + 断言 | 🟡 Float 无标志→断言失败 | B.3-15: 从 Descriptor 查询 | ⬜ |
-| **VariableToken.cs** | 10 | L22 VariableType 从位标志 + L57-88 IsSavedata 位标志 switch | 🟡 无 Float case | B.3-15: Descriptor.Kind+Dimension | 🔶 L22✅ L57-88⬜ |
-| **VariableData.cs** | 16 | `GetExtSaveList(__STRING__/__INTEGER__|__ARRAY_*)` 位标志查询 | 🟡 无 Float 存档段 | B.3-15: Descriptor 查询 | ⬜ |
+| **VariableToken.cs** | 10 | L22 VariableType 从位标志 + L57-88 IsSavedata 位标志 switch | 🟡 无 Float case | B.3-15: Descriptor.Kind+Dimension | ✅ |
+| **VariableData.cs** | 16 | `GetExtSaveList(__STRING__/__INTEGER__\|__ARRAY_*)` 位标志查询 | 🟡 无 Float 存档段 | B.3-15: Descriptor 查询 | ✅ |
 | **CharacterData.cs** | 36 | L178-211/L471-496 位标志 switch + L343-455 GetExtSaveList | 🟡 无 Float case | B.3-15: Descriptor.Kind+Dimension | ⬜ |
 | **VariableDescriptor.cs** | 1 | `FromCode()` 中 `if ((code & __STRING__) != 0) kind = String` | 🟡 Float 无位标志→默认 Integer | B.3-15: Float 走注册表 | ⬜ |
 
@@ -606,7 +606,7 @@ VariableToken 基类构造函数 L22 从位标志→Descriptor 查询。Variable
 | **VariableParser.cs** | 1 | `if (terms[i].IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 |
 | **PluginMethodParameter.cs** | 1 | `if (term.IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 |
 | **CharacterData.cs** | ~3 | `if (var.IsString)` / `if (sortkey.IsString)` | 🟡 Float 进错分支 | B.3-15: 三路 |
-| **VariableData.cs** | 1 | `if (!ret.IsString) type++` | 🟡 Float 变量进错列表 | B.3-15: 三路 |
+| **VariableData.cs** | 1 | `if (!ret.IsString) type++` | 🟡 Float 变量进错列表 | B.3-15: 三路 | ✅ |
 
 #### 已完成任务
 
@@ -634,8 +634,8 @@ VariableToken 基类构造函数 L22 从位标志→Descriptor 查询。Variable
 
 | 批次 | 文件 | 变更 | 处数 | 风险 |
 |------|------|------|------|------|
-| 15a | VariableIdentifier.cs | IsInteger/IsString→Descriptor 查询；断言改为 Kind 检查；extSaveListDic key 改为 (Kind,Dimension) | ~28 | 🟡 extSaveListDic key 变更影响存档 |
-| 15b | VariableToken.cs | IsSavedata 位标志 switch→Descriptor 查询；VariableType 属性标记 Obsolete | ~10 | 🟢 低风险 |
+| 15a | VariableIdentifier.cs | IsInteger/IsString→Descriptor 查询；断言改为 Kind 检查；extSaveListDic key 改为 (Kind,Dimension) | ~28 | 🟡 extSaveListDic key 变更影响存档 | ✅ |
+| 15b | VariableToken.cs | IsSavedata 位标志 switch→Descriptor 查询；VariableType 属性标记 Obsolete | ~10 | 🟢 低风险 | ✅ |
 | 15c | VariableData.cs | GetExtSaveList 位标志查询→Descriptor 查询；userDefinedSaveVarList 扩展为 9 槽位；`!ret.IsString → type++` 三路分派 | ~17 | 🔴 userDefinedSaveVarList 扩展影响存档格式 |
 | 15d | CharacterData.cs | 位标志 switch→Descriptor 查询；GetExtSaveList 改造；LoadVariableBinary Float 段处理 | ~46 | 🟡 大文件，需仔细 |
 | 15e | VariableDescriptor.cs | FromCode() Float 变量走注册表而非位标志回退 | ~1 | 🟢 低风险 |
@@ -723,3 +723,83 @@ B.3-1a 修改 `AExpression` 构造函数后，以下子类必须同步适配：
 | AExpression.cs | `Emuera/Runtime/Script/Statements/Expression/AExpression.cs` |
 | 查询工具 | `tools/b3_query.ps1`（-Mode B15/B16/All -Detail） |
 | 验证工具 | `tools/b3_verify.ps1`（-Batch xx -Mode B15/B16/All） |
+
+---
+
+## 5. m-emuera 迁移上下文
+
+> 本节记录 B.3 各子任务在 emuera-lazyloading 完成后，迁移到 m-emuera 时需要的注意事项。
+> m-emuera 的代码结构、命名空间、项目配置与 emuera-lazyloading 有差异，迁移时需逐项确认。
+
+### 5.1 B.3-15a 迁移记录
+
+**已完成文件（emuera-lazyloading → m-emuera 映射）**:
+
+| emuera-lazyloading 文件 | m-emuera 对应文件 | 迁移状态 | 注意事项 |
+|---|---|---|---|
+| `Emuera/Runtime/Script/EraType.cs` | `src/MEmuera.Core/Runtime/Script/EraType.cs` | ⚠️ m-emuera 已有误创建版本 | m-emuera 版本内容相同，但需确认是否与 B.3-1~14 的其他变更一起同步 |
+| `Emuera/Runtime/Script/VariableDescriptor.cs` | `src/MEmuera.Core/Runtime/Script/VariableDescriptor.cs` | ⚠️ m-emuera 已有误创建版本 | m-emuera 版本缺少部分 Register 条目（JUEL 之后的变量），需从 lazyloading 同步完整版 |
+| `Emuera/Runtime/Script/Statements/Variable/VariableIdentifier.cs` | `src/MEmuera.Core/Runtime/Script/Statements/Variable/VariableIdentifier.cs` | ⚠️ m-emuera 已有误创建版本 | m-emuera 版本已应用 B.3-15a 修改，但基于未同步 B.3-1~14 的旧代码 |
+
+**迁移注意事项**:
+
+1. **m-emuera 的 AExpression 仍使用 `Type` 而非 `EraType`**：B.3-1~14 的修改尚未同步到 m-emuera。迁移 B.3-15a 之前，应先将 B.3-0~14 整体同步到 m-emuera，否则 VariableIdentifier 的 Descriptor 查询可能与其他文件的旧 API 不兼容。
+
+2. **VariableDescriptorTable.Register 条目不完整**：m-emuera 误创建的 VariableDescriptor.cs 只注册了部分变量（到 JUEL 为止），缺少 RELATION/EQUIP/TEQUIP/STAIN/GOTJUEL/NOWEX/DOWNBASE/CUP/CDOWN/TCVAR 等 CharacterData 变量，以及 NAME/CALLNAME/NICKNAME/MASTERNAME/CSTR/CDFLAG/DITEMTYPE/DA~DE/TA~TB 等。迁移时必须从 lazyloading 同步完整版。
+
+3. **GetDescriptorByCode() 方法**：B.3-15a 新增的 `VariableDescriptorTable.GetDescriptorByCode()` 方法在 m-emuera 误创建版本中已包含，但该方法遍历全字典做线性查找，性能不佳。未来应改为 `Dictionary<VariableCode, VariableDescriptor>` 反向索引。
+
+4. **extSaveListDic 键变更**：从 `Dictionary<VariableCode, List<VariableCode>>` 改为 `Dictionary<(VariableKind, VariableDimension), List<VariableCode>>`。m-emuera 的 VariableData.cs 和 CharacterData.cs 仍使用 `GetExtSaveList(VariableCode)` 旧 API 调用，该重载已保留为向后兼容层（内部转换为 Descriptor 查询），无需立即修改。
+
+5. **Config.StrComper 依赖**：VariableDescriptorTable 使用 `new Config.Config.StrComper)` 作为字典比较器。m-emuera 的 Config 命名空间可能不同，需确认。
+
+6. **命名空间差异**：emuera-lazyloading 使用 `MinorShift.Emuera.Runtime.Script`，m-emuera 使用相同命名空间但项目结构不同（`src/MEmuera.Core/` 子目录）。using 语句无需修改。
+
+### 5.2 B.3-15b 迁移记录
+
+**已完成文件（emuera-lazyloading → m-emuera 映射）**:
+
+| emuera-lazyloading 文件 | m-emuera 对应文件 | 迁移状态 | 注意事项 |
+|---|---|---|---|
+| `Emuera/Runtime/Script/Statements/Variable/VariableToken.cs` | `src/MEmuera.Core/Runtime/Script/Statements/Variable/VariableToken.cs` | ⬜ 待迁移 | IsSavedata 位标志 switch→Descriptor 查询 + VariableType [Obsolete] |
+
+**迁移注意事项**:
+
+1. **IsSavedata 逻辑等价性**：新代码将位标志操作（`Code & VariableCode.__EXTENDED__` 等）替换为 Descriptor 属性查询（`_descriptor.Attributes.HasFlag(VariableAttribute.Extended)` 等），语义完全等价。VarCodeInt 计数阈值比较保留不变。
+
+2. **VariableType [Obsolete]**：标记为 `[Obsolete("Use Descriptor.IsInteger/IsString/IsFloat or GetEraType() instead")]`。m-emuera 中无外部 `.VariableType` 引用（已全局搜索确认），标记 Obsolete 不会产生编译警告。
+
+3. **依赖 B.3-1~14**：VariableToken 构造函数中 `_descriptor` 字段在 B.3-1b 中引入。迁移 B.3-15b 前需确保 B.3-1b（VariableToken 位标志→Descriptor 查询）已同步到 m-emuera。
+
+4. **CharaVariableToken / UserDefinedVariableToken 子类**：这两个子类的构造函数调用 `base(varCode, varData)`，IsSavedata 逻辑在基类构造函数中执行，子类无需修改。
+
+### 5.3 推荐迁移顺序
+
+1. 先将 B.3-0~14 整体同步到 m-emuera（AExpression Type→EraType、OperatorMethod typeof→EraType、Creator.Method GetOperandType→EraType 等）
+2. 同步完整的 VariableDescriptor.cs（含所有 Register 条目 + GetDescriptorByCode）
+3. 同步 VariableIdentifier.cs（B.3-15a 修改）
+4. 编译验证 + 运行时验证
+
+### 5.3 B.3-15c 迁移记录
+
+**已完成文件（emuera-lazyloading → m-emuera 映射）**:
+
+| emuera-lazyloading 文件 | m-emuera 对应文件 | 迁移状态 | 注意事项 |
+|---|---|---|---|
+| `Emuera/Runtime/Script/Statements/Variable/VariableData.cs` | `src/MEmuera.Core/Runtime/Script/Statements/Variable/VariableData.cs` | ⬜ 待迁移 | GetExtSaveList 位标志→Descriptor + userDefinedSaveVarList 6→9 + type++ 三路分派 |
+| `Emuera/Runtime/Utils/EraDataStream.cs` | `src/MEmuera.Core/Runtime/Utils/EraDataStream.cs` | ⬜ 待迁移 | 新增 ReadDoubleArrayExtended/ReadDoubleArray2DExtended/ReadDoubleArray3DExtended + WriteExtended(double[]) 等 |
+
+**迁移注意事项**:
+
+1. **EraDataStream 新增方法**：ReadDoubleArrayExtended/ReadDoubleArray2DExtended/ReadDoubleArray3DExtended 及对应的 WriteExtended 重载（double[]/double[,]/double[,,]）。这些方法遵循现有 String/Int64 数组方法的相同模式，迁移时直接复制即可。
+
+2. **userDefinedSaveVarList 槽位布局变更**：
+   - 旧布局（6 槽）：0=String1D, 1=Integer1D, 2=String2D, 3=Integer2D, 4=String3D, 5=Integer3D
+   - 新布局（9 槽）：0=String1D, 1=Integer1D, 2=Float1D, 3=String2D, 4=Integer2D, 5=Float2D, 6=String3D, 7=Integer3D, 8=Float3D
+   - 迁移时需同步更新 SaveToStreamExtended/LoadFromStreamExtended/SaveGlobalToStream1808/LoadGlobalFromStream1808 四个方法
+
+3. **type 计算三路分派**：`ret.Dimension * 2 - 2; if (!ret.IsString) type++` → `(ret.Dimension - 1) * 3 + eraTypeOffset`（String=0, Integer=1, Float=2）
+
+4. **GetExtSaveList 调用全部替换**：所有 `GetExtSaveList(VariableCode.__XXX__)` 和 `GetExtSaveList(VariableCode.__ARRAY_XD__ | VariableCode.__XXX__)` 调用已替换为 `GetExtSaveList(VariableKind.XXX, VariableDimension.XXX)`。旧 API 重载保留为向后兼容层。
+
+5. **依赖 B.3-1~14**：VariableData 中 `ret.IsString`/`ret.IsInteger`/`ret.IsFloat` 属性在 B.3-1b 中引入。迁移 B.3-15c 前需确保 B.3-1b 已同步到 m-emuera。

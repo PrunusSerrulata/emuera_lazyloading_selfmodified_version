@@ -42,53 +42,47 @@ internal abstract class VariableToken
 
 
 		IsSavedata = false;
-		if ((Code == VariableCode.GLOBAL) || (Code == VariableCode.GLOBALS))
+		if (_descriptor.Attributes.HasFlag(VariableAttribute.Global))
 			IsSavedata = true;
-		else if ((Code & VariableCode.__SAVE_EXTENDED__) == VariableCode.__SAVE_EXTENDED__)
+		else if (_descriptor.Attributes.HasFlag(VariableAttribute.Save))
 		{
 			IsSavedata = true;
 		}
-		else if (((Code & VariableCode.__EXTENDED__) != VariableCode.__EXTENDED__)
-			&& ((Code & VariableCode.__CALC__) != VariableCode.__CALC__)
-			&& ((Code & VariableCode.__UNCHANGEABLE__) != VariableCode.__UNCHANGEABLE__)
-			&& ((Code & VariableCode.__LOCAL__) != VariableCode.__LOCAL__)
-			&& (!varName.StartsWith("NOTUSE_")))
+		else if (!_descriptor.Attributes.HasFlag(VariableAttribute.Extended)
+			&& !_descriptor.Attributes.HasFlag(VariableAttribute.Calc)
+			&& !_descriptor.Attributes.HasFlag(VariableAttribute.Unchangeable)
+			&& !_descriptor.Attributes.HasFlag(VariableAttribute.Local)
+			&& !varName.StartsWith("NOTUSE_"))
 		{
-			VariableCode flag = Code & (VariableCode.__ARRAY_1D__ | VariableCode.__ARRAY_2D__ | VariableCode.__ARRAY_3D__ | VariableCode.__STRING__ | VariableCode.__INTEGER__ | VariableCode.__CHARACTER_DATA__);
-			switch (flag)
+			if (_descriptor.Attributes.HasFlag(VariableAttribute.CharacterData))
 			{
-				case VariableCode.__CHARACTER_DATA__ | VariableCode.__INTEGER__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER__)
-						IsSavedata = true;
-					break;
-				case VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING__)
-						IsSavedata = true;
-					break;
-				case VariableCode.__CHARACTER_DATA__ | VariableCode.__INTEGER__ | VariableCode.__ARRAY_1D__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER_ARRAY__)
-						IsSavedata = true;
-					break;
-				case VariableCode.__CHARACTER_DATA__ | VariableCode.__STRING__ | VariableCode.__ARRAY_1D__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING_ARRAY__)
-						IsSavedata = true;
-					break;
-				case VariableCode.__INTEGER__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_INTEGER__)
-						IsSavedata = true;
-					break;
-				case VariableCode.__STRING__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_STRING__)
-						IsSavedata = true;
-					break;
-				case VariableCode.__INTEGER__ | VariableCode.__ARRAY_1D__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_INTEGER_ARRAY__)
-						IsSavedata = true;
-					break;
-				case VariableCode.__STRING__ | VariableCode.__ARRAY_1D__:
-					if (VarCodeInt < (int)VariableCode.__COUNT_SAVE_STRING_ARRAY__)
-						IsSavedata = true;
-					break;
+				if (_descriptor.IsInteger && _descriptor.Dimension == VariableDimension.Scalar
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER__)
+					IsSavedata = true;
+				else if (_descriptor.IsString && _descriptor.Dimension == VariableDimension.Scalar
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING__)
+					IsSavedata = true;
+				else if (_descriptor.IsInteger && _descriptor.Dimension == VariableDimension.Array1D
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_INTEGER_ARRAY__)
+					IsSavedata = true;
+				else if (_descriptor.IsString && _descriptor.Dimension == VariableDimension.Array1D
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_CHARACTER_STRING_ARRAY__)
+					IsSavedata = true;
+			}
+			else
+			{
+				if (_descriptor.IsInteger && _descriptor.Dimension == VariableDimension.Scalar
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_INTEGER__)
+					IsSavedata = true;
+				else if (_descriptor.IsString && _descriptor.Dimension == VariableDimension.Scalar
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_STRING__)
+					IsSavedata = true;
+				else if (_descriptor.IsInteger && _descriptor.Dimension == VariableDimension.Array1D
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_INTEGER_ARRAY__)
+					IsSavedata = true;
+				else if (_descriptor.IsString && _descriptor.Dimension == VariableDimension.Array1D
+					&& VarCodeInt < (int)VariableCode.__COUNT_SAVE_STRING_ARRAY__)
+					IsSavedata = true;
 			}
 		}
 	}
@@ -97,6 +91,7 @@ internal abstract class VariableToken
 	public readonly int VarCodeInt;
 	protected readonly VariableData varData;
 	protected string varName;
+	[Obsolete("Use Descriptor.IsInteger/IsString/IsFloat or GetEraType() instead")]
 	public Type VariableType { get; protected set; }
 	public bool CanRestructure { get; protected set; }
 	public string Name { get { return varName; } }

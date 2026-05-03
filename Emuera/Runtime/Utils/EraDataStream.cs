@@ -468,6 +468,142 @@ internal sealed class EraDataReader : IDisposable
 		return ret;
 	}
 
+	public Dictionary<string, List<double>> ReadDoubleArrayExtended()
+	{
+		if (reader == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		Dictionary<string, List<double>> ret = [];
+		string str;
+		while (true)
+		{
+			str = reader.ReadLine();
+			if (str == null)
+				throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+			if (str.Equals(FINISHER, StringComparison.Ordinal))
+				throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
+				break;
+			string key = str;
+			List<double> valueList = [];
+			while (true)
+			{
+				str = reader.ReadLine();
+				if (str == null)
+					throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+				if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
+					throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+				if (str.Equals(FINISHER, StringComparison.Ordinal))
+					break;
+				if (!double.TryParse(str, out double value))
+					throw new FileEE(trerror.InvalidArray.Text);
+				valueList.Add(value);
+			}
+			ret.TryAdd(key, valueList);
+		}
+		return ret;
+	}
+
+	public Dictionary<string, List<double[]>> ReadDoubleArray2DExtended()
+	{
+		if (reader == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		Dictionary<string, List<double[]>> ret = [];
+		if (emu_version < 1708)
+			return ret;
+		string str;
+		while (true)
+		{
+			str = reader.ReadLine();
+			if (str == null)
+				throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+			if (str.Equals(FINISHER, StringComparison.Ordinal))
+				throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
+				break;
+			string key = str;
+			List<double[]> valueList = [];
+			while (true)
+			{
+				str = reader.ReadLine();
+				if (str == null)
+					throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+				if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
+					throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+				if (str.Equals(FINISHER, StringComparison.Ordinal))
+					break;
+				if (str.Length == 0)
+				{
+					valueList.Add([]);
+					continue;
+				}
+				string[] tokens = str.Split(',');
+				double[] dblTokens = new double[tokens.Length];
+				for (int x = 0; x < tokens.Length; x++)
+					if (!double.TryParse(tokens[x], out dblTokens[x]))
+						throw new FileEE(string.Format(trerror.CanNotInterpretNumValue.Text, tokens[x]));
+				valueList.Add(dblTokens);
+			}
+			ret.TryAdd(key, valueList);
+		}
+		return ret;
+	}
+
+	public Dictionary<string, List<List<double[]>>> ReadDoubleArray3DExtended()
+	{
+		if (reader == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		Dictionary<string, List<List<double[]>>> ret = [];
+		if (emu_version < 1729)
+			return ret;
+		string str;
+		while (true)
+		{
+			str = reader.ReadLine();
+			if (str == null)
+				throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+			if (str.Equals(FINISHER, StringComparison.Ordinal))
+				throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+			if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
+				break;
+			string key = str;
+			List<List<double[]>> valueList = [];
+			while (true)
+			{
+				str = reader.ReadLine();
+				if (str == null)
+					throw new FileEE(trerror.UnexpectedSaveDataEnd.Text);
+				if (str.Equals(EMU_SEPARATOR, StringComparison.Ordinal))
+					throw new FileEE(trerror.InvalidSaveDataFormat.Text);
+				if (str.Equals(FINISHER, StringComparison.Ordinal))
+					break;
+				if (str.Contains('{'))
+				{
+					List<double[]> tokenList = [];
+					while (true)
+					{
+						str = reader.ReadLine();
+						if (str == "}")
+							break;
+						if (str.Length == 0)
+						{
+							tokenList.Add([]);
+							continue;
+						}
+						string[] tokens = str.Split(',');
+						double[] dblTokens = new double[tokens.Length];
+						for (int x = 0; x < tokens.Length; x++)
+							if (!double.TryParse(tokens[x], out dblTokens[x]))
+								throw new FileEE(string.Format(trerror.CanNotInterpretNumValue.Text, tokens[x]));
+						tokenList.Add(dblTokens);
+					}
+					valueList.Add(tokenList);
+				}
+			}
+			ret.TryAdd(key, valueList);
+		}
+		return ret;
+	}
+
 	#endregion
 	#region IDisposable メンバ
 
@@ -771,6 +907,127 @@ internal sealed class EraDataWriter : IDisposable
 	public void WriteExtended(string key, string[,,] array2D)
 	{
 		throw new NotImplementedException(trerror.NotImplement.Text);
+	}
+
+	public void WriteExtended(string key, double[] array)
+	{
+		if (writer == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		if (array == null)
+			throw new FileEE(trerror.InvalidArray.Text);
+		int count = -1;
+		for (int i = 0; i < array.Length; i++)
+			if (array[i] != 0.0)
+				count = i;
+		count++;
+		if (count == 0)
+			return;
+		writer.WriteLine(key);
+		for (int i = 0; i < count; i++)
+			writer.WriteLine(array[i].ToString("G"));
+		writer.WriteLine(FINISHER);
+	}
+
+	public void WriteExtended(string key, double[,] array2D)
+	{
+		if (writer == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		if (array2D == null)
+			throw new FileEE(trerror.InvalidArray.Text);
+		int countX = 0;
+		int length0 = array2D.GetLength(0);
+		int length1 = array2D.GetLength(1);
+		int[] countY = new int[length0];
+		for (int x = 0; x < length0; x++)
+		{
+			for (int y = 0; y < length1; y++)
+			{
+				if (array2D[x, y] != 0.0)
+				{
+					countX = x + 1;
+					countY[x] = y + 1;
+				}
+			}
+		}
+		if (countX == 0)
+			return;
+		writer.WriteLine(key);
+		for (int x = 0; x < countX; x++)
+		{
+			if (countY[x] == 0)
+			{
+				writer.WriteLine("");
+				continue;
+			}
+			StringBuilder builder = new("");
+			for (int y = 0; y < countY[x]; y++)
+			{
+				builder.Append(array2D[x, y].ToString("G"));
+				if (y != countY[x] - 1)
+					builder.Append(',');
+			}
+			writer.WriteLine(builder.ToString());
+		}
+		writer.WriteLine(FINISHER);
+	}
+
+	public void WriteExtended(string key, double[,,] array3D)
+	{
+		if (writer == null)
+			throw new FileEE(trerror.InvalidStream.Text);
+		if (array3D == null)
+			throw new FileEE(trerror.InvalidArray.Text);
+		int countX = 0;
+		int length0 = array3D.GetLength(0);
+		int length1 = array3D.GetLength(1);
+		int length2 = array3D.GetLength(2);
+		int[] countY = new int[length0];
+		int[,] countZ = new int[length0, length1];
+		for (int x = 0; x < length0; x++)
+		{
+			for (int y = 0; y < length1; y++)
+			{
+				for (int z = 0; z < length2; z++)
+				{
+					if (array3D[x, y, z] != 0.0)
+					{
+						countX = x + 1;
+						countY[x] = y + 1;
+						countZ[x, y] = z + 1;
+					}
+				}
+			}
+		}
+		if (countX == 0)
+			return;
+		writer.WriteLine(key);
+		for (int x = 0; x < countX; x++)
+		{
+			writer.WriteLine(x.ToString() + "{");
+			if (countY[x] == 0)
+			{
+				writer.WriteLine("}");
+				continue;
+			}
+			for (int y = 0; y < countY[x]; y++)
+			{
+				StringBuilder builder = new("");
+				if (countZ[x, y] == 0)
+				{
+					writer.WriteLine("");
+					continue;
+				}
+				for (int z = 0; z < countZ[x, y]; z++)
+				{
+					builder.Append(array3D[x, y, z].ToString("G"));
+					if (z != countZ[x, y] - 1)
+						builder.Append(',');
+				}
+				writer.WriteLine(builder.ToString());
+			}
+			writer.WriteLine("}");
+		}
+		writer.WriteLine(FINISHER);
 	}
 	#endregion
 

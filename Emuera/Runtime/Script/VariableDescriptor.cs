@@ -188,4 +188,14 @@ internal static class VariableDescriptorTable
     {
         return _descriptors.TryGetValue(name, out descriptor);
     }
+
+    public static VariableDescriptor GetDescriptorByCode(VariableCode code)
+    {
+        foreach (var kvp in _descriptors)
+        {
+            if (kvp.Value.Code == code)
+                return kvp.Value;
+        }
+        return VariableDescriptor.FromCode(code, "");
+    }
 }
