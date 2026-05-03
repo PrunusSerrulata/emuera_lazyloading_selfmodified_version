@@ -126,6 +126,28 @@ namespace MinorShift.Emuera.Forms
 			flowLayoutPanel17.Controls.Add(labelRenderingBackend);
 			labelRenderingBackend.Text = MinorShift.Emuera.UI.Framework.Forms.EraPictureBox.RenderingBackend;
 
+			var labelBackendSelect = new System.Windows.Forms.Label();
+			labelBackendSelect.AutoSize = true;
+			labelBackendSelect.Name = "labelBackendSelect";
+			flowLayoutPanel17.Controls.Add(labelBackendSelect);
+			labelBackendSelect.Text = Lang.UI.ConfigDialog.Display.RenderingBackend.Text;
+
+			var comboBoxRenderingBackend = new System.Windows.Forms.ComboBox();
+			comboBoxRenderingBackend.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			comboBoxRenderingBackend.FormattingEnabled = true;
+			comboBoxRenderingBackend.Items.AddRange(new object[] {
+				Lang.UI.ConfigDialog.Display.RenderingBackendAuto.Text,
+				Lang.UI.ConfigDialog.Display.RenderingBackendOpenGL.Text,
+				Lang.UI.ConfigDialog.Display.RenderingBackendCPU.Text
+			});
+			comboBoxRenderingBackend.Name = "comboBoxRenderingBackend";
+			comboBoxRenderingBackend.SelectedIndexChanged += ComboBoxRenderingBackend_SelectedIndexChanged;
+			flowLayoutPanel17.Controls.Add(comboBoxRenderingBackend);
+
+			ConfigItem<MinorShift.Emuera.Runtime.Config.RenderingBackend> itemBackend = (ConfigItem<MinorShift.Emuera.Runtime.Config.RenderingBackend>)ConfigData.Instance.GetConfigItem(ConfigCode.RenderingBackend);
+			comboBoxRenderingBackend.SelectedIndex = (int)itemBackend.Value;
+			comboBoxRenderingBackend.Enabled = !itemBackend.Fixed;
+
 			labelSkiaImageQuality.Text = Lang.UI.ConfigDialog.Display.SkiaImageQuality.Text;
 			labelSkiaFontHinting.Text = Lang.UI.ConfigDialog.Display.SkiaFontHinting.Text;
 			labelSkiaFontEdging.Text = Lang.UI.ConfigDialog.Display.SkiaFontEdging.Text;
@@ -659,6 +681,9 @@ namespace MinorShift.Emuera.Forms
 			config.GetConfigItem(ConfigCode.SkiaSharpFontHinting).SetValue((SkiaSharpFontHinting)comboBoxSkiaFontHinting.SelectedIndex);
 			config.GetConfigItem(ConfigCode.SkiaSharpFontEdging).SetValue((SkiaSharpFontEdging)comboBoxSkiaFontEdging.SelectedIndex);
 
+			var comboBoxRenderingBackend = (System.Windows.Forms.ComboBox)flowLayoutPanel17.Controls.Find("comboBoxRenderingBackend", false)[0];
+			config.GetConfigItem(ConfigCode.RenderingBackend).SetValue((RenderingBackend)comboBoxRenderingBackend.SelectedIndex);
+
 			switch (comboBoxReduceArgumentOnLoad.SelectedIndex)
 			{
 				case 0:
@@ -1028,6 +1053,14 @@ namespace MinorShift.Emuera.Forms
 				}
 			}
 		}
+
+		private void ComboBoxRenderingBackend_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			var combo = (System.Windows.Forms.ComboBox)sender;
+			ConfigData.Instance.GetConfigItem(ConfigCode.RenderingBackend).SetValue((RenderingBackend)combo.SelectedIndex);
+			Config.Backend = (RenderingBackend)combo.SelectedIndex;
+		}
+
 		private void UseButtonFocusColor_CheckedChanged(object sender, EventArgs e)
 		{
 			JSONConfig.Data.UseButtonFocusBackgroundColor = _useButtonFocusColor.Checked;

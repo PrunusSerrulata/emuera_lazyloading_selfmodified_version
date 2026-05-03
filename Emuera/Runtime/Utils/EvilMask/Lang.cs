@@ -183,6 +183,10 @@ internal sealed partial class Lang
 				[Managed] public static TranslatableString SkiaImageQuality { get; } = new TranslatableString("画像縮尺品質");
 				[Managed] public static TranslatableString SkiaFontHinting { get; } = new TranslatableString("フォントヒント");
 				[Managed] public static TranslatableString SkiaFontEdging { get; } = new TranslatableString("フォントエッジ");
+				[Managed] public static TranslatableString RenderingBackend { get; } = new TranslatableString("レンダリングバックエンド");
+				[Managed] public static TranslatableString RenderingBackendAuto { get; } = new TranslatableString("自動検出");
+				[Managed] public static TranslatableString RenderingBackendOpenGL { get; } = new TranslatableString("OpenGL");
+				[Managed] public static TranslatableString RenderingBackendCPU { get; } = new TranslatableString("CPU");
 				[Managed] public static TranslatableString FPS { get; } = new TranslatableString("フレーム毎秒");
 				[Managed] public static TranslatableString PrintCPerLine { get; } = new TranslatableString("PRINTCを並べる数");
 				[Managed] public static TranslatableString PrintCLength { get; } = new TranslatableString("PRINTCの文字数");
