@@ -89,6 +89,8 @@ internal sealed partial class EmueraConsole : IDisposable
 
 	public bool strictFontFallback = false;
 
+	public Color? TextBackgroundColor { get; set; }
+
 	public EmueraConsole(MainWindow parent)
 	{
 		window = parent;

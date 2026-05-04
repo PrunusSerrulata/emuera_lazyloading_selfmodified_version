@@ -1,5 +1,6 @@
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
+using MinorShift.Emuera.GameProc.Function;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System;
@@ -56,6 +57,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		FontHinting = null;
 		FontSize = null;
 
+		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
+			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[ConsoleStyledString ctor] str='{str}', style.BackgroundColor=({style.BackgroundColor?.A},{style.BackgroundColor?.R},{style.BackgroundColor?.G},{style.BackgroundColor?.B})\n");
+
 		Font = FontFactory.GetFont(style.Fontname, style.FontStyle, FontSize, FontEdging, FontHinting);
 		if (Font == null)
 		{
@@ -74,6 +78,9 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		BuildFallbacks();
 
 		Color = style.Color;
+		BackgroundColor = style.BackgroundColor;
+		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
+			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[ConsoleStyledString ctor] After BG assignment, this.BackgroundColor=({BackgroundColor?.A},{BackgroundColor?.R},{BackgroundColor?.G},{BackgroundColor?.B})\n");
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
 		if (!colorChanged && Color != Config.ForeColor)
@@ -112,6 +119,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		BuildFallbacks();
 
 		Color = style.Color;
+		BackgroundColor = style.BackgroundColor;
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
 		if (!colorChanged && Color != Config.ForeColor)
@@ -152,6 +160,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		BuildFallbacks();
 
 		Color = style.Color;
+		BackgroundColor = style.BackgroundColor;
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
 		if (!colorChanged && Color != Config.ForeColor)
@@ -393,6 +402,8 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	{
 		if (Error)
 			return;
+		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
+			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[DrawTo] Text='{Text}', BackgroundColor=({BackgroundColor?.A},{BackgroundColor?.R},{BackgroundColor?.G},{BackgroundColor?.B}), isFocus={isFocus}\n");
 		var color = Color;
 		SKColor? backcolor = null;
 		if (isFocus)
@@ -409,10 +420,14 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			}
 			color = ButtonColor;
 		}
-	else if (isBackLog && !colorChanged)
-	{
-		color = Config.LogColor;
-	}
+		else if (BackgroundColor.HasValue)
+		{
+			backcolor = BackgroundColor.Value.ToSKColor();
+		}
+		else if (isBackLog && !colorChanged)
+		{
+			color = Config.LogColor;
+		}
 
 	#region EM_私家版_描画拡張
 	bool isAntialias;
@@ -439,6 +454,18 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	if (useGdiRender)
 	{
 		TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping;
+
+		if (backcolor.HasValue)
+		{
+			using var backBrush = new SolidBrush(System.Drawing.Color.FromArgb(backcolor.Value.Alpha, backcolor.Value.Red, backcolor.Value.Green, backcolor.Value.Blue));
+			using var bitmap = new System.Drawing.Bitmap((int)Width + 2, (int)Font.Size + 2);
+			using (var g = System.Drawing.Graphics.FromImage(bitmap))
+			{
+				g.FillRectangle(backBrush, 0, 0, bitmap.Width, bitmap.Height);
+			}
+			using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
+			graph.DrawBitmap(skBitmap, new SKPoint(point.X, point.Y - Font.Size));
+		}
 
 		if (_gdiTexts != null)
 		{
@@ -477,6 +504,8 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 
 	if (backcolor.HasValue)
 	{
+		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
+			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[DrawTo] Drawing background rect at ({point.X},{point.Y}) size ({Width},{Font.Size})\n");
 		var size = new SKSize(Width, Font.Size);
 		using var backPaint = new SKPaint() { Color = backcolor.Value };
 		graph.DrawRect(SKRect.Create(point, size), backPaint);

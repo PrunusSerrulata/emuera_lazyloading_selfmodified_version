@@ -4,6 +4,7 @@ using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using MinorShift.Emuera.UI.Game;
+using MinorShift.Emuera.GameProc.Function;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System;
@@ -80,20 +81,29 @@ internal sealed partial class EmueraConsole : IDisposable
 	{
 		get
 		{
+			if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
+				System.IO.File.AppendAllText(@"debug_textbgc.log", $"[Style getter] UseUserStyle={UseUserStyle}, UseSetColorStyle={UseSetColorStyle}, userStyle.BG=({userStyle.BackgroundColor?.A},{userStyle.BackgroundColor?.R},{userStyle.BackgroundColor?.G},{userStyle.BackgroundColor?.B}), defaultStyle.BG=({defaultStyle.BackgroundColor?.A},{defaultStyle.BackgroundColor?.R},{defaultStyle.BackgroundColor?.G},{defaultStyle.BackgroundColor?.B})\n");
 			if (!UseUserStyle)
+			{
+				if (userStyle.BackgroundColor.HasValue)
+					return userStyle;
 				return defaultStyle;
+			}
 			if (UseSetColorStyle)
 				return userStyle;
-			//PRINTD系(SETCOLORを無視する)
 			if (userStyle.Color == defaultStyle.Color)
 				return userStyle;
-			return new StringStyle(defaultStyle.Color, userStyle.FontStyle, userStyle.Fontname);
+			var ss = new StringStyle(defaultStyle.Color, userStyle.FontStyle, userStyle.Fontname).WithBackgroundColor(userStyle.BackgroundColor);
+			if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
+				System.IO.File.AppendAllText(@"debug_textbgc.log", $"[Style getter] created new style with BG=({ss.BackgroundColor?.A},{ss.BackgroundColor?.R},{ss.BackgroundColor?.G},{ss.BackgroundColor?.B})\n");
+			return ss;
 		}
 	}
 	//private StringStyle Style { get { return (useUserStyle ? userStyle : defaultStyle); } }
 	public StringStyle StringStyle { get { return userStyle; } }
 	public void SetStringStyle(FontStyle fs) { userStyle.FontStyle = fs; }
 	public void SetStringStyle(Color color) { userStyle.Color = color; userStyle.ColorChanged = color != Config.ForeColor; }
+	public void SetTextBackgroundColor(Color? color) { if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled) System.IO.File.AppendAllText(@"debug_textbgc.log", $"[SetTextBackgroundColor] color=ARGB({color?.A},{color?.R},{color?.G},{color?.B})\n"); userStyle.BackgroundColor = color; if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled) System.IO.File.AppendAllText(@"debug_textbgc.log", $"[SetTextBackgroundColor] userStyle.BackgroundColor=ARGB({userStyle.BackgroundColor?.A},{userStyle.BackgroundColor?.R},{userStyle.BackgroundColor?.G},{userStyle.BackgroundColor?.B})\n"); }
 	public void SetFont(string fontname) { if (!string.IsNullOrEmpty(fontname)) userStyle.Fontname = fontname; else userStyle.Fontname = Config.FontName; }
 	private DisplayLineAlignment alignment = DisplayLineAlignment.LEFT;
 	public DisplayLineAlignment Alignment { get { return alignment; } set { alignment = value; } }
@@ -102,6 +112,8 @@ internal sealed partial class EmueraConsole : IDisposable
 		userStyle = defaultStyle;
 		alignment = DisplayLineAlignment.LEFT;
 	}
+
+	public void ClearTextBackgroundColor() { if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled) System.IO.File.AppendAllText(@"debug_textbgc.log", $"[ClearTextBackgroundColor] Clearing BG\n"); userStyle.BackgroundColor = null; }
 
 	public bool EmptyLine { get { return printBuffer.IsEmpty; } }
 

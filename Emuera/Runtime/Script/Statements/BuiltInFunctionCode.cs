@@ -1,4 +1,4 @@
-namespace MinorShift.Emuera.Runtime.Script.Statements;
+﻿namespace MinorShift.Emuera.Runtime.Script.Statements;
 
 /// <summary>
 /// 命令コード
@@ -197,6 +197,11 @@ enum FunctionCode
 	POWER,//引数が違うのでMETHOD化できない。
 	SAVEGLOBAL,
 	LOADGLOBAL,
+
+	#region EM_私家版_文字背景色
+	TEXT_BGC_ON,
+	TEXT_BGC_OFF,
+	#endregion
 	SWAP,
 
 	RESETDATA,

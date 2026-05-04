@@ -1,3 +1,4 @@
+using MinorShift.Emuera.Runtime;
 using MinorShift.Emuera.Runtime.Config;
 using System.Drawing;
 using System.Text;
@@ -138,6 +139,31 @@ internal sealed class ConsoleDisplayLine
 
 	public void DrawTo(SKCanvas graph, int pointY, bool isBackLog, bool force, TextDrawingMode mode)
 	{
+		Color? bgColor = GlobalStatic.Console?.TextBackgroundColor;
+		if (bgColor.HasValue)
+		{
+			bool hasText = false;
+			foreach (ConsoleButtonString button in buttons)
+			{
+				if (button.StrArray == null) continue;
+				foreach (AConsoleDisplayNode node in button.StrArray)
+				{
+					if (node is ConsoleStyledString css && !string.IsNullOrWhiteSpace(css.Text))
+					{
+						hasText = true;
+						break;
+					}
+				}
+				if (hasText) break;
+			}
+			if (hasText)
+			{
+				int lineWidth = GlobalStatic.Console?.ClientWidth ?? 1280;
+				var c = bgColor.Value;
+				using var backPaint = new SKPaint { Color = new SKColor(c.R, c.G, c.B, c.A) };
+				graph.DrawRect(SKRect.Create(0, pointY, lineWidth, Config.LineHeight), backPaint);
+			}
+		}
 		foreach (ConsoleButtonString button in buttons)
 			button.DrawTo(graph, new SKPoint(-1, pointY), isBackLog, mode);
 	}
