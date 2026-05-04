@@ -37,7 +37,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public HtmlStringLenMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int}, OmitStart = 1 }
 				];
@@ -60,7 +60,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public XmlGetMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.String, ArgType.Int, ArgType.Int}, OmitStart = 2 },
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.String, ArgType.RefString1D, ArgType.Int}, OmitStart = 3 },
@@ -163,8 +163,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public IsDefinedMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 
@@ -191,7 +191,7 @@ internal static partial class FunctionMethodCreator
 		private EAction action;
 		public EnumNameMethod(EType type, EAction act)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			CanRestructure = false;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.RefString1D }, OmitStart = 1 },
@@ -266,7 +266,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public EnumFilesMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.Int, ArgType.RefString1D }, OmitStart = 1 },
 				];
@@ -320,7 +320,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetVarMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
 				];
@@ -351,7 +351,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetVarsMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String }, OmitStart = 1 },
 				];
@@ -381,7 +381,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ExistVarMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int}, OmitStart = 1 },
 				];
@@ -429,7 +429,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ArrayMultiSortExMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.Int, ArgType.Int | ArgType.DisallowVoid }, OmitStart = 2 },
 					new ArgTypeList{ ArgTypes = { ArgType.RefInt1D, ArgType.RefString1D, ArgType.Int, ArgType.Int | ArgType.DisallowVoid }, OmitStart = 2 },
@@ -604,7 +604,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SetVarMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int }, OmitStart = 2 },
 				];
@@ -653,7 +653,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public VarSetExMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 2 },
 				];
@@ -816,8 +816,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public HtmlSubStringMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string), typeof(long)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String, EraType.Integer];
 			CanRestructure = false;
 		}
 
@@ -836,8 +836,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public HtmlStringLinesMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer];
 			CanRestructure = false;
 		}
 
@@ -859,7 +859,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public RegexpMatchMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }, OmitStart = 2 },
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.RefInt, ArgType.RefString1D } },
@@ -929,7 +929,7 @@ internal static partial class FunctionMethodCreator
 		public XmlDocumentMethod(Operation type)
 		{
 			op = type;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			if (op == Operation.Create)
 				argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.String } },
@@ -979,7 +979,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public XmlSetMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 3 },
 					new ArgTypeList{ ArgTypes = { ArgType.RefString, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 3 },
@@ -1063,7 +1063,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public XmlToStrMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any } },
 				];
@@ -1085,7 +1085,7 @@ internal static partial class FunctionMethodCreator
 
 		public XmlAddNodeMethod(Operation op)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			this.op = op;
 			CanRestructure = false;
 
@@ -1301,7 +1301,7 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Node, Attribute };
 		public XmlRemoveNodeMethod(Operation op)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int }, OmitStart = 2 },
 						new ArgTypeList{ ArgTypes = { ArgType.RefString, ArgType.String, ArgType.Int }, OmitStart = 2 }
@@ -1398,7 +1398,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public XmlReplaceMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.String } },
 						new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int }, OmitStart = 3 },
@@ -1507,8 +1507,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ExistFileMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1523,11 +1523,11 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Create, Check, Release, Clear, Case };
 		public DataTableManagementMethod(Operation type)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			if (type == Operation.Case)
-				argumentTypeArray = [typeof(string), typeof(long)];
+				argumentTypeArray = [EraType.String, EraType.Integer];
 			else
-				argumentTypeArray = [typeof(string)];
+				argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 			op = type;
 		}
@@ -1578,7 +1578,7 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Create, Check, Remove, Names };
 		public DataTableColumnManagementMethod(Operation type)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			if (type == Operation.Create)
 				argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.Any, ArgType.Int }, OmitStart = 2 },
@@ -1588,7 +1588,7 @@ internal static partial class FunctionMethodCreator
 						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.RefString1D }, OmitStart = 1 },
 					];
 			else
-				argumentTypeArray = [typeof(string), typeof(string)];
+				argumentTypeArray = [EraType.String, EraType.String];
 			CanRestructure = false;
 			op = type;
 		}
@@ -1660,7 +1660,7 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Add, Set };
 		public DataTableRowSetMethod(Operation type)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			if (type == Operation.Add)
 				argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.VariadicString, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 1 },
@@ -1814,8 +1814,8 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Row, Column };
 		public DataTableLengthMethod(Operation type)
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 			op = type;
 		}
@@ -1832,7 +1832,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public DataTableRowRemoveMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int } },
 						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.RefInt1D, ArgType.Int } },
@@ -1884,7 +1884,7 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Get, IsNull, Gets };
 		public DataTableCellGetMethod(Operation type)
 		{
-			ReturnType = type == Operation.Gets ? typeof(string) : typeof(long);
+			ReturnType = type == Operation.Gets ? EraType.String : EraType.Integer;
 			argumentTypeArrayEx = [
 						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Int }, OmitStart = 3 },
 					];
@@ -1951,7 +1951,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public DataTableCellSetMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Any, ArgType.Int }, OmitStart = 3 },
 				];
@@ -1993,7 +1993,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public DataTableSelectMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.RefInt1D }, OmitStart = 1 },
 				];
@@ -2058,7 +2058,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public DataTableToXmlMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.RefString }, OmitStart = 1 },
 				];
@@ -2096,8 +2096,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public DataTableFromXmlMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(string), typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.String, EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -2132,8 +2132,8 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Create, Check, Release };
 		public MapManagementMethod(Operation type)
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 			op = type;
 		}
@@ -2158,16 +2158,16 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Set, Has, Remove, Clear, Size };
 		public MapDataOperationMethod(Operation type)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			switch (type)
 			{
 				case Operation.Set:
-					argumentTypeArray = [typeof(string), typeof(string), typeof(string)]; break;
+					argumentTypeArray = [EraType.String, EraType.String, EraType.String]; break;
 				case Operation.Has:
 				case Operation.Remove:
-					argumentTypeArray = [typeof(string), typeof(string)]; break;
+					argumentTypeArray = [EraType.String, EraType.String]; break;
 				default:
-					argumentTypeArray = [typeof(string)]; break;
+					argumentTypeArray = [EraType.String]; break;
 			}
 			CanRestructure = false;
 			op = type;
@@ -2199,13 +2199,13 @@ internal static partial class FunctionMethodCreator
 		public enum Operation { Get, ToXml, GetKeys };
 		public MapGetStrMethod(Operation type)
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			switch (type)
 			{
 				case Operation.Get:
-					argumentTypeArray = [typeof(string), typeof(string)]; break;
+					argumentTypeArray = [EraType.String, EraType.String]; break;
 				case Operation.ToXml:
-					argumentTypeArray = [typeof(string)]; break;
+					argumentTypeArray = [EraType.String]; break;
 				case Operation.GetKeys:
 					argumentTypeArrayEx = [
 							new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
@@ -2300,8 +2300,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public MapFromXmlMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -2339,7 +2339,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public MapValuesMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.RefString1D, ArgType.Int } },
@@ -2414,8 +2414,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public MapMergeMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -2436,8 +2436,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public MapRemoveIfMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(string), typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.String, EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -2488,8 +2488,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public MapFindKeyMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string), typeof(string), typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String, EraType.String, EraType.String];
 			CanRestructure = false;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -2559,7 +2559,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public MapToStringMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.String }, OmitStart = 1 },
 				];
@@ -2589,7 +2589,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public MapFromStringMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.String }, OmitStart = 2 },
 				];
@@ -2625,8 +2625,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SqlEscapeMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -2639,7 +2639,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SqlExecuteNonQueryParamMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicString }, OmitStart = 2 },
 				];
@@ -2662,7 +2662,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SqlExecuteReaderParamMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicString }, OmitStart = 2 },
 				];
@@ -2685,7 +2685,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SqlExecuteScalarLongParamMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicString }, OmitStart = 2 },
 				];
@@ -2708,7 +2708,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SqlExecuteScalarStringParamMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicString }, OmitStart = 2 },
 				];
@@ -2731,8 +2731,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public MoveTextBoxMethod(bool b = false)
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 			resume = b;
 		}
@@ -2754,7 +2754,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetcharaMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int }, OmitStart = 1 },
@@ -2772,10 +2772,10 @@ internal static partial class FunctionMethodCreator
 
 		//	if (arguments[0] == null)
 		//		return name + "関数の1番目の引数は省略できません";
-		//	if (arguments[0].GetOperandType() != typeof(Int64))
+		//	if (arguments[0].GetOperandType() != EraType.Integer)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	//2は省略可能
-		//	if ((arguments.Count == 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count == 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -2808,8 +2808,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetspcharaMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -2827,7 +2827,7 @@ internal static partial class FunctionMethodCreator
 		readonly CharacterStrData charaStr;
 		public CsvStrDataMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = null;
 			charaStr = CharacterStrData.NAME;
 			argumentTypeArrayEx = [
@@ -2837,7 +2837,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public CsvStrDataMethod(CharacterStrData cStr)
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int }, OmitStart = 1 },
@@ -2857,7 +2857,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数が数値ではありません";
 		//	if (arguments.Count == 1)
 		//		return null;
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の変数が数値ではありません";
 		//	return null;
 		//}
@@ -2876,7 +2876,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public CsvcstrMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -2895,11 +2895,11 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数が数値ではありません";
 		//	if (arguments[1] == null)
 		//		return name + "関数の2番目の引数は省略できません";
-		//	if (arguments[1].GetOperandType() != typeof(Int64))
+		//	if (arguments[1].GetOperandType() != EraType.Integer)
 		//		return name + "関数の2番目の変数が数値ではありません";
 		//	if (arguments.Count == 2)
 		//		return null;
-		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の変数が数値ではありません";
 		//	return null;
 		//}
@@ -2920,7 +2920,7 @@ internal static partial class FunctionMethodCreator
 		readonly CharacterIntData charaInt;
 		public CsvDataMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -2930,7 +2930,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public CsvDataMethod(CharacterIntData cInt)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -2950,11 +2950,11 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数が数値ではありません";
 		//	if (arguments[1] == null)
 		//		return name + "関数の2番目の引数は省略できません";
-		//	if (arguments[1].GetOperandType() != typeof(Int64))
+		//	if (arguments[1].GetOperandType() != EraType.Integer)
 		//		return name + "関数の2番目の変数が数値ではありません";
 		//	if (arguments.Count == 2)
 		//		return null;
-		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の変数が数値ではありません";
 		//	return null;
 		//}
@@ -2974,7 +2974,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public FindcharaMethod(bool last)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.Any, ArgType.SameAsFirst, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -3003,10 +3003,10 @@ internal static partial class FunctionMethodCreator
 		//	if (arguments[1].GetOperandType() != arguments[0].GetOperandType())
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	//3番目は省略可能
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の引数の型が正しくありません";
 		//	//4番目は省略可能
-		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != EraType.Integer))
 		//		return name + "関数の4番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -3065,7 +3065,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ExistCsvMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int }, OmitStart = 1 },
@@ -3084,7 +3084,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数が数値ではありません";
 		//	if (arguments.Count == 1)
 		//		return null;
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の変数が数値ではありません";
 		//	return null;
 		//}
@@ -3106,7 +3106,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public VarsizeMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
@@ -3133,7 +3133,7 @@ internal static partial class FunctionMethodCreator
 		//	}
 		//	if (arguments.Count == 1)
 		//		return null;
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の変数が数値ではありません";
 		//	if (arguments.Count == 2)
 		//		return null;
@@ -3172,8 +3172,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CheckfontMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;//起動中に変わることもそうそうないはず……
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3208,8 +3208,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CheckdataMethod(EraSaveFileType type)
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 			this.type = type;
 		}
@@ -3237,8 +3237,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CheckdataStrMethod(EraSaveFileType type)
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 			this.type = type;
 		}
@@ -3260,7 +3260,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public FindFilesMethod(EraSaveFileType type)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String }, OmitStart = 0 },
@@ -3309,7 +3309,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public IsSkipMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3323,7 +3323,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public MesSkipMethod(bool warn)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = null;
 			CanRestructure = false;
 			this.warn = warn;
@@ -3351,7 +3351,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetColorMethod(bool isDef)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = isDef;
 			defaultColor = isDef;
@@ -3369,7 +3369,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetFocusColorMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = true;
 		}
@@ -3383,7 +3383,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetBGColorMethod(bool isDef)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = isDef;
 			defaultColor = isDef;
@@ -3401,7 +3401,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetStyleMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3426,7 +3426,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetFontMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3440,8 +3440,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public BarStringMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3457,7 +3457,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public CurrentAlignMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3476,7 +3476,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public CurrentRedrawMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3490,8 +3490,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ColorFromNameMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3517,8 +3517,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ColorFromRGBMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3546,7 +3546,7 @@ internal static partial class FunctionMethodCreator
 	//{
 	//	public GetRefMethod()
 	//	{
-	//		ReturnType = typeof(string);
+	//		ReturnType = EraType.String;
 	//		argumentTypeArray = null;
 	//		CanRestructure = false;
 	//	}
@@ -3574,7 +3574,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public MoneyStrMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String}, OmitStart = 1 }
@@ -3590,7 +3590,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の引数が多すぎます";
 		//	if (arguments[0] == null)
 		//		return name + "関数の1番目の引数は省略できません";
-		//	if (arguments[0].GetOperandType() != typeof(Int64))
+		//	if (arguments[0].GetOperandType() != EraType.Integer)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetEraType() != EraType.String))
 		//		return name + "関数の2番目の引数の型が正しくありません";
@@ -3620,7 +3620,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetPrintCPerLineMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = true;
 		}
@@ -3634,7 +3634,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public PrintCLengthMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = true;
 		}
@@ -3648,7 +3648,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetSaveNosMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = true;
 		}
@@ -3662,7 +3662,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GettimeMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3683,7 +3683,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GettimesMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3697,7 +3697,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetmsMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3712,7 +3712,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetSecondMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -3730,7 +3730,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public RandMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int}, OmitStart = 1 }
@@ -3749,14 +3749,14 @@ internal static partial class FunctionMethodCreator
 		//	{
 		//		if (arguments[0] == null)
 		//			return name + "関数には少なくとも1つの引数が必要です";
-		//		if ((arguments[0].GetOperandType() != typeof(Int64)))
+		//		if ((arguments[0].GetOperandType() != EraType.Integer))
 		//			return name + "関数の1番目の引数の型が正しくありません";
 		//		return null;
 		//	}
 		//	//1番目は省略可能
-		//	if ((arguments[0] != null) && (arguments[0].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[0] != null) && (arguments[0].GetOperandType() != EraType.Integer))
 		//		return name + "関数の1番目の引数の型が正しくありません";
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -3790,7 +3790,7 @@ internal static partial class FunctionMethodCreator
 		readonly bool isMax;
 		public MaxMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.VariadicInt}, OmitStart = 1 }
@@ -3800,7 +3800,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public MaxMethod(bool max)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.VariadicInt}, OmitStart = 1 }
@@ -3816,7 +3816,7 @@ internal static partial class FunctionMethodCreator
 		//	{
 		//		if (arguments[i] == null)
 		//			return name + "関数の" + (i + 1).ToString() + "番目の引数は省略できません";
-		//		if (arguments[i].GetOperandType() != typeof(Int64))
+		//		if (arguments[i].GetOperandType() != EraType.Integer)
 		//			return name + "関数の" + (i + 1).ToString() + "番目の引数の型が正しくありません";
 		//	}
 		//	return null;
@@ -3847,8 +3847,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public AbsMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3865,8 +3865,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public PowerMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3891,8 +3891,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SqrtMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3909,8 +3909,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CbrtMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3928,15 +3928,15 @@ internal static partial class FunctionMethodCreator
 		readonly double Base;
 		public LogMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			Base = Math.E;
 			CanRestructure = true;
 		}
 		public LogMethod(double b)
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			Base = b;
 			CanRestructure = true;
 		}
@@ -3971,8 +3971,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ExpMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3998,8 +3998,8 @@ internal static partial class FunctionMethodCreator
 
 		public SignMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -4013,8 +4013,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetLimitMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -4033,12 +4033,267 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 
+	private sealed class RandFMethod : FunctionMethod
+	{
+		public RandFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any }, OmitStart = 1 }
+			];
+			CanRestructure = false;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double min = 0.0;
+			double max;
+			if (arguments.Count == 1)
+				max = ToDouble(arguments[0], exm);
+			else
+			{
+				if (arguments[0] != null)
+					min = ToDouble(arguments[0], exm);
+				max = ToDouble(arguments[1], exm);
+			}
+			if (max <= min)
+			{
+				if (min == 0.0)
+					throw new CodeEE(string.Format(trerror.NegativeMaximum.Text, Name, max));
+				else
+					throw new CodeEE(string.Format(trerror.MaximumLowerThanMinimum.Text, Name, max));
+			}
+			return exm.VEvaluator.GetNextRandDouble() * (max - min) + min;
+		}
+	}
+
+	private sealed class MaxFMethod : FunctionMethod
+	{
+		readonly bool isMax;
+		public MaxFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny }, OmitStart = 1 }
+			];
+			isMax = true;
+			CanRestructure = true;
+		}
+		public MaxFMethod(bool max)
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny }, OmitStart = 1 }
+			];
+			isMax = max;
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			for (int i = 1; i < arguments.Count; i++)
+			{
+				double v = ToDouble(arguments[i], exm);
+				if (isMax)
+				{
+					if (v > ret) ret = v;
+				}
+				else
+				{
+					if (v < ret) ret = v;
+				}
+			}
+			return ret;
+		}
+	}
+
+	private sealed class AbsFMethod : FunctionMethod
+	{
+		public AbsFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return Math.Abs(ToDouble(arguments[0], exm));
+		}
+	}
+
+	private sealed class PowerFMethod : FunctionMethod
+	{
+		public PowerFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any } }
+			];
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double x = ToDouble(arguments[0], exm);
+			double y = ToDouble(arguments[1], exm);
+			double pow = Math.Pow(x, y);
+			if (double.IsNaN(pow))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(pow))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			return pow;
+		}
+	}
+
+	private sealed class SqrtFMethod : FunctionMethod
+	{
+		public SqrtFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			if (ret < 0)
+				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
+			return Math.Sqrt(ret);
+		}
+	}
+
+	private sealed class CbrtFMethod : FunctionMethod
+	{
+		public CbrtFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			return Math.Cbrt(ret);
+		}
+	}
+
+	private sealed class LogFMethod : FunctionMethod
+	{
+		readonly double Base;
+		public LogFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			Base = Math.E;
+			CanRestructure = true;
+		}
+		public LogFMethod(double b)
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			Base = b;
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			if (ret <= 0)
+				throw new CodeEE(string.Format(trerror.ArgIsNotMoreThan0.Text, Name, 1, ret));
+			double dret;
+			if (Base == Math.E)
+				dret = Math.Log(ret);
+			else
+				dret = Math.Log10(ret);
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			return dret;
+		}
+	}
+
+	private sealed class ExpFMethod : FunctionMethod
+	{
+		public ExpFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			double dret = Math.Exp(ret);
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			return dret;
+		}
+	}
+
+	private sealed class SignFMethod : FunctionMethod
+	{
+		public SignFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			return Math.Sign(ret);
+		}
+	}
+
+	private sealed class LimitFMethod : FunctionMethod
+	{
+		public LimitFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any, ArgType.Any } }
+			];
+			CanRestructure = true;
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double value = ToDouble(arguments[0], exm);
+			double min = ToDouble(arguments[1], exm);
+			double max = ToDouble(arguments[2], exm);
+			if (value < min)
+				return min;
+			else if (value > max)
+				return max;
+			else
+				return value;
+		}
+	}
+
+	private static double ToDouble(AExpression expr, ExpressionMediator exm)
+	{
+		return expr.GetEraType() == EraType.Integer ? expr.GetIntValue(exm) : expr.GetFloatValue(exm);
+	}
+
 	private sealed class UncheckedAddMethod : FunctionMethod
 	{
 		public UncheckedAddMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -4053,8 +4308,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public UncheckedSubtractMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -4069,8 +4324,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public UncheckedMultiplyMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -4085,8 +4340,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public UncheckedNegateMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -4103,7 +4358,7 @@ internal static partial class FunctionMethodCreator
 		readonly bool isCharaRange;
 		public SumArrayMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefIntArray, ArgType.Int, ArgType.Int }, OmitStart = 1 },
@@ -4113,7 +4368,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public SumArrayMethod(bool isChara)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefIntArray | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 }
@@ -4140,11 +4395,11 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数が配列変数ではありません";
 		//	if (arguments.Count == 1)
 		//		return null;
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の変数が数値ではありません";
 		//	if (arguments.Count == 2)
 		//		return null;
-		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の変数が数値ではありません";
 		//	return null;
 		//}
@@ -4176,7 +4431,7 @@ internal static partial class FunctionMethodCreator
 		readonly bool isCharaRange;
 		public MatchMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.SameAsFirst, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -4187,7 +4442,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public MatchMethod(bool isChara)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					//new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefAny1D | ArgType.AllowConstRef | ArgType.Any, ArgType.SameAsFirst, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -4218,9 +4473,9 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の2番目の引数は省略できません";
 		//	if (arguments[1].GetOperandType() != arguments[0].GetOperandType())
 		//		return name + "関数の1番目の引数と2番目の引数の型が異なります";
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != EraType.Integer))
 		//		return name + "関数の4番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -4282,7 +4537,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GroupMatchMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicSameAsFirst } },
@@ -4334,7 +4589,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public NosamesMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicSameAsFirst } },
@@ -4389,7 +4644,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public AllsamesMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicSameAsFirst } },
@@ -4443,7 +4698,7 @@ internal static partial class FunctionMethodCreator
 		readonly string funcName;
 		public MaxArrayMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
@@ -4455,7 +4710,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public MaxArrayMethod(bool isChara)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
@@ -4470,7 +4725,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public MaxArrayMethod(bool isChara, bool isMaxFunc)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = isChara
 				? [
@@ -4503,9 +4758,9 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数は二重配列・三重配列には対応していません";
 		//	if (!varToken.Identifier.IsArray1D)
 		//		return name + "関数の1番目の引数が配列変数ではありません";
-		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -4534,8 +4789,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetbitMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
@@ -4567,7 +4822,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetnumMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.String, ArgType.Int }, OmitStart = 2 },
@@ -4620,8 +4875,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetnumBMethod()
 		{
-			ReturnType = typeof(Int64);
-			argumentTypeArray = new Type[] { typeof(string), typeof(string) };
+			ReturnType = EraType.Integer;
+			argumentTypeArray = new EraType[] { EraType.String, EraType.String };
 			CanRestructure = true;
 		}
 		/*
@@ -4662,8 +4917,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetPalamLVMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
@@ -4688,8 +4943,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetExpLVMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
@@ -4714,7 +4969,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public FindElementMethod(bool last)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.SameAsFirst, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -4746,11 +5001,11 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の2番目の引数は省略できません";
 		//	if (arguments[1].GetOperandType() != baseType)
 		//		return name + "関数の2番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != EraType.Integer))
 		//		return name + "関数の4番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 5) && (arguments[4] != null) && (arguments[4].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 5) && (arguments[4] != null) && (arguments[4].GetOperandType() != EraType.Integer))
 		//		return name + "関数の5番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -4811,8 +5066,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public InRangeMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -4828,7 +5083,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public InRangeArrayMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
@@ -4837,7 +5092,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public InRangeArrayMethod(bool isChara)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
@@ -4867,15 +5122,15 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数が数値型変数ではありません";
 		//	if (arguments[1] == null)
 		//		return name + "関数の2番目の引数は省略できません";
-		//	if (arguments[1].GetOperandType() != typeof(Int64))
+		//	if (arguments[1].GetOperandType() != EraType.Integer)
 		//		return name + "関数の2番目の引数が数値型ではありません";
 		//	if (arguments[2] == null)
 		//		return name + "関数の3番目の引数は省略できません";
-		//	if (arguments[2].GetOperandType() != typeof(Int64))
+		//	if (arguments[2].GetOperandType() != EraType.Integer)
 		//		return name + "関数の3番目の引数が数値型ではありません";
-		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != EraType.Integer))
 		//		return name + "関数の4番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 5) && (arguments[4] != null) && (arguments[4].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 5) && (arguments[4] != null) && (arguments[4].GetOperandType() != EraType.Integer))
 		//		return name + "関数の5番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -4910,7 +5165,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ArrayMultiSortMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefAny1D, ArgType.RefAnyArray | ArgType.Variadic }, OmitStart = 1 },
@@ -5173,8 +5428,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public StrlenMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5188,8 +5443,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public StrlenuMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5203,7 +5458,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SubstringMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int}, OmitStart = 1 }
@@ -5224,9 +5479,9 @@ internal static partial class FunctionMethodCreator
 		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	//2、３は省略可能
-		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -5248,7 +5503,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SubstringuMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int}, OmitStart = 1 }
@@ -5269,9 +5524,9 @@ internal static partial class FunctionMethodCreator
 		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	//2、３は省略可能
-		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -5306,7 +5561,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public StrfindMethod(bool unicode)
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = null;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
@@ -5333,7 +5588,7 @@ internal static partial class FunctionMethodCreator
 		//	if (arguments[1].GetEraType() != EraType.String)
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	//3つ目は省略可能
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -5370,8 +5625,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public StrCountMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.String];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5394,7 +5649,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ToStrMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String }, OmitStart = 1 }
@@ -5411,7 +5666,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の引数が多すぎます";
 		//	if (arguments[0] == null)
 		//		return name + "関数の1番目の引数は省略できません";
-		//	if (arguments[0].GetOperandType() != typeof(Int64))
+		//	if (arguments[0].GetOperandType() != EraType.Integer)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetEraType() != EraType.String))
 		//		return name + "関数の2番目の引数の型が正しくありません";
@@ -5441,7 +5696,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ToIntMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = null;
 			CanRestructure = true;
 		}
@@ -5484,8 +5739,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ToFloatMethod()
 		{
-			ReturnType = typeof(double);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Float;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 
@@ -5506,8 +5761,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ToStrfMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(double), typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.Float, EraType.String];
 			CanRestructure = true;
 		}
 
@@ -5541,15 +5796,15 @@ internal static partial class FunctionMethodCreator
 		readonly StrFormType strType;
 		public StrChangeStyleMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			strType = StrFormType.Upper;
 			CanRestructure = true;
 		}
 		public StrChangeStyleMethod(StrFormType type)
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			strType = type;
 			CanRestructure = true;
 		}
@@ -5577,7 +5832,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public LineIsEmptyMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -5592,8 +5847,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ReplaceMethod()
 		{
-			ReturnType = typeof(string);
-			// argumentTypeArray = new Type[] { typeof(string), typeof(string), typeof(string) };
+			ReturnType = EraType.String;
+			// argumentTypeArray = new EraType[] { EraType.String, EraType.String, EraType.String };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.String, ArgType.Int }, OmitStart = 3 },
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.RefString1D | ArgType.AllowConstRef, ArgType.Int } },
@@ -5616,7 +5871,7 @@ internal static partial class FunctionMethodCreator
 		//	for (int i = 0; i < 3; i++)
 		//		if (arguments[i].GetEraType() != EraType.String)
 		//			return string.Format("{0}関数:{1}番目の引数が文字列ではありません", name, i + 1);
-		//	if (arguments.Count == 4 && arguments[3].GetOperandType() != typeof(Int64))
+		//	if (arguments.Count == 4 && arguments[3].GetOperandType() != EraType.Integer)
 		//		return string.Format("{0}関数:4番目の引数が整数ではありません", name);
 		//	return null;
 		//}
@@ -5684,8 +5939,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public UnicodeMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = true;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5720,8 +5975,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public UnicodeByteMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5740,8 +5995,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ConvertIntMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5758,8 +6013,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public IsNumericMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5799,8 +6054,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public EscapeMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5813,8 +6068,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public EncodeToUniMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { null };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { null };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
 				];
@@ -5831,7 +6086,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の1番目の引数は省略できません";
 		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return name + "関数の1番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != typeof(Int64)))
+		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
 		//		return name + "関数の2番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -5855,8 +6110,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CharAtMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string), typeof(long)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String, EraType.Integer];
 			CanRestructure = true;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5873,8 +6128,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetLineStrMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -5891,8 +6146,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public StrFormMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			HasUniqueRestructure = true;
 			CanRestructure = true;
 		}
@@ -5948,7 +6203,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public JoinMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefAnyArray | ArgType.AllowConstRef, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 1 },
@@ -5975,11 +6230,11 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の2番目の変数が文字列ではありません";
 		//	if (arguments.Count == 2)
 		//		return null;
-		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
 		//		return name + "関数の3番目の変数が数値ではありません";
 		//	if (arguments.Count == 3)
 		//		return null;
-		//	if ((arguments[3] != null) && (arguments[3].GetOperandType() != typeof(Int64)))
+		//	if ((arguments[3] != null) && (arguments[3].GetOperandType() != EraType.Integer))
 		//		return name + "関数の4番目の変数が数値ではありません";
 		//	return null;
 		//}
@@ -6022,14 +6277,14 @@ internal static partial class FunctionMethodCreator
 			if (typeisInt)
 			{
 				funcname = "GETCONFIG";
-				ReturnType = typeof(long);
+				ReturnType = EraType.Integer;
 			}
 			else
 			{
 				funcname = "GETCONFIGS";
-				ReturnType = typeof(string);
+				ReturnType = EraType.String;
 			}
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArray = [EraType.String];
 			CanRestructure = true;
 		}
 		private readonly string funcname;
@@ -6048,7 +6303,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			if (ReturnType != typeof(long))
+			if (ReturnType != EraType.Integer)
 				throw new ExeEE(funcname + "関数:不正な呼び出し");
 			SingleTerm term = GetSingleTerm(exm, arguments);
 			if (term is not SingleLongTerm singleLongTerm)
@@ -6058,7 +6313,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			if (ReturnType != typeof(string))
+			if (ReturnType != EraType.String)
 				throw new ExeEE(funcname + "関数:不正な呼び出し");
 			SingleTerm term = GetSingleTerm(exm, arguments);
 			if (term is not SingleStrTerm singleStrTerm)
@@ -6075,7 +6330,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public HtmlGetPrintedStrMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int }, OmitStart = 0 }
@@ -6090,7 +6345,7 @@ internal static partial class FunctionMethodCreator
 		//		return name + "関数の引数が多すぎます";
 		//	if (arguments.Count == 0|| arguments[0] == null)
 		//		return null;
-		//	if (arguments[0].GetOperandType() != typeof(Int64))
+		//	if (arguments[0].GetOperandType() != EraType.Integer)
 		//		return name + "関数の1番目の引数の型が正しくありません";
 		//	return null;
 		//}
@@ -6113,7 +6368,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public HtmlPopPrintingStrMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -6131,8 +6386,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public HtmlToPlainTextMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6144,8 +6399,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public HtmlEscapeMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6309,8 +6564,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsStateMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6351,8 +6606,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsStateStrMethod()
 		{
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6377,8 +6632,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsGetColorMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6403,8 +6658,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsSetColorMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6436,8 +6691,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsSetBrushMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6467,9 +6722,9 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsSetFontMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(string), typeof(Int64) };
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(string), typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.String, EraType.Integer };
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.String, EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 2 }
 				];
@@ -6547,10 +6802,10 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsSetPenMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// 私家版のバグだと思う
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(Int64) };
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.Integer };
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6581,8 +6836,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsSetDashStyleMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6613,8 +6868,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsDrawStringMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(string), typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.String, EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 2 }
 				];
@@ -6716,8 +6971,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsGetTextSizeMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.String, EraType.String, EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.Int, ArgType.Int }, OmitStart = 3 }
 				];
@@ -6781,8 +7036,8 @@ internal static partial class FunctionMethodCreator
 	//{
 	//	public GraphicsRotateMethod()
 	//	{
-	//		ReturnType = typeof(Int64);
-	//		argumentTypeArray = new Type[] { typeof(Int64), typeof(Int64), typeof(Int64), typeof(Int64) };
+	//		ReturnType = EraType.Integer;
+	//		argumentTypeArray = new EraType[] { EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer };
 	//		CanRestructure = false;
 	//	}
 	//	public override string CheckArgumentType(string name, IOperandTerm[] arguments)
@@ -6821,8 +7076,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsDrawGWithRotateMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(Int64), typeof(Int64), typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 }
 				];
@@ -6880,8 +7135,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsGetBrushMethod()
 		{
-			ReturnType = typeof(Int64);
-			 argumentTypeArray = [typeof(Int64)];
+			ReturnType = EraType.Integer;
+			 argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override Int64 GetIntValue(ExpressionMediator exm, IOperandTerm[] arguments)
@@ -6898,8 +7153,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsDrawLineMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6929,8 +7184,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteStateMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6963,8 +7218,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteSetPosMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -6991,8 +7246,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteGetColorMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7017,7 +7272,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ClientSizeMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -7038,8 +7293,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsCreateMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7086,7 +7341,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsCreateFromFileMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int }, OmitStart = 2 }
 				];
@@ -7149,8 +7404,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsDisposeMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7181,8 +7436,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteCreateMethod()
 		{
-			ReturnType = typeof(long);
-			//  argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			//  argumentTypeArray = [EraType.String];
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int } },
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int } },
@@ -7206,7 +7461,7 @@ internal static partial class FunctionMethodCreator
 		//		return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, 1 + 1);
 		//	if (arguments[0].GetEraType() != EraType.String)
 		//		return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, 0 + 1);
-		//	if (arguments[1].GetOperandType() != typeof(Int64))
+		//	if (arguments[1].GetOperandType() != EraType.Integer)
 		//		return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, 1 + 1);
 		//	if (arguments.Count == 2)
 		//		return null;
@@ -7216,7 +7471,7 @@ internal static partial class FunctionMethodCreator
 		//	{
 		//		if (arguments[i] == null)
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, i + 1);
-		//		if (arguments[i].GetOperandType() != typeof(Int64))
+		//		if (arguments[i].GetOperandType() != EraType.Integer)
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, i + 1);
 		//	}
 		//	return null;
@@ -7289,7 +7544,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteCreateFromFileMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.Int }, OmitStart = 2 }
 				];
@@ -7339,8 +7594,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteDisposeMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7358,8 +7613,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteDisposeAllMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7377,8 +7632,8 @@ internal static partial class FunctionMethodCreator
 		#region EM_私家版_GCLEAR拡張
 		public GraphicsClearMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int } },
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int } }
@@ -7395,7 +7650,7 @@ internal static partial class FunctionMethodCreator
 		//	{
 		//		if (arguments[i] == null)
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, i + 1);
-		//		if (arguments[i].GetOperandType() != typeof(Int64))
+		//		if (arguments[i].GetOperandType() != EraType.Integer)
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, i + 1);
 		//	}
 		//	return null;
@@ -7433,8 +7688,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsFillRectangleMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7467,7 +7722,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsDrawGMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int,
@@ -7491,7 +7746,7 @@ internal static partial class FunctionMethodCreator
 		//	{
 		//		if (arguments[i] == null)
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentNotNullable0, name, i + 1);
-		//		if (typeof(Int64) != arguments[i].GetOperandType())
+		//		if (EraType.Integer != arguments[i].GetOperandType())
 		//			return string.Format(Properties.Resources.SyntaxErrMesMethodDefaultArgumentType0, name, i + 1);
 		//	}
 		//	if (arguments.Count == 10)
@@ -7554,8 +7809,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsDrawGWithMaskMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 
@@ -7604,8 +7859,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsDrawSpriteMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.String, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String } },
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.Int, ArgType.Int } },
@@ -7711,8 +7966,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteAnimeCreateMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7761,8 +8016,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SpriteAnimeAddFrameMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 
@@ -7813,7 +8068,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGClearMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -7833,8 +8088,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGRemoveRangeMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7856,7 +8111,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGClearButtonMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -7875,7 +8130,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGRemoveBMapMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -7894,8 +8149,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGSetGraphicsMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7925,8 +8180,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGSetBMapGMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7951,8 +8206,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGSetCIMGMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string), typeof(long), typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer, EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -7983,8 +8238,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public CBGSETButtonSpriteMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64), typeof(string) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.String, EraType.String, EraType.Integer, EraType.Integer, EraType.Integer, EraType.String };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.String, ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.String }, OmitStart = 6 },
 				];
@@ -8044,8 +8299,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetKeyStateMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -8071,7 +8326,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public MousePosMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -8090,7 +8345,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public MouseButtonMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -8122,7 +8377,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public IsActiveMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -8136,7 +8391,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetAnimeTimerMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -8153,8 +8408,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SaveTextMethod()
 		{
-			ReturnType = typeof(long);
-			// argumentTypeArray = new Type[] { typeof(string) ,typeof(Int64), typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.Integer;
+			// argumentTypeArray = new EraType[] { EraType.String ,EraType.Integer, EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any, ArgType.Int, ArgType.Int }, OmitStart = 2 },
 				];
@@ -8262,8 +8517,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public LoadTextMethod()
 		{
-			ReturnType = typeof(string);
-			// argumentTypeArray = new Type[] { typeof(Int64), typeof(Int64), typeof(Int64) };
+			ReturnType = EraType.String;
+			// argumentTypeArray = new EraType[] { EraType.Integer, EraType.Integer, EraType.Integer };
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				];
@@ -8360,8 +8615,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsSaveMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -8397,8 +8652,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GraphicsLoadMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(long), typeof(long)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -8452,8 +8707,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ExistSoundMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -8474,7 +8729,7 @@ internal static partial class FunctionMethodCreator
 
 		public ExistFunctionMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int}, OmitStart = 1 },
 				];
@@ -8504,9 +8759,9 @@ internal static partial class FunctionMethodCreator
 						func = GlobalStatic.LabelDictionary.GetNonEventLabel(searchKey);
 						if (func.IsMethod)
 						{
-							if (func.MethodType == typeof(string))
+							if (func.MethodType == EraType.String)
 								return 3;
-							else if (func.MethodType == typeof(long))
+							else if (func.MethodType == EraType.Integer)
 								return 2;
 
 						}
@@ -8516,9 +8771,9 @@ internal static partial class FunctionMethodCreator
 				}
 				if (func.IsMethod)
 				{
-					if (func.MethodType == typeof(string))
+					if (func.MethodType == EraType.String)
 						return 3;
-					else if (func.MethodType == typeof(long))
+					else if (func.MethodType == EraType.Integer)
 						return 2;
 
 				}
@@ -8534,9 +8789,9 @@ internal static partial class FunctionMethodCreator
 
 						if (func.IsMethod)
 						{
-							if (func.MethodType == typeof(string))
+							if (func.MethodType == EraType.String)
 								return 3;
-							else if (func.MethodType == typeof(long))
+							else if (func.MethodType == EraType.Integer)
 								return 2;
 
 						}
@@ -8554,7 +8809,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetUsingMemoryMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -8572,7 +8827,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ClearMemoryMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -8595,7 +8850,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetTextBoxMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}
@@ -8608,8 +8863,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ChangeTextBoxMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = [typeof(string)];
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -8624,7 +8879,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public ErdNameMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -8658,7 +8913,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetDisplayLineMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int }},
@@ -8682,7 +8937,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetDoingFunctionMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArray = [];
 			CanRestructure = true;
 		}
@@ -8700,7 +8955,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public FlowInputMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = new ArgTypeList[] {
 					new() { ArgTypes = { ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				};
@@ -8723,7 +8978,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public FlowInputsMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = new ArgTypeList[] {
 					new() { ArgTypes = { ArgType.Int, ArgType.String }, OmitStart = 1 },
 				};
@@ -8745,7 +9000,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetMethMethod()
 		{
-			ReturnType = typeof(Int64);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = new ArgTypeList[] {
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.VariadicAny }, OmitStart = 1 },
@@ -8776,7 +9031,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetMethsMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = new ArgTypeList[] {
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, OmitStart = 1 },
@@ -8806,8 +9061,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public ExistMethMethod()
 		{
-			ReturnType = typeof(Int64);
-			argumentTypeArray = new Type[] { typeof(string) };
+			ReturnType = EraType.Integer;
+			argumentTypeArray = new EraType[] { EraType.String };
 			CanRestructure = true;
 		}
 
@@ -8849,7 +9104,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public HotkeyStateMethod()
 		{
-			ReturnType = typeof(Int64);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int}, OmitStart = 1 },
@@ -8869,7 +9124,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public HotkeyStateInitMethod()
 		{
-			ReturnType = typeof(Int64);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Int}, OmitStart = 1 },
@@ -8888,7 +9143,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public OutputlogMethod()
 		{
-			ReturnType = typeof(Int64);
+			ReturnType = EraType.Integer;
 			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int}, OmitStart = 0 },
@@ -8917,7 +9172,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetSoundOrBgmInfoMethod()
 		{
-			ReturnType = typeof(long); 
+			ReturnType = EraType.Integer; 
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = { ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				];
@@ -8986,7 +9241,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public IsPlayingSoundMethod()
 		{
-			ReturnType = typeof(long); 
+			ReturnType = EraType.Integer; 
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = { ArgType.Int }, OmitStart = 0 },
 				];
@@ -9030,7 +9285,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SoundControlMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = {ArgType.Int , ArgType.Int } },
 					new ArgTypeList { ArgTypes = {ArgType.Int , ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
@@ -9106,7 +9361,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public IsPlayingBgmMethod()
 		{
-			ReturnType = typeof(long); 
+			ReturnType = EraType.Integer; 
 			argumentTypeArray = [];
 			CanRestructure = false;
 		}	
@@ -9127,7 +9382,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public BgmControlMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = {ArgType.Int } },
 					new ArgTypeList { ArgTypes = {ArgType.Int , ArgType.Int, ArgType.Int }, OmitStart = 2 },
@@ -9200,7 +9455,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public EvalMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int }, OmitStart = 1 },
 			];
@@ -9250,7 +9505,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public EvalSMethod()
 		{
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String }, OmitStart = 1 },
 			];
@@ -9294,7 +9549,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public SqlConnectMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = new[] { new ArgTypeList { ArgTypes = { ArgType.String, ArgType.String }, OmitStart = 1 } };
 			CanRestructure = false;
 		}
@@ -9309,7 +9564,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlDisconnectMethod : FunctionMethod
 	{
-		public SqlDisconnectMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string) }; CanRestructure = false; }
+		public SqlDisconnectMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			SqlManager.Disconnect(arguments[0].GetStrValue(exm));
@@ -9319,7 +9574,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlExecuteNonQueryMethod : FunctionMethod
 	{
-		public SqlExecuteNonQueryMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlExecuteNonQueryMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ExecuteNonQuery(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
@@ -9328,7 +9583,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlExecuteReaderMethod : FunctionMethod
 	{
-		public SqlExecuteReaderMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlExecuteReaderMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ExecuteReader(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
@@ -9337,7 +9592,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlReaderReadMethod : FunctionMethod
 	{
-		public SqlReaderReadMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long) }; CanRestructure = false; }
+		public SqlReaderReadMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.Integer }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ReaderRead(arguments[0].GetIntValue(exm));
@@ -9346,7 +9601,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlReaderGetLongMethod : FunctionMethod
 	{
-		public SqlReaderGetLongMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long), typeof(long) }; CanRestructure = false; }
+		public SqlReaderGetLongMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.Integer, EraType.Integer }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ReaderGetLong(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
@@ -9355,7 +9610,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlReaderGetStringMethod : FunctionMethod
 	{
-		public SqlReaderGetStringMethod() { ReturnType = typeof(string); argumentTypeArray = new[] { typeof(long), typeof(long) }; CanRestructure = false; }
+		public SqlReaderGetStringMethod() { ReturnType = EraType.String; argumentTypeArray = new[] { EraType.Integer, EraType.Integer }; CanRestructure = false; }
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ReaderGetString(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
@@ -9364,7 +9619,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlReaderIsNullMethod : FunctionMethod
 	{
-		public SqlReaderIsNullMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long), typeof(long) }; CanRestructure = false; }
+		public SqlReaderIsNullMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.Integer, EraType.Integer }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ReaderIsNull(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
@@ -9373,7 +9628,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlReaderCloseMethod : FunctionMethod
 	{
-		public SqlReaderCloseMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(long) }; CanRestructure = false; }
+		public SqlReaderCloseMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.Integer }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			SqlManager.ReaderClose(arguments[0].GetIntValue(exm));
@@ -9382,7 +9637,7 @@ internal static partial class FunctionMethodCreator
 	}
 	private sealed class SqlExecuteScalarLongMethod : FunctionMethod
 	{
-		public SqlExecuteScalarLongMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlExecuteScalarLongMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ExecuteScalarLong(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
@@ -9391,7 +9646,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlExecuteScalarStringMethod : FunctionMethod
 	{
-		public SqlExecuteScalarStringMethod() { ReturnType = typeof(string); argumentTypeArray = new[] { typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlExecuteScalarStringMethod() { ReturnType = EraType.String; argumentTypeArray = new[] { EraType.String, EraType.String }; CanRestructure = false; }
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ExecuteScalarString(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
@@ -9399,7 +9654,7 @@ internal static partial class FunctionMethodCreator
 	}
 	private sealed class SqlImportMapXmlMethod : FunctionMethod
 	{
-		public SqlImportMapXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlImportMapXmlMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ImportMapXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm));
@@ -9408,7 +9663,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlImportDtXmlMethod : FunctionMethod
 	{
-		public SqlImportDtXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlImportDtXmlMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String, EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ImportDtXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm), arguments[3].GetStrValue(exm));
@@ -9417,7 +9672,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlExportMapXmlMethod : FunctionMethod
 	{
-		public SqlExportMapXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlExportMapXmlMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ExportMapXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm));
@@ -9426,7 +9681,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlExportDtXmlMethod : FunctionMethod
 	{
-		public SqlExportDtXmlMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlExportDtXmlMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String, EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ExportDtXml(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm), arguments[3].GetStrValue(exm));
@@ -9435,7 +9690,7 @@ internal static partial class FunctionMethodCreator
 
 	private sealed class SqlImportXmlCustomMethod : FunctionMethod
 	{
-		public SqlImportXmlCustomMethod() { ReturnType = typeof(long); argumentTypeArray = new[] { typeof(string), typeof(string), typeof(string), typeof(string), typeof(string) }; CanRestructure = false; }
+		public SqlImportXmlCustomMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String, EraType.String, EraType.String, EraType.String, EraType.String }; CanRestructure = false; }
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return SqlManager.ImportXmlCustom(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), arguments[2].GetStrValue(exm), arguments[3].GetStrValue(exm), arguments[4].GetStrValue(exm));
@@ -9446,7 +9701,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public BitSetMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 2 },
 				];
@@ -9475,7 +9730,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public BitGetMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int }, OmitStart = 1 },
 				];
@@ -9496,7 +9751,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public BitToggleMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int }, OmitStart = 1 },
 				];
@@ -9520,7 +9775,7 @@ internal static partial class FunctionMethodCreator
 	{
 		public BitIndexOfFirstMethod()
 		{
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 					new ArgTypeList { ArgTypes = { ArgType.RefInt1D, ArgType.Int }, OmitStart = 1 },
 				];
@@ -9543,8 +9798,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public SetTextDrawingModeMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = new Type[] { typeof(long) };
+			ReturnType = EraType.Integer;
+			argumentTypeArray = new EraType[] { EraType.Integer };
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -9563,8 +9818,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetTextDrawingModeMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = new Type[] { };
+			ReturnType = EraType.Integer;
+			argumentTypeArray = new EraType[] { };
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -9577,8 +9832,8 @@ internal static partial class FunctionMethodCreator
 	{
 		public GetSkiaQualityMethod()
 		{
-			ReturnType = typeof(long);
-			argumentTypeArray = new Type[] { typeof(long) };
+			ReturnType = EraType.Integer;
+			argumentTypeArray = new EraType[] { EraType.Integer };
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)

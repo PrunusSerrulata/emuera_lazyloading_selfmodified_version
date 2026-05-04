@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameProc;
 using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.Runtime.Script.Data;
@@ -205,7 +205,7 @@ internal sealed class InvalidLabelLine : FunctionLabelLine
 		Index = -1;
 		Depth = -1;
 		IsMethod = false;
-		MethodType = typeof(void);
+		MethodType = EraType.Void;
 	}
 	public override bool IsError
 	{
@@ -232,7 +232,7 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
 		ArgLength = 0;
 		ArgsLength = 0;
 		IsMethod = false;
-		MethodType = typeof(void);
+		MethodType = EraType.Void;
 		this.wc = wc;
 
 		//ArgOptional = true;
@@ -263,7 +263,7 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
 	//public bool ArgAutoConvert { get; set; }
 
 	public bool IsMethod { get; set; }
-	public Type MethodType { get; set; }
+	public EraType MethodType { get; set; }
 	public VariableTerm[] Arg { get; set; }
 	public SingleTerm[] Def { get; set; }
 	//public SingleTerm[] SubNames { get; set; }

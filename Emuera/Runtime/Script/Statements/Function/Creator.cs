@@ -84,6 +84,20 @@ internal static partial class FunctionMethodCreator
 			["SIGN"] = new SignMethod(),
 			["LIMIT"] = new GetLimitMethod(),
 
+			//数学関数 Float 重載
+			["RANDF"] = new RandFMethod(),
+			["MINF"] = new MaxFMethod(false),
+			["MAXF"] = new MaxFMethod(true),
+			["ABSF"] = new AbsFMethod(),
+			["POWERF"] = new PowerFMethod(),
+			["SQRTF"] = new SqrtFMethod(),
+			["CBRTF"] = new CbrtFMethod(),
+			["LOGF"] = new LogFMethod(),
+			["LOG10F"] = new LogFMethod(10.0d),
+			["EXPF"] = new ExpFMethod(),
+			["SIGNF"] = new SignFMethod(),
+			["LIMITF"] = new LimitFMethod(),
+
 			["UNCHECKED_ADD"] = new UncheckedAddMethod(),
 			["UNCHECKED_SUB"] = new UncheckedSubtractMethod(),
 			["UNCHECKED_MUL"] = new UncheckedMultiplyMethod(),

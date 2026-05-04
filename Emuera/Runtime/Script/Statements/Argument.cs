@@ -106,7 +106,7 @@ internal abstract class Argument
 /// </summary>
 internal sealed class ExpressionsArgument : Argument
 {
-	public ExpressionsArgument(Type[] types, List<AExpression> terms)
+	public ExpressionsArgument(EraType[] types, List<AExpression> terms)
 	{
 		ArgumentTypeArray = types;
 		ArgumentArray = terms;
@@ -114,7 +114,7 @@ internal sealed class ExpressionsArgument : Argument
 	/// <summary>
 	/// 引数の型(ArgumentArrayよりもLengthが大きい可能性があるので見るのはArgumentArrayにすること)
 	/// </summary>
-	readonly public Type[] ArgumentTypeArray;
+	readonly public EraType[] ArgumentTypeArray;
 	readonly public List<AExpression> ArgumentArray;
 }
 
@@ -153,13 +153,13 @@ internal sealed class SpPrintVArgument : Argument
 
 internal sealed class SpTimesArgument : Argument
 {
-	public SpTimesArgument(VariableTerm var, double d)
+	public SpTimesArgument(VariableTerm var, AExpression multiplier)
 	{
 		VariableDest = var;
-		DoubleValue = d;
+		Multiplier = multiplier;
 	}
 	readonly public VariableTerm VariableDest;
-	readonly public double DoubleValue;
+	readonly public AExpression Multiplier;
 }
 
 internal sealed class SpBarArgument : Argument

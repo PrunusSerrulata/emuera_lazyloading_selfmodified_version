@@ -270,7 +270,7 @@ internal static class OperatorMethodManager
 		public PlusIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -284,8 +284,8 @@ internal static class OperatorMethodManager
 		public PlusStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(string);
-			argumentTypeArray = [typeof(string), typeof(string)];
+			ReturnType = EraType.String;
+			argumentTypeArray = [EraType.String, EraType.String];
 		}
 
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -299,7 +299,7 @@ internal static class OperatorMethodManager
 		public MinusIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -313,7 +313,7 @@ internal static class OperatorMethodManager
 		public MultIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -327,7 +327,7 @@ internal static class OperatorMethodManager
 		public MultStrInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 		}
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -366,7 +366,7 @@ internal static class OperatorMethodManager
 		public DivIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -380,7 +380,7 @@ internal static class OperatorMethodManager
 		public ModIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -395,7 +395,7 @@ internal static class OperatorMethodManager
 		public EqualIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -412,7 +412,7 @@ internal static class OperatorMethodManager
 		public EqualStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -428,7 +428,7 @@ internal static class OperatorMethodManager
 		public NotEqualIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -444,7 +444,7 @@ internal static class OperatorMethodManager
 		public NotEqualStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -460,7 +460,7 @@ internal static class OperatorMethodManager
 		public GreaterIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -476,7 +476,7 @@ internal static class OperatorMethodManager
 		public GreaterStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -491,7 +491,7 @@ internal static class OperatorMethodManager
 		public LessIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -506,7 +506,7 @@ internal static class OperatorMethodManager
 		public LessStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -523,7 +523,7 @@ internal static class OperatorMethodManager
 		public GreaterEqualIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -539,7 +539,7 @@ internal static class OperatorMethodManager
 		public GreaterEqualStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -554,7 +554,7 @@ internal static class OperatorMethodManager
 		public LessEqualIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -570,7 +570,7 @@ internal static class OperatorMethodManager
 		public LessEqualStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -586,7 +586,7 @@ internal static class OperatorMethodManager
 		public AndIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -603,7 +603,7 @@ internal static class OperatorMethodManager
 		public OrIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -619,7 +619,7 @@ internal static class OperatorMethodManager
 		public XorIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -638,7 +638,7 @@ internal static class OperatorMethodManager
 		public NandIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -655,7 +655,7 @@ internal static class OperatorMethodManager
 		public NorIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -671,7 +671,7 @@ internal static class OperatorMethodManager
 		public BitAndIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -685,7 +685,7 @@ internal static class OperatorMethodManager
 		public BitOrIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -699,7 +699,7 @@ internal static class OperatorMethodManager
 		public BitXorIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -713,7 +713,7 @@ internal static class OperatorMethodManager
 		public RightShiftIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -727,7 +727,7 @@ internal static class OperatorMethodManager
 		public LeftShiftIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -741,7 +741,7 @@ internal static class OperatorMethodManager
 		public PlusInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -755,7 +755,7 @@ internal static class OperatorMethodManager
 		public MinusInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -769,7 +769,7 @@ internal static class OperatorMethodManager
 		public NotInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -784,7 +784,7 @@ internal static class OperatorMethodManager
 		public BitNotInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -798,7 +798,7 @@ internal static class OperatorMethodManager
 		public IncrementInt()
 		{
 			CanRestructure = false;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -821,7 +821,7 @@ internal static class OperatorMethodManager
 		public DecrementInt()
 		{
 			CanRestructure = false;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -844,7 +844,7 @@ internal static class OperatorMethodManager
 		public IncrementAfterInt()
 		{
 			CanRestructure = false;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -868,7 +868,7 @@ internal static class OperatorMethodManager
 		public DecrementAfterInt()
 		{
 			CanRestructure = false;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -893,7 +893,7 @@ internal static class OperatorMethodManager
 		public TernaryIntIntInt()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -907,7 +907,7 @@ internal static class OperatorMethodManager
 		public TernaryIntStrStr()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(string);
+			ReturnType = EraType.String;
 		}
 
 		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -921,7 +921,7 @@ internal static class OperatorMethodManager
 		public TernaryIntFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -935,7 +935,7 @@ internal static class OperatorMethodManager
 		public PlusFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -949,7 +949,7 @@ internal static class OperatorMethodManager
 		public MinusFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -963,7 +963,7 @@ internal static class OperatorMethodManager
 		public MultFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -977,7 +977,7 @@ internal static class OperatorMethodManager
 		public DivFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -994,7 +994,7 @@ internal static class OperatorMethodManager
 		public EqualFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1008,7 +1008,7 @@ internal static class OperatorMethodManager
 		public NotEqualFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1022,7 +1022,7 @@ internal static class OperatorMethodManager
 		public LessFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1036,7 +1036,7 @@ internal static class OperatorMethodManager
 		public GreaterFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1050,7 +1050,7 @@ internal static class OperatorMethodManager
 		public LessEqualFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1064,7 +1064,7 @@ internal static class OperatorMethodManager
 		public GreaterEqualFloatFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1078,7 +1078,7 @@ internal static class OperatorMethodManager
 		public PlusMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1094,7 +1094,7 @@ internal static class OperatorMethodManager
 		public MinusMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1110,7 +1110,7 @@ internal static class OperatorMethodManager
 		public MultMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1126,7 +1126,7 @@ internal static class OperatorMethodManager
 		public DivMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1144,7 +1144,7 @@ internal static class OperatorMethodManager
 		public EqualMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1160,7 +1160,7 @@ internal static class OperatorMethodManager
 		public NotEqualMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1176,7 +1176,7 @@ internal static class OperatorMethodManager
 		public LessMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1192,7 +1192,7 @@ internal static class OperatorMethodManager
 		public GreaterMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1208,7 +1208,7 @@ internal static class OperatorMethodManager
 		public LessEqualMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1224,7 +1224,7 @@ internal static class OperatorMethodManager
 		public GreaterEqualMixedFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(long);
+			ReturnType = EraType.Integer;
 		}
 
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -1240,7 +1240,7 @@ internal static class OperatorMethodManager
 		public MinusFloat()
 		{
 			CanRestructure = true;
-			ReturnType = typeof(double);
+			ReturnType = EraType.Float;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)

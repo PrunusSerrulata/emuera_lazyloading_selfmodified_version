@@ -318,7 +318,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
 	<tr id="Error.InvalidRegexArg"><![CDATA[函数{0}: 第{1}参数无法解析为正则表达式: {2}]]></tr>
 	<tr id="Error.XmlParseError"><![CDATA[函数{0}:"{1}"解析错误:{2}]]></tr>
 	<tr id="Error.XmlXPathParseError"><![CDATA[函数{0}:XPath"{1}"解析错误:{2}]]></tr>
-    <tr id="Error.ReturnTypeDifferentOrNotImpelemnt"><![CDATA[返回值类型错误或尚未实现]]></tr>
+    <tr id="Error.ReturnTypeDifferentOrNotImpelemnt"><![CDATA[类型不匹配：不支持隐式类型转换，请使用 TOINT()/TOSTR()/TOFLOAT() 显式转换]]></tr>
     <tr id="Error.NotImplement"><![CDATA[尚未实现]]></tr>
     <tr id="Error.EmptyRefFunc"><![CDATA[调用了无引用对象的函数"{0}"]]></tr>
     <tr id="Error.RefFuncHasNotArg"><![CDATA[调用了没有函数引用的函数"{0}"]]></tr>

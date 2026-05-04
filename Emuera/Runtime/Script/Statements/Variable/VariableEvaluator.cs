@@ -66,6 +66,18 @@ internal sealed class VariableEvaluator : IDisposable
 		}
 	}
 
+	public double GetNextRandDouble()
+	{
+		if (JSONConfig.Data.UseNewRandom)
+		{
+			return _newRand.NextDouble();
+		}
+		else
+		{
+			return rand.NextDouble();
+		}
+	}
+
 	public long getPalamLv(long pl, long maxlv)
 	{
 		for (int i = 0; i < (int)maxlv; i++)

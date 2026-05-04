@@ -532,7 +532,7 @@ internal sealed partial class Lang
 		[Managed] public static TranslatableString InvalidRegexArg { get; } = new TranslatableString("{0}関数: 第{1}引数が正規表現として不正です: {2}");
 		[Managed] public static TranslatableString XmlParseError { get; } = new TranslatableString("{0}関数:\"{1}\"の解析エラー:{2}");
 		[Managed] public static TranslatableString XmlXPathParseError { get; } = new TranslatableString("{0}関数:XPath\"{1}\"の解析エラー:{2}");
-		[Managed] public static TranslatableString ReturnTypeDifferentOrNotImpelemnt { get; } = new TranslatableString("戻り値の型が違う or 未実装");
+		[Managed] public static TranslatableString ReturnTypeDifferentOrNotImpelemnt { get; } = new TranslatableString("型が一致しません。暗黙の型変換はサポートされていません。TOINT()/TOSTR()/TOFLOAT() で明示的に変換してください。");
 		[Managed] public static TranslatableString NotImplement { get; } = new TranslatableString("未実装");
 		[Managed] public static TranslatableString EmptyRefFunc { get; } = new TranslatableString("何も参照していない関数参照\"{0}\"を呼び出しました");
 		[Managed] public static TranslatableString RefFuncHasNotArg { get; } = new TranslatableString("引数のない関数参照\"{0}\"を呼び出しました");

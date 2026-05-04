@@ -149,14 +149,14 @@ internal static class LogicalLineParser
 					}
 					if (label.IsMethod)
 					{
-						if (label.MethodType == typeof(long) && token.SequenceEqual("FUNCTION") || label.MethodType == typeof(string) && token.SequenceEqual("FUNCTIONS"))
+						if (label.MethodType == EraType.Integer && token.SequenceEqual("FUNCTION") || label.MethodType == EraType.String && token.SequenceEqual("FUNCTIONS"))
 						{
 							ParserMediator.Warn(string.Format(trerror.AlreadySharpDeclared.Text, label.LabelName, token.ToString()), position, 1);
 							return false;
 						}
-						if (label.MethodType == typeof(long) && token.SequenceEqual("FUNCTIONS"))
+						if (label.MethodType == EraType.Integer && token.SequenceEqual("FUNCTIONS"))
 							ParserMediator.Warn(string.Format(trerror.AlreadyDeclaredSharpFunction.Text, label.LabelName), position, 2);
-						else if (label.MethodType == typeof(string) && token.SequenceEqual("FUNCTION"))
+						else if (label.MethodType == EraType.String && token.SequenceEqual("FUNCTION"))
 							ParserMediator.Warn(string.Format(trerror.AlreadyDeclaredSharpFunctions.Text, label.LabelName), position, 2);
 						return false;
 					}
@@ -168,9 +168,9 @@ internal static class LogicalLineParser
 					label.IsMethod = true;
 					label.Depth = 0;
 					if (token.Equals("FUNCTIONS", Config.Config.StringComparison))
-						label.MethodType = typeof(string);
+						label.MethodType = EraType.String;
 					else
-						label.MethodType = typeof(long);
+						label.MethodType = EraType.Integer;
 					if (label.IsPri)
 					{
 						ParserMediator.Warn(trerror.UsePriUserFunc.Text, position, 1);

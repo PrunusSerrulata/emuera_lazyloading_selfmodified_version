@@ -157,7 +157,7 @@ internal static class ExpressionParser
 	//public static IOperandTerm ReduceStringTerm(WordCollection wc, TermEndWith endWith)
 	//{
 	//    IOperandTerm term = reduceTerm(wc, false, endWith, VariableCode.__NULL__);
-	//    if (term.GetOperandType() != typeof(string))
+	//    if (term.GetOperandType() != EraType.String)
 	//        throw new CodeEE("式の結果が文字列ではありません");
 	//    return term;
 	//}

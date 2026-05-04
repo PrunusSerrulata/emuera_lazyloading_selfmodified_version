@@ -304,7 +304,7 @@ Settings apply only at start]]></tr>
     <tr id="Error.InvalidRegexArg"><![CDATA[{0}: The {1} argument regex is invalid: {2}]]></tr>
     <tr id="Error.XmlParseError"><![CDATA[{0}:Interpreted error of "{1}":{2}]]></tr>
     <tr id="Error.XmlXPathParseError"><![CDATA[{0}:Interpreted error of XPath"{1}":{2}]]></tr>
-    <tr id="Error.ReturnTypeDifferentOrNotImpelemnt"><![CDATA[Return type is different or not implemented]]></tr>
+    <tr id="Error.ReturnTypeDifferentOrNotImpelemnt"><![CDATA[Type mismatch: implicit conversion not supported. Use TOINT()/TOSTR()/TOFLOAT() for explicit conversion.]]></tr>
     <tr id="Error.NotImplement"><![CDATA[Unimplemented]]></tr>
     <tr id="Error.EmptyRefFunc"><![CDATA[Attempted to call a function reference ({0}) that doesn't refer to anything]]></tr>
     <tr id="Error.RefFuncHasNotArg"><![CDATA[Attempted to call a function reference ({0}) without any arguments]]></tr>

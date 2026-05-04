@@ -7,7 +7,7 @@ namespace MinorShift.Emuera.Runtime.Script.Statements.Function;
 internal sealed class FunctionMethodTerm : AExpression
 {
 	public FunctionMethodTerm(FunctionMethod meth, List<AExpression> args)
-		: base(meth.ReturnType == typeof(long) ? EraType.Integer : meth.ReturnType == typeof(double) ? EraType.Float : EraType.String)
+		: base(meth.ReturnType == EraType.Integer ? EraType.Integer : meth.ReturnType == EraType.Float ? EraType.Float : EraType.String)
 	{
 		method = meth;
 		arguments = args;

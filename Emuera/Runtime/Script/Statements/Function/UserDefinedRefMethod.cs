@@ -8,7 +8,7 @@ internal sealed class UserDefinedRefMethod
 {
 	public CalledFunction CalledFunction { get; private set; }
 	public string Name { get; private set; }
-	public Type RetType { get; private set; }
+	public EraType RetType { get; private set; }
 	public UserDifinedFunctionDataArgType[] ArgTypeList { get; private set; }
 
 	internal static UserDefinedRefMethod Create(UserDefinedFunctionData funcData)
@@ -18,9 +18,9 @@ internal sealed class UserDefinedRefMethod
 			Name = funcData.Name
 		};
 		if (funcData.TypeIsStr)
-			ret.RetType = typeof(string);
+			ret.RetType = EraType.String;
 		else
-			ret.RetType = typeof(long);
+			ret.RetType = EraType.Integer;
 		ret.ArgTypeList = funcData.ArgList;
 		return ret;
 	}

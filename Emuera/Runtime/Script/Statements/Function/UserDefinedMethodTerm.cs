@@ -33,7 +33,7 @@ internal abstract class SuperUserDefinedMethodTerm : AExpression
 		SingleTerm term = exm.Process.GetValue(this);
 		if (term == null)
 		{
-			if (GetOperandType() == typeof(long))
+			if (GetEraType() == EraType.Integer)
 				return new SingleLongTerm(0);
 			else
 				return new SingleStrTerm("");
@@ -57,8 +57,8 @@ internal sealed class UserDefinedMethodTerm : SuperUserDefinedMethodTerm
 		return new UserDefinedMethodTerm(arg, call.TopLabel.MethodType, call);
 	}
 
-	private UserDefinedMethodTerm(UserDefinedFunctionArgument arg, Type returnType, CalledFunction call)
-		: base(returnType == typeof(long) ? EraType.Integer : EraType.String)
+	private UserDefinedMethodTerm(UserDefinedFunctionArgument arg, EraType returnType, CalledFunction call)
+		: base(returnType == EraType.Integer ? EraType.Integer : EraType.String)
 	{
 		argment = arg;
 		called = call;
@@ -80,7 +80,7 @@ internal sealed class UserDefinedMethodTerm : SuperUserDefinedMethodTerm
 internal sealed class UserDefinedRefMethodTerm : SuperUserDefinedMethodTerm
 {
 	public UserDefinedRefMethodTerm(UserDefinedRefMethod reffunc, List<AExpression> srcArgs)
-		: base(reffunc.RetType == typeof(long) ? EraType.Integer : EraType.String)
+		: base(reffunc.RetType == EraType.Integer ? EraType.Integer : EraType.String)
 	{
 		this.srcArgs = srcArgs;
 		this.reffunc = reffunc;
@@ -127,7 +127,7 @@ internal sealed class UserDefinedRefMethodTerm : SuperUserDefinedMethodTerm
 internal sealed class UserDefinedRefMethodNoArgTerm : SuperUserDefinedMethodTerm
 {
 	public UserDefinedRefMethodNoArgTerm(UserDefinedRefMethod reffunc)
-		: base(reffunc.RetType == typeof(long) ? EraType.Integer : EraType.String)
+		: base(reffunc.RetType == EraType.Integer ? EraType.Integer : EraType.String)
 	{
 		this.reffunc = reffunc;
 	}

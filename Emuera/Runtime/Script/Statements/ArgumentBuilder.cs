@@ -39,9 +39,9 @@ internal abstract class ArgumentBuilder
 		ParserMediator.Warn(mes, line, level, isError, isBackComp);
 	}
 	/// <summary>
-	/// 引数の型と数。typeof(void)で任意の型（あるいは個別にチェックするべき引数）。nullでその引数は省略可能
+	/// 引数の型と数。EraType.Voidで任意の型（あるいは個別にチェックするべき引数）。nullでその引数は省略可能
 	/// </summary>
-	protected Type[] argumentTypeArray;//
+	protected EraType[] argumentTypeArray;//
 	/// <summary>
 	/// 最低限必要な引数の数。設定しないと全て省略不可。
 	/// </summary>
@@ -73,8 +73,8 @@ internal abstract class ArgumentBuilder
 		}
 		for (int i = 0; i < length; i++)
 		{
-			Type allowType;
-			if ((!argAny) && (argumentTypeArray[i] == null))
+			EraType allowType;
+			if ((!argAny) && (argumentTypeArray[i] == EraType.Void))
 				continue;
 			else if (argAny && i >= argumentTypeArray.Length)
 				allowType = argumentTypeArray[^1];
@@ -82,12 +82,12 @@ internal abstract class ArgumentBuilder
 				allowType = argumentTypeArray[i];
 			if (arguments[i] == null)
 			{
-				if (allowType == null)
+				if (allowType == EraType.Void)
 					continue;
 				warn(string.Format(trerror.CanNotRecognizeArg.Text, (i + 1).ToString()), line, 2, false);
 				return false;
 			}
-			if ((allowType != typeof(void)) && (allowType != arguments[i].GetOperandType()))
+			if ((allowType != EraType.Void) && (allowType != arguments[i].GetEraType()))
 			{
 				warn(string.Format(trerror.IncorrectArg.Text, (i + 1).ToString()), line, 2, false);
 				return false;
@@ -161,13 +161,15 @@ internal static partial class ArgumentParser
 		string key = argstr + minArg.ToString();
 		if (nargb.TryGetValue(key, out ArgumentBuilder value))
 			return value;
-		Type[] types = new Type[argstr.Length];
+		EraType[] types = new EraType[argstr.Length];
 		for (int i = 0; i < argstr.Length; i++)
 		{
 			if (argstr[i] == 'I')
-				types[i] = typeof(long);
+				types[i] = EraType.Integer;
 			else if (argstr[i] == 'S')
-				types[i] = typeof(string);
+				types[i] = EraType.String;
+			else if (argstr[i] == 'F')
+				types[i] = EraType.Float;
 			else
 				throw new ExeEE(trerror.AbnormalSpecification.Text);
 		}
@@ -254,7 +256,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_PRINT_IMG_ArgumentBuilder()
 		{
-			argumentTypeArray = null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) };
+			argumentTypeArray = null;// new Type[] { EraType.String, EraType.String, typeof(Int64), typeof(Int64), typeof(Int64) };
 			minArg = 1;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -315,7 +317,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_PRINT_SHAPE_ArgumentBuilder(int max)
 		{
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			minArg = 1;
 			maxArg = max;
 		}
@@ -358,7 +360,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_HTML_PRINT_ArgumentBuilder()
 		{
-			argumentTypeArray = null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) };
+			argumentTypeArray = null;// new Type[] { EraType.String, EraType.String, typeof(Int64), typeof(Int64), typeof(Int64) };
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
 		{
@@ -440,7 +442,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_DT_COLUMN_OPTIONS_ArgumentBuilder()
 		{
-			argumentTypeArray = null;// new Type[] { typeof(string), typeof(string), typeof(Int64), typeof(Int64), typeof(Int64) };
+			argumentTypeArray = null;// new Type[] { EraType.String, EraType.String, typeof(Int64), typeof(Int64), typeof(Int64) };
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
 		{
@@ -566,20 +568,10 @@ internal static partial class ArgumentParser
 				warn(trerror.NotEnoughArguments.Text, line, 2, false);
 				return null;
 			}
-			double d;
-			try
-			{
-				LexicalAnalyzer.SkipWhiteSpace(st);
-				d = LexicalAnalyzer.ReadDouble(st);
-				LexicalAnalyzer.SkipWhiteSpace(st);
-				if (!st.EOS)
-					warn(trerror.TooManyArg.Text, line, 1, false);
-			}
-			catch
-			{
-				warn(string.Format(trerror.ArgIsNotRealNumber.Text, "2"), line, 1, false);
-				d = 0.0;
-			}
+			WordCollection wc2 = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+			AExpression multiplier = ExpressionParser.ReduceExpressionTerm(wc2, TermEndWith.EoL);
+			if (multiplier == null)
+			{ warn(trerror.WrongFormat.Text, line, 2, false); return null; }
 			AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
 			if (term == null)
 			{ warn(trerror.WrongFormat.Text, line, 2, false); return null; }
@@ -589,7 +581,7 @@ internal static partial class ArgumentParser
 			{ warn(string.Format(trerror.ArgIsStrVar.Text, "1"), line, 2, false); return null; }
 			else if (varTerm.Identifier.IsConst)
 			{ warn(string.Format(trerror.ArgIsConst.Text, "1"), line, 2, false); return null; }
-			return new SpTimesArgument(varTerm, d);
+			return new SpTimesArgument(varTerm, multiplier);
 		}
 	}
 
@@ -1342,7 +1334,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_INPUTS_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArray = [EraType.String];
 			//if (nullable)妥協
 			minArg = 0;
 		}
@@ -1425,7 +1417,7 @@ internal static partial class ArgumentParser
 	{
 		public INT_EXPRESSION_ArgumentBuilder(bool nullable)
 		{
-			argumentTypeArray = [typeof(long)];
+			argumentTypeArray = [EraType.Integer];
 			//if (nullable)妥協
 			minArg = 0;
 			this.nullable = nullable;
@@ -1495,7 +1487,7 @@ internal static partial class ArgumentParser
 	{
 		public INT_ANY_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long)];
+			argumentTypeArray = [EraType.Integer];
 			minArg = 0;
 			argAny = true;
 		}
@@ -1548,7 +1540,7 @@ internal static partial class ArgumentParser
 	{
 		public STR_EXPRESSION_ArgumentBuilder(bool nullable)
 		{
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArray = [EraType.String];
 			if (nullable)
 				minArg = 0;
 		}
@@ -1575,7 +1567,7 @@ internal static partial class ArgumentParser
 	{
 		public EXPRESSION_ArgumentBuilder(bool nullable)
 		{
-			argumentTypeArray = [typeof(void)];
+			argumentTypeArray = [EraType.Void];
 			if (nullable)
 				minArg = 0;
 		}
@@ -1602,7 +1594,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_BAR_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			//minArg = 3;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1619,7 +1611,7 @@ internal static partial class ArgumentParser
 		//emuera1803beta2+v1 第2引数省略型に対応
 		public SP_SWAP_ArgumentBuilder(bool nullable)
 		{
-			argumentTypeArray = [typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			if (nullable)
 				minArg = 1;
 		}
@@ -1639,7 +1631,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_SAVEDATA_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(string)];
+			argumentTypeArray = [EraType.Integer, EraType.String];
 		}
 
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1656,7 +1648,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_TINPUT_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(string), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.String, EraType.Integer, EraType.Integer];
 			minArg = 2;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1682,7 +1674,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_TINPUTS_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(string), typeof(long), typeof(string), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.String, EraType.Integer, EraType.String, EraType.Integer, EraType.Integer];
 			minArg = 2;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1706,7 +1698,7 @@ internal static partial class ArgumentParser
 	//{
 	//	public SP_TINPUT_ArgumentBuilder()
 	//	{
-	//		argumentTypeArray = new Type[] { typeof(Int64), typeof(Int64), typeof(Int64), typeof(string) };
+	//		argumentTypeArray = new Type[] { typeof(Int64), typeof(Int64), typeof(Int64), EraType.String };
 	//		minArg = 2;
 	//	}
 	//	public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1728,7 +1720,7 @@ internal static partial class ArgumentParser
 	//{
 	//	public SP_TINPUTS_ArgumentBuilder()
 	//	{
-	//		argumentTypeArray = new Type[] { typeof(Int64), typeof(string), typeof(Int64), typeof(string) };
+	//		argumentTypeArray = new Type[] { typeof(Int64), EraType.String, typeof(Int64), EraType.String };
 	//		minArg = 2;
 	//	}
 	//	public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1750,7 +1742,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_FOR_NEXT_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), null, typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Void, EraType.Integer, EraType.Integer];
 			minArg = 3;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1783,7 +1775,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_POWER_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			//minArg = 2;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1803,7 +1795,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_SWAPVAR_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(void), typeof(void)];
+			argumentTypeArray = [EraType.Void, EraType.Void];
 			//minArg = 2;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1830,7 +1822,7 @@ internal static partial class ArgumentParser
 	{
 		public VAR_INT_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long)];
+			argumentTypeArray = [EraType.Integer];
 			minArg = 0;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1851,7 +1843,7 @@ internal static partial class ArgumentParser
 	{
 		public VAR_STR_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string)];
+			argumentTypeArray = [EraType.String];
 			minArg = 0;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1876,7 +1868,7 @@ internal static partial class ArgumentParser
 	{
 		public BIT_ARG_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			minArg = 2;
 			argAny = true;
 		}
@@ -1912,7 +1904,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_VAR_SET_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(void), typeof(void), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Void, EraType.Void, EraType.Integer, EraType.Integer];
 			minArg = 1;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -1969,7 +1961,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_CVAR_SET_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(void), typeof(void), typeof(void), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Void, EraType.Void, EraType.Void, EraType.Integer, EraType.Integer];
 			minArg = 1;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -2026,7 +2018,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_BUTTON_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string), typeof(void)];
+			argumentTypeArray = [EraType.String, EraType.Void];
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
 		{
@@ -2041,7 +2033,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_COLOR_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
 			minArg = 1;
 		}
 
@@ -2079,7 +2071,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_SPLIT_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string), typeof(string), typeof(string), typeof(long)];
+			argumentTypeArray = [EraType.String, EraType.String, EraType.String, EraType.Integer];
 			minArg = 3;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -2101,7 +2093,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_HTMLSPLIT_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string), typeof(string), typeof(long)];
+			argumentTypeArray = [EraType.String, EraType.String, EraType.Integer];
 			minArg = 1;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -2135,7 +2127,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_GETINT_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long)];
+			argumentTypeArray = [EraType.Integer];
 			minArg = 0;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -2159,7 +2151,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_CONTROL_ARRAY_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(void), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Void, EraType.Integer, EraType.Integer];
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
 		{
@@ -2177,7 +2169,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_SHIFT_ARRAY_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(void), typeof(long), typeof(void), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Void, EraType.Integer, EraType.Void, EraType.Integer, EraType.Integer];
 			minArg = 3;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
@@ -2207,7 +2199,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_SAVEVAR_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string), typeof(string), typeof(void)];
+			argumentTypeArray = [EraType.String, EraType.String, EraType.Void];
 			argAny = true;
 			minArg = 3;
 		}
@@ -2258,7 +2250,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_SAVECHARA_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string), typeof(string), typeof(long)];
+			argumentTypeArray = [EraType.String, EraType.String, EraType.Integer];
 			minArg = 3;
 			argAny = true;
 		}
@@ -2299,7 +2291,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_REF_ArgumentBuilder(bool byname)
 		{
-			argumentTypeArray = [typeof(void), typeof(void)];
+			argumentTypeArray = [EraType.Void, EraType.Void];
 			minArg = 2;
 			this.byname = byname;
 		}
@@ -2375,7 +2367,7 @@ internal static partial class ArgumentParser
 		public SP_INPUT_ArgumentBuilder()
 		{
 			#region EM_私家版_INPUT系機能拡張
-			argumentTypeArray = [typeof(long), typeof(long), typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer, EraType.Integer];
 			#endregion
 			//if (nullable)妥協
 			minArg = 0;
@@ -2456,7 +2448,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_COPY_ARRAY_Arguments()
 		{
-			argumentTypeArray = [typeof(string), typeof(string)];
+			argumentTypeArray = [EraType.String, EraType.String];
 			minArg = 2;
 		}
 
@@ -2529,7 +2521,7 @@ internal static partial class ArgumentParser
 	/// </summary>
 	private sealed class Expressions_ArgumentBuilder : ArgumentBuilder
 	{
-		public Expressions_ArgumentBuilder(Type[] types, int minArgs = -1)
+		public Expressions_ArgumentBuilder(EraType[] types, int minArgs = -1)
 		{
 			argumentTypeArray = types;
 			minArg = minArgs;
@@ -2549,7 +2541,7 @@ internal static partial class ArgumentParser
 	{
 		public STR_DOUBLE_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(string), typeof(double)];
+			argumentTypeArray = [EraType.String, EraType.Float];
 			minArg = 1;
 		}
 		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)

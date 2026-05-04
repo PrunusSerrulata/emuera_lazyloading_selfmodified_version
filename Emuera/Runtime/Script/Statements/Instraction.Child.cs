@@ -1435,14 +1435,17 @@ internal sealed partial class FunctionIdentifier
 		{
 			SpTimesArgument timesArg = (SpTimesArgument)func.Argument;
 			VariableTerm var = timesArg.VariableDest;
+			double multiplier = timesArg.Multiplier.GetEraType() == EraType.Float
+				? timesArg.Multiplier.GetFloatValue(exm)
+				: (double)timesArg.Multiplier.GetIntValue(exm);
 			if (var.GetEraType() == EraType.Float)
 			{
-				double d = var.GetFloatValue(exm) * timesArg.DoubleValue;
+				double d = var.GetFloatValue(exm) * multiplier;
 				var.SetValue(d, exm);
 			}
 			else if (Config.TimesNotRigorousCalculation)
 			{
-				double d = var.GetIntValue(exm) * timesArg.DoubleValue;
+				double d = var.GetIntValue(exm) * multiplier;
 				try
 				{
 					checked { var.SetValue((long)d, exm); }
@@ -1456,7 +1459,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			else
 			{
-				decimal d = var.GetIntValue(exm) * (decimal)timesArg.DoubleValue;
+				decimal d = var.GetIntValue(exm) * (decimal)multiplier;
 				if (d <= long.MaxValue && d >= long.MinValue)
 					var.SetValue((long)d, exm);
 				else
@@ -2716,7 +2719,7 @@ internal sealed partial class FunctionIdentifier
 				switch (opt)
 				{
 					case SpDtColumnOptions.DTOptions.Default:
-						if (v.GetOperandType() != (isString ? typeof(string) : typeof(long)))
+						if (v.GetEraType() != (isString ? EraType.String : EraType.Integer))
 							throw new CodeEE(string.Format(trerror.DTInvalidDataType.Text, "DT_COLUMN_OPTIONS", key, cName));
 						if (isString)
 							column.DefaultValue = v.GetStrValue(exm);
@@ -3666,11 +3669,11 @@ internal sealed partial class FunctionIdentifier
 				AExpression term = ((ExpressionArgument)func.Argument).Term;
 				if (term != null)
 				{
-					if (label.MethodType != term.GetOperandType())
+					if (label.MethodType != term.GetEraType())
 					{
-						if (label.MethodType == typeof(long))
+						if (label.MethodType == EraType.Integer)
 							ParserMediator.Warn(trerror.ReturnfStrInIntFunc.Text, func, 2, true, false);
-						else if (label.MethodType == typeof(string))
+						else if (label.MethodType == EraType.String)
 							ParserMediator.Warn(trerror.ReturnfIntInStrFunc.Text, func, 2, true, false);
 					}
 				}
