@@ -1,5 +1,30 @@
 
 2026年5月5日
+合并 mr-6 分支冲突解决：修复手动 OpenGL 渲染与 PaintSurface 事件隐藏导致的黑屏问题
+	问题描述：合并 mr-6 分支（d69147a）后，程序启动黑屏，仅显示输入光标，控制台内容完全不渲染。
+	冲突分析：
+		■ 本分支（HEAD, 676a921）重写了 EraPictureBox.OnPaint()，手动管理 OpenGL 渲染管线
+		  （GRContext → GRBackendRenderTarget → SKSurface.CreateSrgb），目的是修复 SKSurface
+		  默认颜色空间导致的画面偏暗问题。原实现中 OnPaint() 先调用 base.OnPaint(e)，由基类
+		  SKGLControl 内部触发 PaintSurface 事件 → RenderConsole 被调用 → 画面正常。
+		■ mr-6 分支重构了 MainWindow.CheckOpenGLCompatibility()，引入 RenderingBackend 三模式
+		  配置（Auto/OpenGL/CPU）、提取 BindPaintEvent() 方法、新增 SwitchToSKControl() 健壮
+		  降级机制。mr-6 的 EraPictureBox 未包含手动 OpenGL 管理。
+		■ 合并后黑屏的直接原因：EraPictureBox 声明了与基类同名的 PaintSurface 事件和
+		  OnPaintSurface 方法，这在 C# 中构成事件/方法隐藏（hide by name），而非重写。
+		  EraPictureBox.PaintSurface 与 SKGLControl.PaintSurface 是两个完全独立的事件，
+		  拥有各自独立的委托链表。MainWindow.BindPaintEvent() 通过 SKGLControl 类型引用
+		  订阅的是基类事件，但 EraPictureBox.OnPaintSurface() 触发的是派生类事件——
+		  订阅者和触发者不在同一个事件上，RenderConsole 永远不会被调用。
+	修复内容：
+		1. EraPictureBox.cs：删除隐藏基类的 PaintSurface 事件声明和 OnPaintSurface 方法
+		2. EraPictureBox.cs：OnPaint() 中改用 base.OnPaintSurface(...) 直接触发基类事件，
+		   确保 MainWindow 的订阅者能收到通知
+		3. EraPictureBox.cs：移除 base.OnPaint(e) 调用，避免基类用错误颜色空间重复渲染
+		4. EraPictureBox.cs：移除不再需要的 using System.ComponentModel 和 [Category] 属性
+	效果：手动渲染管线（含 SKColorSpace.CreateSrgb() 颜色空间修复）完整保留，同时
+	      PaintSurface 事件正确触发，控制台内容正常渲染，不再黑屏。
+
 GDI+→SkiaSharp ColorMatrix 迁移多项 Bug 修复：
 	问题描述：从 GDI+ ImageAttributes 迁移到 SkiaSharp SKColorFilter 时，ColorMatrix 的传递与应用存在多处错误，导致 GDRAWCIMG/GDRAWG 带 ColorMatrix 参数时颜色变换结果不正确或完全无效。
 	修复内容：
@@ -13,7 +38,6 @@ GDI+→SkiaSharp ColorMatrix 迁移多项 Bug 修复：
 		8. 清除 System.Drawing.Imaging 残留引用
 	新增文档：Readme/参考手册/Graphics绘图系API.zh.md（16 个 G 系函数 + ColorMatrix 详解）
 
-2026年5月5日
 浮点数类型引入与位编码废弃（B.3 全量重构）：
 	在引擎核心引入 Float（double）类型，同时将全代码库的类型判别从 typeof(long)/typeof(string) 硬编码
 	统一替换为 EraType 枚举 + VariableDescriptor 数据查询，彻底消灭 6 大二元判定模式。
@@ -46,7 +70,6 @@ GDI+→SkiaSharp ColorMatrix 迁移多项 Bug 修复：
 		- Creator.cs：移除 F 变体函数注册
 		- VariableEvaluator.cs：新增 GetArraySumDouble/GetMatch(double)/GetMaxArrayDouble/GetInRangeArrayDouble 等方法
 
-2026年5月4日
 新增内置数学函数：三角函数与端数处理（SIN/COS/TAN/ASIN/ACOS/ATAN/FLOOR/CEIL/ROUND 及 Float 重载）
 
 	Int 版本（返回整数，截断小数）：
@@ -75,7 +98,6 @@ GDI+→SkiaSharp ColorMatrix 迁移多项 Bug 修复：
 	2. 新增 Creator.cs：注册 18 个新函数名
 	3. 新增参考手册：Readme/参考手册/数学函数三角函数端数处理.zh.md
 
-2026年5月4日
 修复 SKGLControl OpenGL 上下文丢失导致 NullReferenceException 崩溃的问题：
 	问题描述：部分玩家环境（双显卡笔记本、虚拟机、远程桌面等）中，SKGLControl 的 OpenGL 上下文在运行时丢失或初始化失败，
 	         OnPaint 内部访问 null 的 GRContext 导致未捕获的 NullReferenceException，程序直接崩溃。
