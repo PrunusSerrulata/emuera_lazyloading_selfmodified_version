@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Config;
 using System.Drawing;
 using System.Text;
 using SkiaSharp;
@@ -61,6 +61,7 @@ abstract class AConsoleDisplayNode
 abstract class AConsoleColoredPart : AConsoleDisplayNode
 {
 	protected Color Color { get; set; }
+	protected Color? BackgroundColor { get; set; }
 	protected Color ButtonColor { get; set; }
 	protected bool colorChanged;
 }

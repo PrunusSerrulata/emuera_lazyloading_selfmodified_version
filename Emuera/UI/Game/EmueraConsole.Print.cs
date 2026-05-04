@@ -4,6 +4,7 @@ using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using MinorShift.Emuera.UI.Game;
+using MinorShift.Emuera.GameProc.Function;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System;
@@ -84,10 +85,10 @@ internal sealed partial class EmueraConsole : IDisposable
 				return defaultStyle;
 			if (UseSetColorStyle)
 				return userStyle;
-			//PRINTD系(SETCOLORを無視する)
 			if (userStyle.Color == defaultStyle.Color)
 				return userStyle;
-			return new StringStyle(defaultStyle.Color, userStyle.FontStyle, userStyle.Fontname);
+			var ss = new StringStyle(defaultStyle.Color, userStyle.FontStyle, userStyle.Fontname).WithBackgroundColor(userStyle.BackgroundColor);
+			return ss;
 		}
 	}
 	//private StringStyle Style { get { return (useUserStyle ? userStyle : defaultStyle); } }

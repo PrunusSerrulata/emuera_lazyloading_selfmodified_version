@@ -12,6 +12,7 @@ internal struct StringStyle
 	public StringStyle(Color color, FontStyle fontStyle, string? fontname)
 	{
 		Color = color;
+		BackgroundColor = null;
 		ButtonColor = Config.FocusColor;
 		ColorChanged = false;//こっちのパターンでは色変更を後で検知
 		FontStyle = fontStyle;
@@ -27,6 +28,7 @@ internal struct StringStyle
 	public StringStyle(Color color, bool colorChanged, Color buttonColor, FontStyle fontStyle, string fontname)
 	{
 		Color = color;
+		BackgroundColor = null;
 		ButtonColor = buttonColor;
 		ColorChanged = colorChanged;
 		FontStyle = fontStyle;
@@ -37,6 +39,7 @@ internal struct StringStyle
 	}
 
 	public Color Color;
+	public Color? BackgroundColor;
 	public Color ButtonColor;
 	public bool ColorChanged;
 	public FontStyle FontStyle;
@@ -58,5 +61,18 @@ internal struct StringStyle
 	public static bool operator !=(StringStyle x, StringStyle y)
 	{
 		return !(x == y);
+	}
+
+	public StringStyle WithBackgroundColor(Color? backgroundColor)
+	{
+		return new StringStyle
+		{
+			Color = this.Color,
+			BackgroundColor = backgroundColor,
+			ButtonColor = this.ButtonColor,
+			ColorChanged = this.ColorChanged,
+			FontStyle = this.FontStyle,
+			Fontname = this.Fontname
+		};
 	}
 }

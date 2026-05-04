@@ -7,24 +7,15 @@ namespace MinorShift.Emuera.UI.Framework.Forms
 	internal sealed class EraPictureBox : SKGLControl
 	{
 		public static bool UseOpenGL { get; set; } = true;
+		public static event Action OpenGLFailed;
+		internal static int failureCount = 0;
+		private const int MaxFailures = 3;
 
-		public static event Action OnOpenGLFailure;
+		public static string RenderingBackend => UseOpenGL ? "SkiaSharp (OpenGL)" : "SkiaSharp (CPU)";
 
 		public EraPictureBox()
 		{
 			SetStyle(ControlStyles.Opaque, true);
-		}
-
-		public static Control CreateInstance()
-		{
-			if (UseOpenGL)
-			{
-				return new EraPictureBox();
-			}
-			else
-			{
-				return new EraSKControl();
-			}
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
@@ -32,15 +23,24 @@ namespace MinorShift.Emuera.UI.Framework.Forms
 			try
 			{
 				base.OnPaint(e);
+				failureCount = 0;
 			}
-			catch (NullReferenceException)
+			catch (Exception)
 			{
-				if (UseOpenGL)
+				failureCount++;
+				if (failureCount >= MaxFailures && UseOpenGL)
 				{
 					UseOpenGL = false;
-					OnOpenGLFailure?.Invoke();
+					OpenGLFailed?.Invoke();
 				}
 			}
+		}
+
+		public static Control CreateInstance()
+		{
+			if (UseOpenGL)
+				return new EraPictureBox();
+			return new EraSKControl();
 		}
 	}
 

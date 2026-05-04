@@ -298,6 +298,15 @@ internal sealed class ConfigItem<T> : AConfigItem
 			else
 				throw new CodeEE(Lang.Error.InvalidSpecification.Text);
 		}
+		else if (this is ConfigItem<RenderingBackend>)
+		{
+			if (Enum.TryParse<RenderingBackend>(str, true, out var result))
+			{
+				((ConfigItem<RenderingBackend>)(AConfigItem)this).Value = result;
+			}
+			else
+				throw new CodeEE(Lang.Error.InvalidSpecification.Text);
+		}
 		#endregion
 		//else
 		//    throw new ExeEE("型不明なコンフィグ");

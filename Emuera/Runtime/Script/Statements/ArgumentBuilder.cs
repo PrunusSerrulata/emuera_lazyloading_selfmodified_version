@@ -218,6 +218,7 @@ internal static partial class ArgumentParser
 		argb[FunctionArgType.SP_VAR_SET] = new SP_VAR_SET_ArgumentBuilder();
 		argb[FunctionArgType.SP_BUTTON] = new SP_BUTTON_ArgumentBuilder();
 		argb[FunctionArgType.SP_COLOR] = new SP_COLOR_ArgumentBuilder();
+		argb[FunctionArgType.SP_COLOR_ALPHA] = new SP_COLOR_ALPHA_ArgumentBuilder();
 		argb[FunctionArgType.SP_SPLIT] = new SP_SPLIT_ArgumentBuilder();
 		argb[FunctionArgType.SP_GETINT] = new SP_GETINT_ArgumentBuilder();
 		argb[FunctionArgType.SP_CVAR_SET] = new SP_CVAR_SET_ArgumentBuilder();
@@ -2062,6 +2063,33 @@ internal static partial class ArgumentParser
 					arg.ConstInt = (terms[0].GetIntValue(exm) << 16) + (terms[1].GetIntValue(exm) << 8) + terms[2].GetIntValue(exm);
 					arg.IsConst = true;
 				}
+			}
+			return arg;
+		}
+	}
+
+	private sealed class SP_COLOR_ALPHA_ArgumentBuilder : ArgumentBuilder
+	{
+		public SP_COLOR_ALPHA_ArgumentBuilder()
+		{
+			argumentTypeArray = [typeof(long), typeof(long)];
+			minArg = 2;
+		}
+
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			var terms = popTerms(line);
+			if (!checkArgumentType(line, exm, terms))
+				return null;
+			if (terms.Count < 2)
+			{ warn(trerror.InvalidSetcolorArgCount.Text, line, 2, false); return null; }
+			if (terms.Count > 2)
+			{ warn(trerror.InvalidSetcolorArgCount.Text, line, terms.Count, false); return null; }
+			var arg = new SpColorAlphaArgument(terms[0], terms[1]);
+			if (terms[0] is SingleTerm && terms[1] is SingleTerm)
+			{
+				arg.ConstInt = (terms[0].GetIntValue(exm) << 8) + (terms[1].GetIntValue(exm) & 0xFF);
+				arg.IsConst = true;
 			}
 			return arg;
 		}

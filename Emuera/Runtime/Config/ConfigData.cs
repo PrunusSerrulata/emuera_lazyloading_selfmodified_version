@@ -124,6 +124,7 @@ internal sealed class ConfigData
 		configArray.Add(new ConfigItem<SkiaSharpImageQuality>(ConfigCode.SkiaSharpImageQuality, "SKIASHARP IMAGE QUALITY", "SkiaSharp image quality", SkiaSharpImageQuality.High));
 		configArray.Add(new ConfigItem<SkiaSharpFontHinting>(ConfigCode.SkiaSharpFontHinting, "SKIASHARP FONT HINTING", "SkiaSharp font hinting", SkiaSharpFontHinting.None));
 		configArray.Add(new ConfigItem<SkiaSharpFontEdging>(ConfigCode.SkiaSharpFontEdging, "SKIASHARP FONT EDGING", "SkiaSharp font edging", SkiaSharpFontEdging.SubpixelAntiAlias));
+		configArray.Add(new ConfigItem<RenderingBackend>(ConfigCode.RenderingBackend, "RENDERING BACKEND", "Rendering backend", RenderingBackend.Auto));
 		#endregion
 
 		#region EE_UPDATECHECK

@@ -1642,6 +1642,49 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
+	private sealed class TEXT_BGC_ON_Instruction : AInstruction
+	{
+		public TEXT_BGC_ON_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_COLOR_ALPHA);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			SpColorAlphaArgument arg = (SpColorAlphaArgument)func.Argument;
+			long rgb;
+			long alpha;
+			if (arg.IsConst)
+			{
+				rgb = arg.ConstInt >> 8;
+				alpha = arg.ConstInt & 0xFF;
+			}
+			else
+			{
+				rgb = arg.RGB.GetIntValue(exm);
+				alpha = arg.Alpha.GetIntValue(exm);
+			}
+			int a = (int)(alpha * 255 / 100);
+			Color color = Color.FromArgb(a, (int)(rgb >> 16) & 0xFF, (int)(rgb >> 8) & 0xFF, (int)rgb & 0xFF);
+			exm.Console.TextBackgroundColor = color;
+		}
+	}
+
+	private sealed class TEXT_BGC_OFF_Instruction : AInstruction
+	{
+		public TEXT_BGC_OFF_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.VOID);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			exm.Console.TextBackgroundColor = null;
+		}
+	}
+
 	private sealed class SETBGIMAGE_Instruction : AInstruction
 	{
 		public SETBGIMAGE_Instruction()

@@ -447,6 +447,17 @@ internal sealed class SpColorArgument : Argument
 	readonly public AExpression RGB;
 }
 
+internal sealed class SpColorAlphaArgument : Argument
+{
+	public SpColorAlphaArgument(AExpression rgb, AExpression alpha)
+	{
+		RGB = rgb;
+		Alpha = alpha;
+	}
+	readonly public AExpression RGB;
+	readonly public AExpression Alpha;
+}
+
 internal sealed class SpSplitArgument : Argument
 {
 	public SpSplitArgument(AExpression s1, AExpression s2, VariableToken varId, VariableTerm num)

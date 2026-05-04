@@ -1,4 +1,4 @@
-using MinorShift.Emuera.Runtime.Utils;
+﻿﻿using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.UI;
 using SkiaSharp;
 using System;
@@ -71,6 +71,7 @@ internal static class Config
 		ImageQuality = instance.GetConfigValue<SkiaSharpImageQuality>(ConfigCode.SkiaSharpImageQuality);
 		FontHinting = instance.GetConfigValue<SkiaSharpFontHinting>(ConfigCode.SkiaSharpFontHinting);
 		FontEdging = instance.GetConfigValue<SkiaSharpFontEdging>(ConfigCode.SkiaSharpFontEdging);
+		Backend = instance.GetConfigValue<RenderingBackend>(ConfigCode.RenderingBackend);
 		#endregion
 
 		//SkipFrame = instance.GetConfigValue<int>(ConfigCode.SkipFrame);
@@ -532,6 +533,7 @@ internal static class Config
 	public static SkiaSharpImageQuality ImageQuality { get; set; }
 	public static SkiaSharpFontHinting FontHinting { get; set; }
 	public static SkiaSharpFontEdging FontEdging { get; set; }
+	public static RenderingBackend Backend { get; set; }
 	#endregion
 
 	//public static int SkipFrame { get; private set; }

@@ -90,6 +90,8 @@ internal sealed partial class EmueraConsole : IDisposable
 
 	public bool strictFontFallback = false;
 
+	public Color? TextBackgroundColor { get; set; }
+
 	public EmueraConsole(MainWindow parent)
 	{
 		window = parent;
@@ -722,6 +724,22 @@ internal sealed partial class EmueraConsole : IDisposable
 			bakedBackground = new SKBitmap(width, height);
 			BakeBackground();
 		}
+	}
+
+	public void InvalidateBackgroundCache()
+	{
+		if (bakedBackground != null)
+		{
+			bakedBackground.Dispose();
+			bakedBackground = null;
+		}
+	}
+
+	public void ForceFullRedraw()
+	{
+		InvalidateBackgroundCache();
+		window?.Invalidate();
+		window?.MainPicBox?.Invalidate();
 	}
 	private void BakeBackground()
 	{

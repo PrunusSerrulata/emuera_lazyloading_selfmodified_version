@@ -1,5 +1,6 @@
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
+using MinorShift.Emuera.GameProc.Function;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System;
@@ -74,6 +75,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		BuildFallbacks();
 
 		Color = style.Color;
+		BackgroundColor = style.BackgroundColor;
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
 		if (!colorChanged && Color != Config.ForeColor)
@@ -112,6 +114,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		BuildFallbacks();
 
 		Color = style.Color;
+		BackgroundColor = style.BackgroundColor;
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
 		if (!colorChanged && Color != Config.ForeColor)
@@ -152,6 +155,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		BuildFallbacks();
 
 		Color = style.Color;
+		BackgroundColor = style.BackgroundColor;
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
 		if (!colorChanged && Color != Config.ForeColor)
@@ -409,10 +413,14 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 			}
 			color = ButtonColor;
 		}
-	else if (isBackLog && !colorChanged)
-	{
-		color = Config.LogColor;
-	}
+		else if (BackgroundColor.HasValue)
+		{
+			backcolor = BackgroundColor.Value.ToSKColor();
+		}
+		else if (isBackLog && !colorChanged)
+		{
+			color = Config.LogColor;
+		}
 
 	#region EM_私家版_描画拡張
 	bool isAntialias;
@@ -439,6 +447,18 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	if (useGdiRender)
 	{
 		TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping;
+
+		if (backcolor.HasValue)
+		{
+			using var backBrush = new SolidBrush(System.Drawing.Color.FromArgb(backcolor.Value.Alpha, backcolor.Value.Red, backcolor.Value.Green, backcolor.Value.Blue));
+			using var bitmap = new System.Drawing.Bitmap((int)Width + 2, (int)Font.Size + 2);
+			using (var g = System.Drawing.Graphics.FromImage(bitmap))
+			{
+				g.FillRectangle(backBrush, 0, 0, bitmap.Width, bitmap.Height);
+			}
+			using var skBitmap = CreateSkBitmapFromGdiBitmap(bitmap);
+			graph.DrawBitmap(skBitmap, new SKPoint(point.X, point.Y - Font.Size));
+		}
 
 		if (_gdiTexts != null)
 		{

@@ -69,6 +69,10 @@
     <tr id="UI.ConfigDialog.Display.SkiaImageQuality"><![CDATA[图像缩放质量]]></tr>
     <tr id="UI.ConfigDialog.Display.SkiaFontHinting"><![CDATA[字体微调]]></tr>
     <tr id="UI.ConfigDialog.Display.SkiaFontEdging"><![CDATA[字体边缘渲染]]></tr>
+    <tr id="UI.ConfigDialog.Display.RenderingBackend"><![CDATA[渲染后端]]></tr>
+    <tr id="UI.ConfigDialog.Display.RenderingBackendAuto"><![CDATA[自动检测]]></tr>
+    <tr id="UI.ConfigDialog.Display.RenderingBackendOpenGL"><![CDATA[OpenGL]]></tr>
+    <tr id="UI.ConfigDialog.Display.RenderingBackendCPU"><![CDATA[CPU]]></tr>
     <tr id="UI.ConfigDialog.Display.FPS"><![CDATA[FPS]]></tr>
     <tr id="UI.ConfigDialog.Display.PrintCPerLine"><![CDATA[PRINTC的每行项目数]]></tr>
     <tr id="UI.ConfigDialog.Display.PrintCLength"><![CDATA[PRINTC项目的文字长度]]></tr>

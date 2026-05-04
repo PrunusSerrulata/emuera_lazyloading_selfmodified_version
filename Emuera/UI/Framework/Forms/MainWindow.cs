@@ -1,4 +1,4 @@
-using MinorShift.Emuera.GameView;
+﻿﻿using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Statements;
@@ -28,6 +28,8 @@ namespace MinorShift.Emuera.Forms
 		{
 			InitializeComponent();
 			_args = args;
+
+			System.Diagnostics.Debug.WriteLine("Config.Backend = " + Config.Backend);
 
 			// 检查OpenGL是否可用，如果不可用则切换到SKControl
 			CheckOpenGLCompatibility();
@@ -107,8 +109,38 @@ namespace MinorShift.Emuera.Forms
 
 		private void CheckOpenGLCompatibility()
 		{
-			EraPictureBox.OnOpenGLFailure += HandleOpenGLFailure;
+			// 根据设置决定渲染后端
+			if (Config.Backend == RenderingBackend.CPU)
+			{
+				// 用户强制使用CPU模式
+				EraPictureBox.UseOpenGL = false;
+				SwitchToSKControl();
+				return;
+			}
 
+			if (Config.Backend == RenderingBackend.OpenGL)
+			{
+				// 用户强制使用OpenGL模式，尝试使用SKGLControl
+				try
+				{
+					using (var testControl = new SKGLControl())
+					{
+						testControl.CreateControl();
+					}
+					EraPictureBox.UseOpenGL = true;
+				}
+				catch
+				{
+					// OpenGL不可用，静默失败
+					SwitchToSKControl();
+					return;
+				}
+				EraPictureBox.OpenGLFailed += OnOpenGLFailed;
+				BindPaintEvent();
+				return;
+			}
+
+			// Config.Backend == Auto，自动检测
 			try
 			{
 				using (var testControl = new SKGLControl())
@@ -119,64 +151,109 @@ namespace MinorShift.Emuera.Forms
 			}
 			catch (Exception)
 			{
-				EraPictureBox.UseOpenGL = false;
-				SwapToSoftwareRendering();
+				// OpenGL不可用，切换到SKControl
+				SwitchToSKControl();
 				return;
 			}
 
-			if (mainPicBox is SKGLControl glControl)
-			{
-				glControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
-			}
-			else if (mainPicBox is SKControl skControl)
-			{
-				skControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
-			}
+			// 订阅运行时OpenGL失败事件
+			EraPictureBox.OpenGLFailed += OnOpenGLFailed;
+
+			// 根据控件类型绑定正确的Paint事件
+			BindPaintEvent();
 		}
 
-		private void HandleOpenGLFailure()
+		private void OnOpenGLFailed()
 		{
 			if (InvokeRequired)
 			{
-				BeginInvoke(new Action(HandleOpenGLFailure));
-				return;
+				BeginInvoke(new Action(SwitchToSKControl));
 			}
-			SwapToSoftwareRendering();
+			else
+			{
+				SwitchToSKControl();
+			}
 		}
 
-		private void SwapToSoftwareRendering()
+		private void SwitchToSKControl()
 		{
-			if (!(mainPicBox is SKGLControl))
-				return;
-
-			var oldControl = mainPicBox;
-			Controls.Remove(oldControl);
-			oldControl.Dispose();
-
-			var newControl = EraPictureBox.CreateInstance();
-			newControl.Name = "mainPicBox";
-			newControl.Location = new System.Drawing.Point(0, 24);
-			newControl.Size = new System.Drawing.Size(640, 480);
-			newControl.TabIndex = 0;
-			newControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-			newControl.BackColor = Color.Black;
-			newControl.Margin = new Padding(0);
-
-			Controls.Add(newControl);
-			Controls.SetChildIndex(newControl, 0);
-
-			mainPicBox = (SKControl)newControl;
-
-			mainPicBox.MouseWheel += new MouseEventHandler(richTextBox1_MouseWheel);
-			mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
-			mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
-			mainPicBox.MouseDown += mainPicBox_MouseDown;
-			mainPicBox.MouseLeave += mainPicBox_MouseLeave;
-			mainPicBox.MouseMove += mainPicBox_MouseMove;
-
-			if (mainPicBox is SKControl skControl)
+			try
 			{
-				skControl.PaintSurface += (s, e) => RenderConsole(e.Surface.Canvas);
+				// 重置所有静态状态
+				EraPictureBox.UseOpenGL = false;
+				EraPictureBox.OpenGLFailed -= OnOpenGLFailed;
+				EraPictureBox.failureCount = 0;
+
+				// 移除现有的mainPicBox并替换为SKControl
+				Controls.Remove(mainPicBox);
+				mainPicBox.Dispose();
+
+				// 强制垃圾回收，确保OpenGL资源被释放
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+				GC.Collect();
+
+				// 创建新的SKControl实例
+				var newControl = EraPictureBox.CreateInstance();
+				newControl.Name = "mainPicBox";
+				newControl.Location = new System.Drawing.Point(0, 24);
+				newControl.Size = new System.Drawing.Size(640, 480);
+				newControl.TabIndex = 0;
+				newControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+				newControl.BackColor = Color.Black;
+				newControl.Margin = new Padding(0);
+
+				Controls.Add(newControl);
+				Controls.SetChildIndex(newControl, 0);
+
+				mainPicBox = (SKControl)newControl;
+
+				// 重新绑定鼠标事件
+				mainPicBox.MouseWheel += new MouseEventHandler(richTextBox1_MouseWheel);
+				mainPicBox.MouseClick += mainPicBox_MouseClickCBCheck;
+				mainPicBox.MouseDoubleClick += mainPicBox_MouseDoubleClickCBCheck;
+				mainPicBox.MouseDown += mainPicBox_MouseDown;
+				mainPicBox.MouseLeave += mainPicBox_MouseLeave;
+				mainPicBox.MouseMove += mainPicBox_MouseMove;
+
+				// 绑定Paint事件
+				BindPaintEvent();
+
+				// 清除背景缓存，强制重新计算
+				console?.InvalidateBackgroundCache();
+
+				// 延迟重绘，等待控件完全初始化
+				BeginInvoke(new Action(() =>
+				{
+					console?.InvalidateBackgroundCache();
+					Invalidate();
+					mainPicBox?.Invalidate();
+				}));
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine("SwitchToSKControl error: " + ex.Message);
+				System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+			}
+		}
+
+		private void BindPaintEvent()
+		{
+			if (mainPicBox is SKGLControl glControl)
+			{
+				glControl.PaintSurface += (s, e) =>
+				{
+					if (e?.Surface == null) return;
+					RenderConsole(e.Surface.Canvas);
+				};
+			}
+			else if (mainPicBox is SKControl skControl)
+			{
+				skControl.PaintSurface += (s, e) =>
+				{
+					if (e?.Surface == null) return;
+					RenderConsole(e.Surface.Canvas);
+				};
 			}
 		}
 
