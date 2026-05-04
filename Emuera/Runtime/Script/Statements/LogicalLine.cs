@@ -229,8 +229,10 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
 		Depth = -1;
 		LocalLength = 0;
 		LocalsLength = 0;
+		LocalFloatLength = 0;
 		ArgLength = 0;
 		ArgsLength = 0;
+		ArgFloatLength = 0;
 		IsMethod = false;
 		MethodType = EraType.Void;
 		this.wc = wc;
@@ -256,8 +258,10 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
 	public bool hasPrivDynamicVar { get; set; }
 	public int LocalLength { get; set; }
 	public int LocalsLength { get; set; }
+	public int LocalFloatLength { get; set; }
 	public int ArgLength { get; set; }
 	public int ArgsLength { get; set; }
+	public int ArgFloatLength { get; set; }
 
 	//public bool ArgOptional { get; set; }
 	//public bool ArgAutoConvert { get; set; }

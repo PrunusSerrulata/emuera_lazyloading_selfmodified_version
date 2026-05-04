@@ -6,6 +6,46 @@
 
 ---
 
+## 目录
+
+- [B.3 引入浮点数类型与废弃位编码 —— 任务追踪文档](#b3-引入浮点数类型与废弃位编码--任务追踪文档)
+  - [目录](#目录)
+  - [0. 总览](#0-总览)
+    - [0.1 目标](#01-目标)
+    - [0.2 战略决策（摘自手册）](#02-战略决策摘自手册)
+    - [0.3 实施完成状态总表](#03-实施完成状态总表)
+    - [0.4 最终残留 typeof 统计（全部必要保留）](#04-最终残留-typeof-统计全部必要保留)
+    - [0.5 6 大二元判定模式——全部消灭](#05-6-大二元判定模式全部消灭)
+  - [1. 冒烟测试结果（2026-05-04）](#1-冒烟测试结果2026-05-04)
+    - [1.1 测试覆盖](#11-测试覆盖)
+    - [1.2 已验证的核心能力](#12-已验证的核心能力)
+  - [2. 全量审计摘要（归纳自 B3\_FLOAT\_AUDIT.md）](#2-全量审计摘要归纳自-b3_float_auditmd)
+    - [2.1 审计分类汇总](#21-审计分类汇总)
+    - [2.2 已确认 Float 支持的函数/指令](#22-已确认-float-支持的函数指令)
+    - [2.3 不涉及 Float 的函数类别（N/A）](#23-不涉及-float-的函数类别na)
+  - [3. 工具脚本](#3-工具脚本)
+    - [3.1 查询脚本 — `tools/b3_query.ps1`](#31-查询脚本--toolsb3_queryps1)
+    - [3.2 验证脚本 — `tools/b3_verify.ps1`](#32-验证脚本--toolsb3_verifyps1)
+    - [3.3 批量替换脚本 — `tools/b3_16_replace.py`](#33-批量替换脚本--toolsb3_16_replacepy)
+  - [4. 浮点数功能补全（Batch 1-6）](#4-浮点数功能补全batch-1-6)
+    - [4.0 战略决策：LOCAL/ARG/GLOBAL 的 Float 版本](#40-战略决策localargglobal-的-float-版本)
+    - [4.1 内置数学函数 Float 重载 ✅ 已完成](#41-内置数学函数-float-重载--已完成)
+    - [4.2 数组操作函数 Float 支持](#42-数组操作函数-float-支持)
+    - [4.3 反射/动态调用函数 Float 支持 ✅ 已完成](#43-反射动态调用函数-float-支持--已完成)
+    - [4.4 DT (DataTable) Float 支持 ✅ 已完成](#44-dt-datatable-float-支持--已完成)
+    - [4.5 SQL Float 支持 ✅ 已完成](#45-sql-float-支持--已完成)
+    - [4.6 BAR/BARL Float 参数重载 ✅ 已完成](#46-barbarl-float-参数重载--已完成)
+    - [4.7 SAVEDATA/CHARADATA Float 支持 ✅ 已完成](#47-savedatacharadata-float-支持--已完成)
+    - [4.8 函数参数 Float 支持（ARGF）✅ 已完成](#48-函数参数-float-支持argf-已完成)
+    - [4.9 函数返回值 Float 支持（RESULTF）✅ 已完成](#49-函数返回值-float-支持resultf-已完成)
+    - [4.10 #FUNCTIONF 用户自定义 Float 返回函数 ✅ 已完成](#410-functionf-用户自定义-float-返回函数--已完成)
+    - [4.11 任务依赖关系](#411-任务依赖关系)
+  - [5. m-emuera 迁移上下文](#5-m-emuera-迁移上下文)
+    - [5.1 迁移状态总表](#51-迁移状态总表)
+    - [5.2 推荐迁移顺序](#52-推荐迁移顺序)
+    - [5.3 关键差异点](#53-关键差异点)
+  - [6. 来源引用索引](#6-来源引用索引)
+
 ## 0. 总览
 
 ### 0.1 目标
@@ -71,10 +111,11 @@
 ## 1. 冒烟测试结果（2026-05-04）
 
 > 测试文件：`d:\eratw-chs\ERB\demo\B3_SMOKE_TEST.ERB`
-> 测试日志：`d:\eratw-chs\20260504-043622.log`
 > 引擎版本：Emuera.NET SkiaSharp 1824+v24+EMv18+EEv55 Lazyloadingv4.1
 
 ### 1.1 测试覆盖
+
+**第一轮（基础 + 回归）** — 日志：`d:\eratw-chs\20260504-043622.log`
 
 | 测试模块 | 测试项数 | 结果 |
 |----------|---------|------|
@@ -83,6 +124,28 @@
 | B.3-REGRESSION 踩坑回归 | 22 | **全部 PASS** |
 | Phase01Bugfix 回归验证 | 18 | **全部 PASS** |
 | **合计** | **55** | **0 FAIL, 0 ERROR** |
+
+**第二轮（全量端到端）** — 日志：`d:\eratw-chs\20260504-230148.log`
+
+| 测试模块 | 测试项数 | 结果 |
+|----------|---------|------|
+| B.3-6 全量端到端测试 | — | **全部 PASS** |
+| B.3-1 类型系统基础设施 | 10 | **全部 PASS** |
+| B.3-5 浮点变量基本运算 | 5 | **全部 PASS** |
+| B.3-REGRESSION 踩坑回归 | 22 | **全部 PASS** |
+| B.3-8/9/10 浮点数数组/函数参数/返回值 | 8 | **全部 PASS** |
+| Phase01Bugfix 回归验证 | 18 | **全部 PASS** |
+| **合计** | **63+** | **0 FAIL, 0 ERROR** |
+
+**第二轮新增验证项**：
+- LOCALF:0/1 读写正常
+- LOCALF 数组运算正常
+- RESULTF 读写正常
+- ARGF 函数参数传递正常
+- Int→Float 参数自动提升正常
+- #FUNCTIONF 返回 Float 正常
+- #FUNCTIONF 返回 Int→Float 正常
+- VARSETEX Float 数组填充正常
 
 ### 1.2 已验证的核心能力
 
@@ -121,9 +184,69 @@
 
 ---
 
-## 2. 工具脚本
+## 2. 全量审计摘要（归纳自 B3_FLOAT_AUDIT.md）
 
-### 2.1 查询脚本 — `tools/b3_query.ps1`
+> **B3_FLOAT_AUDIT.md 已标记为可删除**，其全部内容已归纳至本节。
+> 审计范围：`Creator.cs`（~200+ 函数）、`Creator.Method.cs`（~200+ 函数）、`FunctionIdentifier.cs`（~100+ 指令）、`Instraction.Child.cs`（~100+ 指令）。
+
+### 2.1 审计分类汇总
+
+| 类别 | 函数/指令数 | 需 Float 支持 | 已实现 | N/A | 备注 |
+|------|-----------|-------------|--------|-----|------|
+| 1. 数学函数 | 16 | 12 | 12 ✅ | 4 | 4 个 UNCHECKED_* 仅整数有意义 |
+| 2. 数组操作函数 | 22 | 16 | 16 ✅ | 6 | 6 个 GETBIT/GETNUM/ARRAYMSORT 等仅整数 |
+| 3. 反射/动态调用 | 10 | 3 | 3 ✅ | 7 | GETVARF/GETMETHF/EVALF 新增；SETVAR/EXISTMETH 已有 |
+| 4. 类型转换 | 5 | 0 | — | 5 | TOINT/TOFLOAT/TOSTR/TOSTRF/CONVERT 均已支持 |
+| 5. 字符串函数 | 23 | 0 | — | 23 | 全部 N/A |
+| 6. 角色数据函数 | 19 | 0 | — | 19 | 角色系统不支持 Float 字段 |
+| 7. MAP 数据集 | 18 | 0 | — | 18 | 纯 String-String 字典 |
+| 8. DT (DataTable) | 21 | 2 | 2 ✅ | 19 | DT_CELL_GETF/DT_CELL_SETF 新增 |
+| 9. SQL | 21 | 3 | 3 ✅ | 18 | 3 个 Float 读取函数新增 |
+| 10. 位操作 | 4 | 0 | — | 4 | 仅整数 |
+| 11. 通用/系统 | 40+ | 0 | — | 40+ | 全部 N/A |
+| 12-16. 图形/HTML/XML/声音/热键 | 50+ | 0 | — | 50+ | 全部 N/A |
+| 17. 指令级函数 | 100+ | 2 | 2 ✅ | 100+ | BAR/BARL Float 参数重载 |
+| **总计** | **~350+** | **38** | **38 ✅** | **~312** | **全部完成** |
+
+### 2.2 已确认 Float 支持的函数/指令
+
+| 函数/指令 | 支持方式 | 来源 |
+|----------|---------|------|
+| SETVAR | 已有 case EraType.Float | 原始引擎 |
+| EXISTMETH | 已有 case EraType.Float | 原始引擎 |
+| VARSET / CVARSET | 已有 case EraType.Float | 原始引擎 |
+| ARRAYSHIFT/REMOVE/SORT/COPY | 已有 Float 支持 | 原始引擎 |
+| SAVEDATA/LOADDATA/SAVEGLOBAL/LOADGLOBAL | 序列化已支持 Float | B.3-4 |
+| TIMES | 已修改支持变量第二参数 | B.3-10 |
+| TOINT / TOFLOAT / TOSTR / TOSTRF | 类型转换已支持 | B.3-10 |
+| RETURNF | Float 返回值 | B.3-10 |
+| RANDF~LIMITF (12个) | Float 重载函数 | Batch 1 |
+| SINF~ROUNDF (9个) | 新增三角/取整函数 | Batch 1 |
+| SUMARRAY~INRANGEARRAY (16个) | 同名重载 Float 参数 | Batch 2 |
+| GETVARF / GETMETHF / EVALF | 新增 Float 反射函数 | Batch 3 |
+| DT_CELL_GETF / DT_CELL_SETF | 新增 Float DT 操作 | Batch 4 |
+| SQL_READER_GET_FLOAT / SQL_EXECUTE_SCALAR_FLOAT / SQL_P_EXECUTE_SCALAR_FLOAT | 新增 Float SQL 操作 | Batch 5 |
+| BAR / BARL | Float 参数自动转 long | Batch 6 |
+| LOCALF / ARGF / RESULTF | 新增 Float 局部/参数/返回变量 | §4.8-4.9 |
+| #FUNCTIONF / #LOCALFSIZE | 新增语法指令 | §4.10 |
+
+### 2.3 不涉及 Float 的函数类别（N/A）
+
+以下类别经审计确认**不需要** Float 支持：
+
+- **字符串函数**（STRLENS/SUBSTRING/REPLACE 等）：操作字符串，不涉及数值
+- **角色数据函数**（GETCHARA/CSVNAME/FINDCHARA 等）：角色系统本身不支持 Float 字段
+- **MAP 数据集**（MAP_CREATE/MAP_GET 等）：内部 `Dictionary<string, string>`，用户应使用 TOSTRF()/TOFLOAT() 转换
+- **位操作**（BITSET/BITGET/BITTOGGLE/BITINDEXOFFIRST）：仅整数有意义
+- **UNCHECKED_* 运算**（UNCHECKED_ADD/SUB/MUL/NEG）：溢出控制，仅整数有意义
+- **图形/HTML/XML/声音/热键**：不涉及数值计算
+- **流程控制/输入/输出**：控制流和 I/O，条件表达式本身已支持 Float
+
+---
+
+## 3. 工具脚本
+
+### 3.1 查询脚本 — `tools/b3_query.ps1`
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/b3_query.ps1                  # 全量查询
@@ -132,14 +255,14 @@ powershell -ExecutionPolicy Bypass -File tools/b3_query.ps1 -Mode B16        # �
 powershell -ExecutionPolicy Bypass -File tools/b3_query.ps1 -Detail -Mode B15 # 详细行号
 ```
 
-### 2.2 验证脚本 — `tools/b3_verify.ps1`
+### 3.2 验证脚本 — `tools/b3_verify.ps1`
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/b3_verify.ps1 -Batch 15a -Mode B15
 powershell -ExecutionPolicy Bypass -File tools/b3_verify.ps1 -Batch 16a -Mode B16
 ```
 
-### 2.3 批量替换脚本 — `tools/b3_16_replace.py`
+### 3.3 批量替换脚本 — `tools/b3_16_replace.py`
 
 ```powershell
 python tools/b3_16_replace.py --dry-run                  # 预览
@@ -155,21 +278,26 @@ python tools/b3_16_replace.py --verify --all-files       # 残留统计
 
 ---
 
-## 3. 未完成任务：浮点数功能补全
+## 4. 浮点数功能补全（Batch 1-6）
 
 > 以下任务在 B.3-0~16 类型系统重构中**有意延迟**，属于浮点数运行时功能的补全。
 > 2026-05-04 终审：对 `BuiltInFunctionCode.cs`、`Creator.Method.cs`、`VariableEvaluator.cs`、`VariableData.cs`、`CharacterData.cs` 进行了全面盘点。
+> **Batch 1-6 + LOCALF/ARGF/RESULTF/#FUNCTIONF 全部完成于 2026-05-04。**
 
-### 3.0 战略决策：LOCAL/ARG/GLOBAL 不提供 Float 版本
+### 4.0 战略决策：LOCAL/ARG/GLOBAL 的 Float 版本
 
-**决策**：引擎内部不提供 `.LOCALF` / `.ARGF` / `.GLOBALF` 等 Float 版本的默认分配变量。
+**决策**：引擎新增 `LOCALF` / `ARGF` 作为 Float 版本的局部/参数变量，以及 `RESULTF` 作为 Float 返回值变量。
+
 - `LOCAL` / `ARG` / `GLOBAL` 保持 Int 类型不变
-- 仅新增 `RESULTF`（Float 标量返回值）
-- Float 变量通过 `#DIMF` 声明使用，不通过默认分配机制
+- 新增 `LOCALF`（Float 一维数组局部变量）、`ARGF`（Float 一维数组参数变量）
+- 新增 `RESULTF`（Float 标量返回值）
+- 新增 `#FUNCTIONF` 语法支持用户自定义 Float 返回函数
+- 新增 `#LOCALFSIZE` 指令控制 Float 局部数组大小（ARGF 由参数动态分配，无需指令）
+- Float 变量通过 `#DIMF` 声明使用，或通过 `LOCALF`/`ARGF`/`RESULTF` 内置变量
 
-**理由**：Float 变量使用频率远低于 Int，默认分配浪费内存且增加复杂度。
+**理由**：Float 变量使用频率低于 Int，但函数参数和返回值的 Float 支持是必要功能，不能仅靠 `#DIMF` 绕过。
 
-### 3.1 内置数学函数 Float 重载 ✅ 已完成
+### 4.1 内置数学函数 Float 重载 ✅ 已完成
 
 **实施状态**：✅ **已完成（2026-05-04）** — 12 Float 重载 + 18 新函数全部实现并编译通过。
 
@@ -197,7 +325,7 @@ python tools/b3_16_replace.py --verify --all-files       # 残留统计
 **优先级**：P1（高）
 **状态**：✅ 完成
 
-### 3.2 数组操作函数 Float 支持
+### 4.2 数组操作函数 Float 支持
 
 **状态：✅ 已完成（2026-05-04）** — 所有数组函数已通过同名重载支持 Float 参数。
 
@@ -230,24 +358,13 @@ python tools/b3_16_replace.py --verify --all-files       # 残留统计
   - `ArrayMultiSortMethod`: 无需修改（已有 `GetEraType()` 分支处理 Float）
 - **设计原则**：同名重载，不新增 F 变体函数。除 SUMARRAY 根据数组类型自动改变返回值类型外，其余函数返回值类型不变。
 
-### 3.3 反射/动态调用函数 Float 支持
+### 4.3 反射/动态调用函数 Float 支持 ✅ 已完成
+
+**实施状态**：✅ **已完成（2026-05-04）** — 3 个新函数全部实现并编译通过。
 
 > GETVAR、EVAL、GETMETH 等允许通过字符串名动态操作变量/表达式的"反射"函数。
 
-**现状（2026-05-04 源码盘点）**：
-
-| 函数 | 当前状态 | Int | String | Float | 备注 |
-|------|---------|-----|--------|-------|------|
-| GETVAR | Int only | ✅ | ❌ | ❌ | `GetVarMethod.GetIntValue` 检查 `EraType.Integer`，Float 变量被拒绝 |
-| GETVARS | String only | ❌ | ✅ | ❌ | `GetVarsMethod.GetStrValue` 检查 `EraType.String` |
-| **SETVAR** | **Int+String+Float** | ✅ | ✅ | ✅ | 已有 `case EraType.Float:` 分支，可写入 Float 变量 |
-| GETMETH | Int only | ✅ | ❌ | ❌ | 拒绝非 Int 返回的函数 |
-| GETMETHS | String only | ❌ | ✅ | ❌ | 拒绝非 String 返回的函数 |
-| **EXISTMETH** | **Int+String+Float** | ✅ | ✅ | ✅ | 已有 `case EraType.Float: res \|= 32`，可检测 Float 函数 |
-| EVAL | Int（截断Float） | ✅ | ❌ | ⚠️ | Float 结果被 `(long)` 截断，丢失精度 |
-| EVALS | String（转换Float） | ❌ | ✅ | ⚠️ | Float 结果被 `.ToString()`，返回字符串 |
-
-**需新增的函数**：
+**新增函数**：
 
 | 新函数 | 对应现有 | 返回类型 | 用途 |
 |--------|---------|---------|------|
@@ -255,18 +372,92 @@ python tools/b3_16_replace.py --verify --all-files       # 残留统计
 | **GETMETHF** | GETMETH | `EraType.Float` | 通过字符串名动态调用返回 Float 的函数 |
 | **EVALF** | EVAL | `EraType.Float` | 动态求值字符串表达式，返回 Float（不截断） |
 
-**实施方案**：
+**实施详情**：
 - `Creator.Method.cs` 新增 `GetVarFMethod` / `GetMethFMethod` / `EvalFMethod` 三个类
-- 均设置 `ReturnType = EraType.Float`，调用 `GetFloatValue(exm)`
+- 均设置 `ReturnType = EraType.Float`，重写 `GetFloatValue(exm)`
 - `Creator.cs` 注册 "GETVARF" / "GETMETHF" / "EVALF"
+- `Lang.cs` 新增 `IsNotFloat` 错误消息
+- `emuera-zhs.xml` / `emuera-eng.xml` 同步新增 `Error.IsNotFloat` 翻译
 
 **涉及文件**：
 - `Emuera/Runtime/Script/Statements/Function/Creator.Method.cs` — 新增 3 个方法类
 - `Emuera/Runtime/Script/Statements/Function/Creator.cs` — 注册 3 个新函数名
+- `Emuera/Runtime/Utils/EvilMask/Lang.cs` — 新增 `IsNotFloat`
+- `Emuera/Properties/lang/emuera-zhs.xml` — 新增翻译
+- `Emuera/Properties/lang/emuera-eng.xml` — 新增翻译
 
 **优先级**：P2（中）
+**状态**：✅ 完成
 
-### 3.4 SAVEDATA/CHARADATA Float 支持
+### 4.4 DT (DataTable) Float 支持 ✅ 已完成
+
+**实施状态**：✅ **已完成（2026-05-04）** — 2 个新函数全部实现并编译通过。
+
+**新增函数**：
+
+| 新函数 | 对应现有 | 返回类型 | 用途 |
+|--------|---------|---------|------|
+| **DT_CELL_GETF** | DT_CELL_GET | `EraType.Float` | 读取 DataTable 单元格的 Float 值 |
+| **DT_CELL_SETF** | DT_CELL_SET | `EraType.Integer` | 向 DataTable 单元格写入 Float 值（返回状态码） |
+
+**实施详情**：
+- `Creator.Method.cs` 新增 `DataTableCellGetFloatMethod` / `DataTableCellSetFloatMethod` 两个类
+- `DT_CELL_GETF`: `ReturnType = EraType.Float`，重写 `GetFloatValue`，使用 `Convert.ToDouble(v)` 读取
+- `DT_CELL_SETF`: `ReturnType = EraType.Integer`，重写 `GetIntValue`，使用 `v.GetFloatValue(exm)` 写入
+- `Creator.cs` 注册 "DT_CELL_GETF" / "DT_CELL_SETF"
+
+**涉及文件**：
+- `Emuera/Runtime/Script/Statements/Function/Creator.Method.cs` — 新增 2 个方法类
+- `Emuera/Runtime/Script/Statements/Function/Creator.cs` — 注册 2 个新函数名
+
+**优先级**：P2（中）
+**状态**：✅ 完成
+
+### 4.5 SQL Float 支持 ✅ 已完成
+
+**实施状态**：✅ **已完成（2026-05-04）** — 3 个新函数 + 2 个 SqlManager 方法全部实现并编译通过。
+
+**新增函数**：
+
+| 新函数 | 对应现有 | 返回类型 | 用途 |
+|--------|---------|---------|------|
+| **SQL_READER_GET_FLOAT** | SQL_READER_GET_LONG | `EraType.Float` | 从 Reader 读取 Float 列 |
+| **SQL_EXECUTE_SCALAR_FLOAT** | SQL_EXECUTE_SCALAR_LONG | `EraType.Float` | 执行标量查询返回 Float |
+| **SQL_P_EXECUTE_SCALAR_FLOAT** | SQL_P_EXECUTE_SCALAR_LONG | `EraType.Float` | 参数化标量查询返回 Float |
+
+**实施详情**：
+- `SqlManager.cs` 新增 `ReaderGetFloat(long, int)` → `double` 和 `ExecuteScalarFloat(string, string, string[])` → `double`
+- `Creator.Method.cs` 新增 `SqlReaderGetFloatMethod` / `SqlExecuteScalarFloatMethod` / `SqlExecuteScalarFloatParamMethod` 三个类
+- 均设置 `ReturnType = EraType.Float`，重写 `GetFloatValue(exm)`
+- `Creator.cs` 注册 "SQL_READER_GET_FLOAT" / "SQL_EXECUTE_SCALAR_FLOAT" / "SQL_P_EXECUTE_SCALAR_FLOAT"
+
+**涉及文件**：
+- `Emuera/Runtime/Utils/尊尼获加/SqlManager.cs` — 新增 2 个方法
+- `Emuera/Runtime/Script/Statements/Function/Creator.Method.cs` — 新增 3 个方法类
+- `Emuera/Runtime/Script/Statements/Function/Creator.cs` — 注册 3 个新函数名
+
+**优先级**：P2（中）
+**状态**：✅ 完成
+
+### 4.6 BAR/BARL Float 参数重载 ✅ 已完成
+
+**实施状态**：✅ **已完成（2026-05-04）** — 内部计算支持 Float 参数，无需新增 API。
+
+**说明**：BAR/BARL 指令的 3 个参数（var, max, length）现在接受 Float 类型表达式。当参数为 Float 类型时，自动转换为 `(long)` 后调用 `CreateBar`。无需新增 BARF/BARLF 指令。
+
+**实施详情**：
+- `Instraction.Child.cs` 中 `BAR_Instruction.DoInstruction` 修改：
+  - 新增私有静态方法 `GetBarValue(AExpression, ExpressionMediator)` → `long`
+  - 检查 `term.GetEraType() == EraType.Float`，若是则调用 `GetFloatValue` 并转为 `(long)`
+  - 否则调用 `GetIntValue`（保持 Int 兼容）
+
+**涉及文件**：
+- `Emuera/Runtime/Script/Statements/Instraction.Child.cs` — 修改 `BAR_Instruction` 类
+
+**优先级**：P2（中）
+**状态**：✅ 完成
+
+### 4.7 SAVEDATA/CHARADATA Float 支持 ✅ 已完成
 
 **现状（2026-05-04 源码盘点）**：✅ **已完整支持**
 
@@ -292,67 +483,176 @@ python tools/b3_16_replace.py --verify --all-files       # 残留统计
 
 **结论**：SAVEDATA/CHARADATA 的 Float 支持已在 B.3-4（存储层）完成，无需额外工作。
 
-### 3.5 函数参数 Float 支持（ARG）
+### 4.8 函数参数 Float 支持（ARGF）✅ 已完成
 
-**现状**：`ARG` 和 `ARGS` 仅支持 Int 和 String 类型。`#DIMF` 声明的 Float 变量无法作为函数参数传递。
+**实施状态**：✅ **已完成（2026-05-04）** — LOCALF/ARGF 数组 + Float 参数传递全部实现并编译通过。
 
-**影响**：无法编写接受 Float 参数的用户自定义函数。
+**新增变量**：
 
-**实施方案**：
-- `ExecutionContext` 新增 `ArgFloats: double[]` 字段
-- `FunctionLabelLine` 新增 `ArgFloatLength` 属性
-- `ConvertArg()` 支持 Float 类型参数转换
-- `VariableToken` 的 ARG 相关子类新增 Float 路径
+| 变量 | 类型 | 维度 | 说明 |
+|------|------|------|------|
+| **LOCALF** | Float | 1D Array | Float 局部变量数组（对应 LOCAL） |
+| **ARGF** | Float | 1D Array | Float 函数参数数组（对应 ARG） |
+
+**新增指令**：
+
+| 指令 | 说明 |
+|------|------|
+| `#LOCALFSIZE n` | 设置 LOCALF 数组大小（对应 #LOCALSIZE） |
+
+注：ARGF 无需专用指令，由函数参数声明动态分配大小。
+
+**实施详情**：
+
+1. **VariableCode.cs** — 新增枚举值：
+   - `LOCALF = 0x00 | __ARRAY_1D__ | __LOCAL__ | __EXTENDED__ | __CAN_FORBID__`
+   - `ARGF = 0x01 | __ARRAY_1D__ | __LOCAL__ | __EXTENDED__ | __CAN_FORBID__`
+
+2. **VariableDescriptor.cs** — 注册新变量描述符：
+   - `Register("LOCALF", VariableCode.LOCALF, VariableKind.Float, VariableDimension.Array1D, ...)`
+   - `Register("ARGF", VariableCode.ARGF, VariableKind.Float, VariableDimension.Array1D, ...)`
+
+3. **VariableToken.cs** — 新增 `LocalFloat1DVariableToken`：
+   - 从 `ExecutionContext.LocalFloats` / `ExecutionContext.ArgFloats` 读写
+   - 实现 `GetFloatValue` / `SetValue(double)` / `SetValueAll(double)` / `SetDefault` / `resize`
+
+4. **VariableData.cs** — 注册 LOCALF/ARGF 工厂：
+   - `localvarTokenDic.Add("LOCALF", new VariableLocal(VariableCode.LOCALF, size, CreateLocalFloat))`
+   - `localvarTokenDic.Add("ARGF", new VariableLocal(VariableCode.ARGF, size, CreateLocalFloat))`
+   - 新增 `CreateLocalFloat` 工厂方法
+
+5. **ExecutionContext.cs** — 正确初始化 Float 数组：
+   - `LocalFloats` / `ArgFloats` 根据函数的 `LocalFloatLength` / `ArgFloatLength` 分配
+   - 默认大小与 LOCAL/ARG 一致（1000）
+
+6. **FunctionLabelLine (LogicalLine.cs)** — 新增属性：
+   - `LocalFloatLength`
+
+7. **LogicalLineParser.cs** — 新增指令解析：
+   - `#LOCALFSIZE` 解析（复用 LOCALSIZE 的验证逻辑）
+
+8. **Process.CalledFunction.cs** — Float 参数传递：
+   - `UserDefinedFunctionArgument` 新增 `TransporterFloat: double[]`
+   - `SetTransporter` 新增 `EraType.Float` 分支
+   - `ConvertArg` 新增 Int→Float 自动提升、Float→Int 拒绝
+
+9. **Process.State.cs** — IntoFunction 参数复制：
+   - 新增 `EraType.Float` 分支，调用 `SetValue(double, exm)`
+
+**涉及文件**：
+- `Emuera/Runtime/Script/Statements/Variable/VariableCode.cs`
+- `Emuera/Runtime/Script/VariableDescriptor.cs`
+- `Emuera/Runtime/Script/Statements/Variable/VariableToken.cs`
+- `Emuera/Runtime/Script/Statements/Variable/VariableData.cs`
+- `Emuera/Runtime/Script/ExecutionContext.cs`
+- `Emuera/Runtime/Script/Statements/LogicalLine.cs`
+- `Emuera/Runtime/Script/Parser/LogicalLineParser.cs`
+- `Emuera/Runtime/Script/Process.CalledFunction.cs`
+- `Emuera/Runtime/Script/Process.State.cs`
 
 **优先级**：P1（高）
+**状态**：✅ 完成
 
-### 3.6 函数返回值 Float 支持（RESULTF）
+### 4.9 函数返回值 Float 支持（RESULTF）✅ 已完成
 
-**现状**：`RESULT` 仅支持 Int，`RESULTS` 仅支持 String。无 `RESULTF` 变量。
+**实施状态**：✅ **已完成（2026-05-04）** — RESULTF 全局变量 + Float 返回值全部实现并编译通过。
 
-**影响**：用户自定义函数无法返回 Float 值。
+**新增变量**：
 
-**实施方案**：
-- 新增内置变量 `RESULTF`（Float 标量返回值）
-- 不扩展 `RESULT` 支持 Float 赋值（保持 Int 语义不变）
-- `#FUNCTIONF` 语法支持（用户自定义 Float 返回函数）
+| 变量 | 类型 | 维度 | 说明 |
+|------|------|------|------|
+| **RESULTF** | Float | Scalar | Float 全局返回值（对应 RESULT） |
+
+**实施详情**：
+
+1. **VariableCode.cs** — 新增枚举值：
+   - `RESULTF = 0x01 | __EXTENDED__`
+
+2. **VariableDescriptor.cs** — 注册新变量描述符：
+   - `Register("RESULTF", VariableCode.RESULTF, VariableKind.Float, VariableDimension.Scalar, VariableAttribute.Extended)`
+
+3. **VariableToken.cs** — 新增 `FloatScalarVariableToken`：
+   - 从 `VariableData.DataFloat[VarCodeInt]` 读写
+   - 实现 `GetFloatValue` / `SetValue(double)` / `SetValueAll(double)`
+
+4. **VariableData.cs** — 注册 RESULTF Token：
+   - `varTokenDic.Add("RESULTF", new FloatScalarVariableToken(VariableCode.RESULTF, this))`
+   - `SetDefaultValue` 新增 `dataFloat` 清零
+
+5. **VariableEvaluator.cs** — 新增 `RESULTF` 属性：
+   - `get` → `varData.DataFloat[(int)(VariableCode.RESULTF & VariableCode.__LOWERCASE__)]`
+   - `set` → 同上
+
+**涉及文件**：
+- `Emuera/Runtime/Script/Statements/Variable/VariableCode.cs`
+- `Emuera/Runtime/Script/VariableDescriptor.cs`
+- `Emuera/Runtime/Script/Statements/Variable/VariableToken.cs`
+- `Emuera/Runtime/Script/Statements/Variable/VariableData.cs`
+- `Emuera/Runtime/Script/Statements/Variable/VariableEvaluator.cs`
 
 **优先级**：P1（高）
+**状态**：✅ 完成
 
-### 3.7 #FUNCTIONF 用户自定义 Float 返回函数
+### 4.10 #FUNCTIONF 用户自定义 Float 返回函数 ✅ 已完成
 
-**现状**：`#FUNCTION` 返回 Int，`#FUNCTIONS` 返回 String。`#FUNCTIONF`（返回 Float）尚未实现。
+**实施状态**：✅ **已完成（2026-05-04）** — #FUNCTIONF 解析 + Float 返回值全部实现并编译通过。
 
-**实施方案**：
-- `ErbLoader.cs` / `ErhLoader.cs` 新增 `#FUNCTIONF` 解析
-- `FunctionLabelLine` 新增 `ReturnType = EraType.Float` 支持
-- `UserDefinedMethodTerm` 适配 Float 返回类型
+**新增语法**：
+
+| 语法 | 返回类型 | 说明 |
+|------|---------|------|
+| `#FUNCTIONF` | `EraType.Float` | 用户自定义 Float 返回函数（对应 #FUNCTION / #FUNCTIONS） |
+
+**实施详情**：
+
+1. **LogicalLineParser.cs** — 新增 `#FUNCTIONF` 解析：
+   - case 分支新增 `"FUNCTIONF"` 匹配
+   - `MethodType = EraType.Float` 赋值
+   - 重复声明警告（Float→FUNCTION / Int→FUNCTIONF 等）
+
+2. **UserDefinedMethodTerm.cs** — 适配 Float 返回类型：
+   - `SuperUserDefinedMethodTerm` 构造函数：`EraType.Float` 三路判断
+   - `GetValue` 默认值：`new SingleFloatTerm(0.0)`
+   - `GetFloatValue` 新增：解包 `SingleFloatTerm`
+   - `UserDefinedRefMethodTerm` / `UserDefinedRefMethodNoArgTerm` 同步适配
+
+3. **Instraction.Child.cs** — `RETURNF_Instruction` 适配：
+   - `SetJumpTo` 新增 Float 类型检查（Float→String 拒绝，Int→Float 允许）
+
+**涉及文件**：
+- `Emuera/Runtime/Script/Parser/LogicalLineParser.cs`
+- `Emuera/Runtime/Script/Statements/Function/UserDefinedMethodTerm.cs`
+- `Emuera/Runtime/Script/Statements/Instraction.Child.cs`
 
 **优先级**：P2（中）
+**状态**：✅ 完成
 
-### 3.8 任务依赖关系
+### 4.11 任务依赖关系
 
 ```
 B.3-0~16 类型系统重构 ✅（已完成，前置条件满足）
   │
-  ├── 3.1 数学函数 Float 重载（独立，无依赖）──── 可并行
-  ├── 3.2 数组操作函数 Float 支持（独立）──────── 可并行
-  ├── 3.3 反射函数 Float 支持（独立）─────────── 可并行
-  │     ├── GETVARF / GETMETHF / EVALF 新增
-  │     ├── SETVAR Float ✅（已完成）
-  │     └── EXISTMETH Float ✅（已完成）
-  ├── 3.4 SAVEDATA/CHARADATA Float ✅（已完成）
-  ├── 3.5 ARG Float 支持 ──→ 3.7 #FUNCTIONF
-  └── 3.6 RESULTF ─────────→ 3.7 #FUNCTIONF
+  ├── 3.1 数学函数 Float 重载 ✅（Batch 1，已完成）
+  ├── 3.2 数组操作函数 Float 支持 ✅（Batch 2，已完成）
+  ├── 3.3 反射函数 Float 支持 ✅（Batch 3，已完成）
+  │     ├── GETVARF / GETMETHF / EVALF 新增 ✅
+  │     ├── SETVAR Float ✅（已有）
+  │     └── EXISTMETH Float ✅（已有）
+  ├── 3.4 DT Float 支持 ✅（Batch 4，已完成）
+  ├── 3.5 SQL Float 支持 ✅（Batch 5，已完成）
+  ├── 3.6 BAR/BARL Float 参数重载 ✅（Batch 6，已完成）
+  ├── 3.7 SAVEDATA/CHARADATA Float ✅（已有）
+  ├── 3.8 ARGF Float 支持 ✅（已完成）──→ 3.10 #FUNCTIONF
+  └── 3.9 RESULTF ✅（已完成）──────→ 3.10 #FUNCTIONF ✅（已完成）
 ```
 
 ---
 
-## 4. m-emuera 迁移上下文
+## 5. m-emuera 迁移上下文
 
 > 本节记录 B.3 各子任务在 emuera-lazyloading 完成后，迁移到 m-emuera 时需要的注意事项。
 
-### 4.1 迁移状态总表
+### 5.1 迁移状态总表
 
 | 子任务 | m-emuera 状态 | 注意事项 |
 |--------|--------------|----------|
@@ -364,7 +664,7 @@ B.3-0~16 类型系统重构 ✅（已完成，前置条件满足）
 | B.3-15e | ⬜ 待迁移 | VariableDescriptor.FromCode() 注册表优先 |
 | B.3-16 | ⬜ 待迁移 | typeof→EraType 批量替换 |
 
-### 4.2 推荐迁移顺序
+### 5.2 推荐迁移顺序
 
 1. 先将 B.3-0~14 整体同步到 m-emuera（AExpression Type→EraType、OperatorMethod typeof→EraType、Creator.Method GetOperandType→EraType 等）
 2. 同步完整的 VariableDescriptor.cs（含所有 Register 条目 + GetDescriptorByCode）
@@ -373,7 +673,7 @@ B.3-0~16 类型系统重构 ✅（已完成，前置条件满足）
 5. 同步 B.3-16（typeof→EraType 批量替换）
 6. 编译验证 + 运行时验证
 
-### 4.3 关键差异点
+### 5.3 关键差异点
 
 1. **命名空间**：emuera-lazyloading 使用 `MinorShift.Emuera.Runtime.Script`，m-emuera 使用相同命名空间但项目结构不同（`src/MEmuera.Core/` 子目录）
 2. **VariableDescriptorTable.Register 条目**：m-emuera 误创建版本只注册了部分变量（到 JUEL 为止），需从 lazyloading 同步完整版
@@ -382,7 +682,7 @@ B.3-0~16 类型系统重构 ✅（已完成，前置条件满足）
 
 ---
 
-## 5. 来源引用索引
+## 6. 来源引用索引
 
 | 内容 | 位置 |
 |------|------|
@@ -401,4 +701,5 @@ B.3-0~16 类型系统重构 ✅（已完成，前置条件满足）
 | 验证工具 | `tools/b3_verify.ps1` |
 | 批量替换工具 | `tools/b3_16_replace.py` |
 | 冒烟测试 | `d:\eratw-chs\ERB\demo\B3_SMOKE_TEST.ERB` |
-| 测试日志 | `d:\eratw-chs\20260504-043622.log` |
+| 测试日志（基础） | `d:\eratw-chs\20260504-043622.log` |
+| 测试日志（全量） | `d:\eratw-chs\20260504-230148.log` |

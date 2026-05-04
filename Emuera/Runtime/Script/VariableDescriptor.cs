@@ -105,6 +105,7 @@ internal static class VariableDescriptorTable
         Register("PALAMLV", VariableCode.PALAMLV, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.None);
         Register("EXPLV", VariableCode.EXPLV, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.None);
         Register("RESULT", VariableCode.RESULT, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.None);
+		Register("RESULTF", VariableCode.RESULTF, VariableKind.Float, VariableDimension.Scalar, VariableAttribute.Extended);
         Register("COUNT", VariableCode.COUNT, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.CanForbid);
         Register("TARGET", VariableCode.TARGET, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.None);
         Register("ASSI", VariableCode.ASSI, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.CanForbid);
@@ -149,7 +150,9 @@ internal static class VariableDescriptorTable
 
         Register("ITEMPRICE", VariableCode.ITEMPRICE, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.CanForbid | VariableAttribute.Unchangeable | VariableAttribute.Extended);
         Register("LOCAL", VariableCode.LOCAL, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.CanForbid | VariableAttribute.Local | VariableAttribute.Extended);
-        Register("ARG", VariableCode.ARG, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.CanForbid | VariableAttribute.Local | VariableAttribute.Extended);
+		Register("ARG", VariableCode.ARG, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.CanForbid | VariableAttribute.Local | VariableAttribute.Extended);
+		Register("LOCALF", VariableCode.LOCALF, VariableKind.Float, VariableDimension.Array1D, VariableAttribute.CanForbid | VariableAttribute.Local | VariableAttribute.Extended);
+		Register("ARGF", VariableCode.ARGF, VariableKind.Float, VariableDimension.Array1D, VariableAttribute.CanForbid | VariableAttribute.Local | VariableAttribute.Extended);
         Register("GLOBAL", VariableCode.GLOBAL, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.CanForbid | VariableAttribute.Global | VariableAttribute.Extended);
         Register("RANDDATA", VariableCode.RANDDATA, VariableKind.Integer, VariableDimension.Array1D, VariableAttribute.Save | VariableAttribute.Extended);
 

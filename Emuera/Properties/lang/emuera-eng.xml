@@ -355,6 +355,7 @@ Settings apply only at start]]></tr>
     <tr id="Error.AssignToVarOoR"><![CDATA[Attempted to assign beyond the number of elements in array variable "{0}"]]></tr>
     <tr id="Error.MissingVarArg"><![CDATA[Variable "{0}" is missing required arguments]]></tr>
     <tr id="Error.CallStrAsInt"><![CDATA[Non-integer variable "{0}" is called as an integer]]></tr>
+    <tr id="Error.CallFloatAsInt"><![CDATA[Float variable "{0}" is called as an integer]]></tr>
     <tr id="Error.CallIntAsStr"><![CDATA[Non-string variable "{0}" is called as a string]]></tr>
     <tr id="Error.CallNDStrAsInt"><![CDATA[Non-integer array variable "{0}" is called as an integer]]></tr>
     <tr id="Error.CallNDIntAsStr"><![CDATA[Non-string array variable "{0}" is called as a string]]></tr>
@@ -916,6 +917,7 @@ Error.AttributeCanNotInterpretNum	<{0}> tag has a {1}" attribute with a value th
     <tr id="Error.IsNotVar"><![CDATA[{0} is not variable]]></tr>
     <tr id="Error.IsNotInt"><![CDATA[{0} is not integer]]></tr>
     <tr id="Error.IsNotStr"><![CDATA[{0} is not string]]></tr>
+    <tr id="Error.IsNotFloat"><![CDATA[{0} is not float]]></tr>
     <tr id="Error.SPCharacterFeatureDisabled"><![CDATA[SP character-related features are not available by default (Turn on "Allow SP Characters" compatibility option)]]></tr>
     <tr id="Error.CharacterIndexOutOfRange"><![CDATA[{0}: The {1} argument ({2}) is out of range of array of character position]]></tr>
     <tr id="Error.NotVariableName"><![CDATA[{0}: The {1} argument ("{2}") is not variable name]]></tr>

@@ -254,6 +254,7 @@ internal static partial class FunctionMethodCreator
 			["ENUMFILES"] = new EnumFilesMethod(),
 
 			["GETVAR"] = new GetVarMethod(),
+			["GETVARF"] = new GetVarFMethod(),
 			["GETVARS"] = new GetVarsMethod(),
 			["SETVAR"] = new SetVarMethod(),
 
@@ -322,9 +323,11 @@ internal static partial class FunctionMethodCreator
 			["DT_ROW_LENGTH"] = new DataTableLengthMethod(DataTableLengthMethod.Operation.Row),
 
 			["DT_CELL_GET"] = new DataTableCellGetMethod(DataTableCellGetMethod.Operation.Get),
+			["DT_CELL_GETF"] = new DataTableCellGetFloatMethod(),
 			["DT_CELL_ISNULL"] = new DataTableCellGetMethod(DataTableCellGetMethod.Operation.IsNull),
 			["DT_CELL_GETS"] = new DataTableCellGetMethod(DataTableCellGetMethod.Operation.Gets),
 			["DT_CELL_SET"] = new DataTableCellSetMethod(),
+			["DT_CELL_SETF"] = new DataTableCellSetFloatMethod(),
 
 			["DT_SELECT"] = new DataTableSelectMethod(),
 
@@ -365,6 +368,7 @@ internal static partial class FunctionMethodCreator
 
 			#region daughter-patch追加
 			["GETMETH"] = new GetMethMethod(),
+			["GETMETHF"] = new GetMethFMethod(),
 			["GETMETHS"] = new GetMethsMethod(),
 			["EXISTMETH"] = new ExistMethMethod(),
 			#endregion
@@ -380,6 +384,7 @@ internal static partial class FunctionMethodCreator
 			["ISPLAYINGBGM"] = new IsPlayingBgmMethod(),
 			["BGMCONTROL"] = new BgmControlMethod(),
 			["EVAL"] = new EvalMethod(),
+			["EVALF"] = new EvalFMethod(),
 			["EVALS"] = new EvalSMethod(),
 			// SQL 扩展
 			["SQL_CONNECT"] = new SqlConnectMethod(),
@@ -388,10 +393,12 @@ internal static partial class FunctionMethodCreator
 			["SQL_EXECUTE_READER"] = new SqlExecuteReaderMethod(),
 			["SQL_READER_READ"] = new SqlReaderReadMethod(),
 			["SQL_READER_GET_LONG"] = new SqlReaderGetLongMethod(),
+			["SQL_READER_GET_FLOAT"] = new SqlReaderGetFloatMethod(),
 			["SQL_READER_GET_STRING"] = new SqlReaderGetStringMethod(),
 			["SQL_READER_ISNULL"] = new SqlReaderIsNullMethod(),
 			["SQL_READER_CLOSE"] = new SqlReaderCloseMethod(),
 			["SQL_EXECUTE_SCALAR_LONG"] = new SqlExecuteScalarLongMethod(),
+			["SQL_EXECUTE_SCALAR_FLOAT"] = new SqlExecuteScalarFloatMethod(),
 			["SQL_EXECUTE_SCALAR_STRING"] = new SqlExecuteScalarStringMethod(),
 			["SQL_IMPORT_MAP_XML"] = new SqlImportMapXmlMethod(),
 			["SQL_IMPORT_DT_XML"] = new SqlImportDtXmlMethod(),
@@ -402,6 +409,7 @@ internal static partial class FunctionMethodCreator
 			["SQL_P_EXECUTE_NONQUERY"] = new SqlExecuteNonQueryParamMethod(),
 			["SQL_P_EXECUTE_READER"] = new SqlExecuteReaderParamMethod(),
 			["SQL_P_EXECUTE_SCALAR_LONG"] = new SqlExecuteScalarLongParamMethod(),
+			["SQL_P_EXECUTE_SCALAR_FLOAT"] = new SqlExecuteScalarFloatParamMethod(),
 			["SQL_P_EXECUTE_SCALAR_STRING"] = new SqlExecuteScalarStringParamMethod(),
 			["BITSET"] = new BitSetMethod(),
 			["BITGET"] = new BitGetMethod(),

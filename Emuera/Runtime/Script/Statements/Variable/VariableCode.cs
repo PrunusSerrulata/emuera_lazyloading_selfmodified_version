@@ -94,6 +94,10 @@ internal enum VariableCode
 	RANDDATA = 0x40 | __INTEGER__ | __ARRAY_1D__ | __SAVE_EXTENDED__ | __EXTENDED__,//グローバル数値型変数
 	__COUNT_INTEGER_ARRAY__ = 0x41,
 
+	LOCALF = 0x00 | __ARRAY_1D__ | __LOCAL__ | __EXTENDED__ | __CAN_FORBID__,
+	ARGF = 0x01 | __ARRAY_1D__ | __LOCAL__ | __EXTENDED__ | __CAN_FORBID__,
+	__COUNT_FLOAT_ARRAY__ = 0x02,
+
 
 	SAVESTR = 0x00 | __STRING__ | __ARRAY_1D__ | __CAN_FORBID__,//文字列データ。保存される
 	__COUNT_SAVE_STRING_ARRAY__ = 0x01,
@@ -113,7 +117,9 @@ internal enum VariableCode
 
 	SAVEDATA_TEXT = 0x00 | __STRING__ | __EXTENDED__, //セーブ時につかう文字列。PUTFORMで追加できるやつ
 	__COUNT_SAVE_STRING__ = 0x00,
-	__COUNT_STRING__ = 0x01,
+	__COUNT_STRING__ = 0x02,
+
+	RESULTF = 0x01 | __EXTENDED__,
 
 
 

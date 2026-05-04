@@ -28,6 +28,12 @@ internal abstract class SuperUserDefinedMethodTerm : AExpression
 			return "";
 		return term.Str;
 	}
+	public override double GetFloatValue(ExpressionMediator exm)
+	{
+		if (exm.Process.GetValue(this) is not SingleFloatTerm term)
+			return 0.0;
+		return term.Float;
+	}
 	public override SingleTerm GetValue(ExpressionMediator exm)
 	{
 		SingleTerm term = exm.Process.GetValue(this);
@@ -35,6 +41,8 @@ internal abstract class SuperUserDefinedMethodTerm : AExpression
 		{
 			if (GetEraType() == EraType.Integer)
 				return new SingleLongTerm(0);
+			else if (GetEraType() == EraType.Float)
+				return new SingleFloatTerm(0.0);
 			else
 				return new SingleStrTerm("");
 		}
@@ -58,7 +66,7 @@ internal sealed class UserDefinedMethodTerm : SuperUserDefinedMethodTerm
 	}
 
 	private UserDefinedMethodTerm(UserDefinedFunctionArgument arg, EraType returnType, CalledFunction call)
-		: base(returnType == EraType.Integer ? EraType.Integer : EraType.String)
+		: base(returnType == EraType.Integer ? EraType.Integer : (returnType == EraType.Float ? EraType.Float : EraType.String))
 	{
 		argment = arg;
 		called = call;
@@ -80,7 +88,7 @@ internal sealed class UserDefinedMethodTerm : SuperUserDefinedMethodTerm
 internal sealed class UserDefinedRefMethodTerm : SuperUserDefinedMethodTerm
 {
 	public UserDefinedRefMethodTerm(UserDefinedRefMethod reffunc, List<AExpression> srcArgs)
-		: base(reffunc.RetType == EraType.Integer ? EraType.Integer : EraType.String)
+		: base(reffunc.RetType == EraType.Integer ? EraType.Integer : (reffunc.RetType == EraType.Float ? EraType.Float : EraType.String))
 	{
 		this.srcArgs = srcArgs;
 		this.reffunc = reffunc;
@@ -127,7 +135,7 @@ internal sealed class UserDefinedRefMethodTerm : SuperUserDefinedMethodTerm
 internal sealed class UserDefinedRefMethodNoArgTerm : SuperUserDefinedMethodTerm
 {
 	public UserDefinedRefMethodNoArgTerm(UserDefinedRefMethod reffunc)
-		: base(reffunc.RetType == EraType.Integer ? EraType.Integer : EraType.String)
+		: base(reffunc.RetType == EraType.Integer ? EraType.Integer : (reffunc.RetType == EraType.Float ? EraType.Float : EraType.String))
 	{
 		this.reffunc = reffunc;
 	}

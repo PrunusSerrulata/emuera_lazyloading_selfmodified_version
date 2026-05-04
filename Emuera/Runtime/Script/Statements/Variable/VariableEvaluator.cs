@@ -3096,6 +3096,11 @@ internal sealed class VariableEvaluator : IDisposable
 		get { return varData.DataIntegerArray[(int)(VariableCode.RESULT & VariableCode.__LOWERCASE__)][0]; }
 		set { varData.DataIntegerArray[(int)(VariableCode.RESULT & VariableCode.__LOWERCASE__)][0] = value; }
 	}
+	public double RESULTF
+	{
+		get { return varData.DataFloat[(int)(VariableCode.RESULTF & VariableCode.__LOWERCASE__)]; }
+		set { varData.DataFloat[(int)(VariableCode.RESULTF & VariableCode.__LOWERCASE__)] = value; }
+	}
 	public long COUNT
 	{
 		get { return varData.DataIntegerArray[(int)(VariableCode.COUNT & VariableCode.__LOWERCASE__)][0]; }

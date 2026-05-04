@@ -369,6 +369,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.AssignToVarOoR"><![CDATA[试图赋值的数组变量"{0}"超出元素数量]]></tr>
     <tr id="Error.MissingVarArg"><![CDATA[变量"{0}"缺少必要的参数]]></tr>
     <tr id="Error.CallStrAsInt"><![CDATA[非数值变量"{0}"被当作数值调用]]></tr>
+    <tr id="Error.CallFloatAsInt"><![CDATA[浮点型变量"{0}"被当作整数调用]]></tr>
     <tr id="Error.CallIntAsStr"><![CDATA[非字符串变量"{0}"被当作字符串调用]]></tr>
     <tr id="Error.CallNDStrAsInt"><![CDATA[非数值数组变量"{0}"被当作数值调用]]></tr>
     <tr id="Error.CallNDIntAsStr"><![CDATA[非字符串数组变量"{0}"被当作字符串调用]]></tr>
@@ -931,6 +932,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.IsNotVar"><![CDATA[{0}不是变量]]></tr>
     <tr id="Error.IsNotInt"><![CDATA[{0}不是整型]]></tr>
     <tr id="Error.IsNotStr"><![CDATA[{0}不是字符串型]]></tr>
+    <tr id="Error.IsNotFloat"><![CDATA[{0}不是浮点型]]></tr>
     <tr id="Error.SPCharacterFeatureDisabled"><![CDATA[不能在标准设置下使用SP角色相关功能(请打开兼容性选项「使用SP角色」)]]></tr>
 	<tr id="Error.CharacterIndexOutOfRange"><![CDATA[函数{0}: 第{1}个参数({2})超出角色位置范围]]></tr>
 	<tr id="Error.NotVariableName"><![CDATA[函数{0}: 第{1}个参数("{2}")不是变量名]]></tr>

@@ -26,8 +26,10 @@ internal sealed class ExecutionContext
         var idDict = GlobalStatic.IdentifierDictionary;
         int localLen = func.LocalLength;
         int localsLen = func.LocalsLength;
+        int localFloatLen = func.LocalFloatLength;
         int argLen = func.ArgLength;
         int argsLen = func.ArgsLength;
+        int argFloatLen = func.ArgFloatLength;
 
         if (idDict != null)
         {
@@ -35,6 +37,8 @@ internal sealed class ExecutionContext
             int defaultLocals = idDict.getLocalDefaultSize("LOCALS");
             int defaultArg = idDict.getLocalDefaultSize("ARG");
             int defaultArgs = idDict.getLocalDefaultSize("ARGS");
+            int defaultLocalF = idDict.getLocalDefaultSize("LOCALF");
+            int defaultArgF = idDict.getLocalDefaultSize("ARGF");
 
             if (localLen <= 0)
                 localLen = defaultLocal;
@@ -48,6 +52,15 @@ internal sealed class ExecutionContext
                 argsLen = defaultArgs;
             else if (argsLen < defaultArgs)
                 argsLen = defaultArgs;
+            if (localFloatLen <= 0)
+                localFloatLen = defaultLocalF;
+            if (argFloatLen <= 0)
+                argFloatLen = defaultArgF;
+            else if (argFloatLen < defaultArgF)
+                argFloatLen = defaultArgF;
+
+            LocalFloats = localFloatLen > 0 ? new double[localFloatLen] : [];
+            ArgFloats = argFloatLen > 0 ? new double[argFloatLen] : [];
         }
         else
         {
@@ -57,14 +70,15 @@ internal sealed class ExecutionContext
             else if (argLen < 1000) argLen = 1000;
             if (argsLen <= 0) argsLen = 100;
             else if (argsLen < 100) argsLen = 100;
+
+            LocalFloats = localFloatLen > 0 ? new double[localFloatLen] : [];
+            ArgFloats = argFloatLen > 0 ? new double[argFloatLen] : [];
         }
 
         LocalIntegers = new long[localLen];
         LocalStrings = new string[localsLen];
-        LocalFloats = new double[0];
         ArgIntegers = new long[argLen];
         ArgStrings = new string[argsLen];
-        ArgFloats = new double[0];
     }
 
     public ExecutionContext Parent => _parent;

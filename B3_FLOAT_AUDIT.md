@@ -1,5 +1,9 @@
 # B.3 Float 支持全面审计清单
 
+> ⚠️ **本文件已归档，可安全删除。**
+> 全部审计内容已归纳合并至 `B3_TRACKER.md` §2（全量审计摘要）。
+> 保留本文件仅作历史参考，确认无需后请手动删除。
+
 > 创建日期：2026-05-04
 > 目的：逐文件、逐函数盘点所有内置函数/指令的 Float 支持状态，找出缺失。
 
@@ -96,8 +100,11 @@
 | EXISTMETH | Int | ✅ | 已有 case EraType.Float |
 | EVAL | Int | ⚠️ | Float 被 (long) 截断，需 EVALF |
 | EVALS | String | ⚠️ | Float 被 .ToString()，需 EVALF |
+| **GETVARF** | **Float** | **✅** | **2026-05-04 新增** |
+| **GETMETHF** | **Float** | **✅** | **2026-05-04 新增** |
+| **EVALF** | **Float** | **✅** | **2026-05-04 新增** |
 
-**缺失数：3 个新函数 (GETVARF, GETMETHF, EVALF)**
+**缺失数：0（3 个新函数已实现）**
 
 ---
 
@@ -224,11 +231,13 @@
 | DT_CELL_ISNULL | Int | N/A | |
 | DT_CELL_GETS | String | N/A | |
 | DT_CELL_SET | Int | ⚠️ | 检查 `v.GetEraType() != EraType.Integer`，拒绝 Float |
+| **DT_CELL_GETF** | **Float** | **✅** | **2026-05-04 新增** |
+| **DT_CELL_SETF** | **Int** | **✅** | **2026-05-04 新增** |
 | DT_SELECT | String | N/A | |
 | DT_TOXML | String | N/A | |
 | DT_FROMXML | Int | N/A | |
 
-**缺失数：2 个（DT_CELL_GETF, DT_CELL_SETF）**
+**缺失数：0（2 个新函数已实现）**
 
 > **设计决策**：DT 底层是 `System.Data.DataTable`，列类型在创建时确定。如需 Float 列，需新增 DT_COLUMN_ADDF 或扩展现有 DT_COLUMN_ADD 支持 Float 类型参数，以及对应的 DT_CELL_GETF / DT_CELL_SETF。
 
@@ -259,8 +268,11 @@
 | SQL_P_EXECUTE_READER | Int | N/A | |
 | SQL_P_EXECUTE_SCALAR_LONG | Int | ❌ | 需 SQL_P_EXECUTE_SCALAR_FLOAT |
 | SQL_P_EXECUTE_SCALAR_STRING | String | N/A | |
+| **SQL_READER_GET_FLOAT** | **Float** | **✅** | **2026-05-04 新增** |
+| **SQL_EXECUTE_SCALAR_FLOAT** | **Float** | **✅** | **2026-05-04 新增** |
+| **SQL_P_EXECUTE_SCALAR_FLOAT** | **Float** | **✅** | **2026-05-04 新增** |
 
-**缺失数：3 个 Float 重载**
+**缺失数：0（3 个新函数已实现）**
 
 ---
 
@@ -414,8 +426,8 @@
 | 指令 | Float | 备注 |
 |------|-------|------|
 | TIMES | ✅ | 已修改支持变量第二参数 |
-| BAR | ❌ | `GetIntValue` 仅支持 Int，需 BARF |
-| BARL | ❌ | 同上 |
+| BAR | ✅ | Float 参数自动转 long 用于内部计算（2026-05-04） |
+| BARL | ✅ | 同上 |
 
 ### 17.8 角色操作指令
 

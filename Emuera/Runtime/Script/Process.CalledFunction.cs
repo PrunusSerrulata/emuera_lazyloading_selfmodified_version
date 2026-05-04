@@ -20,6 +20,7 @@ internal sealed class UserDefinedFunctionArgument
 		Arguments = srcArgs;
 		TransporterInt = new long[Arguments.Length];
 		TransporterStr = new string[Arguments.Length];
+		TransporterFloat = new double[Arguments.Length];
 		TransporterRef = new object[Arguments.Length];
 		isRef = new bool[Arguments.Length];
 		for (int i = 0; i < Arguments.Length; i++)
@@ -30,6 +31,7 @@ internal sealed class UserDefinedFunctionArgument
 	public readonly AExpression[] Arguments;
 	public readonly long[] TransporterInt;
 	public readonly string[] TransporterStr;
+	public readonly double[] TransporterFloat;
 	public readonly object[] TransporterRef;
 	public readonly bool[] isRef;
 	public void SetTransporter(ExpressionMediator exm)
@@ -54,6 +56,8 @@ internal sealed class UserDefinedFunctionArgument
 			}
 			else if (Arguments[i].GetEraType() == EraType.Integer)
 				TransporterInt[i] = Arguments[i].GetIntValue(exm);
+			else if (Arguments[i].GetEraType() == EraType.Float)
+				TransporterFloat[i] = Arguments[i].GetFloatValue(exm);
 			else
 				TransporterStr[i] = Arguments[i].GetStrValue(exm);
 		}
@@ -212,6 +216,15 @@ internal sealed class CalledFunction
 			else if (term.GetOperandType() != destArg.GetOperandType())
 			{
 				if (term.GetEraType() == EraType.String)
+				{
+					errMes = string.Format(trerror.CanNotConvertStrToInt.Text, func.LabelName, (i + 1).ToString());
+					return null;
+				}
+				else if (destArg.GetEraType() == EraType.Float && term.GetEraType() == EraType.Integer)
+				{
+					// Int to Float: auto-promote
+				}
+				else if (destArg.GetEraType() == EraType.Integer && term.GetEraType() == EraType.Float)
 				{
 					errMes = string.Format(trerror.CanNotConvertStrToInt.Text, func.LabelName, (i + 1).ToString());
 					return null;

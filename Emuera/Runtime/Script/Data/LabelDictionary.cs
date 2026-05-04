@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Script.Statements;
+using MinorShift.Emuera.Runtime.Script.Statements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,6 +64,7 @@ internal sealed class LabelDictionary
 			noneventLabelDic[key] = label;
 			GlobalStatic.IdentifierDictionary.resizeLocalVars("ARG", label.LabelName, label.ArgLength);
 			GlobalStatic.IdentifierDictionary.resizeLocalVars("ARGS", label.LabelName, label.ArgsLength);
+			GlobalStatic.IdentifierDictionary.resizeLocalVars("ARGF", label.LabelName, label.ArgFloatLength);
 			return;
 		}
 
@@ -96,6 +97,7 @@ internal sealed class LabelDictionary
 
 		int localMax = 0;
 		int localsMax = 0;
+		int localFloatMax = 0;
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -105,6 +107,8 @@ internal sealed class LabelDictionary
 					localMax = eventLabels[i][j].LocalLength;
 				if (eventLabels[i][j].LocalsLength > localsMax)
 					localsMax = eventLabels[i][j].LocalsLength;
+				if (eventLabels[i][j].LocalFloatLength > localFloatMax)
+					localFloatMax = eventLabels[i][j].LocalFloatLength;
 			}
 		}
 
@@ -112,6 +116,8 @@ internal sealed class LabelDictionary
 			localMax = GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCAL");
 		if (localsMax < GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALS"))
 			localsMax = GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALS");
+		if (localFloatMax < GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALF"))
+			localFloatMax = GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALF");
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -119,6 +125,7 @@ internal sealed class LabelDictionary
 			{
 				eventLabels[i][j].LocalLength = localMax;
 				eventLabels[i][j].LocalsLength = localsMax;
+				eventLabels[i][j].LocalFloatLength = localFloatMax;
 			}
 		}
 	}
@@ -150,6 +157,7 @@ internal sealed class LabelDictionary
 				noneventLabelDic.Add(key, list[0]);
 				GlobalStatic.IdentifierDictionary.resizeLocalVars("ARG", list[0].LabelName, list[0].ArgLength);
 				GlobalStatic.IdentifierDictionary.resizeLocalVars("ARGS", list[0].LabelName, list[0].ArgsLength);
+				GlobalStatic.IdentifierDictionary.resizeLocalVars("ARGF", list[0].LabelName, list[0].ArgFloatLength);
 				continue;
 			}
 			//1810alpha010 オプションによりイベント関数をイベント関数でないかのように呼び出すことを許可
@@ -163,12 +171,15 @@ internal sealed class LabelDictionary
 			List<FunctionLabelLine> laterlist = [];
 			int localMax = 0;
 			int localsMax = 0;
+			int localFloatMax = 0;
 			for (int i = 0; i < list.Count; i++)
 			{
 				if (list[i].LocalLength > localMax)
 					localMax = list[i].LocalLength;
 				if (list[i].LocalsLength > localsMax)
 					localsMax = list[i].LocalsLength;
+				if (list[i].LocalFloatLength > localFloatMax)
+					localFloatMax = list[i].LocalFloatLength;
 				if (list[i].IsOnly)
 					onlylist.Add(list[i]);
 				if (list[i].IsPri)
@@ -182,6 +193,8 @@ internal sealed class LabelDictionary
 				localMax = GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCAL");
 			if (localsMax < GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALS"))
 				localsMax = GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALS");
+			if (localFloatMax < GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALF"))
+				localFloatMax = GlobalStatic.IdentifierDictionary.getLocalDefaultSize("LOCALF");
 			eventLabels[0] = onlylist;
 			eventLabels[1] = prilist;
 			eventLabels[2] = normallist;
@@ -192,6 +205,7 @@ internal sealed class LabelDictionary
 				{
 					eventLabels[i][j].LocalLength = localMax;
 					eventLabels[i][j].LocalsLength = localsMax;
+					eventLabels[i][j].LocalFloatLength = localFloatMax;
 				}
 			}
 			eventLabelDic.Add(key, eventLabels);

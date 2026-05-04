@@ -184,11 +184,13 @@ internal sealed class ConstantData
 		CharacterStrArrayLength = new int[(int)VariableCode.__COUNT_CHARACTER_STRING_ARRAY__];
 		CharacterIntArray2DLength = new long[(int)VariableCode.__COUNT_CHARACTER_INTEGER_ARRAY_2D__];
 		CharacterStrArray2DLength = [];
-		VariableFloatArrayLength = [];
+		VariableFloatArrayLength = new int[(int)VariableCode.__COUNT_FLOAT_ARRAY__];
 		VariableFloatArray2DLength = [];
 		VariableFloatArray3DLength = [];
 		CharacterFloatArrayLength = [];
 		CharacterFloatArray2DLength = [];
+		for (int i = 0; i < VariableFloatArrayLength.Length; i++)
+			VariableFloatArrayLength[i] = 10;
 		for (int i = 0; i < VariableIntArrayLength.Length; i++)
 			VariableIntArrayLength[i] = 1000;
 		VariableIntArrayLength[(int)(VariableCode.__LOWERCASE__ & VariableCode.FLAG)] = 10000;

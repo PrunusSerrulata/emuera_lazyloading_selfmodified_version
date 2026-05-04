@@ -1414,12 +1414,19 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			SpBarArgument barArg = (SpBarArgument)func.Argument;
-			long var = barArg.Terms[0].GetIntValue(exm);
-			long max = barArg.Terms[1].GetIntValue(exm);
-			long length = barArg.Terms[2].GetIntValue(exm);
+			long var = GetBarValue(barArg.Terms[0], exm);
+			long max = GetBarValue(barArg.Terms[1], exm);
+			long length = GetBarValue(barArg.Terms[2], exm);
 			exm.Console.Print(ExpressionMediator.CreateBar(var, max, length));
 			if (newline)
 				exm.Console.NewLine();
+		}
+
+		private static long GetBarValue(AExpression term, ExpressionMediator exm)
+		{
+			if (term.GetEraType() == EraType.Float)
+				return (long)term.GetFloatValue(exm);
+			return term.GetIntValue(exm);
 		}
 	}
 
@@ -3675,6 +3682,12 @@ internal sealed partial class FunctionIdentifier
 							ParserMediator.Warn(trerror.ReturnfStrInIntFunc.Text, func, 2, true, false);
 						else if (label.MethodType == EraType.String)
 							ParserMediator.Warn(trerror.ReturnfIntInStrFunc.Text, func, 2, true, false);
+						else if (label.MethodType == EraType.Float && term.GetEraType() == EraType.String)
+							ParserMediator.Warn(trerror.ReturnfStrInIntFunc.Text, func, 2, true, false);
+					}
+					else if (label.MethodType == EraType.Float && term.GetEraType() == EraType.Integer)
+					{
+						// Int to Float: auto-promote, no warning
 					}
 				}
 			}

@@ -3865,7 +3865,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -3894,7 +3894,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -3934,7 +3934,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -3966,7 +3966,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4000,7 +4000,7 @@ internal static partial class FunctionMethodCreator
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
 			Base = Math.E;
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public LogMethod(double b)
 		{
@@ -4009,7 +4009,7 @@ internal static partial class FunctionMethodCreator
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
 			Base = b;
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4061,7 +4061,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4101,7 +4101,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4128,7 +4128,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any, ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4186,7 +4186,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4225,7 +4225,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4264,7 +4264,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4303,7 +4303,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4341,7 +4341,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4379,7 +4379,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4412,7 +4412,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4442,7 +4442,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4472,7 +4472,7 @@ internal static partial class FunctionMethodCreator
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = false;
+			CanRestructure = true;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -10040,6 +10040,238 @@ internal static partial class FunctionMethodCreator
 				case 2: return (long)Config.FontEdging;
 				default: return -1;
 			}
+		}
+	}
+	#endregion
+
+	#region B3 Float 反射/动态调用函数
+	private sealed class GetVarFMethod : FunctionMethod
+	{
+		public GetVarFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any }, OmitStart = 1 },
+				];
+			CanRestructure = false;
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double defaultValue = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetFloatValue(exm) : 0.0;
+			bool hasDefault = arguments.Count > 1 && arguments[1] != null;
+			string name = arguments[0].GetStrValue(exm);
+
+			WordCollection wc = LexicalAnalyzer.Analyse(new CharStream(name), LexEndWith.EoL, LexAnalyzeFlag.None);
+			AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
+
+			if (term is VariableTerm var)
+			{
+				if (var.Identifier == null)
+					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+				if (var.GetEraType() != EraType.Float)
+					return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotFloat.Text, name));
+				return var.GetFloatValue(exm);
+			}
+			return hasDefault ? defaultValue : throw new CodeEE(string.Format(trerror.IsNotVar.Text, name));
+		}
+	}
+
+	private sealed class GetMethFMethod : FunctionMethod
+	{
+		public GetMethFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = new ArgTypeList[] {
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any, ArgType.VariadicAny }, OmitStart = 1 },
+				};
+			CanRestructure = false;
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string name = arguments[0].GetStrValue(exm);
+			List<AExpression> methArgs = new List<AExpression>(arguments.Skip(2).ToArray());
+			var term = GlobalStatic.IdentifierDictionary.GetFunctionMethod(GlobalStatic.LabelDictionary, name, methArgs, true);
+
+			if (term == null)
+			{
+				if (arguments.Count < 2 || arguments[1] == null)
+					throw new CodeEE(string.Format(trerror.NotDefinedUserFunc.Text, name));
+				else
+					return arguments[1].GetFloatValue(exm);
+			}
+			else if (term.GetEraType() != EraType.Float)
+				throw new CodeEE(string.Format(trerror.IsNotFloat.Text, name));
+			else
+				return term.GetFloatValue(exm);
+		}
+	}
+
+	private sealed class EvalFMethod : FunctionMethod
+	{
+		public EvalFMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Any }, OmitStart = 1 },
+			];
+			CanRestructure = false;
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string expressionStr = arguments[0].GetStrValue(exm);
+			double defaultValue = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetFloatValue(exm) : 0.0;
+
+			if (string.IsNullOrWhiteSpace(expressionStr))
+				return defaultValue;
+
+			try
+			{
+				CharStream st = new CharStream(expressionStr);
+				WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+				AExpression term = ExpressionParser.ReduceExpressionTerm(wc, TermEndWith.EoL);
+
+				if (term == null) return defaultValue;
+
+				term = term.Restructure(exm);
+
+				if (term.GetEraType() == EraType.Float)
+					return term.GetFloatValue(exm);
+				else if (term.GetEraType() == EraType.Integer)
+					return (double)term.GetIntValue(exm);
+				else
+					return defaultValue;
+			}
+			catch (EmueraException)
+			{
+				return defaultValue;
+			}
+		}
+	}
+	#endregion
+
+	#region B3 Float DT 函数
+	private sealed class DataTableCellGetFloatMethod : FunctionMethod
+	{
+		public DataTableCellGetFloatMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+						new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Int }, OmitStart = 3 },
+					];
+			CanRestructure = false;
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var key = arguments[0].GetStrValue(exm);
+			var dict = exm.VEvaluator.VariableData.DataDataTables;
+			if (!dict.ContainsKey(key)) return 0.0;
+			bool asId = arguments.Count == 4 ? arguments[3].GetIntValue(exm) != 0 : false;
+			var dt = dict[key];
+			var idx = arguments[1].GetIntValue(exm);
+			var name = arguments[2].GetStrValue(exm);
+			if (asId)
+			{
+				if (dt.Rows.Find(idx) is DataRow row && dt.Columns.Contains(name))
+				{
+					var v = row[name];
+					return v == DBNull.Value ? 0.0 : Convert.ToDouble(v);
+				}
+			}
+			else
+			{
+				if (0 <= idx && idx < dt.Rows.Count && dt.Columns.Contains(name))
+				{
+					var v = dt.Rows[(int)idx][name];
+					return v == DBNull.Value ? 0.0 : Convert.ToDouble(v);
+				}
+			}
+			return 0.0;
+		}
+	}
+
+	private sealed class DataTableCellSetFloatMethod : FunctionMethod
+	{
+		public DataTableCellSetFloatMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.String, ArgType.Any, ArgType.Int }, OmitStart = 3 },
+				];
+			CanRestructure = false;
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var key = arguments[0].GetStrValue(exm);
+			var dict = exm.VEvaluator.VariableData.DataDataTables;
+			if (!dict.ContainsKey(key)) return -1;
+			bool asId = arguments.Count == 5 ? arguments[4].GetIntValue(exm) != 0 : false;
+			var dt = dict[key];
+			var idx = arguments[1].GetIntValue(exm);
+			var name = arguments[2].GetStrValue(exm);
+			if (name.ToLower() == "id") return 0;
+			var v = arguments.Count > 3 ? arguments[3] : null;
+			DataRow row = null;
+			if (asId) row = dt.Rows.Find(idx);
+			else if (idx >= 0 && idx < dt.Rows.Count) row = dt.Rows[(int)idx];
+			if (row != null && dt.Columns.Contains(name))
+			{
+				if (v == null) row[name] = DBNull.Value;
+				else
+				{
+					row[name] = v.GetFloatValue(exm);
+				}
+				return 1;
+			}
+			return -3;
+		}
+	}
+	#endregion
+
+	#region B3 Float SQL 函数
+	private sealed class SqlReaderGetFloatMethod : FunctionMethod
+	{
+		public SqlReaderGetFloatMethod() { ReturnType = EraType.Float; argumentTypeArray = new[] { EraType.Integer, EraType.Integer }; CanRestructure = false; }
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ReaderGetFloat(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
+		}
+	}
+
+	private sealed class SqlExecuteScalarFloatMethod : FunctionMethod
+	{
+		public SqlExecuteScalarFloatMethod() { ReturnType = EraType.Float; argumentTypeArray = new[] { EraType.String, EraType.String }; CanRestructure = false; }
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ExecuteScalarFloat(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm));
+		}
+	}
+
+	private sealed class SqlExecuteScalarFloatParamMethod : FunctionMethod
+	{
+		public SqlExecuteScalarFloatParamMethod()
+		{
+			ReturnType = EraType.Float;
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicString }, OmitStart = 2 },
+				];
+			CanRestructure = false;
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var dbName = arguments[0].GetStrValue(exm);
+			var sql = arguments[1].GetStrValue(exm);
+			if (arguments.Count <= 2)
+				return SqlManager.ExecuteScalarFloat(dbName, sql);
+			var paramValues = new string[arguments.Count - 2];
+			for (int i = 2; i < arguments.Count; i++)
+				paramValues[i - 2] = arguments[i]?.GetStrValue(exm) ?? null;
+			return SqlManager.ExecuteScalarFloat(dbName, sql, paramValues);
 		}
 	}
 	#endregion

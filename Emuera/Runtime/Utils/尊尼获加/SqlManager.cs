@@ -143,6 +143,17 @@ namespace MinorShift.Emuera.GameData.Function
 			throw new CodeEE($"无效的 Reader ID: {readerId}");
 		}
 
+		// 7b. 获取浮点数列
+		public static double ReaderGetFloat(long readerId, int columnIndex)
+		{
+			if (_readers.TryGetValue(readerId, out var ctx))
+			{
+				if (ctx.Reader.IsDBNull(columnIndex)) return 0.0;
+				return ctx.Reader.GetDouble(columnIndex);
+			}
+			throw new CodeEE($"无效的 Reader ID: {readerId}");
+		}
+
 		// 8. 检查是否为 NULL
 		public static long ReaderIsNull(long readerId, int columnIndex)
 		{
@@ -235,6 +246,36 @@ namespace MinorShift.Emuera.GameData.Function
 				var result = cmd.ExecuteScalar();
 				if (result == null || result == DBNull.Value) return string.Empty;
 				return result.ToString();
+			}
+			catch (Exception ex)
+			{
+				throw new CodeEE($"SQL 标量查询错误: {ex.Message}\n语句: {sql}");
+			}
+		}
+
+		// 11b. 执行标量查询 (Float)
+		public static double ExecuteScalarFloat(string dbName, string sql, string[] paramValues = null)
+		{
+			if (!_connections.TryGetValue(dbName, out var conn))
+				throw new CodeEE($"数据库 '{dbName}' 未连接。");
+
+			try
+			{
+				using var cmd = conn.CreateCommand();
+				cmd.CommandText = sql;
+				if (paramValues != null)
+				{
+					for (int i = 0; i < paramValues.Length; i++)
+					{
+						var p = cmd.CreateParameter();
+						p.ParameterName = "@" + i;
+						p.Value = paramValues[i] ?? (object)DBNull.Value;
+						cmd.Parameters.Add(p);
+					}
+				}
+				var result = cmd.ExecuteScalar();
+				if (result == null || result == DBNull.Value) return 0.0;
+				return Convert.ToDouble(result);
 			}
 			catch (Exception ex)
 			{

@@ -584,6 +584,7 @@ internal sealed partial class Lang
 		[Managed] public static TranslatableString AssignToVarOoR { get; } = new TranslatableString("配列変数\"{0}\"の要素数を超えて代入しようとしました");
 		[Managed] public static TranslatableString MissingVarArg { get; } = new TranslatableString("変数\"{0}\"に必要な引数が不足しています");
 		[Managed] public static TranslatableString CallStrAsInt { get; } = new TranslatableString("整数型でない変数\"{0}\"を整数型として呼び出しました");
+		[Managed] public static TranslatableString CallFloatAsInt { get; } = new TranslatableString("浮動小数点型変数\"{0}\"を整数型として呼び出しました");
 		[Managed] public static TranslatableString CallIntAsStr { get; } = new TranslatableString("文字列型でない変数\"{0}\"を文字列型として呼び出しました");
 		[Managed] public static TranslatableString CallNDStrAsInt { get; } = new TranslatableString("整数型配列でない変数\"{0}\"を整数型配列として呼び出しました");
 		[Managed] public static TranslatableString CallNDIntAsStr { get; } = new TranslatableString("文字列型配列でない変数\"{0}\"を文字列型配列として呼び出しました");
@@ -1153,6 +1154,7 @@ internal sealed partial class Lang
 		[Managed] public static TranslatableString IsNotVar { get; } = new TranslatableString("\"{0}\"が変数ではありません");
 		[Managed] public static TranslatableString IsNotInt { get; } = new TranslatableString("\"{0}\"が整数型ではありません");
 		[Managed] public static TranslatableString IsNotStr { get; } = new TranslatableString("\"{0}\"が文字列型ではありません");
+		[Managed] public static TranslatableString IsNotFloat { get; } = new TranslatableString("\"{0}\"が浮動小数点型ではありません");
 
 		[Managed] public static TranslatableString SPCharacterFeatureDisabled { get; } = new TranslatableString("SPキャラ関係の機能は標準では使用できません(互換性オプション「SPキャラを使用する」をONにしてください)");
 		[Managed] public static TranslatableString CharacterIndexOutOfRange { get; } = new TranslatableString("{0}関数: 第{1}引数({2})はキャラクタ位置の範囲外です");

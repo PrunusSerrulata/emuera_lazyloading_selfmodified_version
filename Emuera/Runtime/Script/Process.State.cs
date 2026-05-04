@@ -523,8 +523,20 @@ internal sealed class ProcessState
 				{
 					if (call.TopLabel.Arg[i].Identifier.IsReference)
 						((ReferenceToken)call.TopLabel.Arg[i].Identifier).SetRef(srcArgs.TransporterRef[i]);
-					else if (srcArgs.Arguments[i].GetEraType() == EraType.Integer)
-						call.TopLabel.Arg[i].SetValue(srcArgs.TransporterInt[i], exm);
+					else if (call.TopLabel.Arg[i].GetEraType() == EraType.Float)
+					{
+						if (srcArgs.Arguments[i].GetEraType() == EraType.Integer)
+							call.TopLabel.Arg[i].SetValue((double)srcArgs.TransporterInt[i], exm);
+						else
+							call.TopLabel.Arg[i].SetValue(srcArgs.TransporterFloat[i], exm);
+					}
+					else if (call.TopLabel.Arg[i].GetEraType() == EraType.Integer)
+					{
+						if (srcArgs.Arguments[i].GetEraType() == EraType.Float)
+							call.TopLabel.Arg[i].SetValue((long)srcArgs.TransporterFloat[i], exm);
+						else
+							call.TopLabel.Arg[i].SetValue(srcArgs.TransporterInt[i], exm);
+					}
 					else
 						call.TopLabel.Arg[i].SetValue(srcArgs.TransporterStr[i], exm);
 				}

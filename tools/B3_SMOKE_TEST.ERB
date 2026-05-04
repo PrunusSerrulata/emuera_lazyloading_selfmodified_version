@@ -199,6 +199,122 @@
 	RETURN
 
 ;==========================================================
+; B.3-8/9/10 后运行：浮点数数组、函数参数、返回值
+;
+; 验证点：
+;   1. LOCALF / ARGF 数组读写
+;   2. RESULTF 全局浮点返回值
+;   3. #FUNCTIONF 用户自定义 Float 返回函数
+;   4. Int→Float 函数参数自动提升
+;   5. #LOCALFSIZE 指令
+;==========================================================
+@TEST_B3_FLOAT_ADVANCED
+	#DIMF FA = 1.0
+	#DIMF FB = 2.0
+	PRINTL ----------------------------------------
+	PRINTL  [B.3-8/9/10] 浮点数数组、函数参数、返回值
+	PRINTL ----------------------------------------
+
+	;=== 1. LOCALF 数组读写 ===
+	LOCALF:0 = 3.14
+	LOCALF:1 = 2.71
+	IF LOCALF:0 == 3.14
+		PRINTL  [PASS] LOCALF:0 读写正常
+	ELSE
+		PRINTL  [FAIL] LOCALF:0 读写异常！预期 3.14，实际 {LOCALF:0}
+	ENDIF
+	IF LOCALF:1 == 2.71
+		PRINTL  [PASS] LOCALF:1 读写正常
+	ELSE
+		PRINTL  [FAIL] LOCALF:1 读写异常！预期 2.71，实际 {LOCALF:1}
+	ENDIF
+
+	;=== 2. LOCALF 数组运算 ===
+	LOCALF:2 = LOCALF:0 + LOCALF:1
+	IF LOCALF:2 > 5.8
+		IF LOCALF:2 < 5.86
+			PRINTL  [PASS] LOCALF 数组运算正常
+		ELSE
+			PRINTL  [FAIL] LOCALF 数组运算异常！值={LOCALF:2}
+		ENDIF
+	ELSE
+		PRINTL  [FAIL] LOCALF 数组运算异常！值={LOCALF:2}
+	ENDIF
+
+	;=== 3. RESULTF 全局浮点返回值 ===
+	RESULTF = 0.0
+	RESULTF = 9.99
+	IF RESULTF == 9.99
+		PRINTL  [PASS] RESULTF 读写正常
+	ELSE
+		PRINTL  [FAIL] RESULTF 读写异常！预期 9.99，实际 {RESULTF}
+	ENDIF
+
+	;=== 4. CALL 函数传递 Float 参数 (ARGF) ===
+	CALL TEST_B3_ARGF_HELPER(3.14, 2.71)
+	IF RESULTF == 5.85
+		PRINTL  [PASS] ARGF 函数参数传递正常
+	ELSE
+		PRINTL  [FAIL] ARGF 函数参数传递异常！预期 5.85，实际 {RESULTF}
+	ENDIF
+
+	;=== 5. CALL 函数传递 Int→Float 自动提升 ===
+	CALL TEST_B3_ARGF_HELPER(3, 2)
+	IF RESULTF == 5.0
+		PRINTL  [PASS] Int→Float 参数自动提升正常
+	ELSE
+		PRINTL  [FAIL] Int→Float 参数自动提升异常！预期 5.0，实际 {RESULTF}
+	ENDIF
+
+	;=== 6. #FUNCTIONF 用户自定义 Float 返回函数 ===
+	FA = TEST_B3_RETURNF_HELPER(10.0, 3.0)
+	IF FA > 3.3
+		IF FA < 3.4
+			PRINTL  [PASS] #FUNCTIONF 返回 Float 正常
+		ELSE
+			PRINTL  [FAIL] #FUNCTIONF 返回值异常！值={FA}
+		ENDIF
+	ELSE
+		PRINTL  [FAIL] #FUNCTIONF 返回值异常！值={FA}
+	ENDIF
+
+	;=== 7. #FUNCTIONF 返回 Int→Float ===
+	FB = TEST_B3_RETURNF_INT_HELPER(7)
+	IF FB == 7.0
+		PRINTL  [PASS] #FUNCTIONF 返回 Int→Float 正常
+	ELSE
+		PRINTL  [FAIL] #FUNCTIONF 返回 Int→Float 异常！预期 7.0，实际 {FB}
+	ENDIF
+
+	;=== 8. VARSETEX 对 Float 数组 ===
+	LOCALF:0 = 0.0
+	LOCALF:1 = 0.0
+	VARSETEX "LOCALF", 1.23
+	IF LOCALF:0 == 1.23
+		PRINTL  [PASS] VARSETEX Float 数组填充正常
+	ELSE
+		PRINTL  [FAIL] VARSETEX Float 数组填充异常！预期 1.23，实际 {LOCALF:0}
+	ENDIF
+
+	PRINTL
+	RETURN
+
+;--- ARGF 辅助函数：接收两个 Float 参数，相加后存入 RESULTF ---
+@TEST_B3_ARGF_HELPER
+	RESULTF = ARGF:0 + ARGF:1
+	RETURN
+
+;--- #FUNCTIONF 辅助函数：返回 Float 除法结果 ---
+@TEST_B3_RETURNF_HELPER
+	#FUNCTIONF
+	RETURNF ARGF:0 / ARGF:1
+
+;--- #FUNCTIONF 辅助函数：返回 Int 自动提升为 Float ---
+@TEST_B3_RETURNF_INT_HELPER
+	#FUNCTIONF
+	RETURNF ARGF:0
+
+;==========================================================
 ; B.3-6 后运行：全量端到端测试
 ;
 ; 验证点：
@@ -212,6 +328,7 @@
 
 	CALL TEST_B3_TYPE_SYSTEM
 	CALL TEST_B3_FLOAT_BASIC
+	CALL TEST_B3_FLOAT_ADVANCED
 	PRINTFORML  ; CALL Phase01Bugfix  ; 验证现有脚本零影响
 	CALL Phase01Bugfix
 

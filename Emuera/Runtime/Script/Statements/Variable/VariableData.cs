@@ -179,6 +179,7 @@ internal sealed partial class VariableData : IDisposable
 		varTokenDic.Add("EJAC", new Int1DVariableToken(VariableCode.EJAC, this));
 		varTokenDic.Add("DOWN", new Int1DVariableToken(VariableCode.DOWN, this));
 		varTokenDic.Add("RESULT", new Int1DVariableToken(VariableCode.RESULT, this));
+		varTokenDic.Add("RESULTF", new FloatScalarVariableToken(VariableCode.RESULTF, this));
 		varTokenDic.Add("COUNT", new Int1DVariableToken(VariableCode.COUNT, this));
 		varTokenDic.Add("TARGET", new Int1DVariableToken(VariableCode.TARGET, this));
 		varTokenDic.Add("ASSI", new Int1DVariableToken(VariableCode.ASSI, this));
@@ -372,6 +373,11 @@ internal sealed partial class VariableData : IDisposable
 		size = constant.VariableStrArrayLength[(int)(VariableCode.__LOWERCASE__ & VariableCode.ARGS)];
 		localvarTokenDic.Add("ARGS", new VariableLocal(VariableCode.ARGS, size, CreateLocalStr));
 
+		size = constant.VariableFloatArrayLength[(int)(VariableCode.__LOWERCASE__ & VariableCode.LOCALF)];
+		localvarTokenDic.Add("LOCALF", new VariableLocal(VariableCode.LOCALF, size, CreateLocalFloat));
+		size = constant.VariableFloatArrayLength[(int)(VariableCode.__LOWERCASE__ & VariableCode.ARGF)];
+		localvarTokenDic.Add("ARGF", new VariableLocal(VariableCode.ARGF, size, CreateLocalFloat));
+
 	}
 
 	private LocalInt1DVariableToken CreateLocalInt(VariableCode varCode, string subKey, int size)
@@ -381,6 +387,10 @@ internal sealed partial class VariableData : IDisposable
 	private LocalStr1DVariableToken CreateLocalStr(VariableCode varCode, string subKey, int size)
 	{
 		return new LocalStr1DVariableToken(varCode, this, subKey, size);
+	}
+	private LocalFloat1DVariableToken CreateLocalFloat(VariableCode varCode, string subKey, int size)
+	{
+		return new LocalFloat1DVariableToken(varCode, this, subKey, size);
 	}
 	public Dictionary<string, VariableToken> GetVarTokenDicClone()
 	{
@@ -621,6 +631,9 @@ internal sealed partial class VariableData : IDisposable
 
 		for (int i = 0; i < dataString.Length; i++)
 			dataString[i] = null;
+
+		for (int i = 0; i < dataFloat.Length; i++)
+			dataFloat[i] = 0.0;
 
 		for (int i = 0; i < dataStringArray.Length; i++)
 		{

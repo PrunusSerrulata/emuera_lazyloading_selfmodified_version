@@ -139,7 +139,8 @@ internal static class LogicalLineParser
 					}
 					break;
 				case var s when s.Equals("FUNCTION", Config.Config.StringComparison) ||
-								s.Equals("FUNCTIONS", Config.Config.StringComparison):
+								s.Equals("FUNCTIONS", Config.Config.StringComparison) ||
+								s.Equals("FUNCTIONF", Config.Config.StringComparison):
 					if (!string.IsNullOrEmpty(label.LabelName) && char.IsDigit(label.LabelName[0]))
 					{
 						ParserMediator.Warn(string.Format(trerror.CanNotDeclaredBeginNumberFunction.Text, token.ToString()), position, 1);
@@ -149,7 +150,7 @@ internal static class LogicalLineParser
 					}
 					if (label.IsMethod)
 					{
-						if (label.MethodType == EraType.Integer && token.SequenceEqual("FUNCTION") || label.MethodType == EraType.String && token.SequenceEqual("FUNCTIONS"))
+						if (label.MethodType == EraType.Integer && token.SequenceEqual("FUNCTION") || label.MethodType == EraType.String && token.SequenceEqual("FUNCTIONS") || label.MethodType == EraType.Float && token.SequenceEqual("FUNCTIONF"))
 						{
 							ParserMediator.Warn(string.Format(trerror.AlreadySharpDeclared.Text, label.LabelName, token.ToString()), position, 1);
 							return false;
@@ -158,6 +159,10 @@ internal static class LogicalLineParser
 							ParserMediator.Warn(string.Format(trerror.AlreadyDeclaredSharpFunction.Text, label.LabelName), position, 2);
 						else if (label.MethodType == EraType.String && token.SequenceEqual("FUNCTION"))
 							ParserMediator.Warn(string.Format(trerror.AlreadyDeclaredSharpFunctions.Text, label.LabelName), position, 2);
+						else if (label.MethodType == EraType.Integer && token.SequenceEqual("FUNCTIONF"))
+							ParserMediator.Warn(string.Format(trerror.AlreadyDeclaredSharpFunction.Text, label.LabelName), position, 2);
+						else if (label.MethodType == EraType.Float && token.SequenceEqual("FUNCTION"))
+							ParserMediator.Warn(string.Format(trerror.AlreadyDeclaredSharpFunction.Text, label.LabelName), position, 2);
 						return false;
 					}
 					if (label.Depth == 0)
@@ -169,6 +174,8 @@ internal static class LogicalLineParser
 					label.Depth = 0;
 					if (token.Equals("FUNCTIONS", Config.Config.StringComparison))
 						label.MethodType = EraType.String;
+					else if (token.Equals("FUNCTIONF", Config.Config.StringComparison))
+						label.MethodType = EraType.Float;
 					else
 						label.MethodType = EraType.Integer;
 					if (label.IsPri)
@@ -193,7 +200,8 @@ internal static class LogicalLineParser
 					}
 					break;
 				case var s when s.Equals("LOCALSIZE", Config.Config.StringComparison) ||
-								s.Equals("LOCALSSIZE", Config.Config.StringComparison):
+								s.Equals("LOCALSSIZE", Config.Config.StringComparison) ||
+								s.Equals("LOCALFSIZE", Config.Config.StringComparison):
 					{
 						WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
 						if (wc.EOL)
@@ -235,7 +243,7 @@ internal static class LogicalLineParser
 								ParserMediator.Warn(trerror.DuplicateLocalsize.Text, position, 1);
 							label.LocalLength = size;
 						}
-						else
+						else if (token.SequenceEqual("LOCALSSIZE"))
 						{
 							if (GlobalStatic.IdentifierDictionary.getLocalIsForbid("LOCALS"))
 							{
@@ -245,6 +253,17 @@ internal static class LogicalLineParser
 							if (label.LocalsLength > 0)
 								ParserMediator.Warn(trerror.DuplicateLocalssize.Text, position, 1);
 							label.LocalsLength = size;
+						}
+						else if (token.SequenceEqual("LOCALFSIZE"))
+						{
+							if (GlobalStatic.IdentifierDictionary.getLocalIsForbid("LOCALF"))
+							{
+								ParserMediator.Warn(string.Format(trerror.LocalIsProhibited.Text, token.ToString(), "LOCALF"), position, 2);
+								break;
+							}
+							if (label.LocalFloatLength > 0)
+								ParserMediator.Warn(trerror.DuplicateLocalsize.Text, position, 1);
+							label.LocalFloatLength = size;
 						}
 					}
 					break;
