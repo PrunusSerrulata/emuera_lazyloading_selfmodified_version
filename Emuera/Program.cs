@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameProc.Function;
+using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
 using MinorShift.Emuera.Runtime.Utils;
@@ -10,6 +10,7 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Runtime;
 using System.Windows.Forms;
@@ -52,6 +53,9 @@ static partial class Program
 
 		#region eee_カレントディレクトリー
 		WorkingDir = AssemblyData.WorkingDir;
+
+		CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+		CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
 		var exeDirOption = new Option<string>(
 			name: "--ExeDir",

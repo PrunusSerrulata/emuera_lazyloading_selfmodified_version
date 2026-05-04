@@ -1143,7 +1143,7 @@ internal sealed class ConstantData
 					case VariableCode.CVAR2D:
 					case VariableCode.CVARS2D:
 						{
-							if (code == VariableCode.VAR2D && index == 0 || code == VariableCode.CVAR2D && index == 1)
+							if ((code == VariableCode.VAR2D || code == VariableCode.VARS2D) && index == 0 || code == VariableCode.CVAR2D && index == 1)
 							{
 								string varnamed = varname + "@1";
 								if (!erdNameToIntDics.ContainsKey(varnamed))

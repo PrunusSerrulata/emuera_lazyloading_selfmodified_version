@@ -15,6 +15,7 @@
         <AnalysisMode>Minimum</AnalysisMode>
 
         <TieredCompilation>false</TieredCompilation>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
 
     </PropertyGroup>
 

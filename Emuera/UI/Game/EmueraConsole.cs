@@ -505,6 +505,8 @@ internal sealed partial class EmueraConsole : IDisposable
 		}
 		if (Program.rebootFlag)
 			window.Reboot();
+		else
+			Application.Exit();
 		GlobalStatic.ForceQuitAndRestart = true;
 		return;
 	}

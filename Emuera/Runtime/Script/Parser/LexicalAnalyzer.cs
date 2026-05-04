@@ -398,7 +398,7 @@ internal static partial class LexicalAnalyzer
 				break;
 			}
 		}
-		return double.Parse(st.SubstringROS(start, st.CurrentPosition - start));
+		return double.Parse(st.SubstringROS(start, st.CurrentPosition - start), CultureInfo.InvariantCulture);
 	}
 
 	/// <summary>
