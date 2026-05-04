@@ -2072,7 +2072,7 @@ internal static partial class ArgumentParser
 	{
 		public SP_COLOR_ALPHA_ArgumentBuilder()
 		{
-			argumentTypeArray = [typeof(long), typeof(long)];
+			argumentTypeArray = [EraType.Integer, EraType.Integer];
 			minArg = 2;
 		}
 

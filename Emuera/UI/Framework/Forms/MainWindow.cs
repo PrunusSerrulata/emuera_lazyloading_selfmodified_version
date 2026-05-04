@@ -1,4 +1,4 @@
-﻿﻿using MinorShift.Emuera.GameView;
+﻿using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Statements;
@@ -28,8 +28,6 @@ namespace MinorShift.Emuera.Forms
 		{
 			InitializeComponent();
 			_args = args;
-
-			System.Diagnostics.Debug.WriteLine("Config.Backend = " + Config.Backend);
 
 			// 检查OpenGL是否可用，如果不可用则切换到SKControl
 			CheckOpenGLCompatibility();
@@ -177,6 +175,9 @@ namespace MinorShift.Emuera.Forms
 
 		private void SwitchToSKControl()
 		{
+			if (!(mainPicBox is SKGLControl))
+				return;
+
 			try
 			{
 				// 重置所有静态状态
@@ -260,15 +261,7 @@ namespace MinorShift.Emuera.Forms
 		private void RenderConsole(SKCanvas canvas)
 		{
 			if (console == null) return;
-			try
-			{
-				console.OnPaint(canvas);
-			}
-			catch (NullReferenceException) when (mainPicBox is SKGLControl)
-			{
-				EraPictureBox.UseOpenGL = false;
-				BeginInvoke(new Action(SwapToSoftwareRendering));
-			}
+			console.OnPaint(canvas);
 		}
 		private ToolStripMenuItem[] macroMenuItems = new ToolStripMenuItem[KeyMacro.MaxFkey];
 		//private System.Diagnostics.FileVersionInfo emueraVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
