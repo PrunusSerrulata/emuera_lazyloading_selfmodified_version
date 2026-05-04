@@ -57,9 +57,6 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		FontHinting = null;
 		FontSize = null;
 
-		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
-			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[ConsoleStyledString ctor] str='{str}', style.BackgroundColor=({style.BackgroundColor?.A},{style.BackgroundColor?.R},{style.BackgroundColor?.G},{style.BackgroundColor?.B})\n");
-
 		Font = FontFactory.GetFont(style.Fontname, style.FontStyle, FontSize, FontEdging, FontHinting);
 		if (Font == null)
 		{
@@ -79,8 +76,6 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 
 		Color = style.Color;
 		BackgroundColor = style.BackgroundColor;
-		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
-			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[ConsoleStyledString ctor] After BG assignment, this.BackgroundColor=({BackgroundColor?.A},{BackgroundColor?.R},{BackgroundColor?.G},{BackgroundColor?.B})\n");
 		ButtonColor = style.ButtonColor;
 		colorChanged = style.ColorChanged;
 		if (!colorChanged && Color != Config.ForeColor)
@@ -402,8 +397,6 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	{
 		if (Error)
 			return;
-		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
-			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[DrawTo] Text='{Text}', BackgroundColor=({BackgroundColor?.A},{BackgroundColor?.R},{BackgroundColor?.G},{BackgroundColor?.B}), isFocus={isFocus}\n");
 		var color = Color;
 		SKColor? backcolor = null;
 		if (isFocus)
@@ -504,8 +497,6 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 
 	if (backcolor.HasValue)
 	{
-		if (MinorShift.Emuera.GameProc.Function.FunctionIdentifier.textBgcLogEnabled)
-			System.IO.File.AppendAllText(@"debug_textbgc.log", $"[DrawTo] Drawing background rect at ({point.X},{point.Y}) size ({Width},{Font.Size})\n");
 		var size = new SKSize(Width, Font.Size);
 		using var backPaint = new SKPaint() { Color = backcolor.Value };
 		graph.DrawRect(SKRect.Create(point, size), backPaint);

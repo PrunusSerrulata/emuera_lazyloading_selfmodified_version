@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Variable;
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Config.JSON;
@@ -1595,16 +1595,12 @@ internal sealed partial class FunctionIdentifier
 		}
 	}
 
-	internal static bool textBgcLogEnabled = false;
-
 	private sealed class TEXT_BGC_ON_Instruction : AInstruction
 	{
 		public TEXT_BGC_ON_Instruction()
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_COLOR_ALPHA);
 			flag = METHOD_SAFE | EXTENDED;
-			textBgcLogEnabled = true;
-			System.IO.File.AppendAllText(@"debug_textbgc.log", "[TEXT_BGC_ON] Constructor\n");
 		}
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
@@ -1624,8 +1620,6 @@ internal sealed partial class FunctionIdentifier
 			}
 			int a = (int)(alpha * 255 / 100);
 			Color color = Color.FromArgb(a, (int)(rgb >> 16) & 0xFF, (int)(rgb >> 8) & 0xFF, (int)rgb & 0xFF);
-			System.IO.File.AppendAllText(@"debug_textbgc.log",
-				$"[TEXT_BGC_ON] Called with RGB=0x{rgb:X6}, Alpha={alpha}%, A={a} -> ARGB({color.A},{color.R},{color.G},{color.B})\n");
 			exm.Console.TextBackgroundColor = color;
 		}
 	}
@@ -1636,12 +1630,10 @@ internal sealed partial class FunctionIdentifier
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.VOID);
 			flag = METHOD_SAFE | EXTENDED;
-			System.IO.File.AppendAllText(@"debug_textbgc.log", "[TEXT_BGC_OFF] Constructor\n");
 		}
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			System.IO.File.AppendAllText(@"debug_textbgc.log", "[TEXT_BGC_OFF] Called\n");
 			exm.Console.TextBackgroundColor = null;
 		}
 	}
