@@ -84,20 +84,6 @@ internal static partial class FunctionMethodCreator
 			["SIGN"] = new SignMethod(),
 			["LIMIT"] = new GetLimitMethod(),
 
-			//数学関数 Float 重載
-			["RANDF"] = new RandFMethod(),
-			["MINF"] = new MaxFMethod(false),
-			["MAXF"] = new MaxFMethod(true),
-			["ABSF"] = new AbsFMethod(),
-			["POWERF"] = new PowerFMethod(),
-			["SQRTF"] = new SqrtFMethod(),
-			["CBRTF"] = new CbrtFMethod(),
-			["LOGF"] = new LogFMethod(),
-			["LOG10F"] = new LogFMethod(10.0d),
-			["EXPF"] = new ExpFMethod(),
-			["SIGNF"] = new SignFMethod(),
-			["LIMITF"] = new LimitFMethod(),
-
 			//三角関数・端数処理
 			["SIN"] = new SinMethod(),
 			["COS"] = new CosMethod(),
@@ -108,17 +94,6 @@ internal static partial class FunctionMethodCreator
 			["FLOOR"] = new FloorMethod(),
 			["CEIL"] = new CeilMethod(),
 			["ROUND"] = new RoundMethod(),
-
-			//三角関数・端数処理 Float 重載
-			["SINF"] = new SinFMethod(),
-			["COSF"] = new CosFMethod(),
-			["TANF"] = new TanFMethod(),
-			["ASINF"] = new AsinFMethod(),
-			["ACOSF"] = new AcosFMethod(),
-			["ATANF"] = new AtanFMethod(),
-			["FLOORF"] = new FloorFMethod(),
-			["CEILF"] = new CeilFMethod(),
-			["ROUNDF"] = new RoundFMethod(),
 
 			["UNCHECKED_ADD"] = new UncheckedAddMethod(),
 			["UNCHECKED_SUB"] = new UncheckedSubtractMethod(),

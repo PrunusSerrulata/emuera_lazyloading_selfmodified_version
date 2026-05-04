@@ -1,5 +1,29 @@
 
 2026年5月4日
+数学函数与数组函数 Float 同名重构：
+	重构原则：像运算符重载一样，由至少一个浮点数参数决定隐性提升。原有所有公式调用保持原样，
+	如需使用浮点数版本，将变量改为浮点类型或使用 TOFLOAT 提升即可。
+
+	1. 数学函数同名重构（移除 F 后缀变体）：
+		原 F 后缀函数（SINF/COSF/TANF/ASINF/ACOSF/ATANF/FLOORF/CEILF/ROUNDF）已移除。
+		原函数名（SIN/COS/TAN/ASIN/ACOS/ATAN/FLOOR/CEIL/ROUND）现同时接受 Int 和 Float 参数。
+		当至少一个参数为 Float 时，返回 Float；全为 Int 时返回 Int。
+		同样适用于 RAND/MIN/MAX/ABS/POWER/SQRT/CBRT/LOG/EXP/SIGN/LIMIT 等已有数学函数。
+
+	2. 数组操作函数 Float 同名重载：
+		SUMARRAY/SUMCARRAY：接受 Float 数组，自动返回 Float 结果（Int 数组仍返回 Int）。
+		MATCH/CMATCH：新增 Float 参数分支，可匹配 Float 数组中的值。
+		MAXARRAY/MINARRAY/MAXCARRAY/MINCARRAY：接受 Float 数组，返回值保持 Int。
+		INRANGEARRAY/INRANGECARRAY：接受 Float 数组，返回值保持 Int。
+		GROUPMATCH/NOSAMES/ALLSAMES：新增 Float 参数分支。
+		ARRAYMSORT：已支持 Float，无需修改。
+
+	3. 修改文件：
+		- Creator.Method.cs：数学函数合并 Int/Float 实现，移除 F 变体类；数组函数新增 Float 分支
+		- Creator.cs：移除 F 变体函数注册
+		- VariableEvaluator.cs：新增 GetArraySumDouble/GetMatch(double)/GetMaxArrayDouble/GetInRangeArrayDouble 等方法
+
+2026年5月4日
 新增内置数学函数：三角函数与端数处理（SIN/COS/TAN/ASIN/ACOS/ATAN/FLOOR/CEIL/ROUND 及 Float 重载）
 
 	Int 版本（返回整数，截断小数）：

@@ -199,41 +199,36 @@ python tools/b3_16_replace.py --verify --all-files       # 残留统计
 
 ### 3.2 数组操作函数 Float 支持
 
+**状态：✅ 已完成（2026-05-04）** — 所有数组函数已通过同名重载支持 Float 参数。
+
 **现状（2026-05-04 源码盘点）**：
 
 | 函数 | 当前状态 | Int | String | Float | 备注 |
 |------|---------|-----|--------|-------|------|
-| SUMARRAY/SUMCARRAY | Int only | ✅ | ❌ | ❌ | `VariableEvaluator.GetArraySum` 用 `GetIntValue` |
-| MATCH/CMATCH | Int+String | ✅ | ✅ | ❌ | `GetIntValue` 中无 Float 分支 |
-| MAXARRAY/MAXCARRAY | Int only | ✅ | ❌ | ❌ | `VariableEvaluator.GetMaxArray` 用 `GetIntValue` |
-| MINARRAY/MINCARRAY | Int only | ✅ | ❌ | ❌ | 同上 |
-| GROUPMATCH | Int+String | ✅ | ✅ | ❌ | 无 Float 分支 |
-| NOSAMES | Int+String | ✅ | ✅ | ❌ | 无 Float 分支 |
-| ALLSAMES | Int+String | ✅ | ✅ | ❌ | 无 Float 分支 |
-| INRANGEARRAY/INRANGECARRAY | Int only | ✅ | ❌ | ❌ | `GetInRangeArray` 用 `GetIntValue` |
-| ARRAYMSORT | Int+String | ✅ | ✅ | ❌ | 需确认 |
+| SUMARRAY/SUMCARRAY | **Int+Float** | ✅ | ❌ | ✅ | `GetReturnValue` 根据数组类型自动选择 Int/Float 返回 |
+| MATCH/CMATCH | **Int+String+Float** | ✅ | ✅ | ✅ | 新增 Float 分支 |
+| MAXARRAY/MAXCARRAY | **Int+Float** | ✅ | ❌ | ✅ | `RefAny1D` + Float 分支（返回值保持 Int） |
+| MINARRAY/MINCARRAY | **Int+Float** | ✅ | ❌ | ✅ | 同上 |
+| GROUPMATCH | **Int+String+Float** | ✅ | ✅ | ✅ | 新增 Float 分支 |
+| NOSAMES | **Int+String+Float** | ✅ | ✅ | ✅ | 新增 Float 分支 |
+| ALLSAMES | **Int+String+Float** | ✅ | ✅ | ✅ | 新增 Float 分支 |
+| INRANGEARRAY/INRANGECARRAY | **Int+Float** | ✅ | ❌ | ✅ | `RefAny1D` + Float 分支（返回值保持 Int） |
+| ARRAYMSORT | **Int+String+Float** | ✅ | ✅ | ✅ | 已有 `GetEraType()` 分支，无需修改 |
 
-**已支持 Float 的数组操作（指令层）**：
-
-| 指令 | Float 支持 | 备注 |
-|------|-----------|------|
-| ARRAYSHIFT | ✅ | `VariableEvaluator.ShiftArray` 处理 `SparseArray<double>` + `double[]` |
-| ARRAYREMOVE | ✅ | 同上 |
-| ARRAYSORT | ✅ | 同上 |
-| ARRAYCOPY | ✅ | 同上 |
-| VARSET | ✅ | `VARSET_Instruction.DoInstruction` 有 `case EraType.Float:` |
-| CVARSET | ✅ | `CVARSET_Instruction.DoInstruction` 有 `case EraType.Float:` |
-
-**实施方案**：
-- `VariableEvaluator.cs` 新增 `GetArraySumFloat` / `GetMatchFloat` / `GetMaxArrayFloat` 等方法（使用 `GetFloatValue`）
-- `Creator.Method.cs` 中 SUMARRAY/MATCH/MAXARRAY/MINARRAY 等方法新增 Float 重载
-- GROUPMATCH/NOSAMES/ALLSAMES 新增 Float 分支
-
-**涉及文件**：
-- `Emuera/Runtime/Script/Statements/Variable/VariableEvaluator.cs` — 新增 Float 版本后端方法
-- `Emuera/Runtime/Script/Statements/Function/Creator.Method.cs` — 新增 Float 重载
-
-**优先级**：P1（高）
+**实施详情**：
+- `VariableEvaluator.cs` 新增方法：
+  - `GetArraySumDouble` / `GetArraySumCharaDouble` — Float 数组求和
+  - `GetMatch(FixedVariableTerm, double, ...)` / `GetMatchChara(FixedVariableTerm, double, ...)` — Float 匹配计数
+  - `GetMaxArrayDouble` / `GetMaxArrayCharaDouble` — Float 数组最大/最小值
+  - `GetInRangeArrayDouble` / `GetInRangeArrayCharaDouble` — Float 数组范围计数
+- `Creator.Method.cs` 修改：
+  - `SumArrayMethod`: `RefIntArray` → `RefAnyArray`，新增 `GetFloatValue` + `GetReturnValue`（自动根据数组类型返回 Int/Float）
+  - `MatchMethod`: 新增 `EraType.Float` 分支
+  - `MaxArrayMethod`: `RefInt1D` → `RefAny1D`，新增 Float 分支（返回值保持 Int）
+  - `GroupMatchMethod` / `NosamesMethod` / `AllsamesMethod`: 新增 Float 分支
+  - `InRangeArrayMethod`: `RefInt1D` → `RefAny1D`，新增 Float 分支（返回值保持 Int）
+  - `ArrayMultiSortMethod`: 无需修改（已有 `GetEraType()` 分支处理 Float）
+- **设计原则**：同名重载，不新增 F 变体函数。除 SUMARRAY 根据数组类型自动改变返回值类型外，其余函数返回值类型不变。
 
 ### 3.3 反射/动态调用函数 Float 支持
 

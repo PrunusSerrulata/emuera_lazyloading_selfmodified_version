@@ -365,6 +365,56 @@ internal sealed class VariableEvaluator : IDisposable
 		return sum;
 	}
 
+	public static double GetArraySumDouble(FixedVariableTerm p, long index1, long index2)
+	{
+		double sum = 0;
+
+		if (p.Identifier.IsCharacterData)
+		{
+			if (p.Identifier.IsArray1D)
+			{
+				for (int i = (int)index1; i < (int)index2; i++)
+					sum += p.Identifier.GetFloatValue(GlobalStatic.EMediator, [p.Index1, i]);
+			}
+			else
+			{
+				for (int i = (int)index1; i < (int)index2; i++)
+					sum += p.Identifier.GetFloatValue(GlobalStatic.EMediator, [p.Index1, p.Index2, i]);
+			}
+		}
+		else
+		{
+			if (p.Identifier.IsArray1D)
+			{
+				for (int i = (int)index1; i < (int)index2; i++)
+					sum += p.Identifier.GetFloatValue(GlobalStatic.EMediator, [i]);
+			}
+			else if (p.Identifier.IsArray2D)
+			{
+				for (int i = (int)index1; i < (int)index2; i++)
+					sum += p.Identifier.GetFloatValue(GlobalStatic.EMediator, [p.Index1, i]);
+			}
+			else
+			{
+				for (int i = (int)index1; i < (int)index2; i++)
+					sum += p.Identifier.GetFloatValue(GlobalStatic.EMediator, [p.Index1, p.Index2, i]);
+			}
+		}
+
+		return sum;
+	}
+
+	public static double GetArraySumCharaDouble(FixedVariableTerm p, long index1, long index2)
+	{
+		double sum = 0;
+
+		for (int i = (int)index1; i < (int)index2; i++)
+		{
+			sum += p.Identifier.GetFloatValue(GlobalStatic.EMediator, [i, p.Index2]);
+		}
+		return sum;
+	}
+
 	public static string GetJoinedStr(FixedVariableTerm p, string delimiter, long index1, long length)
 	{
 		string sum = "";
@@ -473,6 +523,30 @@ internal sealed class VariableEvaluator : IDisposable
 		for (int i = (int)start; i < (int)end; i++)
 		{
 			if (p.Identifier.GetStrValue(GlobalStatic.EMediator, [i, p.Index2, p.Index3]) == target || targetIsNullOrEmpty && string.IsNullOrEmpty(p.Identifier.GetStrValue(GlobalStatic.EMediator, [i, p.Index2, p.Index3])))
+				ret++;
+		}
+
+		return ret;
+	}
+
+	public static long GetMatch(FixedVariableTerm p, double target, long start, long end)
+	{
+		long ret = 0;
+
+		for (int i = (int)start; i < (int)end; i++)
+			if (p.Identifier.GetFloatValue(GlobalStatic.EMediator, p.Identifier.IsCharacterData ? [p.Index1, i] : [i]) == target)
+				ret++;
+
+		return ret;
+	}
+
+	public static long GetMatchChara(FixedVariableTerm p, double target, long start, long end)
+	{
+		long ret = 0;
+
+		for (int i = (int)start; i < (int)end; i++)
+		{
+			if (p.Identifier.GetFloatValue(GlobalStatic.EMediator, [i, p.Index2, p.Index3]) == target)
 				ret++;
 		}
 
@@ -637,6 +711,52 @@ internal sealed class VariableEvaluator : IDisposable
 		return ret;
 	}
 
+	public static double GetMaxArrayDouble(FixedVariableTerm p, long start, long end, bool isMax)
+	{
+		double value;
+		double ret = p.Identifier.GetFloatValue(GlobalStatic.EMediator, p.Identifier.IsCharacterData ? [p.Index1, start] : [start]);
+		for (int i = (int)start + 1; i < (int)end; i++)
+		{
+			value = p.Identifier.GetFloatValue(GlobalStatic.EMediator, p.Identifier.IsCharacterData ? [p.Index1, i] : [i]);
+			if (isMax)
+			{
+				if (value > ret)
+					ret = value;
+			}
+			else
+			{
+				if (value < ret)
+					ret = value;
+			}
+		}
+		return ret;
+	}
+
+	public static double GetMaxArrayCharaDouble(FixedVariableTerm p, long start, long end, bool isMax)
+	{
+		double ret;
+		double value;
+
+		ret = p.Identifier.GetFloatValue(GlobalStatic.EMediator, [start, p.Index2, p.Index3]);
+		for (int i = (int)start + 1; i < (int)end; i++)
+		{
+			value = p.Identifier.GetFloatValue(GlobalStatic.EMediator, [i, p.Index2, p.Index3]);
+
+			if (isMax)
+			{
+				if (value > ret)
+					ret = value;
+			}
+			else
+			{
+				if (value < ret)
+					ret = value;
+			}
+		}
+
+		return ret;
+	}
+
 	public static long GetInRangeArray(FixedVariableTerm p, long min, long max, long start, long end)
 	{
 		long value;
@@ -660,6 +780,36 @@ internal sealed class VariableEvaluator : IDisposable
 		for (int i = (int)start; i < (int)end; i++)
 		{
 			value = p.Identifier.GetIntValue(GlobalStatic.EMediator, [i, p.Index2, p.Index3]);
+			if (value >= min && value < max)
+				ret++;
+		}
+
+		return ret;
+	}
+
+	public static long GetInRangeArrayDouble(FixedVariableTerm p, double min, double max, long start, long end)
+	{
+		double value;
+		long ret = 0;
+
+		for (int i = (int)start; i < (int)end; i++)
+		{
+			value = p.Identifier.GetFloatValue(GlobalStatic.EMediator, p.Identifier.IsCharacterData ? [p.Index1, i] : [i]);
+			if (value >= min && value < max)
+				ret++;
+		}
+
+		return ret;
+	}
+
+	public static long GetInRangeArrayCharaDouble(FixedVariableTerm p, double min, double max, long start, long end)
+	{
+		long ret = 0;
+		double value;
+
+		for (int i = (int)start; i < (int)end; i++)
+		{
+			value = p.Identifier.GetFloatValue(GlobalStatic.EMediator, [i, p.Index2, p.Index3]);
 			if (value >= min && value < max)
 				ret++;
 		}

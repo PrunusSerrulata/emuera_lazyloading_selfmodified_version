@@ -3731,35 +3731,12 @@ internal static partial class FunctionMethodCreator
 		public RandMethod()
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int}, OmitStart = 1 }
+					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any}, OmitStart = 1 }
 				];
 			CanRestructure = false;
 		}
 
-		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
-		//{
-		//	//通常2つ、1つ省略可能で1～2の引数が必要。
-		//	if (arguments.Count < 1)
-		//		return name + "関数には少なくとも1つの引数が必要です";
-		//	if (arguments.Count > 2)
-		//		return name + "関数の引数が多すぎます";
-		//	if (arguments.Count == 1)
-		//	{
-		//		if (arguments[0] == null)
-		//			return name + "関数には少なくとも1つの引数が必要です";
-		//		if ((arguments[0].GetOperandType() != EraType.Integer))
-		//			return name + "関数の1番目の引数の型が正しくありません";
-		//		return null;
-		//	}
-		//	//1番目は省略可能
-		//	if ((arguments[0] != null) && (arguments[0].GetOperandType() != EraType.Integer))
-		//		return name + "関数の1番目の引数の型が正しくありません";
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
-		//		return name + "関数の2番目の引数の型が正しくありません";
-		//	return null;
-		//}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			long min = 0;
@@ -3775,274 +3752,13 @@ internal static partial class FunctionMethodCreator
 			if (max <= min)
 			{
 				if (min == 0)
-					// throw new CodeEE("RANDの最大値に0以下の値(" + max.ToString() + ")が指定されました");
 					throw new CodeEE(string.Format(trerror.NegativeMaximum.Text, Name, max));
 				else
-					// throw new CodeEE("RANDの最大値に最小値以下の値(" + max.ToString() + ")が指定されました");
 					throw new CodeEE(string.Format(trerror.MaximumLowerThanMinimum.Text, Name, max));
 			}
 			return exm.VEvaluator.GetNextRand(max - min) + min;
 		}
-	}
 
-	private sealed class MaxMethod : FunctionMethod
-	{
-		readonly bool isMax;
-		public MaxMethod()
-		{
-			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
-			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.VariadicInt}, OmitStart = 1 }
-				];
-			isMax = true;
-			CanRestructure = true;
-		}
-		public MaxMethod(bool max)
-		{
-			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
-			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.VariadicInt}, OmitStart = 1 }
-				];
-			isMax = max;
-			CanRestructure = true;
-		}
-		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
-		//{
-		//	if (arguments.Count < 1)
-		//		return name + "関数には少なくとも1つの引数が必要です";
-		//	for (int i = 0; i < arguments.Count; i++)
-		//	{
-		//		if (arguments[i] == null)
-		//			return name + "関数の" + (i + 1).ToString() + "番目の引数は省略できません";
-		//		if (arguments[i].GetOperandType() != EraType.Integer)
-		//			return name + "関数の" + (i + 1).ToString() + "番目の引数の型が正しくありません";
-		//	}
-		//	return null;
-		//}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long ret = arguments[0].GetIntValue(exm);
-
-			for (int i = 1; i < arguments.Count; i++)
-			{
-				long newRet = arguments[i].GetIntValue(exm);
-				if (isMax)
-				{
-					if (ret < newRet)
-						ret = newRet;
-				}
-				else
-				{
-					if (ret > newRet)
-						ret = newRet;
-				}
-			}
-			return ret;
-		}
-	}
-
-	private sealed class AbsMethod : FunctionMethod
-	{
-		public AbsMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long ret = arguments[0].GetIntValue(exm);
-			//普通は使わない値なので例外として投げてしまう方向性で
-			if (ret == long.MinValue)
-				throw new CodeEE(string.Format(trerror.MinInt64CanNotApplyABS.Text, Name, long.MinValue));
-			return Math.Abs(ret);
-		}
-	}
-
-	private sealed class PowerMethod : FunctionMethod
-	{
-		public PowerMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer, EraType.Integer];
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long x = arguments[0].GetIntValue(exm);
-			long y = arguments[1].GetIntValue(exm);
-			double pow = Math.Pow(x, y);
-			if (double.IsNaN(pow))
-				// throw new CodeEE("累乗結果が非数値です");
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			else if (double.IsInfinity(pow))
-				//throw new CodeEE("累乗結果が無限大です");
-				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
-			else if ((pow >= long.MaxValue) || (pow <= long.MinValue))
-				//throw new CodeEE("累乗結果(" + pow.ToString() + ")が64ビット符号付き整数の範囲外です");
-				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, pow));
-			return (long)pow;
-		}
-	}
-
-	private sealed class SqrtMethod : FunctionMethod
-	{
-		public SqrtMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long ret = arguments[0].GetIntValue(exm);
-			if (ret < 0)
-				// throw new CodeEE("SQRT関数の引数に負の値が指定されました");
-				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
-			return (long)Math.Sqrt(ret);
-		}
-	}
-
-	private sealed class CbrtMethod : FunctionMethod
-	{
-		public CbrtMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long ret = arguments[0].GetIntValue(exm);
-			if (ret < 0)
-				// throw new CodeEE("CBRT関数の引数に負の値が指定されました");
-				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
-			return (long)Math.Pow(ret, 1.0 / 3.0);
-		}
-	}
-
-	private sealed class LogMethod : FunctionMethod
-	{
-		readonly double Base;
-		public LogMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			Base = Math.E;
-			CanRestructure = true;
-		}
-		public LogMethod(double b)
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			Base = b;
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long ret = arguments[0].GetIntValue(exm);
-			if (ret <= 0)
-				// throw new CodeEE("対数関数の引数に0以下の値が指定されました");
-				throw new CodeEE(string.Format(trerror.ArgIsNotMoreThan0.Text, Name, 1, ret));
-			//　今の段階は発生しない
-			//if (Base <= 0.0d)
-			//	throw new CodeEE("対数関数の底に0以下の値が指定されました");
-			double dret = ret;
-			if (Base == Math.E)
-				dret = Math.Log(dret);
-			else
-				dret = Math.Log10(dret);
-			if (double.IsNaN(dret))
-				// throw new CodeEE("計算値が非数値です");
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			else if (double.IsInfinity(dret))
-				// throw new CodeEE("計算値が無限大です");
-				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
-			else if ((dret >= long.MaxValue) || (dret <= long.MinValue))
-				// throw new CodeEE("計算結果(" + dret.ToString() + ")が64ビット符号付き整数の範囲外です");
-				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
-			return (long)dret;
-		}
-	}
-
-	private sealed class ExpMethod : FunctionMethod
-	{
-		public ExpMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Exp(ret);
-			if (double.IsNaN(dret))
-				// throw new CodeEE("計算値が非数値です");
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			else if (double.IsInfinity(dret))
-				// throw new CodeEE("計算値が無限大です");
-				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
-			else if ((dret >= long.MaxValue) || (dret <= long.MinValue))
-				// throw new CodeEE("計算結果(" + dret.ToString() + ")が64ビット符号付き整数の範囲外です");
-				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
-
-			return (long)dret;
-		}
-	}
-
-	private sealed class SignMethod : FunctionMethod
-	{
-
-		public SignMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long ret = arguments[0].GetIntValue(exm);
-			return Math.Sign(ret);
-		}
-	}
-
-	private sealed class GetLimitMethod : FunctionMethod
-	{
-		public GetLimitMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
-			CanRestructure = true;
-		}
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			long value = arguments[0].GetIntValue(exm);
-			long min = arguments[1].GetIntValue(exm);
-			long max = arguments[2].GetIntValue(exm);
-			long ret;
-			if (value < min)
-				ret = min;
-			else if (value > max)
-				ret = max;
-			else
-				ret = value;
-			return ret;
-		}
-	}
-
-	private sealed class RandFMethod : FunctionMethod
-	{
-		public RandFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any }, OmitStart = 1 }
-			];
-			CanRestructure = false;
-		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			double min = 0.0;
@@ -4064,29 +3780,57 @@ internal static partial class FunctionMethodCreator
 			}
 			return exm.VEvaluator.GetNextRandDouble() * (max - min) + min;
 		}
+
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
-	private sealed class MaxFMethod : FunctionMethod
+	private sealed class MaxMethod : FunctionMethod
 	{
 		readonly bool isMax;
-		public MaxFMethod()
+		public MaxMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny }, OmitStart = 1 }
-			];
+					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny}, OmitStart = 1 }
+				];
 			isMax = true;
-			CanRestructure = true;
+			CanRestructure = false;
 		}
-		public MaxFMethod(bool max)
+		public MaxMethod(bool max)
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny }, OmitStart = 1 }
-			];
+					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny}, OmitStart = 1 }
+				];
 			isMax = max;
-			CanRestructure = true;
+			CanRestructure = false;
 		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long ret = arguments[0].GetIntValue(exm);
+
+			for (int i = 1; i < arguments.Count; i++)
+			{
+				long newRet = arguments[i].GetIntValue(exm);
+				if (isMax)
+				{
+					if (ret < newRet)
+						ret = newRet;
+				}
+				else
+				{
+					if (ret > newRet)
+						ret = newRet;
+				}
+			}
+			return ret;
+		}
+
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			double ret = ToDouble(arguments[0], exm);
@@ -4104,56 +3848,100 @@ internal static partial class FunctionMethodCreator
 			}
 			return ret;
 		}
+
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
-	private sealed class AbsFMethod : FunctionMethod
+	private sealed class AbsMethod : FunctionMethod
 	{
-		public AbsFMethod()
+		public AbsMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long ret = arguments[0].GetIntValue(exm);
+			if (ret == long.MinValue)
+				throw new CodeEE(string.Format(trerror.MinInt64CanNotApplyABS.Text, Name, long.MinValue));
+			return Math.Abs(ret);
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return Math.Abs(ToDouble(arguments[0], exm));
 		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
-	private sealed class PowerFMethod : FunctionMethod
+	private sealed class PowerMethod : FunctionMethod
 	{
-		public PowerFMethod()
+		public PowerMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any } }
 			];
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long x = arguments[0].GetIntValue(exm);
+			long y = arguments[1].GetIntValue(exm);
+			double pow = Math.Pow(x, y);
+			if (double.IsNaN(pow))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(pow))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			else if ((pow >= long.MaxValue) || (pow <= long.MinValue))
+				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, pow));
+			return (long)pow;
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			double x = ToDouble(arguments[0], exm);
-			double y = ToDouble(arguments[1], exm);
-			double pow = Math.Pow(x, y);
+			double pow = Math.Pow(ToDouble(arguments[0], exm), ToDouble(arguments[1], exm));
 			if (double.IsNaN(pow))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(pow))
 				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
 			return pow;
 		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
-	private sealed class SqrtFMethod : FunctionMethod
+	private sealed class SqrtMethod : FunctionMethod
 	{
-		public SqrtFMethod()
+		public SqrtMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long ret = arguments[0].GetIntValue(exm);
+			if (ret < 0)
+				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
+			return (long)Math.Sqrt(ret);
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4162,45 +3950,84 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
 			return Math.Sqrt(ret);
 		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
-	private sealed class CbrtFMethod : FunctionMethod
+	private sealed class CbrtMethod : FunctionMethod
 	{
-		public CbrtFMethod()
+		public CbrtMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long ret = arguments[0].GetIntValue(exm);
+			if (ret < 0)
+				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
+			return (long)Math.Pow(ret, 1.0 / 3.0);
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			double ret = ToDouble(arguments[0], exm);
-			return Math.Cbrt(ret);
+			if (ret < 0)
+				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
+			return Math.Pow(ret, 1.0 / 3.0);
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
 		}
 	}
 
-	private sealed class LogFMethod : FunctionMethod
+	private sealed class LogMethod : FunctionMethod
 	{
 		readonly double Base;
-		public LogFMethod()
+		public LogMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
 			Base = Math.E;
-			CanRestructure = true;
+			CanRestructure = false;
 		}
-		public LogFMethod(double b)
+		public LogMethod(double b)
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
 			Base = b;
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long ret = arguments[0].GetIntValue(exm);
+			if (ret <= 0)
+				throw new CodeEE(string.Format(trerror.ArgIsNotMoreThan0.Text, Name, 1, ret));
+			double dret = ret;
+			if (Base == Math.E)
+				dret = Math.Log(dret);
+			else
+				dret = Math.Log10(dret);
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			else if ((dret >= long.MaxValue) || (dret <= long.MinValue))
+				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
+			return (long)dret;
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4218,56 +4045,104 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
 			return dret;
 		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
-	private sealed class ExpFMethod : FunctionMethod
+	private sealed class ExpMethod : FunctionMethod
 	{
-		public ExpFMethod()
+		public ExpMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long ret = arguments[0].GetIntValue(exm);
+			double dret = Math.Exp(ret);
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			else if ((dret >= long.MaxValue) || (dret <= long.MinValue))
+				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
+			return (long)dret;
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			double ret = ToDouble(arguments[0], exm);
-			double dret = Math.Exp(ret);
+			double dret = Math.Exp(ToDouble(arguments[0], exm));
 			if (double.IsNaN(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
 			return dret;
 		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
-	private sealed class SignFMethod : FunctionMethod
+	private sealed class SignMethod : FunctionMethod
 	{
-		public SignFMethod()
+
+		public SignMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long ret = arguments[0].GetIntValue(exm);
+			return Math.Sign(ret);
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			double ret = ToDouble(arguments[0], exm);
-			return Math.Sign(ret);
+			return Math.Sign(ToDouble(arguments[0], exm));
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
 		}
 	}
 
-	private sealed class LimitFMethod : FunctionMethod
+	private sealed class GetLimitMethod : FunctionMethod
 	{
-		public LimitFMethod()
+		public GetLimitMethod()
 		{
-			ReturnType = EraType.Float;
+			ReturnType = EraType.Integer;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any, ArgType.Any } }
 			];
-			CanRestructure = true;
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long value = arguments[0].GetIntValue(exm);
+			long min = arguments[1].GetIntValue(exm);
+			long max = arguments[2].GetIntValue(exm);
+			long ret;
+			if (value < min)
+				ret = min;
+			else if (value > max)
+				ret = max;
+			else
+				ret = value;
+			return ret;
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4276,10 +4151,15 @@ internal static partial class FunctionMethodCreator
 			double max = ToDouble(arguments[2], exm);
 			if (value < min)
 				return min;
-			else if (value > max)
+			if (value > max)
 				return max;
-			else
-				return value;
+			return value;
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
 		}
 	}
 
@@ -4288,13 +4168,25 @@ internal static partial class FunctionMethodCreator
 		return expr.GetEraType() == EraType.Integer ? expr.GetIntValue(exm) : expr.GetFloatValue(exm);
 	}
 
+	private static bool HasFloatArg(List<AExpression> arguments)
+	{
+		foreach (var arg in arguments)
+		{
+			if (arg != null && arg.GetEraType() == EraType.Float)
+				return true;
+		}
+		return false;
+	}
+
 	private sealed class SinMethod : FunctionMethod
 	{
 		public SinMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4308,6 +4200,21 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double dret = Math.Sin(ToDouble(arguments[0], exm));
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			return dret;
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class CosMethod : FunctionMethod
@@ -4315,8 +4222,10 @@ internal static partial class FunctionMethodCreator
 		public CosMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4330,6 +4239,21 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double dret = Math.Cos(ToDouble(arguments[0], exm));
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			return dret;
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class TanMethod : FunctionMethod
@@ -4337,8 +4261,10 @@ internal static partial class FunctionMethodCreator
 		public TanMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4352,6 +4278,21 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double dret = Math.Tan(ToDouble(arguments[0], exm));
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			else if (double.IsInfinity(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
+			return dret;
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class AsinMethod : FunctionMethod
@@ -4359,8 +4300,10 @@ internal static partial class FunctionMethodCreator
 		public AsinMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4372,6 +4315,22 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			if (ret < -1.0 || ret > 1.0)
+				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, ret, -1, 1));
+			double dret = Math.Asin(ret);
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			return dret;
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class AcosMethod : FunctionMethod
@@ -4379,8 +4338,10 @@ internal static partial class FunctionMethodCreator
 		public AcosMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4392,6 +4353,22 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double ret = ToDouble(arguments[0], exm);
+			if (ret < -1.0 || ret > 1.0)
+				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, ret, -1, 1));
+			double dret = Math.Acos(ret);
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			return dret;
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class AtanMethod : FunctionMethod
@@ -4399,8 +4376,10 @@ internal static partial class FunctionMethodCreator
 		public AtanMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4410,6 +4389,19 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			double dret = Math.Atan(ToDouble(arguments[0], exm));
+			if (double.IsNaN(dret))
+				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
+			return dret;
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class FloorMethod : FunctionMethod
@@ -4417,8 +4409,10 @@ internal static partial class FunctionMethodCreator
 		public FloorMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4428,6 +4422,16 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return Math.Floor(ToDouble(arguments[0], exm));
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class CeilMethod : FunctionMethod
@@ -4435,8 +4439,10 @@ internal static partial class FunctionMethodCreator
 		public CeilMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4446,6 +4452,16 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
 		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return Math.Ceiling(ToDouble(arguments[0], exm));
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
+		}
 	}
 
 	private sealed class RoundMethod : FunctionMethod
@@ -4453,8 +4469,10 @@ internal static partial class FunctionMethodCreator
 		public RoundMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.Integer];
-			CanRestructure = true;
+			argumentTypeArrayEx = [
+				new ArgTypeList{ ArgTypes = { ArgType.Any } }
+			];
+			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4464,186 +4482,15 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
 		}
-	}
-
-	private sealed class SinFMethod : FunctionMethod
-	{
-		public SinFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			double ret = ToDouble(arguments[0], exm);
-			double dret = Math.Sin(ret);
-			if (double.IsNaN(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			else if (double.IsInfinity(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
-			return dret;
+			return Math.Round(ToDouble(arguments[0], exm), MidpointRounding.AwayFromZero);
 		}
-	}
-
-	private sealed class CosFMethod : FunctionMethod
-	{
-		public CosFMethod()
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			double dret = Math.Cos(ret);
-			if (double.IsNaN(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			else if (double.IsInfinity(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
-			return dret;
-		}
-	}
-
-	private sealed class TanFMethod : FunctionMethod
-	{
-		public TanFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			double dret = Math.Tan(ret);
-			if (double.IsNaN(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			else if (double.IsInfinity(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsInfinity.Text, Name));
-			return dret;
-		}
-	}
-
-	private sealed class AsinFMethod : FunctionMethod
-	{
-		public AsinFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			if (ret < -1.0 || ret > 1.0)
-				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, ret, -1, 1));
-			double dret = Math.Asin(ret);
-			if (double.IsNaN(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			return dret;
-		}
-	}
-
-	private sealed class AcosFMethod : FunctionMethod
-	{
-		public AcosFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			if (ret < -1.0 || ret > 1.0)
-				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, ret, -1, 1));
-			double dret = Math.Acos(ret);
-			if (double.IsNaN(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			return dret;
-		}
-	}
-
-	private sealed class AtanFMethod : FunctionMethod
-	{
-		public AtanFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			double dret = Math.Atan(ret);
-			if (double.IsNaN(dret))
-				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
-			return dret;
-		}
-	}
-
-	private sealed class FloorFMethod : FunctionMethod
-	{
-		public FloorFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			return Math.Floor(ret);
-		}
-	}
-
-	private sealed class CeilFMethod : FunctionMethod
-	{
-		public CeilFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			return Math.Ceiling(ret);
-		}
-	}
-
-	private sealed class RoundFMethod : FunctionMethod
-	{
-		public RoundFMethod()
-		{
-			ReturnType = EraType.Float;
-			argumentTypeArrayEx = [
-				new ArgTypeList{ ArgTypes = { ArgType.Any } }
-			];
-			CanRestructure = true;
-		}
-		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			double ret = ToDouble(arguments[0], exm);
-			return Math.Round(ret, MidpointRounding.AwayFromZero);
+			if (HasFloatArg(arguments))
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
 		}
 	}
 
@@ -4718,9 +4565,8 @@ internal static partial class FunctionMethodCreator
 		public SumArrayMethod()
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.RefIntArray, ArgType.Int, ArgType.Int }, OmitStart = 1 },
+					new ArgTypeList{ ArgTypes = { ArgType.RefAnyArray, ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				];
 			isCharaRange = false;
 			CanRestructure = false;
@@ -4728,40 +4574,12 @@ internal static partial class FunctionMethodCreator
 		public SumArrayMethod(bool isChara)
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefIntArray | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 }
+					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefAnyArray | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 }
 				];
 			isCharaRange = isChara;
 			CanRestructure = false;
 		}
-		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
-		//{
-		//	if (arguments.Count < 1)
-		//		return name + "関数には少なくとも1つの引数が必要です";
-		//	if (arguments.Count > 3)
-		//		return name + "関数の引数が多すぎます";
-		//	if (arguments[0] == null)
-		//		return name + "関数の1番目の引数は省略できません";
-		//	if (!(arguments[0] is VariableTerm))
-		//		return name + "関数の1番目の引数が変数ではありません";
-		//	VariableTerm varToken = (VariableTerm)arguments[0];
-		//	if (varToken.IsString)
-		//		return name + "関数の1番目の引数が数値変数ではありません";
-		//	if (isCharaRange && !varToken.Identifier.IsCharacterData)
-		//		return name + "関数の1番目の引数がキャラクタ変数ではありません";
-		//	if (!isCharaRange && !varToken.Identifier.IsArray1D && !varToken.Identifier.IsArray2D && !varToken.Identifier.IsArray3D)
-		//		return name + "関数の1番目の引数が配列変数ではありません";
-		//	if (arguments.Count == 1)
-		//		return null;
-		//	if ((arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
-		//		return name + "関数の2番目の変数が数値ではありません";
-		//	if (arguments.Count == 2)
-		//		return null;
-		//	if ((arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
-		//		return name + "関数の3番目の変数が数値ではありません";
-		//	return null;
-		//}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			VariableTerm varTerm = (VariableTerm)arguments[0];
@@ -4778,10 +4596,36 @@ internal static partial class FunctionMethodCreator
 			{
 				long charaNum = exm.VEvaluator.CHARANUM;
 				if (index1 >= charaNum || index1 < 0 || index2 > charaNum || index2 < 0)
-					// throw new CodeEE("SUMCARRAY関数の範囲指定がキャラクタ配列の範囲を超えています(" + index1.ToString() + "～" + index2.ToString() + ")");
 					throw new CodeEE(string.Format(trerror.CharacterRangeInvalid.Text, Name, index1, index2));
 				return VariableEvaluator.GetArraySumChara(p, index1, index2);
 			}
+		}
+		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			VariableTerm varTerm = (VariableTerm)arguments[0];
+			long index1 = (arguments.Count >= 2 && arguments[1] != null) ? arguments[1].GetIntValue(exm) : 0;
+			long index2 = (arguments.Count == 3 && arguments[2] != null) ? arguments[2].GetIntValue(exm) : (isCharaRange ? exm.VEvaluator.CHARANUM : varTerm.GetLastLength());
+
+			FixedVariableTerm p = varTerm.GetFixedVariableTerm(exm);
+			if (!isCharaRange)
+			{
+				p.IsArrayRangeValid(index1, index2, "SUMARRAY", 2L, 3L);
+				return VariableEvaluator.GetArraySumDouble(p, index1, index2);
+			}
+			else
+			{
+				long charaNum = exm.VEvaluator.CHARANUM;
+				if (index1 >= charaNum || index1 < 0 || index2 > charaNum || index2 < 0)
+					throw new CodeEE(string.Format(trerror.CharacterRangeInvalid.Text, Name, index1, index2));
+				return VariableEvaluator.GetArraySumCharaDouble(p, index1, index2);
+			}
+		}
+		public override SingleTerm GetReturnValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			VariableTerm varTerm = (VariableTerm)arguments[0];
+			if (varTerm.Identifier.GetEraType() == EraType.Float)
+				return new SingleFloatTerm(GetFloatValue(exm, arguments));
+			return new SingleLongTerm(GetIntValue(exm, arguments));
 		}
 	}
 
@@ -4854,6 +4698,11 @@ internal static partial class FunctionMethodCreator
 					long targetValue = arguments[1].GetIntValue(exm);
 					return VariableEvaluator.GetMatch(p, targetValue, start, end);
 				}
+				else if (arguments[0].GetEraType() == EraType.Float)
+				{
+					double targetValue = arguments[1].GetFloatValue(exm);
+					return VariableEvaluator.GetMatch(p, targetValue, start, end);
+				}
 				else
 				{
 					string targetStr = arguments[1].GetStrValue(exm);
@@ -4864,11 +4713,15 @@ internal static partial class FunctionMethodCreator
 			{
 				long charaNum = exm.VEvaluator.CHARANUM;
 				if (start >= charaNum || start < 0 || end > charaNum || end < 0)
-					// throw new CodeEE("CMATCH関数の範囲指定がキャラクタ配列の範囲を超えています(" + start.ToString() + "～" + end.ToString() + ")");
 					throw new CodeEE(string.Format(trerror.CharacterRangeInvalid.Text, Name, start, end));
 				if (arguments[0].GetEraType() == EraType.Integer)
 				{
 					long targetValue = arguments[1].GetIntValue(exm);
+					return VariableEvaluator.GetMatchChara(p, targetValue, start, end);
+				}
+				else if (arguments[0].GetEraType() == EraType.Float)
+				{
+					double targetValue = arguments[1].GetFloatValue(exm);
 					return VariableEvaluator.GetMatchChara(p, targetValue, start, end);
 				}
 				else
@@ -4931,6 +4784,15 @@ internal static partial class FunctionMethodCreator
 						ret += 1;
 				}
 			}
+			else if (arguments[0].GetEraType() == EraType.Float)
+			{
+				double baseValue = arguments[0].GetFloatValue(exm);
+				for (int i = 1; i < arguments.Count; i++)
+				{
+					if (baseValue == arguments[i].GetFloatValue(exm))
+						ret += 1;
+				}
+			}
 			else
 			{
 				string baseString = arguments[0].GetStrValue(exm);
@@ -4979,6 +4841,17 @@ internal static partial class FunctionMethodCreator
 				for (int i = 0; i < arguments.Count; i++)
 				{
 					valueArray[i] = arguments[i].GetIntValue(exm);
+				}
+				var resultArray = valueArray.Distinct();
+				if (resultArray.Count() != arguments.Count)
+					return 0L;
+			}
+			else if (arguments[0].GetEraType() == EraType.Float)
+			{
+				double[] valueArray = new double[arguments.Count];
+				for (int i = 0; i < arguments.Count; i++)
+				{
+					valueArray[i] = arguments[i].GetFloatValue(exm);
 				}
 				var resultArray = valueArray.Distinct();
 				if (resultArray.Count() != arguments.Count)
@@ -5037,6 +4910,15 @@ internal static partial class FunctionMethodCreator
 						return 0L;
 				}
 			}
+			else if (arguments[0].GetEraType() == EraType.Float)
+			{
+				double baseValue = arguments[0].GetFloatValue(exm);
+				for (int i = 1; i < arguments.Count; i++)
+				{
+					if (baseValue != arguments[i].GetFloatValue(exm))
+						return 0L;
+				}
+			}
 			else
 			{
 				string baseValue = arguments[0].GetStrValue(exm);
@@ -5058,9 +4940,8 @@ internal static partial class FunctionMethodCreator
 		public MaxArrayMethod()
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
+					new ArgTypeList{ ArgTypes = { ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				];
 			isCharaRange = false;
 			isMax = true;
@@ -5070,9 +4951,8 @@ internal static partial class FunctionMethodCreator
 		public MaxArrayMethod(bool isChara)
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
+					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				];
 			isCharaRange = isChara;
 			isMax = true;
@@ -5085,44 +4965,18 @@ internal static partial class FunctionMethodCreator
 		public MaxArrayMethod(bool isChara, bool isMaxFunc)
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = isChara
 				? [
-						new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
+						new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				]
 				: [
-						new ArgTypeList{ ArgTypes = { ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
+						new ArgTypeList{ ArgTypes = { ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int }, OmitStart = 1 },
 				];
 			isCharaRange = isChara;
 			isMax = isMaxFunc;
 			funcName = (isMax ? "MAX" : "MIN") + (isCharaRange ? "C" : "") + "ARRAY";
 			CanRestructure = false;
 		}
-		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
-		//{
-		//	if (arguments.Count < 1)
-		//		return name + "関数には少なくとも1つの引数が必要です";
-		//	if (arguments.Count > 3)
-		//		return name + "関数の引数が多すぎます";
-		//	if (arguments[0] == null)
-		//		return name + "関数の1番目の引数は省略できません";
-		//	if (!(arguments[0] is VariableTerm))
-		//		return name + "関数の1番目の引数が変数ではありません";
-		//	VariableTerm varToken = (VariableTerm)arguments[0];
-		//	if (isCharaRange && !varToken.Identifier.IsCharacterData)
-		//		return name + "関数の1番目の引数がキャラクタ変数ではありません";
-		//	if (!varToken.IsInteger)
-		//		return name + "関数の1番目の引数が数値変数ではありません";
-		//	if (!isCharaRange && (varToken.Identifier.IsArray2D || varToken.Identifier.IsArray3D))
-		//		return name + "関数は二重配列・三重配列には対応していません";
-		//	if (!varToken.Identifier.IsArray1D)
-		//		return name + "関数の1番目の引数が配列変数ではありません";
-		//	if ((arguments.Count >= 2) && (arguments[1] != null) && (arguments[1].GetOperandType() != EraType.Integer))
-		//		return name + "関数の2番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 3) && (arguments[2] != null) && (arguments[2].GetOperandType() != EraType.Integer))
-		//		return name + "関数の3番目の引数の型が正しくありません";
-		//	return null;
-		//}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			VariableTerm vTerm = (VariableTerm)arguments[0];
@@ -5132,6 +4986,8 @@ internal static partial class FunctionMethodCreator
 			if (!isCharaRange)
 			{
 				p.IsArrayRangeValid(start, end, funcName, 2L, 3L);
+				if (vTerm.Identifier.GetEraType() == EraType.Float)
+					return (long)VariableEvaluator.GetMaxArrayDouble(p, start, end, isMax);
 				return VariableEvaluator.GetMaxArray(p, start, end, isMax);
 			}
 			else
@@ -5139,6 +4995,8 @@ internal static partial class FunctionMethodCreator
 				long charaNum = exm.VEvaluator.CHARANUM;
 				if (start >= charaNum || start < 0 || end > charaNum || end < 0)
 					throw new CodeEE(string.Format(trerror.CharacterRangeInvalid.Text, funcName, start, end));
+				if (vTerm.Identifier.GetEraType() == EraType.Float)
+					return (long)VariableEvaluator.GetMaxArrayCharaDouble(p, start, end, isMax);
 				return VariableEvaluator.GetMaxArrayChara(p, start, end, isMax);
 			}
 		}
@@ -5443,61 +5301,23 @@ internal static partial class FunctionMethodCreator
 		public InRangeArrayMethod()
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
+					new ArgTypeList{ ArgTypes = { ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
 				];
 			CanRestructure = false;
 		}
 		public InRangeArrayMethod(bool isChara)
 		{
 			ReturnType = EraType.Integer;
-			// argumentTypeArray = null;
 			argumentTypeArrayEx = [
-					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefInt1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
+					new ArgTypeList{ ArgTypes = { ArgType.CharacterData | ArgType.RefAny1D | ArgType.AllowConstRef, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int }, OmitStart = 3 },
 				];
 			isCharaRange = isChara;
 			CanRestructure = false;
 		}
 		private readonly bool isCharaRange;
-		//public override string CheckArgumentType(string name, IOperandTerm[] arguments)
-		//{
-		//	if (arguments.Count < 2)
-		//		return name + "関数には少なくとも2つの引数が必要です";
-		//	if (arguments.Count > 6)
-		//		return name + "関数の引数が多すぎます";
-		//	if (arguments[0] == null)
-		//		return name + "関数の1番目の引数は省略できません";
-		//	if (!(arguments[0] is VariableTerm))
-		//		return name + "関数の1番目の引数が変数ではありません";
-		//	VariableTerm varToken = (VariableTerm)arguments[0];
-		//	if (isCharaRange && !varToken.Identifier.IsCharacterData)
-		//		return name + "関数の1番目の引数がキャラクタ変数ではありません";
-		//	if (!isCharaRange && (varToken.Identifier.IsArray2D || varToken.Identifier.IsArray3D))
-		//		return name + "関数は二重配列・三重配列には対応していません";
-		//	if (!isCharaRange && !varToken.Identifier.IsArray1D)
-		//		return name + "関数の1番目の引数が配列変数ではありません";
-		//	if (!varToken.IsInteger)
-		//		return name + "関数の1番目の引数が数値型変数ではありません";
-		//	if (arguments[1] == null)
-		//		return name + "関数の2番目の引数は省略できません";
-		//	if (arguments[1].GetOperandType() != EraType.Integer)
-		//		return name + "関数の2番目の引数が数値型ではありません";
-		//	if (arguments[2] == null)
-		//		return name + "関数の3番目の引数は省略できません";
-		//	if (arguments[2].GetOperandType() != EraType.Integer)
-		//		return name + "関数の3番目の引数が数値型ではありません";
-		//	if ((arguments.Count >= 4) && (arguments[3] != null) && (arguments[3].GetOperandType() != EraType.Integer))
-		//		return name + "関数の4番目の引数の型が正しくありません";
-		//	if ((arguments.Count >= 5) && (arguments[4] != null) && (arguments[4].GetOperandType() != EraType.Integer))
-		//		return name + "関数の5番目の引数の型が正しくありません";
-		//	return null;
-		//}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long min = arguments[1].GetIntValue(exm);
-			long max = arguments[2].GetIntValue(exm);
-
 			VariableTerm varTerm = arguments[0] as VariableTerm;
 			long start = (arguments.Count > 3 && arguments[3] != null) ? arguments[3].GetIntValue(exm) : 0;
 			long end = (arguments.Count > 4 && arguments[4] != null) ? arguments[4].GetIntValue(exm) : (isCharaRange ? exm.VEvaluator.CHARANUM : varTerm.GetLength());
@@ -5507,15 +5327,30 @@ internal static partial class FunctionMethodCreator
 			if (!isCharaRange)
 			{
 				p.IsArrayRangeValid(start, end, "INRANGEARRAY", 4L, 5L);
-				return VariableEvaluator.GetInRangeArray(p, min, max, start, end);
+				if (varTerm.Identifier.GetEraType() == EraType.Float)
+				{
+					double min = arguments[1].GetFloatValue(exm);
+					double max = arguments[2].GetFloatValue(exm);
+					return VariableEvaluator.GetInRangeArrayDouble(p, min, max, start, end);
+				}
+				long minL = arguments[1].GetIntValue(exm);
+				long maxL = arguments[2].GetIntValue(exm);
+				return VariableEvaluator.GetInRangeArray(p, minL, maxL, start, end);
 			}
 			else
 			{
 				long charaNum = exm.VEvaluator.CHARANUM;
 				if (start >= charaNum || start < 0 || end > charaNum || end < 0)
-					// throw new CodeEE("INRANGECARRAY関数の範囲指定がキャラクタ配列の範囲を超えています(" + start.ToString() + "～" + end.ToString() + ")");
 					throw new CodeEE(string.Format(trerror.CharacterRangeInvalid.Text, Name, start, end));
-				return VariableEvaluator.GetInRangeArrayChara(p, min, max, start, end);
+				if (varTerm.Identifier.GetEraType() == EraType.Float)
+				{
+					double min = arguments[1].GetFloatValue(exm);
+					double max = arguments[2].GetFloatValue(exm);
+					return VariableEvaluator.GetInRangeArrayCharaDouble(p, min, max, start, end);
+				}
+				long minL = arguments[1].GetIntValue(exm);
+				long maxL = arguments[2].GetIntValue(exm);
+				return VariableEvaluator.GetInRangeArrayChara(p, minL, maxL, start, end);
 			}
 		}
 	}
