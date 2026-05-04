@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -689,8 +688,8 @@ internal sealed partial class EmueraConsole : IDisposable
 
 	public void AddBackgroundImage(string name, long depth, float opacity)
 	{
-		var spr = AppContents.GetSprite(name) as SpriteF;
-		if (spr == null)
+		var spr = AppContents.GetSprite(name);
+		if (spr == null || !spr.IsCreated)
 		{
 			return;
 		}
@@ -752,15 +751,15 @@ internal sealed partial class EmueraConsole : IDisposable
 		foreach (var pair in backgroundList)
 		{
 			var bg = pair.Value.bgImage;
-			var scaleW = bakedBackground.Width / (float)bg.BaseImage.SKBitmap.Width;
-			var scaleH = bakedBackground.Height / (float)bg.BaseImage.SKBitmap.Height;
-			var cropHorizontally = bg.BaseImage.SKBitmap.Height * scaleW < bakedBackground.Height;
-			var newWidth = bg.BaseImage.SKBitmap.Width * (cropHorizontally ? scaleH : scaleW);
-			var newHeight = bg.BaseImage.SKBitmap.Height * (cropHorizontally ? scaleH : scaleW);
+			var scaleW = bakedBackground.Width / (float)bg.DestBaseSize.Width;
+			var scaleH = bakedBackground.Height / (float)bg.DestBaseSize.Height;
+			var cropHorizontally = bg.DestBaseSize.Height * scaleW < bakedBackground.Height;
+			var newWidth = bg.DestBaseSize.Width * (cropHorizontally ? scaleH : scaleW);
+			var newHeight = bg.DestBaseSize.Height * (cropHorizontally ? scaleH : scaleW);
 			var paddingX = (int)((bakedBackground.Width - newWidth) / 2);
-			//SKColorFilter attributes = new();
-			//attributes.SetColorMatrix(pair.Value.GetColorMatrix(), ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-			bg.GraphicsDraw(graph, new Rectangle(paddingX, 0, (int)newWidth, (int)newHeight));
+			var filter = pair.Value.GetColorFilter();
+			bg.GraphicsDraw(graph, new Rectangle(paddingX, 0, (int)newWidth, (int)newHeight), filter);
+			filter?.Dispose();
 		}
 	}
 	/// <summary>
@@ -2894,23 +2893,31 @@ internal sealed partial class EmueraConsole : IDisposable
 
 internal class ConsoleBackground
 {
-	public readonly SpriteF bgImage;
+	public readonly ASprite bgImage;
 
-	public ConsoleBackground(SpriteF spr, float opacity = 1.0f)
+	public ConsoleBackground(ASprite spr, float opacity = 1.0f)
 	{
 		bgImage = spr;
-		colorMatrix = new ColorMatrix();
-		SetOpacity(opacity);
+		Opacity = opacity;
 	}
+
+	public float Opacity { get; private set; }
 
 	public void SetOpacity(float opacity)
 	{
-		colorMatrix.Matrix33 = opacity;
-	}
-	public ColorMatrix GetColorMatrix()
-	{
-		return colorMatrix;
+		Opacity = opacity;
 	}
 
-	private ColorMatrix colorMatrix;
+	public SKColorFilter GetColorFilter()
+	{
+		if (Opacity >= 1.0f)
+			return null;
+		float[] skiaCM = [
+			1, 0, 0, 0, 0,
+			0, 1, 0, 0, 0,
+			0, 0, 1, 0, 0,
+			0, 0, 0, Opacity, 0,
+		];
+		return SKColorFilter.CreateColorMatrix(skiaCM);
+	}
 }

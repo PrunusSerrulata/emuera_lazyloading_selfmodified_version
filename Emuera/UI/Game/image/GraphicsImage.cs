@@ -412,12 +412,12 @@ internal sealed class GraphicsImage : AbstractImage
 
 		drawImgList = null;
 		float[] skiaCM = [
-			cm[0][0],cm[1][0],cm[2][0],cm[3][0],cm[0][4],
-			cm[0][1],cm[1][1],cm[2][1],cm[3][1],cm[1][4],
-			cm[0][2],cm[1][2],cm[2][2],cm[3][2],cm[2][4],
-			cm[0][3],cm[1][3],cm[2][3],cm[3][3],cm[3][4],
+			cm[0][0], cm[0][1], cm[0][2], cm[0][3], cm[0][4] * 255f,
+			cm[1][0], cm[1][1], cm[1][2], cm[1][3], cm[1][4] * 255f,
+			cm[2][0], cm[2][1], cm[2][2], cm[2][3], cm[2][4] * 255f,
+			cm[3][0], cm[3][1], cm[3][2], cm[3][3], cm[3][4] * 255f,
 		];
-		var filter = SKColorFilter.CreateColorMatrix(skiaCM);
+		using var filter = SKColorFilter.CreateColorMatrix(skiaCM);
 		img.GraphicsDraw(canvas, destRect, filter);
 	}
 
@@ -434,7 +434,7 @@ internal sealed class GraphicsImage : AbstractImage
 		drawImgList = null;
 
 		var src = srcGra.GetBitmap();
-		canvas.DrawBitmap(src, new SKPoint(0, 0));
+		canvas.DrawBitmap(src, srcRect.ToSKRect(), destRect.ToSKRect());
 	}
 
 
@@ -451,12 +451,15 @@ internal sealed class GraphicsImage : AbstractImage
 		drawImgList = null;
 
 		var src = srcGra.GetBitmap();
-		ImageAttributes imageAttributes = new();
-		ColorMatrix colorMatrix = new(cm);
-		imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-		canvas.DrawBitmap(src, new SKRect(srcRect.X, srcRect.Y, srcRect.Width, srcRect.Height));
-
-		imageAttributes.Dispose();
+		float[] skiaCM = [
+			cm[0][0], cm[0][1], cm[0][2], cm[0][3], cm[0][4] * 255f,
+			cm[1][0], cm[1][1], cm[1][2], cm[1][3], cm[1][4] * 255f,
+			cm[2][0], cm[2][1], cm[2][2], cm[2][3], cm[2][4] * 255f,
+			cm[3][0], cm[3][1], cm[3][2], cm[3][3], cm[3][4] * 255f,
+		];
+		using var filter = SKColorFilter.CreateColorMatrix(skiaCM);
+		using var paint = new SKPaint { ColorFilter = filter };
+		canvas.DrawBitmap(src, srcRect.ToSKRect(), destRect.ToSKRect(), paint);
 	}
 
 

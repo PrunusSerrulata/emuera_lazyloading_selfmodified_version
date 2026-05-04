@@ -1,4 +1,27 @@
 
+2026年5月5日
+GDI+→SkiaSharp ColorMatrix 迁移多项 Bug 修复：
+	问题描述：从 GDI+ ImageAttributes 迁移到 SkiaSharp SKColorFilter 时，ColorMatrix 的传递与应用存在多处错误，导致 GDRAWCIMG/GDRAWG 带 ColorMatrix 参数时颜色变换结果不正确或完全无效。
+	修复内容：
+		1. GDrawCImg/GDrawG：矩阵被错误转置——GDI+ 与 SkiaSharp 均为行优先，应直接按行复制而非转置
+		2. GDrawCImg/GDrawG：偏移列 cm[x][4] 未乘以 255——GDI+ 归一化范围 0.0~1.0，SkiaSharp 非归一化范围 0~255
+		3. GDRAWG 无 ColorMatrix 重载：忽略 destRect/srcRect 参数，始终绘制到 (0,0)
+		4. SKColorFilter 内存泄漏：GDrawCImg/GDrawG 缺少 using 声明，每次调用泄漏一个 SKColorFilter 实例
+		5. GDRAWG 带 ColorMatrix 重载：仍在使用未迁移的 GDI+ ImageAttributes API，ColorMatrix 完全未应用
+		6. SETBGIMAGE：AddBackgroundImage 仅接受 SpriteF，拒绝 SpriteG（应使用 ASprite + IsCreated 检查）
+		7. ConsoleBackground：透明度（ColorMatrix）从未被 BakeBackground 实际使用
+		8. 清除 System.Drawing.Imaging 残留引用
+	新增文档：Readme/参考手册/Graphics绘图系API.zh.md（16 个 G 系函数 + ColorMatrix 详解）
+
+2026年5月5日
+浮点数类型引入与位编码废弃（B.3 全量重构）：
+	在引擎核心引入 Float（double）类型，同时将全代码库的类型判别从 typeof(long)/typeof(string) 硬编码
+	统一替换为 EraType 枚举 + VariableDescriptor 数据查询，彻底消灭 6 大二元判定模式。
+	主要能力：#DIMF 浮点变量声明、LOCALF/ARGF/RESULTF 内置变量、#FUNCTIONF 语法、
+	Float 四则/比较/一元/三元运算、同名重载数学函数（SIN/COS/SQRT 等）、数组函数 Float 分支、
+	TOFLOAT/TOSTRF 类型转换、存档双精度支持、DT/SQL Float 操作等。
+	详细追踪见 B3_TRACKER.md（B.3-0 至 B.3-16 全部完成，冒烟测试 63+ 项全部 PASS）。
+
 2026年5月4日
 数学函数与数组函数 Float 同名重构：
 	重构原则：像运算符重载一样，由至少一个浮点数参数决定隐性提升。原有所有公式调用保持原样，
