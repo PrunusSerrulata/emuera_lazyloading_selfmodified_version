@@ -169,38 +169,33 @@ python tools/b3_16_replace.py --verify --all-files       # 残留统计
 
 **理由**：Float 变量使用频率远低于 Int，默认分配浪费内存且增加复杂度。
 
-### 3.1 内置数学函数 Float 重载
+### 3.1 内置数学函数 Float 重载 ✅ 已完成
 
-**现状（2026-05-04 源码盘点）**：
+**实施状态**：✅ **已完成（2026-05-04）** — 12 Float 重载 + 18 新函数全部实现并编译通过。
 
-| 函数 | 当前状态 | Int重载 | Float重载 | 备注 |
-|------|---------|---------|-----------|------|
-| RAND | Int only | ✅ | ❌ | 需 RANDF |
-| MIN/MAX | Int only | ✅ | ❌ | 需 MINF/MAXF |
-| ABS | Int only | ✅ | ❌ | 需 ABSF |
-| POWER | Int only | ✅ | ❌ | 需 POWERF |
-| SQRT | Int only | ✅ | ❌ | 需 SQRTF |
-| CBRT | Int only | ✅ | ❌ | 需 CBRTF |
-| LOG | Int only | ✅ | ❌ | 需 LOGF |
-| LOG10 | Int only | ✅ | ❌ | 需 LOG10F |
-| EXPONENT | Int only | ✅ | ❌ | 需 EXPF |
-| SIGN | Int only | ✅ | ❌ | 需 SIGNF |
-| LIMIT | Int only | ✅ | ❌ | 需 LIMITF |
+**Float 重载（12 个）**：RANDF, MINF, MAXF, ABSF, POWERF, SQRTF, CBRTF, LOGF, LOG10F, EXPF, SIGNF, LIMITF
 
-> 注：SIN/COS/TAN/ASIN/ACOS/ATAN/FLOOR/CEIL/ROUND 等函数在引擎中完全不存在（无 Int 也无 Float 版本），属于新功能请求，不在本次 Float 重载范围内。
+**新增函数（18 个）**：
 
-**实施方案**：
-- 在 `Creator.Method.cs` 中新增 12 个 Float 方法类（`RandFMethod`, `MaxFMethod`, `AbsFMethod` 等）
-- 均设置 `ReturnType = EraType.Float`，使用 `argumentTypeArrayEx` + `ArgType.Any` 接受 Int/Float 参数
-- 在 `GetFloatValue` 中处理 Int→Float 隐式转换
-- 在 `Creator.cs` 注册 "RANDF", "MINF", "MAXF", "ABSF", "POWERF", "SQRTF", "CBRTF", "LOGF", "LOG10F", "EXPF", "SIGNF", "LIMITF"
+| Int 版 | Float 版 | 说明 |
+|--------|---------|------|
+| SIN | SINF | 正弦（弧度） |
+| COS | COSF | 余弦（弧度） |
+| TAN | TANF | 正切（弧度） |
+| ASIN | ASINF | 反正弦（[-1,1]） |
+| ACOS | ACOSF | 反余弦（[-1,1]） |
+| ATAN | ATANF | 反正切 |
+| FLOOR | FLOORF | 向下取整 |
+| CEIL | CEILF | 向上取整 |
+| ROUND | ROUNDF | 四舍五入 |
 
 **涉及文件**：
-- `Emuera/Runtime/Script/Statements/Function/Creator.Method.cs` — 新增 12 个方法类
-- `Emuera/Runtime/Script/Statements/Function/Creator.cs` — 注册 12 个新函数名
+- `Emuera/Runtime/Script/Statements/Function/Creator.Method.cs` — 新增 30 个方法类
+- `Emuera/Runtime/Script/Statements/Function/Creator.cs` — 注册 30 个新函数名
+- `Emuera/Runtime/Script/Statements/Variable/VariableEvaluator.cs` — 新增 `GetNextRandDouble()`
 
 **优先级**：P1（高）
-**状态**：🔄 实施中（Batch 1）
+**状态**：✅ 完成
 
 ### 3.2 数组操作函数 Float 支持
 

@@ -1,5 +1,34 @@
 
 2026年5月4日
+新增内置数学函数：三角函数与端数处理（SIN/COS/TAN/ASIN/ACOS/ATAN/FLOOR/CEIL/ROUND 及 Float 重载）
+
+	Int 版本（返回整数，截断小数）：
+		SIN(angle)    — 正弦（参数为弧度）
+		COS(angle)    — 余弦（参数为弧度）
+		TAN(angle)    — 正切（参数为弧度）
+		ASIN(value)   — 反正弦（参数范围 [-1, 1]）
+		ACOS(value)   — 反余弦（参数范围 [-1, 1]）
+		ATAN(value)   — 反正切
+		FLOOR(value)  — 向下取整
+		CEIL(value)   — 向上取整
+		ROUND(value)  — 四舍五入（MidpointRounding.AwayFromZero）
+
+	Float 版本（返回浮点数，函数名加 F 后缀）：
+		SINF(angle) / COSF(angle) / TANF(angle)
+		ASINF(value) / ACOSF(value) / ATANF(value)
+		FLOORF(value) / CEILF(value) / ROUNDF(value)
+
+	Float 版本接受 Int/Float 参数，Int 自动隐式转换为 Float。
+	三角函数参数均为弧度制。ASIN/ACOS 参数超出 [-1, 1] 时抛出错误。
+	所有函数检测 NaN/Infinity 并抛出明确错误。
+
+	1. 新增 Creator.Method.cs：
+		- Int 版本：SinMethod / CosMethod / TanMethod / AsinMethod / AcosMethod / AtanMethod / FloorMethod / CeilMethod / RoundMethod
+		- Float 版本：SinFMethod / CosFMethod / TanFMethod / AsinFMethod / AcosFMethod / AtanFMethod / FloorFMethod / CeilFMethod / RoundFMethod
+	2. 新增 Creator.cs：注册 18 个新函数名
+	3. 新增参考手册：Readme/参考手册/数学函数三角函数端数处理.zh.md
+
+2026年5月4日
 修复 SKGLControl OpenGL 上下文丢失导致 NullReferenceException 崩溃的问题：
 	问题描述：部分玩家环境（双显卡笔记本、虚拟机、远程桌面等）中，SKGLControl 的 OpenGL 上下文在运行时丢失或初始化失败，
 	         OnPaint 内部访问 null 的 GRContext 导致未捕获的 NullReferenceException，程序直接崩溃。

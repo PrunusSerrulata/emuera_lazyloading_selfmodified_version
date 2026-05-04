@@ -98,6 +98,28 @@ internal static partial class FunctionMethodCreator
 			["SIGNF"] = new SignFMethod(),
 			["LIMITF"] = new LimitFMethod(),
 
+			//三角関数・端数処理
+			["SIN"] = new SinMethod(),
+			["COS"] = new CosMethod(),
+			["TAN"] = new TanMethod(),
+			["ASIN"] = new AsinMethod(),
+			["ACOS"] = new AcosMethod(),
+			["ATAN"] = new AtanMethod(),
+			["FLOOR"] = new FloorMethod(),
+			["CEIL"] = new CeilMethod(),
+			["ROUND"] = new RoundMethod(),
+
+			//三角関数・端数処理 Float 重載
+			["SINF"] = new SinFMethod(),
+			["COSF"] = new CosFMethod(),
+			["TANF"] = new TanFMethod(),
+			["ASINF"] = new AsinFMethod(),
+			["ACOSF"] = new AcosFMethod(),
+			["ATANF"] = new AtanFMethod(),
+			["FLOORF"] = new FloorFMethod(),
+			["CEILF"] = new CeilFMethod(),
+			["ROUNDF"] = new RoundFMethod(),
+
 			["UNCHECKED_ADD"] = new UncheckedAddMethod(),
 			["UNCHECKED_SUB"] = new UncheckedSubtractMethod(),
 			["UNCHECKED_MUL"] = new UncheckedMultiplyMethod(),
