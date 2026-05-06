@@ -10275,4 +10275,21 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 	#endregion
+
+	private sealed class ArgLengthMethod : FunctionMethod
+	{
+		public ArgLengthMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { } },
+				];
+			CanRestructure = false;
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return exm.Process.State.CurrentVariadicArgCount;
+		}
+	}
 }

@@ -286,10 +286,13 @@ internal enum VariableCode
 																				   //CVARS3D = 0xFC | __STRING__ | __ARRAY_3D__ | __EXTENDED__,//ユーザー定義変数
 	REF = 0xFD | __INTEGER__ | __ARRAY_1D__ | __EXTENDED__,//参照型
 	REFS = 0xFD | __STRING__ | __ARRAY_1D__ | __EXTENDED__,
+	REFF = 0xFD | __ARRAY_1D__ | __EXTENDED__,
 	REF2D = 0xFD | __INTEGER__ | __ARRAY_2D__ | __EXTENDED__,
 	REFS2D = 0xFD | __STRING__ | __ARRAY_2D__ | __EXTENDED__,
+	REFF2D = 0xFD | __ARRAY_2D__ | __EXTENDED__,
 	REF3D = 0xFD | __INTEGER__ | __ARRAY_3D__ | __EXTENDED__,
 	REFS3D = 0xFD | __STRING__ | __ARRAY_3D__ | __EXTENDED__,
+	REFF3D = 0xFD | __ARRAY_3D__ | __EXTENDED__,
 	VAR = 0xFE | __INTEGER__ | __ARRAY_1D__ | __EXTENDED__,//ユーザー定義変数 1808 プライベート変数と広域変数を区別しない
 	VARS = 0xFE | __STRING__ | __ARRAY_1D__ | __EXTENDED__,//ユーザー定義変数
 	VAR2D = 0xFE | __INTEGER__ | __ARRAY_2D__ | __EXTENDED__,//ユーザー定義変数

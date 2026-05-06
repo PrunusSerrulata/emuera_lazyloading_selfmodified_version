@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Function;
+using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameProc.Function;
 using MinorShift.Emuera.Runtime.Config;
@@ -144,6 +144,8 @@ internal partial class IdentifierDictionary
 		nameDic.Add("SAVEDATA", DefinedNameType.Reserved);
 		nameDic.Add("CHARADATA", DefinedNameType.Reserved);//CHARDATAから変更
 		nameDic.Add("REF", DefinedNameType.Reserved);
+		nameDic.Add("REFF", DefinedNameType.Reserved);
+		nameDic.Add("VARIADIC", DefinedNameType.Reserved);
 		nameDic.Add("__DEBUG__", DefinedNameType.Reserved);
 		nameDic.Add("__SKIP__", DefinedNameType.Reserved);
 		nameDic.Add("_", DefinedNameType.Reserved);
@@ -490,9 +492,14 @@ internal partial class IdentifierDictionary
 		if (allowPrivate)
 		{
 			LogicalLine line = GlobalStatic.Process.GetScaningLine();
+			FunctionLabelLine labelLine = null;
 			if ((line != null) && (line.ParentLabelLine != null))
+				labelLine = line.ParentLabelLine;
+			else if (line is FunctionLabelLine fll)
+				labelLine = fll;
+			if (labelLine != null)
 			{
-				ret = line.ParentLabelLine.GetPrivateVariable(key);
+				ret = labelLine.GetPrivateVariable(key);
 				if (ret != null)
 				{
 					if (subKey != null)

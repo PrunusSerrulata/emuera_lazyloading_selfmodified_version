@@ -127,6 +127,18 @@ internal sealed class ErhLoader
 						}
 						//analyzeSharpDim(st, position, sharpID == "DIMS");
 						break;
+					case var s when s.Equals("REF", Config.Config.StringComparison) ||
+								s.Equals("REFS", Config.Config.StringComparison) ||
+								s.Equals("REFF", Config.Config.StringComparison):
+						{
+							bool isStr = sharpID.SequenceEqual("REFS");
+							bool isFloat = sharpID.SequenceEqual("REFF");
+							WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
+							UserDefinedVariableData data = UserDefinedVariableData.CreateRefScalar(wc, isStr, isFloat, false, position);
+							VariableToken var = parentProcess.VEvaluator.VariableData.CreateUserDefVariable(data, new DimLineWC(wc, isStr, isFloat, false, position));
+							idDic.AddUseDefinedVariable(var);
+						}
+						break;
 					default:
 						throw new CodeEE(string.Format(trerror.UnknownPreprocessorInSharpLine.Text, sharpID.ToString()), position);
 				}

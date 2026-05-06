@@ -437,7 +437,36 @@ internal sealed partial class VariableData : IDisposable
 	public UserDefinedVariableToken CreateUserDefVariable(UserDefinedVariableData data, DimLineWC dimline)
 	{
 		UserDefinedVariableToken ret;
-		if (data.TypeIsFloat)
+		if (data.Reference)
+		{
+			if (data.TypeIsStr)
+				switch (data.Dimension)
+				{
+					case 0: ret = new ReferenceStrScalarToken(data); break;
+					case 1: ret = new ReferenceStr1DToken(data); break;
+					case 2: ret = new ReferenceStr2DToken(data); break;
+					case 3: ret = new ReferenceStr3DToken(data); break;
+					default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
+				}
+			else if (data.TypeIsFloat)
+				switch (data.Dimension)
+				{
+					case 0: ret = new ReferenceFloatScalarToken(data); break;
+					default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
+				}
+			else
+				switch (data.Dimension)
+				{
+					case 0: ret = new ReferenceIntScalarToken(data); break;
+					case 1: ret = new ReferenceInt1DToken(data); break;
+					case 2: ret = new ReferenceInt2DToken(data); break;
+					case 3: ret = new ReferenceInt3DToken(data); break;
+					default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
+				}
+			if (data.Out)
+				ret.IsOut = true;
+		}
+		else if (data.TypeIsFloat)
 			switch (data.Dimension)
 			{
 				case 1: ret = new StaticFloat1DVariableToken(data); break;
@@ -499,6 +528,7 @@ internal sealed partial class VariableData : IDisposable
 			{
 				switch (data.Dimension)
 				{
+					case 0: ret = new ReferenceStrScalarToken(data); break;
 					case 1: ret = new ReferenceStr1DToken(data); break;
 					case 2: ret = new ReferenceStr2DToken(data); break;
 					case 3: ret = new ReferenceStr3DToken(data); break;
@@ -509,12 +539,15 @@ internal sealed partial class VariableData : IDisposable
 			{
 				switch (data.Dimension)
 				{
+					case 0: ret = new ReferenceIntScalarToken(data); break;
 					case 1: ret = new ReferenceInt1DToken(data); break;
 					case 2: ret = new ReferenceInt2DToken(data); break;
 					case 3: ret = new ReferenceInt3DToken(data); break;
 					default: throw new ExeEE(trerror.AbnormalVarDeclaration.Text);
 				}
 			}
+			if (data.Out)
+				ret.IsOut = true;
 		}
 		else if (data.Static)
 		{

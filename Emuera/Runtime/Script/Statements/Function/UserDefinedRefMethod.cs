@@ -50,6 +50,8 @@ internal sealed class UserDefinedRefMethod
 					type |= UserDifinedFunctionDataArgType.Int;
 				else
 					type |= UserDifinedFunctionDataArgType.Str;
+				if (vToken.IsOut)
+					type |= UserDifinedFunctionDataArgType.__Out;
 				if (ArgTypeList[i] != type)
 					return false;
 			}

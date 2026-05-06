@@ -264,6 +264,7 @@ internal abstract class VariableToken
 	public bool IsGlobal { get; protected set; }
 	public bool IsSavedata { get; protected set; }
 	public bool IsReference { get; protected set; }
+	public bool IsOut { get; internal set; }
 	public int Dimension { get; protected set; }
 
 }
@@ -467,11 +468,11 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 		CanRestructure = false;
 		IsStatic = !data.Private;
 		IsReference = true;
-		arrayList = [];
 		IsForbid = false;
 	}
-	protected List<object> arrayList;
 	protected object array;
+	protected ElementRefInfo _elementRef;
+	protected bool _isNullRef;
 
 	public override void SetDefault()
 	{//Defaultのセットは参照元がやるべき
@@ -555,24 +556,33 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 	}
 
 	int counter;
+	readonly List<(object array, ElementRefInfo elementRef, bool isNullRef)> _scopeState = new();
+
 	public override void ScopeIn()
 	{
-		if (counter > 0)
-			arrayList.Add(array);
+		_scopeState.Add((array, _elementRef, _isNullRef));
 		counter++;
 		array = null;
+		_elementRef = default;
+		_isNullRef = false;
 	}
 
 	public override void ScopeOut()
 	{
-		//arrayList.RemoveAt(arrayList.Count - 1);
-		if (arrayList.Count > 0)
+		if (_scopeState.Count > 0)
 		{
-			array = arrayList[^1];
-			arrayList.RemoveAt(arrayList.Count - 1);
+			var state = _scopeState[^1];
+			_scopeState.RemoveAt(_scopeState.Count - 1);
+			array = state.array;
+			_elementRef = state.elementRef;
+			_isNullRef = state.isNullRef;
 		}
 		else
+		{
 			array = null;
+			_elementRef = default;
+			_isNullRef = false;
+		}
 		counter--;
 	}
 	public override object GetArray()
@@ -585,7 +595,28 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 	public void SetRef(object refArray)
 	{
 		array = refArray;
+		_elementRef = default;
+		_isNullRef = false;
 	}
+
+	public void SetRef(ElementRefInfo elementRef)
+	{
+		_elementRef = elementRef;
+		array = null;
+		_isNullRef = false;
+	}
+
+	public void SetNullRef()
+	{
+		array = null;
+		_elementRef = default;
+		_isNullRef = true;
+	}
+
+	public bool HasElementRef => !_elementRef.IsNull;
+	public bool HasArrayRef => !_isNullRef && array != null;
+	public bool IsNullRef => _isNullRef;
+	public ElementRefInfo GetElementRef() => _elementRef;
 
 	/// <summary>
 	/// 型が一致するかどうか（参照可能かどうか）
@@ -593,6 +624,11 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 	/// <param name="rother"></param>
 	/// <returns></returns>
 	public bool MatchType(VariableToken rother, bool allowChara, out string errMes)
+	{
+		return MatchType(rother, allowChara, false, out errMes);
+	}
+
+	public bool MatchType(VariableToken rother, bool allowChara, bool allowElementRef, out string errMes)
 	{
 		errMes = "";
 		if (rother == null)
@@ -605,17 +641,26 @@ internal abstract class ReferenceToken : UserDefinedVariableToken
 		{ errMes = trerror.CanNotRefConstVar.Text; return false; }
 		//1812 ローカル参照の条件変更
 		//ローカルかつDYNAMICなREFはローカル参照できる
-		if ((!IsPrivate) && (rother.IsPrivate || rother.IsLocal))
+		if ((!IsPrivate) && (rother.IsPrivate || rother.IsLocal) && !rother.IsOut)
 		{ errMes = trerror.CanNotGlobalRefLocalVar.Text; return false; }
 		////1810beta002 ローカル参照禁止
 		//if ((!rother.IsReference) && (rother.IsPrivate || rother.IsLocal))
 		//{ errMes = "ローカル変数は参照できません"; return false; }
 		if (rother.IsCharacterData && !allowChara)
 		{ errMes = trerror.CanNotRefCharaVar.Text; return false; }
-		if (IsInteger != rother.IsInteger)
+		if (IsInteger != rother.IsInteger || IsFloat != rother.IsFloat)
 		{ errMes = trerror.CanNotRefDifferentType.Text; return false; }
 		if (Dimension != rother.Dimension)
-		{ errMes = trerror.CanNotRefDifferentDim.Text; return false; }
+		{
+			if (allowElementRef && Dimension == 0)
+			{
+			}
+			else
+			{
+				errMes = trerror.CanNotRefDifferentDim.Text;
+				return false;
+			}
+		}
 		return true;
 	}
 }
@@ -2867,6 +2912,10 @@ internal sealed partial class VariableData
 		}
 		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
 		{
+			if (!_elementRef.IsNull)
+				return _elementRef.GetValueInt(exm);
+			if (_isNullRef)
+				return 0;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			if (array is long[] arr)
@@ -2876,6 +2925,13 @@ internal sealed partial class VariableData
 
 		public override void SetValue(long value, long[] arguments)
 		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.SetValueInt(value);
+				return;
+			}
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			if (array is long[] arr)
@@ -2886,6 +2942,13 @@ internal sealed partial class VariableData
 
 		public override void SetValue(long[] values, long[] arguments)
 		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.TargetVar.SetValue(values, _elementRef.Indices);
+				return;
+			}
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[0];
@@ -2905,6 +2968,13 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(long value, int start, int end, int charaPos)
 		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.TargetVar.SetValueAll(value, start, end, charaPos);
+				return;
+			}
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			if (array is long[] arr)
@@ -2922,6 +2992,10 @@ internal sealed partial class VariableData
 
 		public override long PlusValue(long value, long[] arguments)
 		{
+			if (!_elementRef.IsNull)
+				return _elementRef.PlusValueInt(value);
+			if (_isNullRef)
+				return 0;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			if (array is long[] arr)
@@ -2946,6 +3020,8 @@ internal sealed partial class VariableData
 		}
 		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
 		{
+			if (_isNullRef)
+				return 0;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			return ((long[,])array)[arguments[0], arguments[1]];
@@ -2953,6 +3029,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(long value, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			((long[,])array)[arguments[0], arguments[1]] = value;
@@ -2960,6 +3038,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(long[] values, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[1];
@@ -2970,6 +3050,8 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(long value, int start, int end, int charaPos)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			var arr = (Array)array;
@@ -2983,6 +3065,8 @@ internal sealed partial class VariableData
 
 		public override long PlusValue(long value, long[] arguments)
 		{
+			if (_isNullRef)
+				return 0;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			((long[,])array)[arguments[0], arguments[1]] += value;
@@ -3000,6 +3084,8 @@ internal sealed partial class VariableData
 		}
 		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
 		{
+			if (_isNullRef)
+				return 0;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			return ((long[,,])array)[arguments[0], arguments[1], arguments[2]];
@@ -3007,6 +3093,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(long value, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			((long[,,])array)[arguments[0], arguments[1], arguments[2]] = value;
@@ -3014,6 +3102,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(long[] values, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[2];
@@ -3024,6 +3114,8 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(long value, int start, int end, int charaPos)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			var arr = (Array)array;
@@ -3039,6 +3131,8 @@ internal sealed partial class VariableData
 
 		public override long PlusValue(long value, long[] arguments)
 		{
+			if (_isNullRef)
+				return 0;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			((long[,,])array)[arguments[0], arguments[1], arguments[2]] += value;
@@ -3056,6 +3150,10 @@ internal sealed partial class VariableData
 		}
 		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
 		{
+			if (!_elementRef.IsNull)
+				return _elementRef.GetValueStr(exm);
+			if (_isNullRef)
+				return "";
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			if (array is string[] arr)
@@ -3065,6 +3163,13 @@ internal sealed partial class VariableData
 
 		public override void SetValue(string value, long[] arguments)
 		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.SetValueStr(value);
+				return;
+			}
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			if (array is string[] arr)
@@ -3075,6 +3180,13 @@ internal sealed partial class VariableData
 
 		public override void SetValue(string[] values, long[] arguments)
 		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.TargetVar.SetValue(values, _elementRef.Indices);
+				return;
+			}
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[0];
@@ -3094,6 +3206,13 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(string value, int start, int end, int charaPos)
 		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.TargetVar.SetValueAll(value, start, end, charaPos);
+				return;
+			}
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			if (array is string[] arr)
@@ -3120,6 +3239,8 @@ internal sealed partial class VariableData
 		}
 		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
 		{
+			if (_isNullRef)
+				return "";
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			return ((string[,])array)[arguments[0], arguments[1]];
@@ -3127,6 +3248,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(string value, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			((string[,])array)[arguments[0], arguments[1]] = value;
@@ -3134,6 +3257,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(string[] values, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[1];
@@ -3144,6 +3269,8 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(string value, int start, int end, int charaPos)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			var arr = (Array)array;
@@ -3165,6 +3292,8 @@ internal sealed partial class VariableData
 		}
 		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
 		{
+			if (_isNullRef)
+				return "";
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			return ((string[,,])array)[arguments[0], arguments[1], arguments[2]];
@@ -3172,6 +3301,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(string value, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			((string[,,])array)[arguments[0], arguments[1], arguments[2]] = value;
@@ -3179,6 +3310,8 @@ internal sealed partial class VariableData
 
 		public override void SetValue(string[] values, long[] arguments)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			int start = (int)arguments[2];
@@ -3189,6 +3322,8 @@ internal sealed partial class VariableData
 
 		public override void SetValueAll(string value, int start, int end, int charaPos)
 		{
+			if (_isNullRef)
+				return;
 			if (array == null)
 				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
 			var arr = (Array)array;
@@ -3202,6 +3337,292 @@ internal sealed partial class VariableData
 		}
 
 	}
+
+	private sealed class ElementRefToken : VariableToken
+	{
+		private readonly VariableToken _targetVar;
+		private readonly long[] _fixedIndices;
+
+		public ElementRefToken(VariableToken targetVar, long[] fixedIndices, VariableData varData)
+			: base(VariableCode.REF, varData)
+		{
+			_targetVar = targetVar ?? throw new ArgumentNullException(nameof(targetVar));
+			_fixedIndices = fixedIndices ?? throw new ArgumentNullException(nameof(fixedIndices));
+			IsReference = true;
+			Dimension = 0;
+			varName = targetVar.Name;
+			CanRestructure = false;
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
+			=> _targetVar.GetIntValue(exm, _fixedIndices);
+
+		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
+			=> _targetVar.GetStrValue(exm, _fixedIndices);
+
+		public override double GetFloatValue(ExpressionMediator exm, long[] arguments)
+			=> _targetVar.GetFloatValue(exm, _fixedIndices);
+
+		public override void SetValue(long value, long[] arguments)
+			=> _targetVar.SetValue(value, _fixedIndices);
+
+		public override void SetValue(string value, long[] arguments)
+			=> _targetVar.SetValue(value, _fixedIndices);
+
+		public override void SetValue(double value, long[] arguments)
+			=> _targetVar.SetValue(value, _fixedIndices);
+
+		public override long PlusValue(long value, long[] arguments)
+		{
+			_targetVar.PlusValue(value, _fixedIndices);
+			return _targetVar.GetIntValue(null, _fixedIndices);
+		}
+
+		public override double PlusValue(double value, long[] arguments)
+		{
+			_targetVar.PlusValue(value, _fixedIndices);
+			return _targetVar.GetFloatValue(null, _fixedIndices);
+		}
+
+		public override void CheckElement(long[] arguments, bool[] doCheck) { }
+
+		public override int GetLength()
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+
+		public override int GetLength(int dimension)
+			=> throw new CodeEE(string.Format(trerror.GetSizeNonExistDim.Text, varName));
+
+		public override object GetArray()
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+
+		public override object GetArrayChara(int charano)
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+	}
+
+	private sealed class ReferenceIntScalarToken : ReferenceToken
+	{
+		public ReferenceIntScalarToken(UserDefinedVariableData data)
+			: base(VariableCode.REF, data)
+		{
+			CanRestructure = false;
+			IsStatic = !data.Private;
+			Dimension = 0;
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+				return _elementRef.GetValueInt(exm);
+			if (_isNullRef)
+				return 0;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			if (array is long[] arr)
+				return arr[0];
+			return ((SparseArray<long>)array)[0];
+		}
+
+		public override void SetValue(long value, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.SetValueInt(value);
+				return;
+			}
+			if (_isNullRef)
+				return;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			if (array is long[] arr)
+				arr[0] = value;
+			else
+				((SparseArray<long>)array)[0] = value;
+		}
+
+		public override void SetValue(long[] values, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+				throw new CodeEE(string.Format(trerror.CallNDStrAsInt.Text, varName));
+			if (_isNullRef)
+				return;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			throw new CodeEE(string.Format(trerror.CallNDStrAsInt.Text, varName));
+		}
+
+		public override void SetValueAll(long value, int start, int end, int charaPos)
+		{
+			if (!_elementRef.IsNull)
+				throw new CodeEE(string.Format(trerror.CallNDStrAsInt.Text, varName));
+			if (_isNullRef)
+				return;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			throw new CodeEE(string.Format(trerror.CallNDStrAsInt.Text, varName));
+		}
+
+		public override long PlusValue(long value, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+				return _elementRef.PlusValueInt(value);
+			if (_isNullRef)
+				return 0;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			if (array is long[] arr)
+			{
+				arr[0] += value;
+				return arr[0];
+			}
+			else
+			{
+				var sa = (SparseArray<long>)array;
+				sa[0] += value;
+				return sa[0];
+			}
+		}
+
+		public override int GetLength()
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+
+		public override int GetLength(int dimension)
+			=> throw new CodeEE(string.Format(trerror.GetSizeNonExistDim.Text, varName));
+
+		public override void CheckElement(long[] arguments, bool[] doCheck) { }
+
+		public override void IsArrayRangeValid(long[] arguments, long index1, long index2, string funcName, long i1, long i2)
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+	}
+
+	private sealed class ReferenceFloatScalarToken : ReferenceToken
+	{
+		public ReferenceFloatScalarToken(UserDefinedVariableData data)
+			: base(VariableCode.REFF, data)
+		{
+			CanRestructure = false;
+			IsStatic = !data.Private;
+			Dimension = 0;
+		}
+
+		public override double GetFloatValue(ExpressionMediator exm, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+				return _elementRef.GetValueFloat(exm);
+			if (_isNullRef)
+				return 0.0;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			if (array is double[] arr)
+				return arr[0];
+			return ((SparseArray<double>)array)[0];
+		}
+
+		public override void SetValue(double value, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.SetValueFloat(value);
+				return;
+			}
+			if (_isNullRef)
+				return;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			if (array is double[] arr)
+				arr[0] = value;
+			else
+				((SparseArray<double>)array)[0] = value;
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, long[] arguments)
+			=> (long)GetFloatValue(exm, arguments);
+
+		public override int GetLength()
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+
+		public override int GetLength(int dimension)
+			=> throw new CodeEE(string.Format(trerror.GetSizeNonExistDim.Text, varName));
+
+		public override void CheckElement(long[] arguments, bool[] doCheck) { }
+
+		public override void IsArrayRangeValid(long[] arguments, long index1, long index2, string funcName, long i1, long i2)
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+	}
+
+	private sealed class ReferenceStrScalarToken : ReferenceToken
+	{
+		public ReferenceStrScalarToken(UserDefinedVariableData data)
+			: base(VariableCode.REFS, data)
+		{
+			CanRestructure = false;
+			IsStatic = !data.Private;
+			Dimension = 0;
+		}
+
+		public override string GetStrValue(ExpressionMediator exm, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+				return _elementRef.GetValueStr(exm);
+			if (_isNullRef)
+				return "";
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			if (array is string[] arr)
+				return arr[0];
+			return ((SparseArray<string>)array)[0];
+		}
+
+		public override void SetValue(string value, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+			{
+				_elementRef.SetValueStr(value);
+				return;
+			}
+			if (_isNullRef)
+				return;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			if (array is string[] arr)
+				arr[0] = value;
+			else
+				((SparseArray<string>)array)[0] = value;
+		}
+
+		public override void SetValue(string[] values, long[] arguments)
+		{
+			if (!_elementRef.IsNull)
+				throw new CodeEE(string.Format(trerror.CallNDIntAsStr.Text, varName));
+			if (_isNullRef)
+				return;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			throw new CodeEE(string.Format(trerror.CallNDIntAsStr.Text, varName));
+		}
+
+		public override void SetValueAll(string value, int start, int end, int charaPos)
+		{
+			if (!_elementRef.IsNull)
+				throw new CodeEE(string.Format(trerror.CallNDIntAsStr.Text, varName));
+			if (_isNullRef)
+				return;
+			if (array == null)
+				throw new CodeEE(string.Format(trerror.EmptyRefVar.Text, varName));
+			throw new CodeEE(string.Format(trerror.CallNDIntAsStr.Text, varName));
+		}
+
+		public override int GetLength()
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+
+		public override int GetLength(int dimension)
+			=> throw new CodeEE(string.Format(trerror.GetSizeNonExistDim.Text, varName));
+
+		public override void CheckElement(long[] arguments, bool[] doCheck) { }
+
+		public override void IsArrayRangeValid(long[] arguments, long index1, long index2, string funcName, long i1, long i2)
+			=> throw new CodeEE(string.Format(trerror.GetSize0DVar.Text, varName));
+	}
+
 	#endregion
 	#region chara (広域のみ)
 

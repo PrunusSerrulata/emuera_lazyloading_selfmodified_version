@@ -13,7 +13,7 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 {
 	#region EM_私家版_HTMLパラメータ拡張
 	//public ConsoleImagePart(string resName, string resNameb, int raw_height, int raw_width, int raw_ypos)
-	public ConsoleImagePart(string resName, string resNameb, string resNamem, MixedNum raw_height, MixedNum raw_width, MixedNum raw_ypos)
+	public ConsoleImagePart(string resName, string resNameb, string resNamem, MixedNum raw_height, MixedNum raw_width, MixedNum raw_ypos, string cmVariableName = null)
 	{
 		top = 0;
 		bottom = Config.FontSize;
@@ -21,6 +21,7 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 		ResourceName = resName ?? "";
 		ButtonResourceName = resNameb;
 		MappingGraphName = resNamem;
+		_cmVariableName = cmVariableName;
 		StringBuilder sb = new();
 		sb.Append("<img src='").Append(ResourceName).Append('\'');
 		if (ButtonResourceName != null)
@@ -136,6 +137,14 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 	private readonly int top;
 	private readonly int bottom;
 	private readonly Rectangle destRect;
+	private float[] _colorMatrix = null;
+	public float[] ColorMatrix
+	{
+		get => _colorMatrix;
+		set => _colorMatrix = (value != null && value.Length == 20) ? value : null;
+	}
+	private readonly string _cmVariableName;
+	public string CmVariableName => _cmVariableName;
 	//#pragma warning disable CS0649 // フィールド 'ConsoleImagePart.ia' は割り当てられません。常に既定値 null を使用します。
 	//		private readonly ImageAttributes ia;
 	//#pragma warning restore CS0649 // フィールド 'ConsoleImagePart.ia' は割り当てられません。常に既定値 null を使用します。
@@ -208,7 +217,8 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 			//PointX微調整
 			rect.X = destRect.X + PointX + Config.DrawingParam_ShapePositionShift;
 			rect.Y = destRect.Y + (int)point.Y;
-			img.GraphicsDraw(graph, rect);
+			SKColorFilter filter = _colorMatrix != null ? SKColorFilter.CreateColorMatrix(_colorMatrix) : null;
+			img.GraphicsDraw(graph, rect, filter);
 		}
 		else
 		{

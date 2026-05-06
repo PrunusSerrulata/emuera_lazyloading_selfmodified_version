@@ -44,6 +44,7 @@ internal class VariableTerm : AExpression
 
 	public bool isAllConst { get { return allArgIsConst; } }
 	public int getEl1forArg { get { return (int)transporter[0]; } }
+	public int ArgumentCount => arguments?.Length ?? 0;
 
 	public override long GetIntValue(ExpressionMediator exm)
 	{

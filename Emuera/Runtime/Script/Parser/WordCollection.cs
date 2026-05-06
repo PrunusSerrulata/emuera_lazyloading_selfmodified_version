@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -94,6 +94,17 @@ internal sealed class WordCollection
 		}
 	}
 	#endregion
+
+	public Word PeekNext(int offset = 1)
+	{
+		var node = Pointer;
+		for (int i = 0; i < offset; i++)
+		{
+			if (node == null) return nullToken;
+			node = node.Next;
+		}
+		return node?.Value ?? nullToken;
+	}
 
 	public void Insert(Word w)
 	{

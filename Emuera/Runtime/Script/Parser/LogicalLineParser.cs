@@ -284,6 +284,23 @@ internal static class LogicalLineParser
 							ParserMediator.Warn(trerror.ExtraCharacterAfterSharp.Text, position, 1);
 						break;
 					}
+				case var s when s.Equals("REF", Config.Config.StringComparison) ||
+								s.Equals("REFS", Config.Config.StringComparison) ||
+								s.Equals("REFF", Config.Config.StringComparison):
+					{
+						var wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.AllowAssignment);
+						bool isStr = token.SequenceEqual("REFS");
+						bool isFloat = token.SequenceEqual("REFF");
+						UserDefinedVariableData data = UserDefinedVariableData.CreateRefScalar(wc, isStr, isFloat, true, position);
+						if (!label.AddPrivateVariable(data))
+						{
+							ParserMediator.Warn(string.Format(trerror.VarNameAlreadyUsed.Text, data.Name), position, 2);
+							return false;
+						}
+						if (!wc.EOL)
+							ParserMediator.Warn(trerror.ExtraCharacterAfterSharp.Text, position, 1);
+						break;
+					}
 				default:
 					ParserMediator.Warn(trerror.CanNotInterpretSharpLine.Text, position, 1);
 					break;

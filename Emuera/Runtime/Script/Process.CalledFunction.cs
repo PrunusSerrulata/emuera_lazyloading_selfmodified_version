@@ -2,6 +2,7 @@ using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.GameProc;
 using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script.Data;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Script.Statements.Function;
@@ -22,10 +23,13 @@ internal sealed class UserDefinedFunctionArgument
 		TransporterStr = new string[Arguments.Length];
 		TransporterFloat = new double[Arguments.Length];
 		TransporterRef = new object[Arguments.Length];
+		TransporterElementRef = new ElementRefInfo[Arguments.Length];
 		isRef = new bool[Arguments.Length];
+		refDestDimension = new int[Arguments.Length];
 		for (int i = 0; i < Arguments.Length; i++)
 		{
 			isRef[i] = destArgs[i].Identifier.IsReference;
+			refDestDimension[i] = destArgs[i].Identifier.Dimension;
 		}
 	}
 	public readonly AExpression[] Arguments;
@@ -33,7 +37,9 @@ internal sealed class UserDefinedFunctionArgument
 	public readonly string[] TransporterStr;
 	public readonly double[] TransporterFloat;
 	public readonly object[] TransporterRef;
+	public readonly ElementRefInfo[] TransporterElementRef;
 	public readonly bool[] isRef;
+	public readonly int[] refDestDimension;
 	public void SetTransporter(ExpressionMediator exm)
 	{
 		for (int i = 0; i < Arguments.Length; i++)
@@ -43,6 +49,10 @@ internal sealed class UserDefinedFunctionArgument
 			if (isRef[i])
 			{
 				VariableTerm vTerm = (VariableTerm)Arguments[i];
+				if (vTerm.Identifier is NullRefTerm)
+				{
+					continue;
+				}
 				if (vTerm.Identifier.IsCharacterData)
 				{
 					long charaNo = vTerm.GetElementInt(0, exm);
@@ -50,10 +60,38 @@ internal sealed class UserDefinedFunctionArgument
 						throw new CodeEE(string.Format(trerror.OoRCharaVarArg.Text, vTerm.Identifier.Name, "1", charaNo.ToString()));
 					TransporterRef[i] = vTerm.Identifier.GetArrayChara((int)charaNo);
 				}
+				else if (vTerm.Identifier is ReferenceToken refToken)
+				{
+					if (refToken.HasElementRef)
+						TransporterElementRef[i] = refToken.GetElementRef();
+					else if (refToken.HasArrayRef)
+						TransporterRef[i] = refToken.GetArray();
+					else if (refToken.IsOut && refToken.IsNullRef)
+						continue;
+					else
+						TransporterRef[i] = vTerm.Identifier.GetArray();
+				}
+				else if (vTerm.Identifier.Dimension > 0 && !vTerm.Identifier.IsReference)
+				{
+					bool hasFullIndices = vTerm.ArgumentCount >= vTerm.Identifier.Dimension;
+					if (refDestDimension[i] > 0 && !hasFullIndices)
+						TransporterRef[i] = vTerm.Identifier.GetArray();
+					else
+					{
+						long[] indices = new long[vTerm.Identifier.Dimension];
+						for (int d = 0; d < vTerm.Identifier.Dimension; d++)
+							indices[d] = vTerm.GetElementInt(d, exm);
+						TransporterElementRef[i] = new ElementRefInfo(vTerm.Identifier, indices);
+					}
+				}
 				else
+				{
 					TransporterRef[i] = vTerm.Identifier.GetArray();
+				}
 
 			}
+			else if (Arguments[i] is VariadicArgTerm)
+				continue;
 			else if (Arguments[i].GetEraType() == EraType.Integer)
 				TransporterInt[i] = Arguments[i].GetIntValue(exm);
 			else if (Arguments[i].GetEraType() == EraType.Float)
@@ -172,41 +210,78 @@ internal sealed class CalledFunction
 			return null;
 		}
 		FunctionLabelLine func = TopLabel;
+		int variadicIndex = func.VariadicArgIndex;
+		int fixedArgCount = variadicIndex >= 0 ? variadicIndex : func.Arg.Length;
 		AExpression[] convertedArg = new AExpression[func.Arg.Length];
 		AExpression term;
 		VariableTerm destArg;
-		//bool isString = false;
-		for (int i = 0; i < func.Arg.Length; i++)
+		for (int i = 0; i < fixedArgCount; i++)
 		{
 			term = i < srcArgs.Count ? srcArgs[i] : null;
 			destArg = func.Arg[i];
-			//isString = destArg.IsString;
-			if (destArg.Identifier.IsReference)//参照渡しの場合
+			if (destArg.Identifier.IsReference)
 			{
 				if (term == null)
 				{
+					if (destArg.Identifier.IsOut)
+					{
+						term = new VariableTerm(new NullRefTerm(!destArg.Identifier.IsString, destArg.Identifier.IsFloat), []);
+						convertedArg[i] = term;
+						continue;
+					}
 					errMes = string.Format(trerror.CanNotOmitRefArg.Text, func.LabelName, (i + 1).ToString());
 					return null;
 				}
 				VariableTerm vTerm = term as VariableTerm;
-				if (vTerm == null || vTerm.Identifier.Dimension == 0)
+				if (vTerm == null)
 				{
 					errMes = string.Format(trerror.RequireArrayBecauseRefArg.Text, func.LabelName, (i + 1).ToString());
 					return null;
 				}
-				//TODO 1810alpha007 キャラ型を認めるかどうかはっきりしたい 今のところ認めない方向
-				//型チェック
-				if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, false, out errMes))
+				if (destArg.Identifier.Dimension == 0)
 				{
-					errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
-					return null;
+					if (vTerm.Identifier.Dimension == 0)
+					{
+						if (vTerm.Identifier.IsReference)
+						{
+							if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, true, destArg.Identifier.IsOut, out errMes))
+							{
+								errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
+								return null;
+							}
+						}
+						else
+						{
+							errMes = string.Format(trerror.RequireArrayBecauseRefArg.Text, func.LabelName, (i + 1).ToString());
+							return null;
+						}
+					}
+					else
+					{
+						if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, true, true, out errMes))
+						{
+							errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
+							return null;
+						}
+					}
+				}
+				else
+				{
+					if (vTerm.Identifier.Dimension == 0)
+					{
+						errMes = string.Format(trerror.RequireArrayBecauseRefArg.Text, func.LabelName, (i + 1).ToString());
+						return null;
+					}
+					if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, false, out errMes))
+					{
+						errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
+						return null;
+					}
 				}
 			}
-			else if (term == null)//引数が省略されたとき
+			else if (term == null)
 			{
-				term = func.Def[i];//デフォルト値を代入
-								   //1808beta001 デフォルト値がない場合はエラーにする
-								   //一応逃がす
+				term = func.Def[i];
 				if (term == null && !Config.Config.CompatiFuncArgOptional)
 				{
 					errMes = string.Format(trerror.CanNotOmitArgWithMessage.Text, func.LabelName, (i + 1).ToString(), Config.Config.GetConfigName(ConfigCode.CompatiFuncArgOptional));
@@ -222,7 +297,6 @@ internal sealed class CalledFunction
 				}
 				else if (destArg.GetEraType() == EraType.Float && term.GetEraType() == EraType.Integer)
 				{
-					// Int to Float: auto-promote
 				}
 				else if (destArg.GetEraType() == EraType.Integer && term.GetEraType() == EraType.Float)
 				{
@@ -243,6 +317,53 @@ internal sealed class CalledFunction
 			}
 			convertedArg[i] = term;
 		}
+
+		if (variadicIndex >= 0)
+		{
+			destArg = func.Arg[variadicIndex];
+			UserDifinedFunctionDataArgType variadicType;
+			if (destArg.IsString)
+				variadicType = UserDifinedFunctionDataArgType.Str;
+			else if (destArg.GetEraType() == EraType.Float)
+				variadicType = UserDifinedFunctionDataArgType.Float;
+			else
+				variadicType = UserDifinedFunctionDataArgType.Int;
+			List<AExpression> variadicArgs = new List<AExpression>();
+			for (int i = variadicIndex; i < srcArgs.Count; i++)
+			{
+				term = srcArgs[i];
+				if (term.GetOperandType() != destArg.GetOperandType())
+				{
+					if (term.GetEraType() == EraType.String)
+					{
+						errMes = string.Format(trerror.CanNotConvertStrToInt.Text, func.LabelName, (i + 1).ToString());
+						return null;
+					}
+					else if (destArg.GetEraType() == EraType.Float && term.GetEraType() == EraType.Integer)
+					{
+					}
+					else if (destArg.GetEraType() == EraType.Integer && term.GetEraType() == EraType.Float)
+					{
+						errMes = string.Format(trerror.CanNotConvertStrToInt.Text, func.LabelName, (i + 1).ToString());
+						return null;
+					}
+					else
+					{
+						if (!Config.Config.CompatiFuncArgAutoConvert)
+						{
+							errMes = string.Format(trerror.CanNotConvertIntToStr.Text, func.LabelName, (i + 1).ToString(), Config.Config.GetConfigName(ConfigCode.CompatiFuncArgAutoConvert));
+							return null;
+						}
+						if (tostrMethod == null)
+							tostrMethod = FunctionMethodCreator.GetMethodList()["TOSTR"];
+						term = new FunctionMethodTerm(tostrMethod, [term]);
+					}
+				}
+				variadicArgs.Add(term);
+			}
+			convertedArg[variadicIndex] = new VariadicArgTerm(variadicArgs, variadicType);
+		}
+
 		return new UserDefinedFunctionArgument(convertedArg, func.Arg);
 	}
 
@@ -286,6 +407,7 @@ internal sealed class CalledFunction
 		get { return returnAddress; }
 	}
 	public bool IsEvent { get; private set; }
+	public int VariadicArgCount { get; set; }
 
 	public bool HasSingleFlag
 	{

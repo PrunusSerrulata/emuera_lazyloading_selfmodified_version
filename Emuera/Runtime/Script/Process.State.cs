@@ -127,6 +127,15 @@ internal sealed class ProcessState
 		}
 	}
 
+	public int CurrentVariadicArgCount
+	{
+		get
+		{
+			if (functionList.Count == 0) return 0;
+			return functionList[^1].VariadicArgCount;
+		}
+	}
+
 	SystemStateCode sysStateCode = SystemStateCode.Title_Begin;
 	BeginType begintype = BeginType.NULL;
 	public bool isBegun { get { return begintype != BeginType.NULL; } }
@@ -522,7 +531,33 @@ internal sealed class ProcessState
 				if (srcArgs.Arguments[i] != null)
 				{
 					if (call.TopLabel.Arg[i].Identifier.IsReference)
-						((ReferenceToken)call.TopLabel.Arg[i].Identifier).SetRef(srcArgs.TransporterRef[i]);
+					{
+						if (!srcArgs.TransporterElementRef[i].IsNull)
+							((ReferenceToken)call.TopLabel.Arg[i].Identifier).SetRef(srcArgs.TransporterElementRef[i]);
+						else if (srcArgs.TransporterRef[i] != null)
+							((ReferenceToken)call.TopLabel.Arg[i].Identifier).SetRef(srcArgs.TransporterRef[i]);
+						else if (call.TopLabel.Arg[i].Identifier.IsOut)
+							((ReferenceToken)call.TopLabel.Arg[i].Identifier).SetNullRef();
+					}
+					else if (srcArgs.Arguments[i] is VariadicArgTerm variadic)
+					{
+						int baseIdx = call.TopLabel.Arg[i].getEl1forArg;
+						call.VariadicArgCount = variadic.Count;
+						bool destIsFloat = call.TopLabel.Arg[i].GetEraType() == EraType.Float;
+						for (int j = 0; j < variadic.Count; j++)
+						{
+							var arg = variadic[j];
+							if (arg == null) continue;
+							if (destIsFloat && arg.GetEraType() == EraType.Integer)
+								call.TopLabel.Arg[i].Identifier.SetValue((double)arg.GetIntValue(exm), [baseIdx + j]);
+							else if (arg.GetEraType() == EraType.Integer)
+								call.TopLabel.Arg[i].Identifier.SetValue(arg.GetIntValue(exm), [baseIdx + j]);
+							else if (arg.GetEraType() == EraType.Float)
+								call.TopLabel.Arg[i].Identifier.SetValue(arg.GetFloatValue(exm), [baseIdx + j]);
+							else
+								call.TopLabel.Arg[i].Identifier.SetValue(arg.GetStrValue(exm), [baseIdx + j]);
+						}
+					}
 					else if (call.TopLabel.Arg[i].GetEraType() == EraType.Float)
 					{
 						if (srcArgs.Arguments[i].GetEraType() == EraType.Integer)

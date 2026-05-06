@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.Runtime.Script.Parser;
+using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Utils;
 using System.Collections.Generic;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
@@ -10,15 +10,21 @@ internal enum UserDifinedFunctionDataArgType
 	Null,
 	Int = 0x10,
 	Str = 0x20,
+	Float = 0x30,
 
+	RefInt0 = 0x50,
 	RefInt1 = 0x51,
 	RefInt2 = 0x52,
 	RefInt3 = 0x53,
+	RefStr0 = 0x60,
 	RefStr1 = 0x61,
 	RefStr2 = 0x62,
 	RefStr3 = 0x63,
 	__Ref = 0x40,
+	__Variadic = 0x80,
+	__Out = 0x100,
 	__Dimention = 0x0F,
+	__BaseType = 0x30,
 }
 
 internal sealed class UserDefinedFunctionData
@@ -92,12 +98,11 @@ internal sealed class UserDefinedFunctionData
 						goto argend;
 					if (state == 4 || state == 5)
 					{
-						if ((argType & UserDifinedFunctionDataArgType.__Dimention) == 0)
-							throw new CodeEE(trerror.RefArgIsNotArray.Text, sc);
-						//state = 2;
 						argList.Add(argType);
 						goto argend;
 					}
+					if (state == 7)
+						goto argend;
 					throw new CodeEE(trerror.UnexpectedBrackets.Text, sc);
 				case '0':
 					if (((LiteralIntegerWord)wc.Current).Int != 0)
@@ -125,8 +130,6 @@ internal sealed class UserDefinedFunctionData
 					}
 					if (state == 4 || state == 5)
 					{
-						if ((argType & UserDifinedFunctionDataArgType.__Dimention) == 0)
-							throw new CodeEE(trerror.RefArgIsNotArray.Text, sc);
 						state = 2;
 						argList.Add(argType);
 						continue;
@@ -144,12 +147,23 @@ internal sealed class UserDefinedFunctionData
 							}
 							goto argerr;
 						}
-						else if (str == "INT" || str == "STR")
+						else if (str == "OUT")
+						{
+							if (state == 0 || state == 2)
+							{
+								state = 6;
+								continue;
+							}
+							goto argerr;
+						}
+						else if (str == "INT" || str == "STR" || str == "FLOAT")
 						{
 							if (str == "INT")
 								argType = UserDifinedFunctionDataArgType.Int;
-							else
+							else if (str == "STR")
 								argType = UserDifinedFunctionDataArgType.Str;
+							else
+								argType = UserDifinedFunctionDataArgType.Float;
 							if (state == 0 || state == 2)
 							{
 								state = 1;
@@ -162,11 +176,29 @@ internal sealed class UserDefinedFunctionData
 								state = 4;
 								continue;
 							}
+							if (state == 6)
+							{
+								argType = argType | UserDifinedFunctionDataArgType.__Ref | UserDifinedFunctionDataArgType.__Out;
+								state = 4;
+								continue;
+							}
 							goto argerr;
 						}
 						else
 							goto argerr;
 					}
+				case '.':
+					if (state == 1 && wc.PeekNext(1).Type == '.' && wc.PeekNext(2).Type == '.')
+					{
+						if ((argType & UserDifinedFunctionDataArgType.__Ref) != 0)
+							throw new CodeEE("REF 参数不能同时标记为可变参数", sc);
+						argType |= UserDifinedFunctionDataArgType.__Variadic;
+						wc.ShiftNext(); wc.ShiftNext();
+						state = 7;
+						argList.Add(argType);
+						continue;
+					}
+					goto argerr;
 				default:
 					goto argerr;
 			}

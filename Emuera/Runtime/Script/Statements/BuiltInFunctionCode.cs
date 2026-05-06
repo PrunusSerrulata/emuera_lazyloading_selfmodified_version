@@ -1,4 +1,4 @@
-﻿namespace MinorShift.Emuera.Runtime.Script.Statements;
+namespace MinorShift.Emuera.Runtime.Script.Statements;
 
 /// <summary>
 /// 命令コード
@@ -177,6 +177,11 @@ enum FunctionCode
 	RESETBGCOLOR,
 	CLEARBGIMAGE,
 	REMOVEBGIMAGE,
+	CBGSETIMAGE,
+	SETIMAGELAYER,
+	CLEARIMAGELAYER,
+	CLEARIMAGELAYER_ALL,
+	EXISTSIMAGELAYER,
 	FONTBOLD,
 	FONTITALIC,
 	FONTREGULAR,

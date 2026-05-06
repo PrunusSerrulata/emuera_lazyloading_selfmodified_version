@@ -656,22 +656,29 @@ B.3-0~16 类型系统重构 ✅（已完成，前置条件满足）
 
 | 子任务 | m-emuera 状态 | 注意事项 |
 |--------|--------------|----------|
-| B.3-0~14 | ⬜ 待整体同步 | m-emuera 的 AExpression 仍使用 `Type` 而非 `EraType` |
-| B.3-15a | ⬜ 待迁移 | VariableIdentifier Descriptor 查询 |
-| B.3-15b | ⬜ 待迁移 | VariableToken IsSavedata 位标志→Descriptor |
-| B.3-15c | ⬜ 待迁移 | VariableData GetExtSaveList + userDefinedSaveVarList 6→9 |
-| B.3-15d | ⬜ 待迁移 | CharacterData 位标志 switch→Descriptor |
-| B.3-15e | ⬜ 待迁移 | VariableDescriptor.FromCode() 注册表优先 |
-| B.3-16 | ⬜ 待迁移 | typeof→EraType 批量替换 |
+| B.3-0~14 | ✅ 已同步 | AExpression 已使用 EraType；VariableToken 已使用 Descriptor |
+| B.3-15a | ✅ 已同步 | VariableIdentifier Descriptor 查询 |
+| B.3-15b | ✅ 已同步 | VariableToken IsSavedata 位标志→Descriptor |
+| B.3-15c | ✅ 已同步 | VariableData GetExtSaveList + userDefinedSaveVarList 6→9 |
+| B.3-15d | ✅ 已同步 | CharacterData 位标志 switch→Descriptor |
+| B.3-15e | ✅ 已同步 | VariableDescriptor.FromCode() 注册表优先 |
+| B.3-15f | ✅ 已同步 | Creator.Method.cs 14 函数二元判定→三路 |
+| B.3-15g~15k | ✅ 已同步 | ArgumentBuilder/VariableEvaluator/ConstantData/Process.ScriptProc/UserDefinedRefMethod/Instraction.Child/CaseExpression 全部三路化 |
+| B.3-16 | ✅ 已同步 | typeof→EraType 批量替换 |
+
+**最终验证 (2026-05-05)**：m-emuera 端残留 IsInteger: 50、IsString: 27 全部为合法引用（定义层/UI 层/已三路化/注释代码），typeof() 残留 17 处全部为必要桥接。Phase 1 全系列双端完全同步 ✅
 
 ### 5.2 推荐迁移顺序
 
-1. 先将 B.3-0~14 整体同步到 m-emuera（AExpression Type→EraType、OperatorMethod typeof→EraType、Creator.Method GetOperandType→EraType 等）
-2. 同步完整的 VariableDescriptor.cs（含所有 Register 条目 + GetDescriptorByCode）
-3. 同步 VariableIdentifier.cs（B.3-15a 修改）
-4. 同步 B.3-15b~15e（VariableToken/CharacterData/VariableData）
-5. 同步 B.3-16（typeof→EraType 批量替换）
-6. 编译验证 + 运行时验证
+> **全部已完成 (2026-05-05)**。以下为历史记录：
+
+1. 先将 B.3-0~14 整体同步到 m-emuera（AExpression Type→EraType、OperatorMethod typeof→EraType、Creator.Method GetOperandType→EraType 等）✅
+2. 同步完整的 VariableDescriptor.cs（含所有 Register 条目 + GetDescriptorByCode）✅
+3. 同步 VariableIdentifier.cs（B.3-15a 修改）✅
+4. 同步 B.3-15b~15e（VariableToken/CharacterData/VariableData）✅
+5. 同步 B.3-15f~15k（Creator.Method/ArgumentBuilder/VariableEvaluator/ConstantData/Process.ScriptProc/UserDefinedRefMethod/Instraction.Child/CaseExpression）✅
+6. 同步 B.3-16（typeof→EraType 批量替换）✅
+7. 编译验证 + 运行时验证 ✅
 
 ### 5.3 关键差异点
 

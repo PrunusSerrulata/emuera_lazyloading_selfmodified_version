@@ -1101,6 +1101,7 @@ internal static class HtmlManager
 					MixedNum height = null;
 					MixedNum width = null;
 					MixedNum ypos = null;
+					string cm = null;
 					while (wc != null && !wc.EOL)
 					{
 						word = wc.Current as IdentifierWord;
@@ -1142,13 +1143,19 @@ internal static class HtmlManager
 						{
 							ParseMixedNum(ref ypos, tag, word.Code, attrValue);
 						}
+						else if (word.Code.Equals("cm", StringComparison.OrdinalIgnoreCase))
+						{
+							if (cm != null)
+								throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word.Code));
+							cm = attrValue;
+						}
 						else
 							throw new CodeEE(string.Format(trerror.CanNotInterpretAttributeName.Text, tag, word.Code));
 					}
 					#endregion
 					if (src == null)
 						throw new CodeEE(string.Format(trerror.NotSetAttribute.Text, tag, "src"));
-					return new ConsoleImagePart(src, srcb, srcm, height, width, ypos);
+					return new ConsoleImagePart(src, srcb, srcm, height, width, ypos, cm);
 				}
 			#region EM_私家版_HTML_divタグ
 			case "div":

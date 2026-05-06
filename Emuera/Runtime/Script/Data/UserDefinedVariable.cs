@@ -1,4 +1,4 @@
-﻿﻿﻿﻿using MinorShift.Emuera.Runtime.Script.Parser;
+﻿﻿﻿﻿﻿﻿using MinorShift.Emuera.Runtime.Script.Parser;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using MinorShift.Emuera.Runtime.Utils;
 using System;
@@ -13,6 +13,7 @@ internal sealed class UserDefinedVariableData
 	public bool TypeIsStr;
 	public bool TypeIsFloat;
 	public bool Reference;
+	public bool Out;
 	public int Dimension = 1;
 	public int[] Lengths;
 	public long[] DefaultInt;
@@ -24,6 +25,43 @@ internal sealed class UserDefinedVariableData
 	public bool Private;
 	public bool CharaData;
 	public bool Const;
+
+	public static UserDefinedVariableData CreateRefScalar(WordCollection wc, bool isStr, bool isFloat, bool isPrivate, ScriptPosition? sc)
+	{
+		UserDefinedVariableData ret = new()
+		{
+			TypeIsStr = isStr,
+			TypeIsFloat = isFloat,
+			Reference = true,
+			Static = false,
+			Private = isPrivate,
+			Dimension = 0,
+			Lengths = [1]
+		};
+		string keyword = isStr ? "#REFS" : isFloat ? "#REFF" : "#REF";
+		if (wc.EOL)
+			throw new CodeEE(string.Format(trerror.NotVarAfterKeyword.Text, keyword), sc);
+		IdentifierWord idw = wc.Current as IdentifierWord;
+		if (idw == null)
+			throw new CodeEE(string.Format(trerror.NotVarAfterKeyword.Text, keyword), sc);
+		wc.ShiftNext();
+		ret.Name = idw.Code;
+		if (!wc.EOL)
+			throw new CodeEE(string.Format(trerror.CanNotSizedRef.Text, sc), sc);
+		string errMes = "";
+		int errLevel = -1;
+		if (isPrivate)
+			GlobalStatic.IdentifierDictionary.CheckUserPrivateVarName(ref errMes, ref errLevel, ret.Name);
+		else
+			GlobalStatic.IdentifierDictionary.CheckUserVarName(ref errMes, ref errLevel, ret.Name);
+		if (errLevel >= 0)
+		{
+			if (errLevel >= 2)
+				throw new CodeEE(errMes, sc);
+			ParserMediator.Warn(errMes, sc, errLevel);
+		}
+		return ret;
+	}
 
 	//1822 Privateの方もDIMだけ遅延させようとしたけどちょっと課題がおおいのでやめとく
 	public static UserDefinedVariableData Create(DimLineWC dimline)
@@ -85,6 +123,25 @@ internal sealed class UserDefinedVariableData
 						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "CONST"), sc);
 					if (ret.Reference)
 						throw new CodeEE(string.Format(trerror.DuplicateKeyword.Text, keyword), sc);
+					ret.Reference = true;
+					ret.Static = false;
+					break;
+				case var s when s.Equals("OUT", cmp):
+					if (staticDefined && ret.Static)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "STATIC"), sc);
+					if (ret.CharaData)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "CHARADATA"), sc);
+					if (ret.Global)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "GLOBAL"), sc);
+					if (ret.Save)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "SAVEDATA"), sc);
+					if (ret.Const)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "CONST"), sc);
+					if (ret.Reference)
+						throw new CodeEE(string.Format(trerror.CanNotSpecifiedWith.Text, keyword, "REF"), sc);
+					if (ret.Out)
+						throw new CodeEE(string.Format(trerror.DuplicateKeyword.Text, keyword), sc);
+					ret.Out = true;
 					ret.Reference = true;
 					ret.Static = false;
 					break;
@@ -298,6 +355,12 @@ internal sealed class UserDefinedVariableData
 			sizeNum.Add(1);
 
 		ret.Private = isPrivate;
+		if (ret.Out)
+		{
+			ret.Dimension = 0;
+			ret.Lengths = [1];
+			return ret;
+		}
 		ret.Dimension = sizeNum.Count;
 		if (ret.Const && ret.Dimension > 1)
 			throw new CodeEE(trerror.CanNotDeclareConstArray.Text);

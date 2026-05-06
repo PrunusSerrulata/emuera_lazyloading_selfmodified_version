@@ -600,6 +600,26 @@ internal sealed class ErbLoader
 		int maxArg = -1;
 		int maxArgs = -1;
 		int maxArgF = -1;
+		bool hasVariadic = false;
+		int variadicCommaIndex = -1;
+		int commaCount = 0;
+
+		wc.PointerReset();
+		while (!wc.EOL)
+		{
+			if (wc.Current is IdentifierWord idw && idw.Code.Equals("VARIADIC", Config.Config.StringComparison))
+			{
+				hasVariadic = true;
+				variadicCommaIndex = commaCount;
+				wc.Remove();
+				continue;
+			}
+			if (wc.Current is SymbolWord symComma && symComma.Type == ',')
+				commaCount++;
+			wc.ShiftNext();
+		}
+		wc.PointerReset();
+		wc.ShiftNext();
 		//1807 非イベント関数のシステム関数については警告レベル低下＆エラー解除＆引数を設定するように。
 		if (label.IsEvent)
 		{
@@ -663,12 +683,12 @@ internal sealed class ErbLoader
 					if (!(term.Restructure(exm) is VariableTerm vTerm) || vTerm.Identifier.IsConst)
 					{ errMes = trerror.ArgCanOnlyAssignableVar.Text; goto err; }
 					else if (!vTerm.Identifier.IsReference)//参照型なら添え字不要
-					{
-						if (vTerm is VariableNoArgTerm)
-						{ errMes = string.Format(trerror.ArgHasNotSubscript.Text, vTerm.Identifier.Name); goto err; }
-						if (!vTerm.isAllConst)
-						{ errMes = trerror.ArgSubscriptOnlyConst.Text; goto err; }
-					}
+				{
+					if (vTerm is VariableNoArgTerm && !vTerm.Identifier.IsPrivate)
+					{ errMes = string.Format(trerror.ArgHasNotSubscript.Text, vTerm.Identifier.Name); goto err; }
+					if (!vTerm.isAllConst && !vTerm.Identifier.IsPrivate)
+					{ errMes = trerror.ArgSubscriptOnlyConst.Text; goto err; }
+				}
 					for (int j = 0; j < i; j++)
 					{
 						if (vTerm.checkSameTerm(args[j]))
@@ -723,6 +743,41 @@ internal sealed class ErbLoader
 		}
 		if (!wc.EOL)
 		{ errMes = trerror.WrongArgFormat.Text; goto err; }
+
+		if (hasVariadic && args.Length > 0)
+		{
+			if (variadicCommaIndex >= 0 && variadicCommaIndex != args.Length - 1)
+			{
+				ParserMediator.Warn(string.Format("VARIADIC参数必须位于最后一个参数位置", label.LabelName), label, 2, true, false);
+				return;
+			}
+			label.VariadicArgIndex = args.Length - 1;
+			VariableCode variadicCode = args[args.Length - 1].Identifier.Code;
+			if (variadicCode == VariableCode.ARG || variadicCode == VariableCode.ARGS || variadicCode == VariableCode.ARGF)
+			{
+				for (int i = 0; i < args.Length - 1; i++)
+				{
+					if (args[i].Identifier.Code == variadicCode)
+					{
+						ParserMediator.Warn(string.Format(
+							"声明为VARIADIC的{0}不得出现在之前的固定参数中（参数{1}：{2}），请使用私有变量代替",
+							variadicCode == VariableCode.ARG ? "ARG"
+								: variadicCode == VariableCode.ARGS ? "ARGS" : "ARGF",
+							i + 1, args[i].GetFullString()),
+							label, 2, true, false);
+						return;
+					}
+				}
+			}
+			else
+			{
+				ParserMediator.Warn(string.Format(
+					"VARIADIC只能修饰ARG、ARGS或ARGF，不能修饰{0}",
+					args[args.Length - 1].Identifier.Name),
+					label, 2, true, false);
+				return;
+			}
+		}
 
 		//label.SubNames = subNames;
 		label.Arg = args;

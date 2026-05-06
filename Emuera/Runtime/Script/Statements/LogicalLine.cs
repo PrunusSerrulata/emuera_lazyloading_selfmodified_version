@@ -262,6 +262,7 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
 	public int ArgLength { get; set; }
 	public int ArgsLength { get; set; }
 	public int ArgFloatLength { get; set; }
+	public int VariadicArgIndex { get; set; } = -1;
 
 	//public bool ArgOptional { get; set; }
 	//public bool ArgAutoConvert { get; set; }
@@ -270,6 +271,7 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
 	public EraType MethodType { get; set; }
 	public VariableTerm[] Arg { get; set; }
 	public SingleTerm[] Def { get; set; }
+	public UserDifinedFunctionDataArgType[] ArgTypeList { get; set; }
 	//public SingleTerm[] SubNames { get; set; }
 	public int Depth { get; set; }
 
