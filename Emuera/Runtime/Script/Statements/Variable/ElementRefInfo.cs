@@ -12,7 +12,10 @@ internal readonly struct ElementRefInfo
     {
         TargetVar = targetVar;
         Indices = indices;
-        CapturedArray = targetVar?.GetArray();
+        if (targetVar != null && !targetVar.IsCharacterData && targetVar.Dimension > 0)
+            CapturedArray = targetVar.GetArray();
+        else
+            CapturedArray = null;
     }
 
     public bool IsNull => TargetVar == null;

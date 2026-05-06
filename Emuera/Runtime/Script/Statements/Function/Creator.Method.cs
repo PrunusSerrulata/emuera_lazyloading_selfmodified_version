@@ -8394,34 +8394,41 @@ internal static partial class FunctionMethodCreator
 	}
 
 	/// <summary>
-	/// CBGSETCIMG(str imgName, int x, int y, int zdepth)
+	/// CBGSETCIMG / CBGSETSPRITE
+	/// (str imgName, int x, int y, int zdepth, int width, int height, int opacity, var CM)
+	/// 第2个参数（x）开始全部可以省略
 	/// </summary>
 	public sealed class CBGSetCIMGMethod : FunctionMethod
 	{
 		public CBGSetCIMGMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = [EraType.String, EraType.Integer, EraType.Integer, EraType.Integer];
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Int, ArgType.Any }, OmitStart = 1 }
+				];
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			//if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
-			//	throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodGDIPLUSOnly, Name));
-
 			string imgname = arguments[0].GetStrValue(exm);
 			ASprite img = AppContents.GetSprite(imgname);
 			if (img == null || !img.IsCreated)
 				return 0;
-			Point p = ReadPoint(Name, exm, arguments, 1);
-			long z64 = arguments[3].GetIntValue(exm);
+
+			int x = arguments.Count > 1 && arguments[1] != null ? (int)arguments[1].GetIntValue(exm) : 0;
+			int y = arguments.Count > 2 && arguments[2] != null ? (int)arguments[2].GetIntValue(exm) : 0;
+			int z64 = arguments.Count > 3 && arguments[3] != null ? (int)arguments[3].GetIntValue(exm) : 1;
+			int width = arguments.Count > 4 && arguments[4] != null ? (int)arguments[4].GetIntValue(exm) : 0;
+			int height = arguments.Count > 5 && arguments[5] != null ? (int)arguments[5].GetIntValue(exm) : 0;
+			float opacity = arguments.Count > 6 && arguments[6] != null ? arguments[6].GetIntValue(exm) / 255.0f : 1.0f;
+			float[]? colorMatrix = arguments.Count > 7 && arguments[7] != null ? ColorMatrixHelper.ReadFromVariableTerm(arguments[7], exm) : null;
+
 			if (z64 < int.MinValue || z64 > int.MaxValue || z64 == 0)
-				// throw new CodeEE(string.Format(Properties.Resources.RuntimeErrMesMethodDefaultArgumentOutOfRange0, Name, z64, 3 + 1));
 				throw new CodeEE(string.Format(trerror.ArgIsOutOfRangeExcept.Text, Name, 4, z64, int.MinValue, int.MaxValue, 0));
-			if (!exm.Console.CBG_SetImage(img, p.X, p.Y, (int)z64))
+
+			if (!exm.Console.CBG_SetImage(img, x, y, z64, width, height, opacity, colorMatrix))
 				return 0;
 			return 1;
-
 		}
 	}
 
@@ -10290,6 +10297,21 @@ internal static partial class FunctionMethodCreator
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			return exm.Process.State.CurrentVariadicArgCount;
+		}
+	}
+
+	public sealed class ExistsImageLayerMethod : FunctionMethod
+	{
+		public ExistsImageLayerMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			long depth = arguments[0].GetIntValue(exm);
+			return exm.Console.ExistsImageLayer(depth) ? 1 : 0;
 		}
 	}
 }

@@ -46,20 +46,32 @@ internal sealed class UserDefinedRefMethod
 			{
 				UserDifinedFunctionDataArgType type = UserDifinedFunctionDataArgType.__Ref;
 				type += vToken.Dimension;
-				if (vToken.IsInteger || vToken.IsFloat)
+				if (vToken.IsFloat)
+					type |= UserDifinedFunctionDataArgType.Float;
+				else if (vToken.IsInteger)
 					type |= UserDifinedFunctionDataArgType.Int;
 				else
 					type |= UserDifinedFunctionDataArgType.Str;
 				if (vToken.IsOut)
 					type |= UserDifinedFunctionDataArgType.__Out;
+				if (i == label.VariadicArgIndex)
+					type |= UserDifinedFunctionDataArgType.__Variadic;
 				if (ArgTypeList[i] != type)
 					return false;
 			}
 			else
 			{
-				if ((vToken.IsInteger || vToken.IsFloat) && ArgTypeList[i] != UserDifinedFunctionDataArgType.Int)
-					return false;
-				if (vToken.IsString && ArgTypeList[i] != UserDifinedFunctionDataArgType.Str)
+				UserDifinedFunctionDataArgType type = 0;
+				if (vToken.IsFloat)
+					type = UserDifinedFunctionDataArgType.Float;
+				else if (vToken.IsInteger)
+					type = UserDifinedFunctionDataArgType.Int;
+				else
+					type = UserDifinedFunctionDataArgType.Str;
+				if (i == label.VariadicArgIndex)
+					type |= UserDifinedFunctionDataArgType.__Variadic;
+				
+				if (ArgTypeList[i] != type)
 					return false;
 			}
 		}

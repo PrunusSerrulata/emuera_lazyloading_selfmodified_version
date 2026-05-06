@@ -250,6 +250,8 @@ internal static partial class ArgumentParser
 		argb[FunctionArgType.SP_HTML_PRINT] = new SP_HTML_PRINT_ArgumentBuilder();
 		argb[FunctionArgType.SP_HTML_PRINTC] = new SP_HTML_PRINTC_ArgumentBuilder();
 		#endregion
+		argb[FunctionArgType.SP_SETBGIMAGE] = new SP_SETBGIMAGE_ArgumentBuilder();
+		argb[FunctionArgType.SP_SETIMAGELAYER] = new SP_SETIMAGELAYER_ArgumentBuilder();
 	}
 
 	#region EM_私家版_HTMLパラメータ拡張
@@ -2603,4 +2605,53 @@ internal static partial class ArgumentParser
 
 	}
 	#endregion
+
+	private sealed class SP_SETBGIMAGE_ArgumentBuilder : ArgumentBuilder
+	{
+		public SP_SETBGIMAGE_ArgumentBuilder()
+		{
+			argumentTypeArray = [EraType.String, EraType.Integer, EraType.Integer];
+			minArg = 1;
+		}
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			var terms = popTerms(line);
+			if (!checkArgumentType(line, exm, terms)) return null;
+
+			return new SpSetBgImageArgument(
+				terms[0],
+				terms.Count > 1 ? terms[1] : null,
+				terms.Count > 2 ? terms[2] : null
+			);
+		}
+	}
+
+	private sealed class SP_SETIMAGELAYER_ArgumentBuilder : ArgumentBuilder
+	{
+		public SP_SETIMAGELAYER_ArgumentBuilder()
+		{
+			argumentTypeArray = [
+				EraType.String, EraType.Integer, EraType.Integer, EraType.Integer,
+				EraType.Integer, EraType.Integer, EraType.Integer, EraType.Void, EraType.Integer
+			];
+			minArg = 2;
+		}
+		public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+		{
+			var terms = popTerms(line);
+			if (!checkArgumentType(line, exm, terms)) return null;
+
+			return new SpSetImageLayerArgument(
+				terms[0],
+				terms[1],
+				terms.Count > 2 ? terms[2] : null,
+				terms.Count > 3 ? terms[3] : null,
+				terms.Count > 4 ? terms[4] : null,
+				terms.Count > 5 ? terms[5] : null,
+				terms.Count > 6 ? terms[6] : null,
+				terms.Count > 7 ? terms[7] : null,
+				terms.Count > 8 ? terms[8] : null
+			);
+		}
+	}
 }

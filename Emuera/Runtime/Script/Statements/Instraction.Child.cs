@@ -14,6 +14,7 @@ using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using MinorShift.Emuera.Runtime.Utils.PluginSystem;
 using MinorShift.Emuera.UI;
 using MinorShift.Emuera.UI.Game;
+using MinorShift.Emuera.UI.Game.Image;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -1689,26 +1690,17 @@ internal sealed partial class FunctionIdentifier
 	{
 		public SETBGIMAGE_Instruction()
 		{
-			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.FORM_STR_ANY);
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_SETBGIMAGE);
 			flag = METHOD_SAFE | EXTENDED;
 		}
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			ExpressionArrayArgument arg = (ExpressionArrayArgument)func.Argument;
-			string bgName;
-			long bgDepth = 0;
-			bgName = arg.TermList[0].GetStrValue(exm);
-			float opacity = 1.0f;
-			if (arg.TermList.Count() >= 2)
-			{
-				bgDepth = long.Parse(arg.TermList[1].GetStrValue(exm));
-			}
-			if (arg.TermList.Count() >= 3)
-			{
-				opacity = long.Parse(arg.TermList[2].GetStrValue(exm)) / 255.0f;
-			}
-			exm.Console.AddBackgroundImage(bgName, bgDepth, opacity);
+			SpSetBgImageArgument arg = (SpSetBgImageArgument)func.Argument;
+			string bgName = arg.Name.GetStrValue(exm);
+			long depth = arg.Depth != null ? arg.Depth.GetIntValue(exm) : 0;
+			float opacity = arg.Opacity != null ? arg.Opacity.GetIntValue(exm) / 255.0f : 1.0f;
+			exm.Console.AddBackgroundImage(bgName, depth, opacity);
 		}
 	}
 	private sealed class REMOVEBGIMAGE_Instruction : AInstruction
@@ -4126,6 +4118,60 @@ internal sealed partial class FunctionIdentifier
 			if (arg.TermList.Length > 2 && arg.TermList[2] != null)
 				Config.FontEdging = (SkiaSharpFontEdging)arg.TermList[2].GetIntValue(exm);
 			FontFactory.ClearFont();
+		}
+	}
+
+	private sealed class SETIMAGELAYER_Instruction : AInstruction
+	{
+		public SETIMAGELAYER_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_SETIMAGELAYER);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			SpSetImageLayerArgument arg = (SpSetImageLayerArgument)func.Argument;
+			string spriteName = arg.SpriteName.GetStrValue(exm);
+			long depth = arg.Depth.GetIntValue(exm);
+			int x = arg.X != null ? (int)arg.X.GetIntValue(exm) : 0;
+			int y = arg.Y != null ? (int)arg.Y.GetIntValue(exm) : 0;
+			int width = arg.Width != null ? (int)arg.Width.GetIntValue(exm) : 0;
+			int height = arg.Height != null ? (int)arg.Height.GetIntValue(exm) : 0;
+			int opacity = arg.Opacity != null ? (int)arg.Opacity.GetIntValue(exm) : 255;
+			float[]? colorMatrix = arg.CMArray != null ? ColorMatrixHelper.ReadFromVariableTerm(arg.CMArray, exm) : null;
+			bool followScroll = arg.FollowScroll != null && arg.FollowScroll.GetIntValue(exm) != 0;
+			exm.Console.SetImageLayer(spriteName, depth, x, y, width, height, opacity, colorMatrix, followScroll);
+		}
+	}
+
+	private sealed class CLEARIMAGELAYER_Instruction : AInstruction
+	{
+		public CLEARIMAGELAYER_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			ExpressionArgument arg = (ExpressionArgument)func.Argument;
+			long depth = arg.Term.GetIntValue(exm);
+			exm.Console.ClearImageLayer(depth);
+		}
+	}
+
+	private sealed class CLEARIMAGELAYER_ALL_Instruction : AInstruction
+	{
+		public CLEARIMAGELAYER_ALL_Instruction()
+		{
+			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.VOID);
+			flag = METHOD_SAFE | EXTENDED;
+		}
+
+		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+		{
+			exm.Console.ClearImageLayerAll();
 		}
 	}
 

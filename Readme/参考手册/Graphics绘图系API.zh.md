@@ -20,11 +20,15 @@
 | **SPRITECREATE** | spriteName, gID(, x, y, w, h) | int | 从 Graphics 创建 Sprite |
 | **SPRITEDISPOSE** | spriteName | int | 释放 Sprite |
 | **CBGSETG** | gID, x, y, zDepth | int | 设置 Graphics 为背景层 |
-| **CBGSETSPRITE** | spriteName, x, y, zDepth | int | 设置 Sprite 为背景层 |
+| **CBGSETSPRITE** | spriteName, x, y, zDepth(, width, height, opacity, colorMatrix) | int | 设置 Sprite 为背景层（支持缩放/透明度/CM） |
 | **CBGCLEAR** | none | int | 清除所有背景层 |
 | **SETBGIMAGE** | resourceName(, depth, opacity) | none | 设置资源图片为背景 |
 | **CLEARBGIMAGE** | none | none | 清除所有背景图片 |
 | **REMOVEBGIMAGE** | resourceName | none | 移除指定背景图片 |
+| **SETIMAGELAYER** | spriteName, depth(, x, y, width, height, opacity, colorMatrix, followScroll) | none | 在独立图层渲染 Sprite |
+| **EXISTSIMAGELAYER** | depth | int | 检测图层是否存在 |
+| **CLEARIMAGELAYER** | depth | none | 清除指定图层 |
+| **CLEARIMAGELAYER_ALL** | none | none | 清除所有图层 |
 
 ---
 
@@ -302,19 +306,31 @@
 
 ---
 
-## CBGSETSPRITE
+## CBGSETSPRITE / CBGSETCIMG
 
 | 函数名 | 参数 | 返回值 |
 | :--- | :--- | :--- |
-| ![](../assets/images/IconEmuera.webp)[`CBGSETSPRITE`](./CBGSETSPRITE.md) | `string`, `int`, `int`, `int` | `int` |
+| ![](../assets/images/IconEmuera.webp)[`CBGSETSPRITE`](./CBGSETSPRITE.zh.md) | `string`, `int`, `int`, `int` | `int` |
+| | `string`, `int`, `int`, `int`, `int`, `int`, `int` | `int` |
+| | `string`, `int`, `int`, `int`, `int`, `int`, `int`, `integerVariable` | `int` |
 
 !!! info "API"
 
     ``` { #language-erbapi }
     int CBGSETSPRITE spriteName, x, y, zDepth
+    int CBGSETSPRITE spriteName, x, y, zDepth, width, height, opacity
+    int CBGSETSPRITE spriteName, x, y, zDepth, width, height, opacity, colorMatrix
     ```
 
-    将指定 `spriteName` 的 Sprite 设置为客户端区域的背景图。坐标与深度规则同 [`CBGSETG`](#cbgsetg)。
+    将指定 `spriteName` 的 Sprite 设置为客户端区域的背景图。`CBGSETCIMG` 为同一函数的别名。
+
+    - 基本用法：指定 Sprite 名称、坐标和层深度。
+    - 缩放+透明度：指定 `width` 和 `height` 可缩放绘制，`opacity` 为 0～255 的不透明度。
+    - 颜色矩阵：指定 `colorMatrix`（5×5 二维整数数组变量）可在绘制时应用颜色矩阵变换。
+
+    坐标与深度规则同 [`CBGSETG`](#cbgsetg)。成功返回非零值。若 Sprite 不存在则返回 0。
+
+    详见 [CBGSETSPRITE 完整手册](./CBGSETSPRITE.zh.md)。
 
 !!! hint "Hint"
 
@@ -364,6 +380,82 @@
 
     !!! warning "注意"
         仅支持命令语法，不支持表达式。WINAPI 模式不支持。背景图会自动缩放以适应控制台窗口并保持宽高比。
+
+!!! hint "Hint"
+
+    仅命令语法可用。
+
+---
+
+## SETIMAGELAYER
+
+| 函数名 | 参数 | 返回值 |
+| :--- | :--- | :--- |
+| ![](../assets/images/Iconetc.webp)[`SETIMAGELAYER`](./SETIMAGELAYER.zh.md) | `string`, `int` | None |
+| | `string`, `int`, `int`, `int`, `int`, `int`, `int`, `integerVariable`, `int` | None |
+
+!!! info "API"
+
+    ``` { #language-erbapi }
+    SETIMAGELAYER spriteName, depth
+    SETIMAGELAYER spriteName, depth, x, y, width, height, opacity
+    SETIMAGELAYER spriteName, depth, x, y, width, height, opacity, colorMatrix, followScroll
+    ```
+
+    在独立图层上渲染指定 Sprite。与 [`CBGSETSPRITE`](#cbgsetsprite--cbgsetcimg) 不同，SETIMAGELAYER 的图层与文本行解耦，支持视口裁剪和跟随滚动。
+
+    - `spriteName` 和 `depth` 不可省略。
+    - `depth` 用于图层排序和唯一标识，相同 `depth` 的图层会被覆盖。
+    - `opacity` 为 0～255 的不透明度（默认 255）。
+    - `colorMatrix` 为 5×5 二维整数数组变量。
+    - `followScroll` 为 1 时图层随文本滚动，为 0 时固定位置（默认 0）。
+
+    详见 [SETIMAGELAYER 完整手册](./SETIMAGELAYER.zh.md)。
+
+!!! hint "Hint"
+
+    仅命令语法可用。
+
+---
+
+## EXISTSIMAGELAYER
+
+| 函数名 | 参数 | 返回值 |
+| :--- | :--- | :--- |
+| ![](../assets/images/IconEmuera.webp)[`EXISTSIMAGELAYER`](./EXISTSIMAGELAYER.zh.md) | `int` | `int` |
+
+!!! info "API"
+
+    ``` { #language-erbapi }
+    int EXISTSIMAGELAYER(depth)
+    ```
+
+    检测指定 `depth` 的 [`SETIMAGELAYER`](#setimagelayer) 图层是否存在。存在返回 1，不存在返回 0。
+
+!!! hint "Hint"
+
+    命令/表达式。
+
+---
+
+## CLEARIMAGELAYER / CLEARIMAGELAYER_ALL
+
+| 函数名 | 参数 | 返回值 |
+| :--- | :--- | :--- |
+| ![](../assets/images/Iconetc.webp)[`CLEARIMAGELAYER`](./CLEARIMAGELAYER.zh.md) | `int` | None |
+| ![](../assets/images/Iconetc.webp)[`CLEARIMAGELAYER_ALL`](./CLEARIMAGELAYER.zh.md) | none | None |
+
+!!! info "API"
+
+    ``` { #language-erbapi }
+    CLEARIMAGELAYER depth
+    CLEARIMAGELAYER_ALL
+    ```
+
+    - **CLEARIMAGELAYER**：清除指定 `depth` 的 [`SETIMAGELAYER`](#setimagelayer) 图层。
+    - **CLEARIMAGELAYER_ALL**：清除所有 `SETIMAGELAYER` 图层。
+
+    仅影响 `SETIMAGELAYER` 创建的图层，不影响 [`CBGSETSPRITE`](#cbgsetsprite--cbgsetcimg) 或 [`SETBGIMAGE`](#setbgimage--clearbgimage--removebgimage) 的背景图。
 
 !!! hint "Hint"
 

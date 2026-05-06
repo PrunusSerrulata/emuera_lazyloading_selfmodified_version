@@ -53,42 +53,50 @@ internal sealed class UserDefinedFunctionArgument
 				{
 					continue;
 				}
-				if (vTerm.Identifier.IsCharacterData)
+				
+				if (refDestDimension[i] > 0)
 				{
-					long charaNo = vTerm.GetElementInt(0, exm);
-					if (charaNo < 0 || charaNo >= GlobalStatic.VariableData.CharacterList.Count)
-						throw new CodeEE(string.Format(trerror.OoRCharaVarArg.Text, vTerm.Identifier.Name, "1", charaNo.ToString()));
-					TransporterRef[i] = vTerm.Identifier.GetArrayChara((int)charaNo);
-				}
-				else if (vTerm.Identifier is ReferenceToken refToken)
-				{
-					if (refToken.HasElementRef)
-						TransporterElementRef[i] = refToken.GetElementRef();
-					else if (refToken.HasArrayRef)
+					if (vTerm.Identifier.IsCharacterData)
+					{
+						long charaNo = vTerm.GetElementInt(0, exm);
+						if (charaNo < 0 || charaNo >= GlobalStatic.VariableData.CharacterList.Count)
+							throw new CodeEE(string.Format(trerror.OoRCharaVarArg.Text, vTerm.Identifier.Name, "1", charaNo.ToString()));
+						TransporterRef[i] = vTerm.Identifier.GetArrayChara((int)charaNo);
+					}
+					else if (vTerm.Identifier is ReferenceToken refToken)
+					{
+						if (refToken.IsOut && refToken.IsNullRef)
+							continue;
 						TransporterRef[i] = refToken.GetArray();
-					else if (refToken.IsOut && refToken.IsNullRef)
-						continue;
-					else
-						TransporterRef[i] = vTerm.Identifier.GetArray();
-				}
-				else if (vTerm.Identifier.Dimension > 0 && !vTerm.Identifier.IsReference)
-				{
-					bool hasFullIndices = vTerm.ArgumentCount >= vTerm.Identifier.Dimension;
-					if (refDestDimension[i] > 0 && !hasFullIndices)
-						TransporterRef[i] = vTerm.Identifier.GetArray();
+					}
 					else
 					{
-						long[] indices = new long[vTerm.Identifier.Dimension];
-						for (int d = 0; d < vTerm.Identifier.Dimension; d++)
-							indices[d] = vTerm.GetElementInt(d, exm);
-						TransporterElementRef[i] = new ElementRefInfo(vTerm.Identifier, indices);
+						TransporterRef[i] = vTerm.Identifier.GetArray();
 					}
 				}
 				else
 				{
-					TransporterRef[i] = vTerm.Identifier.GetArray();
+					if (vTerm.Identifier is ReferenceToken refToken && refToken.HasElementRef)
+					{
+						TransporterElementRef[i] = refToken.GetElementRef();
+					}
+					else if (vTerm.Identifier is ReferenceToken refTokenOut && refTokenOut.IsOut && refTokenOut.IsNullRef)
+					{
+						continue;
+					}
+					else
+					{
+						long[] indices = new long[vTerm.Identifier.Dimension];
+						for (int d = 0; d < vTerm.Identifier.Dimension; d++)
+						{
+							if (vTerm is FixedVariableTerm || d < vTerm.ArgumentCount)
+								indices[d] = vTerm.GetElementInt(d, exm);
+							else
+								indices[d] = 0;
+						}
+						TransporterElementRef[i] = new ElementRefInfo(vTerm.Identifier, indices);
+					}
 				}
-
 			}
 			else if (Arguments[i] is VariadicArgTerm)
 				continue;
@@ -240,29 +248,10 @@ internal sealed class CalledFunction
 				}
 				if (destArg.Identifier.Dimension == 0)
 				{
-					if (vTerm.Identifier.Dimension == 0)
+					if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, true, true, out errMes))
 					{
-						if (vTerm.Identifier.IsReference)
-						{
-							if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, true, destArg.Identifier.IsOut, out errMes))
-							{
-								errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
-								return null;
-							}
-						}
-						else
-						{
-							errMes = string.Format(trerror.RequireArrayBecauseRefArg.Text, func.LabelName, (i + 1).ToString());
-							return null;
-						}
-					}
-					else
-					{
-						if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, true, true, out errMes))
-						{
-							errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
-							return null;
-						}
+						errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
+						return null;
 					}
 				}
 				else
@@ -272,7 +261,7 @@ internal sealed class CalledFunction
 						errMes = string.Format(trerror.RequireArrayBecauseRefArg.Text, func.LabelName, (i + 1).ToString());
 						return null;
 					}
-					if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, false, out errMes))
+					if (!((ReferenceToken)destArg.Identifier).MatchType(vTerm.Identifier, false, false, out errMes))
 					{
 						errMes = string.Format(trerror.NumberOfArg.Text, func.LabelName, (i + 1).ToString(), errMes);
 						return null;

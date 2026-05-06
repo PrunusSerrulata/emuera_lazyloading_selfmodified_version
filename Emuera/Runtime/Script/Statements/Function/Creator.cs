@@ -379,6 +379,8 @@ internal static partial class FunctionMethodCreator
 
 			["ARGLEN"] = new ArgLengthMethod(),
 
+			["EXISTSIMAGELAYER"] = new ExistsImageLayerMethod(),
+
 			#region 尊尼获加荣誉出品
 			["GETSOUNDORBGMINFO"] = new GetSoundOrBgmInfoMethod(),
 			["ISPLAYINGSOUND"] = new IsPlayingSoundMethod(),

@@ -1,4 +1,6 @@
+using MinorShift.Emuera.GameData.Variable;
 using MinorShift.Emuera.Runtime.Config;
+using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.UI.Game.Image;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -128,6 +130,7 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 		{
 			cImageM = AppContents.GetSprite(MappingGraphName);
 		}
+		ResolveColorMatrix();
 	}
 	public readonly string MappingGraphName;
 	private readonly ASprite cImageM;
@@ -145,6 +148,37 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 	}
 	private readonly string _cmVariableName;
 	public string CmVariableName => _cmVariableName;
+
+	private void ResolveColorMatrix()
+	{
+		if (string.IsNullOrEmpty(_cmVariableName))
+			return;
+		try
+		{
+			string varName = _cmVariableName;
+			long idx1 = 0, idx2 = 0, idx3 = 0;
+			int colonPos = varName.IndexOf(':');
+			if (colonPos >= 0)
+			{
+				string baseName = varName.Substring(0, colonPos);
+				string rest = varName.Substring(colonPos + 1);
+				varName = baseName;
+				var parts = rest.Split(':');
+				if (parts.Length >= 1) long.TryParse(parts[0], out idx1);
+				if (parts.Length >= 2) long.TryParse(parts[1], out idx2);
+				if (parts.Length >= 3) long.TryParse(parts[2], out idx3);
+			}
+
+			VariableToken token = GlobalStatic.IdentifierDictionary?.GetVariableToken(varName, null, true);
+			if (token == null)
+				return;
+
+			_colorMatrix = ColorMatrixHelper.ReadFromVariable(token, idx1, idx2, idx3);
+		}
+		catch
+		{
+		}
+	}
 	//#pragma warning disable CS0649 // フィールド 'ConsoleImagePart.ia' は割り当てられません。常に既定値 null を使用します。
 	//		private readonly ImageAttributes ia;
 	//#pragma warning restore CS0649 // フィールド 'ConsoleImagePart.ia' は割り当てられません。常に既定値 null を使用します。

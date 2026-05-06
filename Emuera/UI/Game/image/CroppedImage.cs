@@ -250,6 +250,25 @@ internal sealed class SpriteAnime : ASprite
 	DateTime StartTime;
 	DateTime lastFrameTime;
 	int lastFrame = -1;
+	private bool _paused;
+	private long _pausedElapsed;
+
+	internal void PauseAnimation()
+	{
+		if (_paused) return;
+		_paused = true;
+		if (lastFrame >= 0)
+			_pausedElapsed = (long)(DateTime.Now - StartTime).TotalMilliseconds;
+	}
+
+	internal void ResumeAnimation()
+	{
+		if (!_paused) return;
+		_paused = false;
+		if (lastFrame >= 0)
+			StartTime = DateTime.Now.AddMilliseconds(-_pausedElapsed);
+	}
+
 	private AnimeFrame GetCurrentFrame()
 	{
 		if (totaltime <= 0)

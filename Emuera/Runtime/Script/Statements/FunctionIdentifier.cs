@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameData.Function;
+using MinorShift.Emuera.GameData.Function;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Function;
@@ -273,6 +273,9 @@ internal sealed partial class FunctionIdentifier
 		addFunction(FunctionCode.RESETCOLOR, new RESETCOLOR_Instruction());
 		addFunction(FunctionCode.SETBGCOLOR, argb[FunctionArgType.SP_COLOR], METHOD_SAFE | EXTENDED);
 		addFunction(FunctionCode.SETBGIMAGE, new SETBGIMAGE_Instruction());
+		addFunction(FunctionCode.SETIMAGELAYER, new SETIMAGELAYER_Instruction());
+		addFunction(FunctionCode.CLEARIMAGELAYER, new CLEARIMAGELAYER_Instruction());
+		addFunction(FunctionCode.CLEARIMAGELAYER_ALL, new CLEARIMAGELAYER_ALL_Instruction());
 		addFunction(FunctionCode.SETBGCOLORBYNAME, argb[FunctionArgType.STR], METHOD_SAFE | EXTENDED);
 		addFunction(FunctionCode.RESETBGCOLOR, new RESETBGCOLOR_Instruction());
 		addFunction(FunctionCode.CLEARBGIMAGE, new CLEARBGIMAGE_Instruction());

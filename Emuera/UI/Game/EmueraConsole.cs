@@ -17,6 +17,7 @@ using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Utils.EvilMask;
 using MinorShift.Emuera.UI.Game;
 using MinorShift.Emuera.UI.Game.Image;
+using MinorShift.Emuera.UI.Game.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -121,6 +122,7 @@ internal sealed partial class EmueraConsole : IDisposable
 	}
 	#region 1823 cbg関連
 	private readonly List<ClientBackGroundImage> cbgList = [];
+	private readonly ImageLayerManager _imageLayerManager = new();
 	private GraphicsImage cbgButtonMap;
 	private int selectingCBGButtonInt = -1;
 	private int lastSelectingCBGButtonInt = -1;
@@ -139,10 +141,14 @@ internal sealed partial class EmueraConsole : IDisposable
 		public ASprite ImgB;
 		public int x;
 		public int y;
+		public int width;
+		public int height;
 		public readonly int zdepth;
 		public bool isButton;
 		public int buttonValue;
 		public string tooltipString;
+		public float Opacity = 1.0f;
+		public float[] ColorMatrix = null;
 		public int CompareTo(ClientBackGroundImage other)
 		{
 			if (other == null)
@@ -206,13 +212,13 @@ internal sealed partial class EmueraConsole : IDisposable
 		lastSelectingCBGButtonInt = -1;
 	}
 
-	public bool CBG_SetGraphics(GraphicsImage gra, int x, int y, int zdepth)
+	public bool CBG_SetGraphics(GraphicsImage gra, int x, int y, int zdepth, int width = 0, int height = 0, float opacity = 1.0f, float[] colorMatrix = null)
 	{
 		if (gra == null || !gra.IsCreated)
 			return false;
-		return CBG_SetImage(new SpriteG("", gra, new Rectangle(0, 0, gra.Width, gra.Height)), x, y, zdepth);
+		return CBG_SetImage(new SpriteG("", gra, new Rectangle(0, 0, gra.Width, gra.Height)), x, y, zdepth, width, height, opacity, colorMatrix);
 	}
-	public bool CBG_SetImage(ASprite image, int x, int y, int zdepth)
+	public bool CBG_SetImage(ASprite image, int x, int y, int zdepth, int width = 0, int height = 0, float opacity = 1.0f, float[] colorMatrix = null)
 	{
 		if (image == null || !image.IsCreated)
 			return false;
@@ -221,9 +227,12 @@ internal sealed partial class EmueraConsole : IDisposable
 		{
 			Img = image,
 			x = x,
-			y = y
+			y = y,
+			width = width,
+			height = height,
+			Opacity = opacity,
+			ColorMatrix = colorMatrix
 		};
-		//cbg.zdepth = zdepth;
 		cbgList.Add(cbg);
 		cbgList.Sort();
 		return true;
@@ -261,6 +270,35 @@ internal sealed partial class EmueraConsole : IDisposable
 	}
 	public int ClientWidth { get { return window.MainPicBox.Width; } }
 	public int ClientHeight { get { return window.MainPicBox.Height; } }
+
+	public void CBGSetImage(string spriteName)
+	{
+		var spr = AppContents.GetSprite(spriteName);
+		if (spr == null || !spr.IsCreated) return;
+		CBG_SetImage(spr, 0, 0, 1);
+	}
+
+	public void SetImageLayer(string spriteName, long depth, int x, int y,
+		int width, int height, int opacity, float[]? colorMatrix, bool followScroll)
+	{
+		int currentScrollY = window.ScrollBar.Value * Config.LineHeight;
+		_imageLayerManager.SetLayer(spriteName, depth, x, y, width, height, opacity, colorMatrix, followScroll, currentScrollY);
+	}
+
+	public void ClearImageLayer(long depth)
+	{
+		_imageLayerManager.ClearLayer(depth);
+	}
+
+	public void ClearImageLayerAll()
+	{
+		_imageLayerManager.ClearAll();
+	}
+
+	public bool ExistsImageLayer(long depth)
+	{
+		return _imageLayerManager.Exists(depth);
+	}
 	#endregion
 
 	const string ErrorButtonsText = "__openFileWithDebug__";
@@ -1725,6 +1763,8 @@ internal sealed partial class EmueraConsole : IDisposable
 				graph.DrawBitmap(bakedBackground, 0, 0);
 			}
 
+			_imageLayerManager.DrawTo(graph, (int)graph.LocalClipBounds.Width, (int)graph.LocalClipBounds.Height, window.ScrollBar.Value * Config.LineHeight);
+
 			//1823 cbg追加
 			#region EM_私家版_描画拡張
 			if (escapedParts == null) escapedParts = [];
@@ -1741,14 +1781,23 @@ internal sealed partial class EmueraConsole : IDisposable
 				if (cidx < cbgList.Count && cbgList[cidx].zdepth == depth)
 				{
 					// 先にCBGを描画
-					ASprite img = cbgList[cidx].Img;
-					if (cbgList[cidx].isButton && cbgList[cidx].buttonValue == selectingCBGButtonInt)
-						img = cbgList[cidx].ImgB;
+					var cbg = cbgList[cidx];
+					ASprite img = cbg.Img;
+					if (cbg.isButton && cbg.buttonValue == selectingCBGButtonInt)
+						img = cbg.ImgB;
 					if (img != null && img.IsCreated)
 					{
 						try
 						{
-							img.GraphicsDraw(graph, new Point(cbgList[cidx].x, cbgList[cidx].y + window.MainPicBox.Height - img.DestBaseSize.Height));
+							int destW = cbg.width > 0 ? cbg.width : img.DestBaseSize.Width;
+							int destH = cbg.height > 0 ? cbg.height : img.DestBaseSize.Height;
+							var destRect = new Rectangle(cbg.x, cbg.y + window.MainPicBox.Height - destH, destW, destH);
+							SKColorFilter filter = null;
+							if (cbg.ColorMatrix != null && cbg.ColorMatrix.Length == 20)
+								filter = SKColorFilter.CreateColorMatrix(cbg.ColorMatrix);
+							else if (cbg.Opacity < 1.0f)
+								filter = SKColorFilter.CreateColorMatrix(new float[] { 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, cbg.Opacity, 0 });
+							img.GraphicsDraw(graph, destRect, filter);
 						}
 						catch
 						{

@@ -1,12 +1,14 @@
 using MinorShift.Emuera.GameData.Variable;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using MinorShift.Emuera.GameView;
 using System.Collections.Generic;
 using MinorShift.Emuera.Runtime.Script.Statements;
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+using MinorShift.Emuera.Runtime.Script.Statements.Variable;
 using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.UI.Game.Image;
 
@@ -522,6 +524,35 @@ internal sealed class ProcessState
 			srcArgs.SetTransporter(exm);
 		var ctx = new ExecutionContext(call.TopLabel, CurrentContext);
 		PushContext(ctx);
+
+		if (srcArgs != null && call.TopLabel.VariadicArgIndex >= 0)
+		{
+			var variadicArg = srcArgs.Arguments[call.TopLabel.VariadicArgIndex] as VariadicArgTerm;
+			if (variadicArg != null)
+			{
+				VariableTerm destArg = call.TopLabel.Arg[call.TopLabel.VariadicArgIndex];
+				int requiredSize = destArg.getEl1forArg + variadicArg.Count;
+				if (destArg.Identifier.Code == VariableCode.ARG && (ctx.ArgIntegers == null || requiredSize > ctx.ArgIntegers.Length))
+				{
+					long[] newArr = new long[requiredSize];
+					if (ctx.ArgIntegers != null) Array.Copy(ctx.ArgIntegers, newArr, ctx.ArgIntegers.Length);
+					ctx.ArgIntegers = newArr;
+				}
+				else if (destArg.Identifier.Code == VariableCode.ARGS && (ctx.ArgStrings == null || requiredSize > ctx.ArgStrings.Length))
+				{
+					string[] newArr = new string[requiredSize];
+					if (ctx.ArgStrings != null) Array.Copy(ctx.ArgStrings, newArr, ctx.ArgStrings.Length);
+					ctx.ArgStrings = newArr;
+				}
+				else if (destArg.Identifier.Code == VariableCode.ARGF && (ctx.ArgFloats == null || requiredSize > ctx.ArgFloats.Length))
+				{
+					double[] newArr = new double[requiredSize];
+					if (ctx.ArgFloats != null) Array.Copy(ctx.ArgFloats, newArr, ctx.ArgFloats.Length);
+					ctx.ArgFloats = newArr;
+				}
+			}
+		}
+
 		if (srcArgs != null)
 		{
 			if (call.TopLabel.hasPrivDynamicVar)

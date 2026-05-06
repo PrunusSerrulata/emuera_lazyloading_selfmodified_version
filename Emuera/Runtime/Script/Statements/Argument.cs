@@ -698,3 +698,42 @@ internal sealed class HTML_PRINTArgument : Argument
 	readonly public AExpression LineEnd;
 	readonly public AExpression Term;
 }
+
+internal sealed class SpSetBgImageArgument : Argument
+{
+	public SpSetBgImageArgument(AExpression name, AExpression? depth, AExpression? opacity)
+	{
+		Name = name;
+		Depth = depth;
+		Opacity = opacity;
+	}
+	readonly public AExpression Name;
+	readonly public AExpression? Depth;
+	readonly public AExpression? Opacity;
+}
+
+internal sealed class SpSetImageLayerArgument : Argument
+{
+	public SpSetImageLayerArgument(AExpression spriteName, AExpression depth, AExpression? x, AExpression? y,
+		AExpression? width, AExpression? height, AExpression? opacity, AExpression? cmArray, AExpression? followScroll)
+	{
+		SpriteName = spriteName;
+		Depth = depth;
+		X = x;
+		Y = y;
+		Width = width;
+		Height = height;
+		Opacity = opacity;
+		CMArray = cmArray;
+		FollowScroll = followScroll;
+	}
+	readonly public AExpression SpriteName;
+	readonly public AExpression Depth;
+	readonly public AExpression? X;
+	readonly public AExpression? Y;
+	readonly public AExpression? Width;
+	readonly public AExpression? Height;
+	readonly public AExpression? Opacity;
+	readonly public AExpression? CMArray;
+	readonly public AExpression? FollowScroll;
+}

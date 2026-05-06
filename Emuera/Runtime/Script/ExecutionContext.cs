@@ -10,9 +10,9 @@ internal sealed class ExecutionContext
     public long[] LocalIntegers { get; }
     public string[] LocalStrings { get; }
     public double[] LocalFloats { get; }
-    public long[] ArgIntegers { get; }
-    public string[] ArgStrings { get; }
-    public double[] ArgFloats { get; }
+    public long[] ArgIntegers { get; set; }
+    public string[] ArgStrings { get; set; }
+    public double[] ArgFloats { get; set; }
 
     private ExecutionContext _parent;
     private readonly List<ExecutionContext> _children = new();

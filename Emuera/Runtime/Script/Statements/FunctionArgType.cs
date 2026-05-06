@@ -90,4 +90,6 @@ enum FunctionArgType
 	#region 尊尼获加荣誉出品
 	SP_HTML_PRINTC,
 	#endregion
+	SP_SETBGIMAGE,
+	SP_SETIMAGELAYER,
 }
