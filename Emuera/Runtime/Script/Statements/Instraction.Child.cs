@@ -3378,12 +3378,31 @@ internal sealed partial class FunctionIdentifier
 		}
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
-			LogicalLine caseJumpto = func.JumpTo;//ENDSELECT
 			AExpression selectValue = ((ExpressionArgument)func.Argument).Term;
+			EraType selType = selectValue.GetEraType();
+			if (func.SelectCaseJumpTable != null)
+			{
+				var table = func.SelectCaseJumpTable;
+				InstructionLine target;
+				switch (selType)
+				{
+					case EraType.Integer:
+						target = table.Lookup(selectValue.GetIntValue(exm));
+						break;
+					case EraType.Float:
+						target = table.Lookup(selectValue.GetFloatValue(exm));
+						break;
+					default:
+						target = table.Lookup(selectValue.GetStrValue(exm));
+						break;
+				}
+				state.JumpTo(target);
+				return;
+			}
+			LogicalLine caseJumpto = func.JumpTo;//ENDSELECT
 			string sValue = null;
 			long iValue = 0;
 			double fValue = 0;
-			EraType selType = selectValue.GetEraType();
 			switch (selType)
 			{
 				case EraType.Integer: iValue = selectValue.GetIntValue(exm); break;

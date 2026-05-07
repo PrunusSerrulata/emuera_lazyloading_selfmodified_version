@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using MinorShift.Emuera.Runtime.Script;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements.Expression;
@@ -58,6 +58,10 @@ internal abstract class AExpression
 	public bool IsFloat
 	{
 		get { return eraType == EraType.Float; }
+	}
+	public virtual bool IsConst
+	{
+		get { return false; }
 	}
 	readonly EraType eraType;
 

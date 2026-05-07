@@ -1338,6 +1338,7 @@ internal sealed class ErbLoader
 							}
 
 						}
+						selectLine.SelectCaseJumpTable = SelectCaseJumpTable.TryBuild(selectLine, term.GetEraType());
 					}
 					break;
 				case FunctionCode.REND:

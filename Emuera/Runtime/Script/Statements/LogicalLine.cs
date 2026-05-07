@@ -171,6 +171,8 @@ internal sealed class InstructionLine : LogicalLine
 	public List<List<InstructionLine>> dataList;
 	//TRYCALLLIST系が使う
 	public List<InstructionLine> callList;
+	//SELECTCASEのコンパイル時ジャンプテーブル
+	public SelectCaseJumpTable SelectCaseJumpTable;
 
 	public LogicalLine JumpTo
 	{

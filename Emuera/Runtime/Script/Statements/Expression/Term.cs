@@ -28,6 +28,11 @@ internal class SingleTerm : AExpression
 
 	}
 
+	public override bool IsConst
+	{
+		get { return true; }
+	}
+
 	public override AExpression Restructure(ExpressionMediator exm)
 	{
 		return this;
