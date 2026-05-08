@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using MinorShift.Emuera.Runtime.Script;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements.Expression;

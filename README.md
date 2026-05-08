@@ -18,6 +18,8 @@
 | 🧠 **运行时** | ExecutionContext 栈式上下文 + SparseArray 稀疏存储 + SafeArithmetic 溢出保护 |
 | 📝 **新指令** | EVAL/EVALS 动态求值、CALLSTR 动态调度、HTML_PRINTC 像素制表、SQL 全套、MAP 增强 |
 | 🔧 **语法扩展** | 可变参数 `...` / `ARGLEN`、`#REF`/`#REFS` 引用声明、`OUT` 输出参数 |
+| 🖼️ **图层渲染** | `SETIMAGELAYER` 独立图层系统、视口裁剪、动图离窗暂停、颜色矩阵 |
+| ⚡ **性能优化** | `SELECTCASE` 编译期跳转表（O(1) 查找）、SKPaint 池化、CharWidthCache |
 | 🐛 **Bug 修复** | 懒加载 EXISTFUNCTION、.als 指针、SPRITECREATE、SpriteG 快照、字体泄漏等 20+ 项 |
 
 ---
@@ -51,4 +53,4 @@
 
 ---
 
-> 版本 V3
+> 版本 V3.3

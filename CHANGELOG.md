@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [3.3.0] — 2026-05-07
+
+### Added
+
+- **SELECTCASE 编译期跳转表优化**（Phase 4.2+4.6）
+  - `SelectCaseJumpTable` 核心类：编译期构建 `Dictionary<long/string/double, InstructionLine>` 跳转表
+  - `TryBuild()` 编译期构建：遍历 IfCaseList，检查每个 CaseExpression 是否 `CaseType == Normal && LeftTerm.IsConst`
+  - 不可优化时（含 TO/IS/非常量/重复键）自动返回 null，fallback 到线性扫描
+  - `Lookup()` 运行时 O(1) 查找，未命中时返回 CASEELSE 或 ENDSELECT 行
+  - `AExpression.IsConst` 属性：`SingleTerm` override 为 true，复合表达式和变量引用默认 false
+  - `InstructionLine.SelectCaseJumpTable` 字段存储编译期跳转表
+  - `SELECTCASE_Instruction` 快速路径：有跳转表时直接 Lookup + JumpTo，跳过线性扫描
+
+---
+
+## [3.2.0] — 2026-05-07
+
+### Added
+
+- **SETIMAGELAYER 图层渲染指令集**（Phase 5.11）
+  - `SETIMAGELAYER spriteName, depth, x, y, width, height, opacity, CM_ARRAY, followScroll` — 在独立图层上渲染 Sprite
+  - `EXISTSIMAGELAYER(depth)` — 检测指定深度图层是否存在
+  - `CLEARIMAGELAYER depth` — 清除指定深度图层
+  - `CLEARIMAGELAYER_ALL` — 清除所有图层
+  - `ImageLayerManager` 核心类：按 depth 排序的 Dictionary 存储，每帧直接绘制
+  - `ColorMatrixHelper` 工具类：DRY 重构颜色矩阵解析（5×5 二维/三维整数数组 → SkiaSharp float[]）
+  - 视口裁剪：离窗图层跳过绘制，节省 GPU 资源
+  - 动图离窗暂停：`IsOffScreen` 标记触发 `PauseAnimation()`/`ResumeAnimation()`
+  - 跟随滚动：`FollowScroll` + `InitialScrollY` 存储滚动增量
+  - 左下原点坐标系：与 CBGSETSPRITE 一致
+- **CBGSETSPRITE 升级**：从 4 参数升级为 8 参数 `(imgName, x, y, zdepth, width, height, opacity, CM)`，第 2 个参数起全部可省略
+- **CBGSETIMAGE 指令移除**：功能由 CBGSetCIMGMethod（CBGSETSPRITE）统一承担
+
+### Fixed
+
+- **ColorMatrix 解析代码重复**：提取到 `ColorMatrixHelper`，ConsoleImagePart 和 Instraction.Child 共用
+- **ArgumentBuilder 手动 LexicalAnalyzer 解析导致参数丢失**：改用 popTerms 标准方法
+- **SETBGIMAGE 只解析单参数**：新增 SpSetBgImageArgument，完整参数解析
+- **ClientBackGroundImage 缺少 width/height**：添加字段，OnPaint 中使用缩放尺寸
+- **FollowScroll 使用绝对 scrollY 导致图片在视口外**：存储 initialScrollY，改用滚动增量
+- **SETIMAGELAYER 坐标系与 CBGSETSPRITE 不一致**：改为左下原点坐标系
+
+---
+
 ## [3.1.0] — 2026-05-06
 
 ### Added
@@ -213,6 +257,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+[3.3.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
+[3.2.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
+[3.1.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
 [3.0.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
 [2.0.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
 [1.3.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
