@@ -355,6 +355,15 @@ internal sealed partial class Process(EmueraConsole view)
 						handleException(ec, currentLine, true);
 					return;
 				}
+				if (state.SkipBeforeError)
+				{
+					state.SkipBeforeError = false;
+					if (systemProcRunning)
+						handleExceptionInSystemProc(ec, currentLine, true);
+					else
+						handleException(ec, currentLine, true);
+					return;
+				}
 				state.InBeforeError = true;
 				var beforeError = CalledFunction.CallEventFunction(this, "BEFORE_ERROR", null);
 				if (beforeError != null)

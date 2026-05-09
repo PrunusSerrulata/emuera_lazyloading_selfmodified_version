@@ -103,6 +103,7 @@ internal sealed class ProcessState
 	private LogicalLine currentLine;
 	private string pendingThrowMessage;
 	private bool inBeforeError;
+	private bool skipBeforeError;
 	private Exception pendingErrorException;
 	private LogicalLine pendingErrorCurrentLine;
 	private bool pendingErrorSystemProc;
@@ -150,6 +151,7 @@ internal sealed class ProcessState
 	public void ClearPendingThrow() { pendingThrowMessage = null; }
 
 	public bool InBeforeError { get { return inBeforeError; } set { inBeforeError = value; } }
+	public bool SkipBeforeError { get { return skipBeforeError; } set { skipBeforeError = value; } }
 
 	public Exception PendingErrorException { get { return pendingErrorException; } set { pendingErrorException = value; } }
 	public LogicalLine PendingErrorCurrentLine { get { return pendingErrorCurrentLine; } set { pendingErrorCurrentLine = value; } }
@@ -463,16 +465,18 @@ internal sealed class ProcessState
 			string msg = pendingThrowMessage;
 			functionList.RemoveAt(functionList.Count - 1);
 			pendingThrowMessage = null;
+			skipBeforeError = true;
 			throw new CodeEE(msg);
 		}
 		if (currentLine == null && called.IsEvent && called.FunctionName == "BEFORE_ERROR" && pendingErrorException != null)
 		{
 			Exception ec = pendingErrorException;
+			ScriptPosition? pos = (ec is EmueraException ee) ? ee.Position : null;
 			functionList.RemoveAt(functionList.Count - 1);
 			pendingErrorException = null;
 			pendingErrorCurrentLine = null;
 			inBeforeError = true;
-			throw new CodeEE(ec.Message, null);
+			throw new CodeEE(ec.Message, pos);
 		}
 		//関数終了
 		if (currentLine == null)
@@ -514,10 +518,14 @@ internal sealed class ProcessState
 
 		if (call.IsEvent)
 		{
-			foreach (CalledFunction called in functionList)
+			bool isBeforeEvent = call.FunctionName == "BEFORE_THROW" || call.FunctionName == "BEFORE_ERROR";
+			if (!isBeforeEvent)
 			{
-				if (called.IsEvent)
-					throw new CodeEE(trerror.CalleventBeforeFinishEvent.Text);
+				foreach (CalledFunction called in functionList)
+				{
+					if (called.IsEvent)
+						throw new CodeEE(trerror.CalleventBeforeFinishEvent.Text);
+				}
 			}
 		}
 		if (Program.DebugMode)
