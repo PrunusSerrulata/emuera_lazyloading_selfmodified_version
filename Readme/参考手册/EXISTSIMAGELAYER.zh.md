@@ -5,7 +5,7 @@ hide:
 
 # EXISTSIMAGELAYER
 
-| 関数名                                                                           | 引数    | 戻り値 |
+| 函数名                                                                           | 参数    | 返回值 |
 | :------------------------------------------------------------------------------- | :------ | :----- |
 | ![](../assets/images/IconEmuera.webp)[`EXISTSIMAGELAYER`](./EXISTSIMAGELAYER.zh.md) | `int`   | `int`  |
 
@@ -25,11 +25,11 @@ hide:
 
     **返回值**：存在返回 1，不存在返回 0。
 
-!!! hint "ヒント"
+!!! hint "提示"
 
-    命令、式中関数両方対応しています。
+    支持命令和表达式函数两种形式。
 
-!!! example "例"
+!!! example "示例"
 
     ``` { #language-erb title="MAIN.ERB" }
     @SYSTEM_TITLE
@@ -47,7 +47,7 @@ hide:
             PRINTVL EXISTSIMAGELAYER(L_COUNT)
         NEXT
     ```
-    ``` title="結果"
+    ``` title="结果"
     depth=1 的图层已存在
     1
     0

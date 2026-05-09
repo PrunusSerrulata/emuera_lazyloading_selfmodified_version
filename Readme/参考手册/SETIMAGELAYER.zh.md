@@ -5,7 +5,7 @@ hide:
 
 # SETIMAGELAYER
 
-| 関数名                                                                   | 引数                                                                                           | 戻り値 |
+| 函数名                                                                   | 参数                                                                                           | 返回值 |
 | :----------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- | :----- |
 | ![](../assets/images/Iconetc.webp)[`SETIMAGELAYER`](./SETIMAGELAYER.zh.md) | `str`, `int`, `int`, `int`, `int`, `int`, `int`, `var`, `int`                                  | None   |
 
@@ -38,11 +38,11 @@ hide:
         - 可通过 [`CLEARIMAGELAYER depth`](./CLEARIMAGELAYER.zh.md) 清除指定深度的图层，或 [`CLEARIMAGELAYER_ALL`](./CLEARIMAGELAYER.zh.md) 清除所有图层。
         - WINAPI 模式不支持此命令。
 
-!!! hint "ヒント"
+!!! hint "提示"
 
     仅命令语法可用。
 
-!!! example "例"
+!!! example "示例"
 
     ``` { #language-erb title="MAIN.ERB" }
     @SYSTEM_TITLE
@@ -75,6 +75,6 @@ hide:
         ; 清除所有图层
         CLEARIMAGELAYER_ALL
     ```
-    ``` title="結果"
+    ``` title="结果"
     depth=1 的图层已存在
     ```

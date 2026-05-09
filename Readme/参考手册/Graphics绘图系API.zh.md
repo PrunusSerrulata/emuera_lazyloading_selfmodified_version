@@ -306,7 +306,7 @@
 
 ---
 
-## CBGSETSPRITE / CBGSETCIMG
+## CBGSETSPRITE
 
 | 函数名 | 参数 | 返回值 |
 | :--- | :--- | :--- |
@@ -322,7 +322,7 @@
     int CBGSETSPRITE spriteName, x, y, zDepth, width, height, opacity, colorMatrix
     ```
 
-    将指定 `spriteName` 的 Sprite 设置为客户端区域的背景图。`CBGSETCIMG` 为同一函数的别名。
+    将指定 `spriteName` 的 Sprite 设置为客户端区域的背景图。
 
     - 基本用法：指定 Sprite 名称、坐标和层深度。
     - 缩放+透明度：指定 `width` 和 `height` 可缩放绘制，`opacity` 为 0～255 的不透明度。

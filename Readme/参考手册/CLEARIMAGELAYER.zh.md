@@ -5,7 +5,7 @@ hide:
 
 # CLEARIMAGELAYER / CLEARIMAGELAYER_ALL
 
-| 関数名                                                                               | 引数    | 戻り値 |
+| 函数名                                                                               | 参数    | 返回值 |
 | :----------------------------------------------------------------------------------- | :------ | :----- |
 | ![](../assets/images/Iconetc.webp)[`CLEARIMAGELAYER`](./CLEARIMAGELAYER.zh.md)         | `int`   | None   |
 | ![](../assets/images/Iconetc.webp)[`CLEARIMAGELAYER_ALL`](./CLEARIMAGELAYER.zh.md)     | none    | None   |
@@ -29,11 +29,11 @@ hide:
         - `CLEARIMAGELAYER` 清除的图层可通过再次调用 [`SETIMAGELAYER`](./SETIMAGELAYER.zh.md) 重新创建。
         - 这两个命令仅影响 `SETIMAGELAYER` 创建的图层，不影响 [`CBGSETSPRITE`](./CBGSETSPRITE.zh.md) 或 [`SETBGIMAGE`](./Graphics绘图系API.zh.md#setbgimage--clearbgimage--removebgimage) 创建的背景图。
 
-!!! hint "ヒント"
+!!! hint "提示"
 
     仅命令语法可用。
 
-!!! example "例"
+!!! example "示例"
 
     ``` { #language-erb title="MAIN.ERB" }
     @SYSTEM_TITLE
@@ -50,7 +50,7 @@ hide:
         ; 清除所有图层
         CLEARIMAGELAYER_ALL
     ```
-    ``` title="結果"
+    ``` title="结果"
     0
     1
     ```
