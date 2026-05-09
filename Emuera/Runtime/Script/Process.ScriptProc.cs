@@ -754,7 +754,32 @@ internal sealed partial class Process
 					throw new CodeEE(trerror.AssertArgIs0.Text);
 				break;
 			case FunctionCode.THROW:
-				throw new CodeEE(((ExpressionArgument)func.Argument).Term.GetStrValue(exm));
+			{
+				string throwMessage = ((ExpressionArgument)func.Argument).Term.GetStrValue(exm);
+				bool inBeforeThrow = false;
+				foreach (var called in state.FunctionList)
+				{
+					if (called.IsEvent && called.FunctionName == "BEFORE_THROW")
+					{
+						inBeforeThrow = true;
+						break;
+					}
+				}
+				if (inBeforeThrow)
+				{
+					console.PrintSingleLine(throwMessage);
+					break;
+				}
+				state.PendingThrowMessage = throwMessage;
+				var beforeThrow = CalledFunction.CallEventFunction(this, "BEFORE_THROW", func);
+				if (beforeThrow == null)
+				{
+					state.ClearPendingThrow();
+					throw new CodeEE(throwMessage);
+				}
+				state.IntoFunction(beforeThrow, null, null);
+				break;
+			}
 			case FunctionCode.CLEARTEXTBOX:
 				console.ClearText();
 				break;

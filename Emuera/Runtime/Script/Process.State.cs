@@ -101,6 +101,11 @@ internal sealed class ProcessState
 	readonly EmueraConsole console;
 	readonly List<CalledFunction> functionList = [];
 	private LogicalLine currentLine;
+	private string pendingThrowMessage;
+	private bool inBeforeError;
+	private Exception pendingErrorException;
+	private LogicalLine pendingErrorCurrentLine;
+	private bool pendingErrorSystemProc;
 
 	private readonly Stack<ExecutionContext> _contextStack = new();
 	public ExecutionContext CurrentContext => _contextStack.Count > 0 ? _contextStack.Peek() : null;
@@ -129,6 +134,8 @@ internal sealed class ProcessState
 		}
 	}
 
+	public IReadOnlyList<CalledFunction> FunctionList => functionList;
+
 	public int CurrentVariadicArgCount
 	{
 		get
@@ -137,6 +144,16 @@ internal sealed class ProcessState
 			return functionList[^1].VariadicArgCount;
 		}
 	}
+
+	public string PendingThrowMessage { get { return pendingThrowMessage; } set { pendingThrowMessage = value; } }
+	public bool HasPendingThrow { get { return pendingThrowMessage != null; } }
+	public void ClearPendingThrow() { pendingThrowMessage = null; }
+
+	public bool InBeforeError { get { return inBeforeError; } set { inBeforeError = value; } }
+
+	public Exception PendingErrorException { get { return pendingErrorException; } set { pendingErrorException = value; } }
+	public LogicalLine PendingErrorCurrentLine { get { return pendingErrorCurrentLine; } set { pendingErrorCurrentLine = value; } }
+	public bool PendingErrorSystemProc { get { return pendingErrorSystemProc; } set { pendingErrorSystemProc = value; } }
 
 	SystemStateCode sysStateCode = SystemStateCode.Title_Begin;
 	BeginType begintype = BeginType.NULL;
@@ -441,6 +458,22 @@ internal sealed class ProcessState
 		}
 		if (Program.DebugMode)
 			console.DebugRemoveTraceLog();
+		if (currentLine == null && called.IsEvent && called.FunctionName == "BEFORE_THROW" && pendingThrowMessage != null)
+		{
+			string msg = pendingThrowMessage;
+			functionList.RemoveAt(functionList.Count - 1);
+			pendingThrowMessage = null;
+			throw new CodeEE(msg);
+		}
+		if (currentLine == null && called.IsEvent && called.FunctionName == "BEFORE_ERROR" && pendingErrorException != null)
+		{
+			Exception ec = pendingErrorException;
+			functionList.RemoveAt(functionList.Count - 1);
+			pendingErrorException = null;
+			pendingErrorCurrentLine = null;
+			inBeforeError = true;
+			throw new CodeEE(ec.Message, null);
+		}
 		//関数終了
 		if (currentLine == null)
 		{
