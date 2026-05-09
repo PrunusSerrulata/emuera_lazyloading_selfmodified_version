@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
+## [3.5.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-09
+
+### Added
+
+- **Stopwatch 高精度计时重构**（源自 DotNet）
+  - `SpriteAnime` / `SpriteAnimated` 动画帧计时从 `DateTime.Now` 迁移到 `Stopwatch.GetTimestamp()` + `Stopwatch.GetElapsedTime()`
+  - 消除 `DateTime.Now` 的系统时钟精度限制（~15ms），提升动画帧率稳定性
+  - 暂停/恢复逻辑同步迁移：`PauseAnimation()` / `ResumeAnimation()` 使用 timestamp 差值计算
+- **图像翻转逻辑**（源自 DotNet）
+  - `ASpriteSingle.GraphicsDraw` 支持 `destRect.Width`/`Height` 为负值时自动翻转
+  - 使用 `canvas.Scale(sx, sy)` 实现水平/垂直翻转，同时支持带 `SKColorFilter` 的翻转渲染
+- **HTML DisplayMode 属性移植**（源自 DotNet）
+  - `<img>` 标签新增 `display` 属性：`relative`（默认）/ `absolute-lefttop` / `absolute-leftbottom`
+  - `<img>` 标签新增 `xpos` 属性：绝对定位时的 X 坐标
+  - `<div>` 标签 `display` 属性扩展支持 `absolute-lefttop` / `absolute-leftbottom`
+  - `ConsoleImagePart.DrawTo` 实现三种定位模式：相对定位、左上角绝对定位、左下角绝对定位
+  - `ConsoleDivPart.DrawTo` 同步支持三种 DisplayMode
+
+***
+
 ## [3.4.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-09
 
 ### Added

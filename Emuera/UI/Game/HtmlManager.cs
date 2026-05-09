@@ -190,7 +190,7 @@ internal static class HtmlManager
 	#region EM_私家版_HTML_divタグ
 	private sealed class HtmlDivTag
 	{
-		public HtmlDivTag(MixedNum x, MixedNum y, MixedNum width, MixedNum height, int depth, int color, StyledBoxModel box, bool isRelative)
+		public HtmlDivTag(MixedNum x, MixedNum y, MixedNum width, MixedNum height, int depth, int color, StyledBoxModel box, bool isRelative, DisplayMode displayMode)
 		{
 			X = x;
 			Y = y;
@@ -200,6 +200,7 @@ internal static class HtmlManager
 			Color = color;
 			StyledBox = box;
 			IsRelative = isRelative;
+			Display = displayMode;
 		}
 		public ConsoleDisplayLine[] Lines;
 		public MixedNum Width;
@@ -210,6 +211,7 @@ internal static class HtmlManager
 		public int Depth;
 		public StyledBoxModel StyledBox;
 		public bool IsRelative;
+		public DisplayMode Display;
 	}
 	#endregion
 	static HtmlManager()
@@ -613,7 +615,7 @@ internal static class HtmlManager
 							var tagInfo = state.CurrentDivTag;
 							state.CurrentDivTag = null;
 							state.StartingSubDivision = false;
-							cssList.Add(new ConsoleDivPart(tagInfo.X, tagInfo.Y, tagInfo.Width, tagInfo.Height, tagInfo.Depth, tagInfo.Color, tagInfo.StyledBox, tagInfo.IsRelative, tagInfo.Lines));
+							cssList.Add(new ConsoleDivPart(tagInfo.X, tagInfo.Y, tagInfo.Width, tagInfo.Height, tagInfo.Depth, tagInfo.Color, tagInfo.StyledBox, tagInfo.IsRelative, tagInfo.Display, tagInfo.Lines));
 						}
 					}
 					else
@@ -1101,7 +1103,9 @@ internal static class HtmlManager
 					MixedNum height = null;
 					MixedNum width = null;
 					MixedNum ypos = null;
+					MixedNum xpos = null;
 					string cm = null;
+					DisplayMode displayMode = DisplayMode.Relative;
 					while (wc != null && !wc.EOL)
 					{
 						word = wc.Current as IdentifierWord;
@@ -1143,11 +1147,26 @@ internal static class HtmlManager
 						{
 							ParseMixedNum(ref ypos, tag, word.Code, attrValue);
 						}
+						else if (word.Code.Equals("xpos", StringComparison.OrdinalIgnoreCase))
+						{
+							ParseMixedNum(ref xpos, tag, word.Code, attrValue);
+						}
 						else if (word.Code.Equals("cm", StringComparison.OrdinalIgnoreCase))
 						{
 							if (cm != null)
 								throw new CodeEE(string.Format(trerror.DuplicateAttribute.Text, tag, word.Code));
 							cm = attrValue;
+						}
+						else if (word.Code.Equals("display", StringComparison.OrdinalIgnoreCase))
+						{
+							if (attrValue.Equals("relative", StringComparison.OrdinalIgnoreCase))
+								displayMode = DisplayMode.Relative;
+							else if (attrValue.Equals("absolute-lefttop", StringComparison.OrdinalIgnoreCase))
+								displayMode = DisplayMode.AbsoluteLeftTop;
+							else if (attrValue.Equals("absolute-leftbottom", StringComparison.OrdinalIgnoreCase))
+								displayMode = DisplayMode.AbsoluteLeftBottom;
+							else
+								throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, attrValue));
 						}
 						else
 							throw new CodeEE(string.Format(trerror.CanNotInterpretAttributeName.Text, tag, word.Code));
@@ -1155,7 +1174,7 @@ internal static class HtmlManager
 					#endregion
 					if (src == null)
 						throw new CodeEE(string.Format(trerror.NotSetAttribute.Text, tag, "src"));
-					return new ConsoleImagePart(src, srcb, srcm, height, width, ypos, cm);
+					return new ConsoleImagePart(src, srcb, srcm, height, width, ypos, xpos, displayMode, cm);
 				}
 			#region EM_私家版_HTML_divタグ
 			case "div":
@@ -1168,6 +1187,7 @@ internal static class HtmlManager
 					MixedNum height = null;
 					StyledBoxModel box = null;
 					bool isRelative = true;
+					DisplayMode divDisplayMode = DisplayMode.Relative;
 					int depth = 0;
 					int color = -1;
 					string attrValue;
@@ -1251,6 +1271,8 @@ internal static class HtmlManager
 						{
 							if (attrValue.Equals("absolute", StringComparison.OrdinalIgnoreCase)) isRelative = false;
 							else if (attrValue.Equals("relative", StringComparison.OrdinalIgnoreCase)) isRelative = true;
+							else if (attrValue.Equals("absolute-lefttop", StringComparison.OrdinalIgnoreCase)) { isRelative = false; divDisplayMode = DisplayMode.AbsoluteLeftTop; }
+							else if (attrValue.Equals("absolute-leftbottom", StringComparison.OrdinalIgnoreCase)) { isRelative = false; divDisplayMode = DisplayMode.AbsoluteLeftBottom; }
 							else throw new CodeEE(string.Format(trerror.CanNotInterpretAttribute.Text, attrValue));
 						}
 						else if (!TryParseStyledBoxModel(ref box, tag, word.Code, attrValue))
@@ -1260,7 +1282,7 @@ internal static class HtmlManager
 						throw new CodeEE(string.Format(trerror.NotSetAttribute.Text, tag, "width"));
 					if (height == null)
 						throw new CodeEE(string.Format(trerror.NotSetAttribute.Text, tag, "height"));
-					state.CurrentDivTag = new HtmlDivTag(x, y, width, height, depth, color, box, isRelative);
+					state.CurrentDivTag = new HtmlDivTag(x, y, width, height, depth, color, box, isRelative, divDisplayMode);
 					state.StartingSubDivision = true;
 					return null;
 				}

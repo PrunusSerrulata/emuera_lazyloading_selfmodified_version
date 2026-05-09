@@ -2,6 +2,7 @@ using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.Runtime.Config;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
@@ -116,8 +117,27 @@ internal abstract class ASpriteSingle : ASprite
 			destRect.Width = destRect.Width * SrcRectangle.Width / DestBaseSize.Width;
 			destRect.Height = destRect.Height * SrcRectangle.Height / DestBaseSize.Height;
 		}
-		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
-		g.DrawBitmap(bmp, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
+		var sx = Math.Sign(destRect.Width);
+		var sy = Math.Sign(destRect.Height);
+		if (sx != 1 || sy != 1)
+		{
+			var absW = Math.Abs(destRect.Width);
+			var absH = Math.Abs(destRect.Height);
+			using var flippedBitmap = new SKBitmap(absW, absH);
+			using var canvas = new SKCanvas(flippedBitmap);
+			canvas.Scale(sx, sy, absW / 2, absH / 2);
+			_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
+			canvas.DrawBitmap(bmp, SrcRectangle.ToSKRect(), SKRect.Create(0, 0, absW, absH), _paint);
+			var point = destRect.Location.ToSKPoint();
+			if (sx < 0) point.X -= absW;
+			if (sy < 0) point.Y -= absH;
+			g.DrawBitmap(flippedBitmap, point, _paint);
+		}
+		else
+		{
+			_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
+			g.DrawBitmap(bmp, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
+		}
 	}
 
 	public override void GraphicsDraw(SKCanvas g, Rectangle destRect, SKColorFilter attr)
@@ -131,9 +151,27 @@ internal abstract class ASpriteSingle : ASprite
 			destRect.Width = destRect.Width * SrcRectangle.Width / DestBaseSize.Width;
 			destRect.Height = destRect.Height * SrcRectangle.Height / DestBaseSize.Height;
 		}
+		var sx = Math.Sign(destRect.Width);
+		var sy = Math.Sign(destRect.Height);
 		_paint.FilterQuality = (SKFilterQuality)Config.ImageQuality;
 		_paint.ColorFilter = attr;
-		g.DrawBitmap(bmp, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
+		if (sx != 1 || sy != 1)
+		{
+			var absW = Math.Abs(destRect.Width);
+			var absH = Math.Abs(destRect.Height);
+			using var flippedBitmap = new SKBitmap(absW, absH);
+			using var canvas = new SKCanvas(flippedBitmap);
+			canvas.Scale(sx, sy, absW / 2, absH / 2);
+			canvas.DrawBitmap(bmp, SrcRectangle.ToSKRect(), SKRect.Create(0, 0, absW, absH), _paint);
+			var point = destRect.Location.ToSKPoint();
+			if (sx < 0) point.X -= absW;
+			if (sy < 0) point.Y -= absH;
+			g.DrawBitmap(flippedBitmap, point, _paint);
+		}
+		else
+		{
+			g.DrawBitmap(bmp, SrcRectangle.ToSKRect(), destRect.ToSKRect(), _paint);
+		}
 		_paint.ColorFilter = null;
 	}
 
@@ -239,16 +277,13 @@ internal sealed class SpriteAnime : ASprite
 	/// </summary>
 	internal void ResetTime()
 	{
-		StartTime = DateTime.MinValue;
-		lastFrameTime = DateTime.MinValue;
+		startTime = 0;
+		lastFrameTime = 0;
 		lastFrame = -1;
 	}
 
-	/// <summary>
-	/// 開始時間調整用の値。ミリ秒でUInt32の範囲まで想定。
-	/// </summary>
-	DateTime StartTime;
-	DateTime lastFrameTime;
+	long startTime;
+	long lastFrameTime;
 	int lastFrame = -1;
 	private bool _paused;
 	private long _pausedElapsed;
@@ -258,7 +293,7 @@ internal sealed class SpriteAnime : ASprite
 		if (_paused) return;
 		_paused = true;
 		if (lastFrame >= 0)
-			_pausedElapsed = (long)(DateTime.Now - StartTime).TotalMilliseconds;
+			_pausedElapsed = (long)Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
 	}
 
 	internal void ResumeAnimation()
@@ -266,7 +301,7 @@ internal sealed class SpriteAnime : ASprite
 		if (!_paused) return;
 		_paused = false;
 		if (lastFrame >= 0)
-			StartTime = DateTime.Now.AddMilliseconds(-_pausedElapsed);
+			startTime = Stopwatch.GetTimestamp() - (long)(_pausedElapsed * Stopwatch.Frequency / 1000);
 	}
 
 	private AnimeFrame GetCurrentFrame()
@@ -279,21 +314,21 @@ internal sealed class SpriteAnime : ASprite
 		if (lastFrame >= FrameList.Count)
 			throw new ExeEE(trerror.OoRLasframe.Text);
 #endif
-		//一度もフレーム取得したことがない場合は現在時間を記録して最初のフレームを返す。
+		var now = Stopwatch.GetTimestamp();
+
 		if (lastFrame == -1)
 		{
-			StartTime = DateTime.Now;
-			lastFrameTime = StartTime;
+			startTime = now;
+			lastFrameTime = now;
 			lastFrame = 0;
 			return FrameList[0];
 		}
-		//時間経過なしに複数回呼ばれた場合はさっき返したフレームをもう一度返す。
-		if (DateTime.Now == lastFrameTime && lastFrame >= 0)
+
+		if (Stopwatch.GetElapsedTime(lastFrameTime, now).TotalMilliseconds < 1 && lastFrame >= 0)
 			return FrameList[lastFrame];
-		//ここまで来たらlastFrameTimeを更新
-		lastFrameTime = DateTime.Now;
-		//StartTimeからの経過時間をtotaltimeで剰余計算
-		long elapsedTime = (long)(lastFrameTime - StartTime).TotalMilliseconds % totaltime;
+
+		lastFrameTime = now;
+		long elapsedTime = (long)Stopwatch.GetElapsedTime(startTime, now).TotalMilliseconds % totaltime;
 		foreach (AnimeFrame frame in FrameList)
 		{
 			elapsedTime -= frame.DelayTimeMs;
@@ -303,7 +338,6 @@ internal sealed class SpriteAnime : ASprite
 				return frame;
 			}
 		}
-		//ここまでこないはず
 		throw new ExeEE(trerror.SpriteTimeOut.Text);
 	}
 
@@ -400,7 +434,7 @@ internal sealed class SpriteAnimated : ASprite, IFileBacked
 
 	private SKBitmap[] frames;
 	private bool isEvicted;
-	private DateTime startTime;
+	private long startTime;
 	private readonly Rectangle srcRect;
 
 	public SpriteAnimated(string name, string filepath, Rectangle srcRect, Size destSize, int width, int height, int count, int[] delays)
@@ -421,7 +455,7 @@ internal sealed class SpriteAnimated : ASprite, IFileBacked
 
 		this.frames = Array.Empty<SKBitmap>();
 		this.isEvicted = true;
-		this.startTime = DateTime.Now;
+		this.startTime = Stopwatch.GetTimestamp();
 
 		if (frameCount > 1)
 		{
@@ -461,9 +495,9 @@ internal sealed class SpriteAnimated : ASprite, IFileBacked
 	public int GetCurrentFrameIndex()
 	{
 		if (totalDuration <= 0 || frameCount <= 0) return 0;
-		if (startTime == DateTime.MinValue) startTime = DateTime.Now;
+		if (startTime == 0) startTime = Stopwatch.GetTimestamp();
 
-		long elapsed = (long)(DateTime.Now - startTime).TotalMilliseconds % totalDuration;
+		long elapsed = (long)Stopwatch.GetElapsedTime(startTime).TotalMilliseconds % totalDuration;
 		for (int i = 0; i < frameTimestamps.Length; i++)
 		{
 			if (elapsed < frameTimestamps[i]) return i;
@@ -482,7 +516,7 @@ internal sealed class SpriteAnimated : ASprite, IFileBacked
 	public void Reload()
 	{
 		if (!isEvicted) return;
-		startTime = DateTime.Now;
+		startTime = Stopwatch.GetTimestamp();
 		EnsureLoaded();
 		if (frameCount > 1) AnimSpriteCache.Touch(filepath);
 	}

@@ -15,7 +15,7 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 {
 	#region EM_私家版_HTMLパラメータ拡張
 	//public ConsoleImagePart(string resName, string resNameb, int raw_height, int raw_width, int raw_ypos)
-	public ConsoleImagePart(string resName, string resNameb, string resNamem, MixedNum raw_height, MixedNum raw_width, MixedNum raw_ypos, string cmVariableName = null)
+	public ConsoleImagePart(string resName, string resNameb, string resNamem, MixedNum raw_height, MixedNum raw_width, MixedNum raw_ypos, MixedNum raw_xpos, DisplayMode display, string cmVariableName = null)
 	{
 		top = 0;
 		bottom = Config.FontSize;
@@ -37,6 +37,9 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 		AddTagMixedNumArg(sb, "height", raw_height);
 		AddTagMixedNumArg(sb, "width", raw_width);
 		AddTagMixedNumArg(sb, "ypos", raw_ypos);
+		AddTagMixedNumArg(sb, "xpos", raw_xpos);
+		if (display != DisplayMode.Relative)
+			AddTagArg(sb, "display", display.ToString().ToLowerInvariant());
 		//{
 		//	sb.Append("' srcm='");
 		//	sb.Append(MappingGraphName);
@@ -130,6 +133,9 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 		{
 			cImageM = AppContents.GetSprite(MappingGraphName);
 		}
+		_display = display;
+		_positionX = raw_xpos != null ? raw_xpos.isPx ? raw_xpos.num : raw_xpos.num * Config.FontSize / 100 : 0;
+		_positionY = raw_ypos != null ? raw_ypos.isPx ? raw_ypos.num : raw_ypos.num * Config.FontSize / 100 : 0;
 		ResolveColorMatrix();
 	}
 	public readonly string MappingGraphName;
@@ -148,6 +154,9 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 	}
 	private readonly string _cmVariableName;
 	public string CmVariableName => _cmVariableName;
+	DisplayMode _display;
+	int _positionX;
+	int _positionY;
 
 	private void ResolveColorMatrix()
 	{
@@ -248,9 +257,21 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 		if (img != null && img.IsCreated)
 		{
 			Rectangle rect = destRect;
-			//PointX微調整
-			rect.X = destRect.X + PointX + Config.DrawingParam_ShapePositionShift;
-			rect.Y = destRect.Y + (int)point.Y;
+			switch (_display)
+			{
+				case DisplayMode.Relative:
+					rect.X = destRect.X + PointX + Config.DrawingParam_ShapePositionShift;
+					rect.Y = destRect.Y + (int)point.Y;
+					break;
+				case DisplayMode.AbsoluteLeftTop:
+					rect.X = _positionX;
+					rect.Y = _positionY;
+					break;
+				case DisplayMode.AbsoluteLeftBottom:
+					rect.X = _positionX;
+					rect.Y = GlobalStatic.Console.ClientHeight + _positionY;
+					break;
+			}
 			SKColorFilter filter = _colorMatrix != null ? SKColorFilter.CreateColorMatrix(_colorMatrix) : null;
 			img.GraphicsDraw(graph, rect, filter);
 		}

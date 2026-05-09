@@ -14,7 +14,7 @@ namespace MinorShift.Emuera.Runtime.Utils.EvilMask;
 
 class ConsoleDivPart : AConsoleDisplayNode
 {
-	public ConsoleDivPart(MixedNum xPos, MixedNum yPos, MixedNum width, MixedNum height, int depth, int color, StyledBoxModel box, bool isRelative, ConsoleDisplayLine[] childs)
+	public ConsoleDivPart(MixedNum xPos, MixedNum yPos, MixedNum width, MixedNum height, int depth, int color, StyledBoxModel box, bool isRelative, DisplayMode displayMode, ConsoleDisplayLine[] childs)
 	{
 		backgroundColor = color >= 0 ? Color.FromArgb((int)(color | 0xff000000)) : Color.Transparent;
 		StringBuilder sb = new();
@@ -66,6 +66,7 @@ class ConsoleDivPart : AConsoleDisplayNode
 		children = childs;
 		Depth = depth;
 		IsRelative = isRelative;
+		Display = displayMode;
 		
 		ShiftChildrenX(PointX + xOffset + divXOffset);
 	}
@@ -101,6 +102,7 @@ class ConsoleDivPart : AConsoleDisplayNode
 	public override int Top { get { return PointY; } }
 	public override int Bottom { get { return PointY + Height; } }
 	public bool IsRelative { get; private set; }
+	public DisplayMode Display { get; private set; }
 	public ConsoleDisplayLine[] Children { get { return children; } }
 
 	public override bool CanDivide => false;
@@ -148,8 +150,14 @@ class ConsoleDivPart : AConsoleDisplayNode
 	public override void DrawTo(SKCanvas graph, SKPoint point, bool isSelecting, bool isBackLog, bool isFocus, TextDrawingMode mode, bool isButton = false)
 	{
 		if (GlobalStatic.EMediator.Console.Window == null) return;
-		var rect = IsRelative ? new Rectangle(PointX + xOffset, (int)point.Y + PointY, width + 2, Height)
-			: new Rectangle(xOffset, GlobalStatic.EMediator.Console.Window.MainPicBox.Height - PointY - Height, width + 2, Height); // 何故か+2pxが必要，なぞ
+		var rect = IsRelative
+			? new Rectangle(PointX + xOffset, (int)point.Y + PointY, width + 2, Height)
+			: Display switch
+			{
+				DisplayMode.AbsoluteLeftTop => new Rectangle(xOffset, PointY, width + 2, Height),
+				DisplayMode.AbsoluteLeftBottom => new Rectangle(xOffset, GlobalStatic.EMediator.Console.Window.MainPicBox.Height - PointY - Height, width + 2, Height),
+				_ => new Rectangle(xOffset, GlobalStatic.EMediator.Console.Window.MainPicBox.Height - PointY - Height, width + 2, Height)
+			}; // 何故か+2pxが必要，なぞ
 
 		// Save the current canvas state before clipping
 		graph.Save();
