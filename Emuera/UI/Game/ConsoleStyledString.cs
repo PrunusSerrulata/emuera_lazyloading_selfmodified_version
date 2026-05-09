@@ -517,6 +517,28 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		}
 	}
 
+	if (StringStyle.HasUnderline)
+	{
+		var underlinePosition = Point.Value;
+		underlinePosition.Offset(0, -Font.Metrics.Top + (Font.Metrics.UnderlinePosition ?? 0));
+
+		var width = paint.StrokeWidth;
+		paint.StrokeWidth = Font.Metrics.UnderlineThickness ?? 1;
+		graph.DrawLine(underlinePosition, underlinePosition + new SKPoint(Width, 0), paint);
+		paint.StrokeWidth = width;
+	}
+
+	if (StringStyle.HasStrikeout)
+	{
+		var strikeoutPosition = Point.Value;
+		strikeoutPosition.Offset(0, -Font.Metrics.Top + (Font.Metrics.StrikeoutPosition ?? 0));
+
+		var width = paint.StrokeWidth;
+		paint.StrokeWidth = Font.Metrics.StrikeoutThickness ?? 1;
+		graph.DrawLine(strikeoutPosition, strikeoutPosition + new SKPoint(Width, 0), paint);
+		paint.StrokeWidth = width;
+	}
+
 	#endregion
 }
 

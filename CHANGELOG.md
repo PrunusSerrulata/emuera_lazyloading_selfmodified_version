@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
+## [3.6.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
+
+### Added
+
+- **G_POLYGON 多边形指令集**（源自 DotNet）
+  - `G_POLYGON_DRAW(int ID)` — 用当前画笔描边多边形
+  - `G_POLYGON_FILL(int ID)` — 用当前画刷填充多边形
+  - `G_POLYGON_POINT_ADD(int ID, int x, int y)` — 添加多边形顶点
+  - `G_POLYGON_POINT_CLEAR(int ID)` — 清除所有顶点
+  - `GraphicsImage` 新增 `_points` 字段及 `GDrawPolygon`/`GFillPolygon`/`GDrawPolygonAddPoint`/`GDrawPolygonClearPoint` 方法
+  - 仅 Skia 模式可用（GDI 模式抛出 CodeEE）
+- **文字装饰线渲染**（源自 DotNet）
+  - `StringStyle` 新增 `HasUnderline` / `HasStrikeout` 属性，在 `FontStyle` setter 中自动同步
+  - `ConsoleStyledString.DrawTo` 在 Skia 路径中绘制下划线和删除线
+  - 使用 `SKFont.Metrics.UnderlinePosition` / `StrikeoutPosition` 定位装饰线
+  - 支持 `FONTSTYLE` 指令的 Underline(8) / Strikeout(4) 位掩码
+
+
+***
+
 ## [3.5.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-09
 
 ### Added

@@ -326,6 +326,78 @@ internal sealed class GraphicsImage : AbstractImage
 	}
 	*/
 
+	List<SKPoint> _points;
+
+	public void GDrawPolygon()
+	{
+		Load();
+		if (canvas == null)
+			throw new NullReferenceException();
+		if (_points == null)
+			throw new NullReferenceException("DrawPolygonに渡されるPointsが空です");
+
+		drawImgList = null;
+
+		using var paint = new SKPaint();
+		if (pen != null)
+		{
+			paint.Color = pen.Color.ToSKColor();
+			paint.StrokeWidth = pen.Width;
+		}
+		paint.Style = SKPaintStyle.Stroke;
+		canvas.DrawPoints(SKPointMode.Polygon, [.. _points, _points[0]], paint);
+	}
+
+	public void GFillPolygon()
+	{
+		Load();
+		if (canvas == null)
+			throw new NullReferenceException();
+		if (_points == null)
+			throw new NullReferenceException("FillPolygonに渡されるPointsが空です");
+
+		drawImgList = null;
+
+		using var paint = new SKPaint();
+		if (brush != null)
+		{
+			var b = (SolidBrush)brush;
+			paint.Color = b.Color.ToSKColor();
+		}
+		paint.Style = SKPaintStyle.Fill;
+
+		var path = new SKPath();
+		path.MoveTo(_points[0]);
+		for (int i = 1; i < _points.Count; i++)
+		{
+			path.LineTo(_points[i]);
+		}
+		path.Close();
+		canvas.DrawPath(path, paint);
+	}
+
+	public void GDrawPolygonAddPoint(SKPoint point)
+	{
+		if (canvas == null)
+			throw new NullReferenceException();
+		_points ??= [];
+		_points.Add(point);
+	}
+
+	public void GDrawPolygonClearPoint()
+	{
+		if (canvas == null)
+			throw new NullReferenceException();
+		if (_points == null)
+		{
+			_points = [];
+		}
+		else
+		{
+			_points.Clear();
+		}
+	}
+
 	/// <summary>
 	/// GFILLRECTANGLE(int ID, int x, int y, int width, int height)
 	/// エラーチェックは呼び出し元でのみ行う
@@ -679,6 +751,7 @@ internal sealed class GraphicsImage : AbstractImage
 	{
 		size = new Size(0, 0);
 		drawImgList = null;
+		_points = null;
 		if (RealBitmap == null)
 			return;
 		if (canvas != null)

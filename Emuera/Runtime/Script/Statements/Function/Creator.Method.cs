@@ -8079,6 +8079,131 @@ internal static partial class FunctionMethodCreator
 	}
 
 	/// <summary>
+	/// G_POLYGON_DRAW(int ID)
+	/// </summary>
+	public sealed class GraphicsDrawPolygonMethod : FunctionMethod
+	{
+		public GraphicsDrawPolygonMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
+				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				g.GDrawPolygon();
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
+		}
+	}
+
+	/// <summary>
+	/// G_POLYGON_FILL(int ID)
+	/// </summary>
+	public sealed class GraphicsFillPolygonMethod : FunctionMethod
+	{
+		public GraphicsFillPolygonMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
+				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				g.GFillPolygon();
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
+		}
+	}
+
+	/// <summary>
+	/// G_POLYGON_POINT_ADD(int ID, int x, int y)
+	/// </summary>
+	public sealed class GraphicsPolygonPointAddMethod : FunctionMethod
+	{
+		public GraphicsPolygonPointAddMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer, EraType.Integer, EraType.Integer];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
+				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				Point p = ReadPoint(Name, exm, arguments, 1);
+				g.GDrawPolygonAddPoint(new SKPoint(p.X, p.Y));
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
+		}
+	}
+
+	/// <summary>
+	/// G_POLYGON_POINT_CLEAR(int ID)
+	/// </summary>
+	public sealed class GraphicsPolygonPointClearMethod : FunctionMethod
+	{
+		public GraphicsPolygonPointClearMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.Integer];
+			CanRestructure = false;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			if (Config.TextDrawingMode == TextDrawingMode.WINAPI)
+				throw new CodeEE(string.Format(trerror.GDIPlusOnly.Text, Name));
+			try
+			{
+				GraphicsImage g = ReadGraphics(Name, exm, arguments, 0);
+				if (!g.IsCreated)
+					return 0;
+				g.GDrawPolygonClearPoint();
+				return 1;
+			}
+			catch (Exception ex)
+			{
+				if (ex is CodeEE) throw;
+				throw new CodeEE(Name + ": " + ex.ToString());
+			}
+		}
+	}
+
+	/// <summary>
 	/// GDRAWG(int ID, int srcID, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight)
 	/// GDRAWG(int ID, int srcID, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, var CM)
 	/// </summary>
