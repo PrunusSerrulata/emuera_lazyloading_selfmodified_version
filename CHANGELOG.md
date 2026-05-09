@@ -4,9 +4,42 @@ All notable changes to Emuera-SKIA will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
----
+***
 
-## [3.3.0] — 2026-05-07
+## [3.4.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-09
+
+### Added
+
+- **GETCSVNOBY* 名字反查**（源自 DotNet）
+  - `GETCSVNOBYNAME(str)` / `GETCSVNOBYNICKNAME(str)` / `GETCSVNOBYCALLNAME(str)` / `GETCSVNOBYMASTERNAME(str)`
+  - 通过 NAME/NICKNAME/CALLNAME/MASTERNAME 反查角色模板编号，O(1) 查找
+  - 未找到返回 -1
+- **MATCHALL / MATCHALLEX 全量搜索**（源自 DotNet，重新设计）
+  - `MATCHALL(var, value[, beg, end[, outArr]])` — 变量引用形式
+  - `MATCHALLEX("varName", value[, beg, end[, outArr]])` — 字符串变量名形式
+  - 返回匹配计数，第五参数输出索引数组（从 0 开始）
+  - 比 DotNet 指令形式更灵活：不污染 RESULT，可在表达式中使用
+- **Preload 字节级优化**（源自 DotNet）
+  - 启动时将 ERB/CSV 文件一次性预加载到内存
+  - `EraStreamReader.OpenOnCache()` 从内存读取而非磁盘 IO
+  - `ConstantData.cs` 中 CSV 加载改用 `OpenOnCache()` 充分利用缓存
+  - .NET 8 内存流方案，解决编码兼容性与 BOM 剥离问题
+
+### Fixed
+
+- **METHOD_Instruction Float 分支缺失**：Float 表达式函数（TOFLOAT 等 8 个）用作命令时抛出异常，已添加 `EraType.Float` 分支写入 `RESULTF`
+- **TOINT 非法输入崩溃**：增加 try-catch 拦截非法字符串转换，无法解析时返回 0（源自 DotNet）
+- **MainWindow console null 崩溃**：ShowConfigDialog 和剪贴板处理器加 null 检查（源自 DotNet）
+- **PrintStringBuffer 空数组越界**：Flush() 中 ButtonsToDisplayLines 返回空数组时跳过 ret[^1] 访问（源自 DotNet）
+- **SKPaint 资源泄漏**：Creator.Method.cs 补全 `using var`，防止非托管内存泄漏（源自 DotNet）
+
+### Changed
+
+- **教程交叉引用**：`line-types.zh.md`、`index.zh.md`、`CALLF.zh.md` 添加命令/表达式语法交叉引用
+
+***
+
+## [3.3.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-07
 
 ### Added
 
@@ -19,9 +52,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `InstructionLine.SelectCaseJumpTable` 字段存储编译期跳转表
   - `SELECTCASE_Instruction` 快速路径：有跳转表时直接 Lookup + JumpTo，跳过线性扫描
 
----
+***
 
-## [3.2.0] — 2026-05-07
+## [3.2.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-07
 
 ### Added
 
@@ -31,13 +64,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `CLEARIMAGELAYER depth` — 清除指定深度图层
   - `CLEARIMAGELAYER_ALL` — 清除所有图层
   - `ImageLayerManager` 核心类：按 depth 排序的 Dictionary 存储，每帧直接绘制
-  - `ColorMatrixHelper` 工具类：DRY 重构颜色矩阵解析（5×5 二维/三维整数数组 → SkiaSharp float[]）
+  - `ColorMatrixHelper` 工具类：DRY 重构颜色矩阵解析（5×5 二维/三维整数数组 → SkiaSharp float\[]）
   - 视口裁剪：离窗图层跳过绘制，节省 GPU 资源
   - 动图离窗暂停：`IsOffScreen` 标记触发 `PauseAnimation()`/`ResumeAnimation()`
   - 跟随滚动：`FollowScroll` + `InitialScrollY` 存储滚动增量
   - 左下原点坐标系：与 CBGSETSPRITE 一致
 - **CBGSETSPRITE 升级**：从 4 参数升级为 8 参数 `(imgName, x, y, zdepth, width, height, opacity, CM)`，第 2 个参数起全部可省略
-- **CBGSETIMAGE 指令移除**：功能由 CBGSetCIMGMethod（CBGSETSPRITE）统一承担
 
 ### Fixed
 
@@ -48,9 +80,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **FollowScroll 使用绝对 scrollY 导致图片在视口外**：存储 initialScrollY，改用滚动增量
 - **SETIMAGELAYER 坐标系与 CBGSETSPRITE 不一致**：改为左下原点坐标系
 
----
+***
 
-## [3.1.0] — 2026-05-06
+## [3.1.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-06
 
 ### Added
 
@@ -65,7 +97,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `ReferenceToken` 子类（Scalar/1D/2D/3D）使用 `ElementRefInfo` 代理读写
   - `ScopeIn`/`ScopeOut` 保存/恢复引用状态（`_scopeState` 列表）
   - `SetTransporter` 三路分发：数组引用 / 元素级引用 / NullRef
-- **`#REF` / `#REFS` 标量引用关键字**（Phase 2.3）
+- **`#REF`** **/** **`#REFS`** **标量引用关键字**（Phase 2.3）
   - `#REF X` 声明整数标量引用（Dimension=0）
   - `#REFS S` 声明字符串标量引用（Dimension=0）
   - 与 `#DIM REF` 数组引用彻底分离，消除语义歧义
@@ -89,9 +121,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **OUT 参数被错误创建为一维数组引用**：强制 `Dimension=0` 和 `Lengths=[1]`
 - **IntoFunction Float 可变参数类型截断**：`(long)arg.GetFloatValue()` → `arg.GetFloatValue()`
 
----
+***
 
-## [3.0.0] — 2026-05-05
+## [3.0.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-05
 
 ### Added
 
@@ -103,30 +135,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **三角函数与端数处理函数**：SIN/COS/TAN/ASIN/ACOS/ATAN/FLOOR/CEIL/ROUND（Int+Float 同名重载）
 - **角色浮点变量支持**：CharacterData 中 dataFloat/dataFloatArray/dataFloatArray2D
 - **RenderingBackend 渲染后端配置**：Auto/OpenGL/CPU 三模式，运行时无缝降级
-- **TEXT_BGC_ON / TEXT_BGC_OFF**：文本背景色开关指令
-- **上游同步**：CurrentCulture→InvariantCulture、TIMES 文化依赖修复、VARS2D 修复、FORCE_QUIT 修复、ServerGC 启用
+- **TEXT\_BGC\_ON / TEXT\_BGC\_OFF**：文本背景色开关指令
+- **上游同步**：CurrentCulture→InvariantCulture、TIMES 文化依赖修复、VARS2D 修复、FORCE\_QUIT 修复、ServerGC 启用
 
 ### Fixed
 
 - **OpenGL 上下文丢失崩溃**：双显卡/虚拟机环境自动降级到 CPU 渲染
-- **ColorMatrix GDI+→SkiaSharp 迁移修复**：列优先→行优先布局、平移分量 *255f、GDrawG GDI+ 残留清理
+- **ColorMatrix GDI+→SkiaSharp 迁移修复**：列优先→行优先布局、平移分量 \*255f、GDrawG GDI+ 残留清理
 - **合并冲突黑屏**：修复 mr-6 分支合并后 PaintSurface 事件隐藏
 - **Float 存档数据丢失**：LoadVariableBinary Float 段被错误截断为 long
 
 ### Changed
 
 - `typeof(long)`/`typeof(string)` 硬编码 → `EraType` 枚举 + `VariableDescriptor` 查询（746 处替换）
-- 移除 `UseNewRandom` 废弃代码
-- 移除冗余浮点数学函数（F 后缀版本），统一为同名重载
 
----
+***
 
-## [2.0.0] — 2026-05-04
+## [2.0.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-04
 
 ### Added
 
 - **ExecutionContext 栈式函数上下文**：修复 LOCAL/ARG 同函数递归覆写污染
-- **SparseArray\<T\> 稀疏数组存储**：大幅节省大下标数组内存
+- **SparseArray\<T> 稀疏数组存储**：大幅节省大下标数组内存
 - **SafeArithmetic 安全运算**：溢出保护，不再静默溢出
 - **EraType 枚举 + VariableDescriptor**：类型系统基础设施
 - **#DIMF 语法解析**：浮点变量声明 + 浮点字面量
@@ -135,35 +165,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - **ConvertArg() 多余参数静默丢弃**：移除 TooManyFuncArgs 报错，增加 TRY 安全网
-- **TIMES_Instruction 溢出保护**
+- **TIMES\_Instruction 溢出保护**
 - **INITRAND/DUMPRAND 与新随机数算法解耦**
 
----
+***
 
-## [1.3.0] — 2026-05-02
+## [1.3.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-02
 
 ### Fixed
 
 - **工具栏返回标题后精灵索引悬置**：导致立绘透明
 
----
+***
 
-## [1.2.0] — 2026-04-28
+## [1.2.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-04-28
 
 ### Fixed
 
 - **SpriteG 快照模式**：导致合成精灵渲染为空白
 
----
+***
 
-## [1.1.0] — 2026-04-26 ~ 2026-04-27
+## [1.1.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-04-26 \~ 2026-04-27
 
 ### Added
 
-- **HTML_PRINTC / HTML_PRINTLC**：基于像素的 HTML 制表命令，非等宽字体精确对齐
-- **HTML_PRINT font 标签 size 属性**
+- **HTML\_PRINTC / HTML\_PRINTLC**：基于像素的 HTML 制表命令，非等宽字体精确对齐
+- **HTML\_PRINT font 标签 size 属性**
 - **SQL 参数化查询**：`SQL_ESCAPE`、`SQL_P_EXECUTE_*` 系列，`@0,@1...` 占位符防注入
-- **MAP 全套方法 API**：MAP_VALUES/MAP_MERGE/MAP_REMOVEIF/MAP_FINDKEY/MAP_TOSTRING/MAP_FROMSTRING
+- **MAP 全套方法 API**：MAP\_VALUES/MAP\_MERGE/MAP\_REMOVEIF/MAP\_FINDKEY/MAP\_TOSTRING/MAP\_FROMSTRING
 
 ### Fixed
 
@@ -171,9 +201,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **SKIA 下 GDRAW 管线实现方式**
 - **HTML 新增标签关闭行为**
 
----
+***
 
-## [1.0.0] — 2026-04-22 ~ 2026-04-25
+## [1.0.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-04-22 \~ 2026-04-25
 
 ### Added
 
@@ -182,17 +212,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **SRGB 颜色空间修复**：修复 SkiaSharp 默认颜色空间导致画面偏暗
 - **GDI 字体回退**：MS Gothic 等光栅字体保留 GDI 渲染路径
 - **智能字体回退**：衬线/无衬线分类回退，CJK 全覆盖
-- **渲染控制 API**：SET_TEXT_DRAWING_MODE / GET_TEXT_DRAWING_MODE / SET_SKIA_QUALITY / GET_SKIA_QUALITY
-- **HTML_PRINT font 渲染属性扩展**：render/edging/hinting
+- **渲染控制 API**：SET\_TEXT\_DRAWING\_MODE / GET\_TEXT\_DRAWING\_MODE / SET\_SKIA\_QUALITY / GET\_SKIA\_QUALITY
+- **HTML\_PRINT font 渲染属性扩展**：render/edging/hinting
 - **全屏功能 (F11)**：覆盖开始菜单，鼠标移到顶部自动显示工具栏
 - **BitArray 功能**
 - **DIV 渲染性能优化**：命中测试 O(1) 定位 + Y轴预剔除
 - **ToolTip 防遮挡**：屏幕边缘自动翻转
 - **图像资源管理重构**：SharedBitmapCache 全局位图池 + ConstImage 轻量外壳
 - **SPRITEANIMEFRAME**：动画精灵帧数查询
-- **STRICT_FONT_FALLBACK**：严格字体回退模式
+- **STRICT\_FONT\_FALLBACK**：严格字体回退模式
 - **SETANIMETIMER**：动画帧间隔控制
-- **BITMAP_CACHE_ENABLE**：位图缓存开关
+- **BITMAP\_CACHE\_ENABLE**：位图缓存开关
 
 ### Fixed
 
@@ -210,37 +240,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **PrintPlainwithSingleLine 在 Plugin API 不执行渲染**
 - **数组扩大到一千万位**
 
----
+***
 
-## [0.3.0] — 2026-04-13 ~ 2026-04-18
+## [0.3.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-04-13 \~ 2026-04-18
 
 ### Added
 
 - **EVAL / EVALS**：运行时动态求值表达式
 - **CALLSTR / JUMPSTR / TRYCALLSTR / TRYJUMPSTR / TRYCCALLSTR / TRYCJUMPSTR**：动态函数调度
-- **SQL 数据库操作全套**：SQL_CONNECT/DISCONNECT/EXECUTE_NONQUERY/EXECUTE_READER/READER_*/EXECUTE_SCALAR_*/IMPORT_MAP_XML/IMPORT_DT_XML/EXPORT_MAP_XML/EXPORT_DT_XML/IMPORT_XML_CUSTOM
-- **资源管理系统 (ResourceManager)**：RM_RESOURCECHECK_LOAD / RM_RELEASE_ALL / RM_RESOURCE_EXIST，LRU 缓存淘汰
+- **SQL 数据库操作全套**：SQL\_CONNECT/DISCONNECT/EXECUTE\_NONQUERY/EXECUTE\_READER/READER\_*/EXECUTE\_SCALAR\_*/IMPORT\_MAP\_XML/IMPORT\_DT\_XML/EXPORT\_MAP\_XML/EXPORT\_DT\_XML/IMPORT\_XML\_CUSTOM
+- **资源管理系统 (ResourceManager)**：RM\_RESOURCECHECK\_LOAD / RM\_RELEASE\_ALL / RM\_RESOURCE\_EXIST，LRU 缓存淘汰
 - **SqlManager 流式 XML 解析**：XmlReader/XmlWriter，支持 GB 级数据导入导出
 
 ### Fixed
 
-- **XML_ADDNODE 多节点匹配**：修复只插入最后一次的 Bug
+- **XML\_ADDNODE 多节点匹配**：修复只插入最后一次的 Bug
 - **字符串比较逻辑**：GreaterEqualStrStr / LessEqualStrStr 错误逻辑
 - **SqlManager.CloseAll() 未集成到全局重置**：GlobalStatic.Reset() 中添加调用
 - **遗漏的本地化条目**
 
----
+***
 
-## [0.2.0] — 2026-03-09
+## [0.2.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-03-09
 
 ### Fixed
 
 - **BGMControl 功能异常**：参数重载失效
 - **变调标志存在即变调**：逻辑修正
 
----
+***
 
-## [0.1.0] — 2026-02-16 ~ 2026-02-19
+## [0.1.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-02-16 \~ 2026-02-19
 
 ### Added
 
@@ -255,17 +285,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **.als 文件**：序号 10 后的字符串指针读取修复
 - **SPRITECREATE**：支持 8/10 参数写法，与 CSV 能力对齐
 
----
+***
 
-[3.3.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[3.2.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[3.1.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[3.0.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[2.0.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[1.3.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[1.2.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[1.1.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[1.0.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[0.3.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[0.2.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version
-[0.1.0]: https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version

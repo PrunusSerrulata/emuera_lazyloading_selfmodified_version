@@ -1,109 +1,126 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
 namespace MinorShift.Emuera.Runtime.Utils;
+
 static partial class Preload
 {
-	static Dictionary<string, string[]> files = new(StringComparer.OrdinalIgnoreCase);
+    // 继续使用 ConcurrentDictionary，保持多线程并行读取的高性能
+    static ConcurrentDictionary<string, string[]> files = new(StringComparer.OrdinalIgnoreCase);
 
-	public static string[] GetFileLines(string path)
-	{
-		return files[path];
-	}
+    public static string[] GetFileLines(string path)
+    {
+        return files[path];
+    }
 
-	// Opens as UTF8BOM if starts with BOM, else use DetectEncoding
-	private static string[] readAllLinesDetectEncoding(string path)
-	{
-		try
-		{
-			using var file = File.Open(path, FileMode.Open);
-			Span<byte> bom = stackalloc byte[3];
-			_ = file.Read(bom);
-			file.Close();
-			try
-			{
-				if (bom.SequenceEqual<byte>([0xEF, 0xBB, 0xBF]))
-				{
-					return File.ReadAllLines(path, EncodingHandler.UTF8BOMEncoding);
-				}
-				else
-				{
-					return File.ReadAllLines(path, EncodingHandler.DetectEncoding(path));
-				}
-			}
-			catch
-			{
-				ParserMediator.Warn(trerror.AbnormalEncode.Text, new ScriptPosition(path, 0), 0, "");
-				return null;
-			}
-		}
-		catch (IOException)
-		{
-			ParserMediator.Warn(string.Format(trerror.FileUsingOtherProcess.Text, path), new ScriptPosition(path, 0), 0, "");
-			return File.ReadAllLines(path, EncodingHandler.UTF8BOMEncoding);
-		}
-	}
+    private static string[] ReadAndDecodeFile(string path)
+    {
+        try
+        {
+            // ReadWrite共享模式：防止因为玩家用记事本开着文件导致游戏加载报错
+            using var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            
+            int length = (int)fileStream.Length;
+            if (length == 0) return [""];
 
-	public static async Task Load(string path)
-	{
-		var startTime = DateTime.Now;
-		Debug.WriteLine($"Load: {path} : Start");
+            // 一次性将整个文件读入内存（极大减少硬盘IO时间）
+            var buffer = new byte[length];
+            fileStream.ReadExactly(buffer, 0, length);
+            
+            // 在内存中检测编码
+            using var ms = new MemoryStream(buffer);
+            Encoding encoding = EncodingHandler.DetectEncoding(ms);
+            
+            // 检测完编码后，确保游标归零
+            ms.Position = 0;
 
-		var dir = new DirectoryInfo(path);
-		if (dir.Exists)
-		{
-			await Task.Run(() =>
-			{
-				dir.EnumerateFiles("*", SearchOption.AllDirectories)
-				.AsParallel()
-				.Where(x =>
-				{
-					var ext = x.Extension;
-					return ext.Equals(".csv", StringComparison.OrdinalIgnoreCase) ||
-							ext.Equals(".erb", StringComparison.OrdinalIgnoreCase) ||
-							ext.Equals(".erh", StringComparison.OrdinalIgnoreCase) ||
-							ext.Equals(".erd", StringComparison.OrdinalIgnoreCase) ||
-							ext.Equals(".als", StringComparison.OrdinalIgnoreCase);
-				}).ForAll((childPath) =>
-				{
-					var key = childPath;
-					var value = readAllLinesDetectEncoding(childPath.ToString());
-					lock (files)
-					{
-						files[key.ToString()] = value;
-					}
+            // 使用内存流交由 StreamReader 处理。
+            // 它能完美剥离各种 BOM（包括 UTF-8 和 UTF-16），并安全地处理所有特殊换行符
+            using var sr = new StreamReader(ms, encoding, detectEncodingFromByteOrderMarks: true);
+            var lines = new List<string>();
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                lines.Add(line);
+            }
+            return lines.ToArray();
+        }
+        catch (IOException)
+        {
+            // 文件被独占锁定时，退回到你的安全备用逻辑
+            ParserMediator.Warn(string.Format(trerror.FileUsingOtherProcess.Text, path), new ScriptPosition(path, 0), 0, "");
+            return File.ReadAllLines(path, EncodingHandler.UTF8BOMEncoding);
+        }
+        catch (Exception)
+        {
+            // 捕获任何乱码解码失败导致的崩溃，报出异常并跳过该文件（还原你之前的防护机制）
+            ParserMediator.Warn(trerror.AbnormalEncode.Text, new ScriptPosition(path, 0), 0, "");
+            return null;
+        }
+    }
 
-				});
-			});
-		}
-		else
-		{
-			var key = path;
-			var value = readAllLinesDetectEncoding(path);
-			lock (files)
-			{
-				files[key] = value;
-			}
-		};
+    public static async Task Load(string path)
+    {
+        var startTime = DateTime.Now;
+        Debug.WriteLine($"Load: {path} : Start");
 
-		Debug.WriteLine($"Load: {path} : End in {(DateTime.Now - startTime).TotalMilliseconds}ms");
-	}
+        var dir = new DirectoryInfo(path);
+        if (dir.Exists)
+        {
+            await Task.Run(() =>
+            {
+                dir.EnumerateFiles("*", SearchOption.AllDirectories)
+                .AsParallel()
+                .Where(x =>
+                {
+                    var ext = x.Extension;
+                    return ext.Equals(".csv", StringComparison.OrdinalIgnoreCase) ||
+                            ext.Equals(".erb", StringComparison.OrdinalIgnoreCase) ||
+                            ext.Equals(".erh", StringComparison.OrdinalIgnoreCase) ||
+                            ext.Equals(".erd", StringComparison.OrdinalIgnoreCase) ||
+                            ext.Equals(".als", StringComparison.OrdinalIgnoreCase);
+                }).ForAll((childPath) =>
+                {
+                    string filePath = childPath.FullName;
+                    var value = ReadAndDecodeFile(filePath);
+                    
+                    if (value != null)
+                    {
+                        // ConcurrentDictionary 自带线程安全，不需要 lock
+                        files[filePath] = value;
+                    }
+                });
+            });
+        }
+        else
+        {
+            var value = ReadAndDecodeFile(path);
+            if (value != null)
+            {
+                files[path] = value;
+            }
+        }
 
-	public static async Task Load(IEnumerable<string> paths)
-	{
-		foreach (var path in paths)
-		{
-			await Load(path);
-		}
-	}
+        Debug.WriteLine($"Load: {path} : End in {(DateTime.Now - startTime).TotalMilliseconds}ms");
+    }
 
-	public static void Clear()
-	{
-		files.Clear();
-	}
+    public static async Task Load(IEnumerable<string> paths)
+    {
+        foreach (var path in paths)
+        {
+            await Load(path);
+        }
+    }
+
+    public static void Clear()
+    {
+        files.Clear();
+    }
 }

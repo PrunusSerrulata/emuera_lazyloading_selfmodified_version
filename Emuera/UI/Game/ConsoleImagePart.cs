@@ -256,7 +256,7 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
 		}
 		else
 		{
-			var textPaint = new SKPaint { Color = Config.ForeColor.ToSKColor(), TextAlign = SKTextAlign.Left };
+			var textPaint = new SKPaint { Color = Config.ForeColor.ToSKColor() };
 			graph.DrawText(AltText, PointX, (float)point.Y, new SKFont(), textPaint);
 		}
 	}

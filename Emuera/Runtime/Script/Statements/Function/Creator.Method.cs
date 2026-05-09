@@ -2970,6 +2970,34 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 
+	private sealed class GetCsvNoMethod : FunctionMethod
+	{
+		private CharacterStrData _type;
+		public GetCsvNoMethod(CharacterStrData data)
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String];
+			CanRestructure = true;
+			_type = data;
+		}
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			var str = arguments[0].GetStrValue(exm);
+			long ret;
+			var b = _type switch
+			{
+				CharacterStrData.NAME => exm.VEvaluator.Constant.NameToTemplateMap.TryGetValue(str, out ret),
+				CharacterStrData.NICKNAME => exm.VEvaluator.Constant.NicknameToTemplateMap.TryGetValue(str, out ret),
+				CharacterStrData.CALLNAME => exm.VEvaluator.Constant.CallnameToTemplateMap.TryGetValue(str, out ret),
+				CharacterStrData.MASTERNAME => exm.VEvaluator.Constant.MasternameToTemplateMap.TryGetValue(str, out ret),
+				_ => throw new ExeEE("error")
+			};
+			if (!b)
+				ret = -1;
+			return ret;
+		}
+	}
+
 	private sealed class FindcharaMethod : FunctionMethod
 	{
 		public FindcharaMethod(bool last)
@@ -4745,6 +4773,141 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 
+	private sealed class MatchAllMethod : FunctionMethod
+	{
+		private readonly bool _useStringName;
+
+		public MatchAllMethod(bool useStringName)
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = null;
+			CanRestructure = false;
+			_useStringName = useStringName;
+		}
+
+		public override string CheckArgumentType(string name, List<AExpression> arguments)
+		{
+			if (arguments.Count < 2)
+				return name + "関数には少なくとも2つの引数が必要です";
+			if (arguments.Count > 5)
+				return name + "関数の引数が多すぎます";
+
+			if (_useStringName)
+			{
+				if (arguments[0] is not SingleStrTerm)
+					return name + "関数の1番目の引数は文字列である必要があります";
+			}
+			else
+			{
+				if (arguments[0] is not VariableTerm)
+					return name + "関数の1番目の引数は変数参照である必要があります";
+			}
+
+			if (arguments.Count >= 5 && arguments[4] is not VariableTerm)
+				return name + "関数の5番目の引数は変数参照である必要があります";
+
+			return null;
+		}
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			VariableToken token;
+			if (_useStringName)
+			{
+				var varName = ((SingleStrTerm)arguments[0]).Str;
+				token = GlobalStatic.IdentifierDictionary.GetVariableToken(varName, null, true);
+				if (token == null)
+					throw new CodeEE("変数 " + varName + " が見つかりません");
+			}
+			else
+			{
+				token = ((VariableTerm)arguments[0]).Identifier;
+			}
+
+			var valExpr = arguments[1];
+			var type = valExpr.GetOperandType();
+
+			long beg = 0;
+			if (arguments.Count >= 3 && arguments[2] != null)
+				beg = arguments[2].GetIntValue(exm);
+
+			long len;
+			if (token.IsCharacterData)
+			{
+				len = exm.VEvaluator.CHARANUM;
+			}
+			else
+			{
+				if (token.IsArray1D)
+					len = token.GetLength(0);
+				else
+					len = 1;
+			}
+
+			long end = len;
+			if (arguments.Count >= 4 && arguments[3] != null)
+				end = arguments[3].GetIntValue(exm);
+
+			if (beg < 0 || end < 0)
+				throw new CodeEE("検索範囲に負の値が渡されました");
+			if (beg > end)
+				throw new CodeEE("検索範囲の指定が不正です");
+			if (end > len)
+				end = len;
+
+			VariableTerm outArr = null;
+			if (arguments.Count >= 5 && arguments[4] is VariableTerm vt)
+				outArr = vt;
+
+			var idxs = new long[2];
+			int p = 0;
+			long count = 0;
+
+			if (type == typeof(long))
+			{
+				var val = valExpr.GetIntValue(exm);
+				for (var i = beg; i < end; i++)
+				{
+					idxs[p] = i;
+					if (val == token.GetIntValue(exm, idxs))
+					{
+						if (outArr != null)
+						{
+							var outLen = outArr.Identifier.GetLength(0);
+							if (count < outLen)
+								outArr.Identifier.SetValue(i, [count]);
+						}
+						count++;
+					}
+				}
+			}
+			else if (type == typeof(string))
+			{
+				var val = valExpr.GetStrValue(exm);
+				for (var i = beg; i < end; i++)
+				{
+					idxs[p] = i;
+					if (val == token.GetStrValue(exm, idxs))
+					{
+						if (outArr != null)
+						{
+							var outLen = outArr.Identifier.GetLength(0);
+							if (count < outLen)
+								outArr.Identifier.SetValue(i, [count]);
+						}
+						count++;
+					}
+				}
+			}
+			else
+			{
+				throw new ExeEE("MATCHALL: サポートされていない型です");
+			}
+
+			return count;
+		}
+	}
+
 	private sealed class GroupMatchMethod : FunctionMethod
 	{
 		public GroupMatchMethod()
@@ -5909,7 +6072,15 @@ internal static partial class FunctionMethodCreator
 				return 0;
 			else if ((st.Current == '+' || st.Current == '-') && !char.IsDigit(st.Next))
 				return 0;
-			long ret = LexicalAnalyzer.ReadInt64(st, true);
+			long ret = 0;
+			try
+			{
+				ret = LexicalAnalyzer.ReadInt64(st, true);
+			}
+			catch (Exception)
+			{
+				return 0;
+			}
 			if (!st.EOS)
 			{
 				if (st.Current == '.')
@@ -7119,7 +7290,7 @@ internal static partial class FunctionMethodCreator
 					//Graphics canvas = Graphics.FromImage(bitmap);
 					var graphics = new SKCanvas(bitmap);
 					SKFont font = g.Fnt;
-					var paint = new SKPaint();
+					using var paint = new SKPaint();
 					if (font == null)
 					{
 						//font = new Font(Config.FontName, 100, GlobalStatic.Console.StringStyle.FontStyle, GraphicsUnit.Pixel);
@@ -7142,7 +7313,6 @@ internal static partial class FunctionMethodCreator
 
 					bitmap.Dispose();
 					graphics.Dispose();
-					paint.Dispose();
 				}
 				catch
 				{

@@ -128,6 +128,16 @@ internal sealed class ConstantData
 	private readonly List<CharacterTemplate> CharacterTmplList;
 	private EmueraConsole output;
 
+	private Dictionary<string, long> _nameToTemplateMap = [];
+	private Dictionary<string, long> _nicknameToTemplateMap = [];
+	private Dictionary<string, long> _callnameToTemplateMap = [];
+	private Dictionary<string, long> _masternameToTemplateMap = [];
+
+	public IReadOnlyDictionary<string, long> NameToTemplateMap => _nameToTemplateMap;
+	public IReadOnlyDictionary<string, long> NicknameToTemplateMap => _nicknameToTemplateMap;
+	public IReadOnlyDictionary<string, long> CallnameToTemplateMap => _callnameToTemplateMap;
+	public IReadOnlyDictionary<string, long> MasternameToTemplateMap => _masternameToTemplateMap;
+
 	public ConstantData()
 	{
 		//this.gamebase = gamebase;
@@ -233,7 +243,7 @@ internal sealed class ConstantData
 		if (!File.Exists(csvPath))
 			return;
 		using var eReader = new EraStreamReader(false);
-		if (!eReader.Open(csvPath))
+		if (!eReader.OpenOnCache(csvPath))
 		{
 			output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
 			return;
@@ -1264,6 +1274,19 @@ internal sealed class ConstantData
 		for (int i = 0; i < csvPaths.Count; i++)
 			loadCharacterDataFile(csvPaths[i].Value, csvPaths[i].Key, disp);
 
+		CharacterTmplList.Sort((left, right) => (int)(left.No - right.No));
+		foreach (var t in ((IEnumerable<CharacterTemplate>)CharacterTmplList).Reverse())
+		{
+			if (t.Name is not null)
+				_nameToTemplateMap[t.Name] = t.No;
+			if (t.Nickname is not null)
+				_nicknameToTemplateMap[t.Nickname] = t.No;
+			if (t.Callname is not null)
+				_callnameToTemplateMap[t.Callname] = t.No;
+			if (t.Mastername is not null)
+				_masternameToTemplateMap[t.Mastername] = t.No;
+		}
+
 		if (useCompatiName)
 		{
 			foreach (CharacterTemplate tmpl in CharacterTmplList)
@@ -1308,7 +1331,7 @@ internal sealed class ConstantData
 		foreach (var path in Directory.GetFiles(csvPath, "VarExt*.csv", SearchOption.AllDirectories))
 		{
 			using var eReader = new EraStreamReader(false);
-			if (!eReader.Open(path))
+			if (!eReader.OpenOnCache(path))
 			{
 				output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
 				return;
@@ -1474,8 +1497,6 @@ internal sealed class ConstantData
 				}
 				toCharacterTemplate(position, tmpl, tokens);
 			}
-
-			CharacterTmplList.Sort((left, right) => (int)(left.No - right.No));
 		}
 		catch
 		{

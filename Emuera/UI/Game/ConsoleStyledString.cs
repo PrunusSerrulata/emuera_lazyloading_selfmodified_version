@@ -431,8 +431,7 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 	using var paint = new SKPaint
 	{
 		Color = color.ToSKColor(),
-		IsAntialias = isAntialias,
-		TextAlign = SKTextAlign.Left
+		IsAntialias = isAntialias
 	};
 
 	var point = new SKPoint(PointX + Config.DrawingParam_ShapePositionShift, origin.Y);
@@ -582,7 +581,6 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		else
 			isAntialias = !IsRasterFont;
 		using var bitmapPaint = new SKPaint {
-			TextAlign = SKTextAlign.Left,
 			Color = color.ToSKColor(),
 			IsAntialias = isAntialias
 		};

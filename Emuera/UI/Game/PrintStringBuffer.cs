@@ -184,7 +184,10 @@ internal sealed class PrintStringBuffer
 	{
 		fromCssToButton();
 		ConsoleDisplayLine[] ret = ButtonsToDisplayLines(m_buttonList, stringMeasure, false, temporary);
-		ret[^1].IsLineEnd = isLastLineEnd;
+		if (ret.Length > 0)
+		{
+			ret[^1].IsLineEnd = isLastLineEnd;
+		}
 		clearBuffer();
 		return ret;
 	}

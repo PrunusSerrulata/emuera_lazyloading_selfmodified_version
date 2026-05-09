@@ -1,4 +1,4 @@
-﻿using MinorShift.Emuera.GameView;
+using MinorShift.Emuera.GameView;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Script.Statements;
@@ -1114,6 +1114,8 @@ namespace MinorShift.Emuera.Forms
 
 		public void ShowConfigDialog()
 		{
+			if (console == null || GlobalStatic.Console == null)
+				return;
 			string lang = Config.EmueraLang;
 			ConfigDialog dialog = new();
 			dialog.TranslateUI();
@@ -1750,6 +1752,8 @@ namespace MinorShift.Emuera.Forms
 		
 		private void クリップボードにコピーToolStripMenuItem_Click_1(object sender, EventArgs e)
 		{
+			if (GlobalStatic.Console == null)
+				return;
 			if (クリップボードにコピーToolStripMenuItem.Checked)
 				GlobalStatic.Console.CBProc.Init();
 			else

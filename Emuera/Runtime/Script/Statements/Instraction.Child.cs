@@ -618,14 +618,12 @@ internal sealed partial class FunctionIdentifier
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			AExpression term = ((MethodArgument)func.Argument).MethodTerm;
-			//Type type = term.GetOperandType();
 			if (term.GetEraType() == EraType.Integer)
 				exm.VEvaluator.RESULT = term.GetIntValue(exm);
-			else// if (func.Argument.MethodTerm.GetEraType() == EraType.String)
+			else if (term.GetEraType() == EraType.Float)
+				exm.VEvaluator.RESULTF = term.GetFloatValue(exm);
+			else
 				exm.VEvaluator.RESULTS = term.GetStrValue(exm);
-			//これら以外の型は現状ない
-			//else
-			//	throw new ExeEE(func.Function.Name + "命令の型が不明");
 		}
 	}
 

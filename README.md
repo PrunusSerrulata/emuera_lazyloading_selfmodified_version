@@ -9,18 +9,18 @@
 
 ---
 
-## 核心亮点
+## 新增功能
 
-| 类别 | 亮点 |
+| 类别 | 功能 |
 |:---|:---|
-| 🎨 **渲染引擎** | SkiaSharp 替代 GDI+，OpenGL 硬件加速，SRGB 色彩空间修复 |
-| 📐 **浮点类型** | `#DIMF` / `#FUNCTIONF` / `LOCALF` / `ARGF` / `RESULTF`，三角函数与端数处理 |
-| 🧠 **运行时** | ExecutionContext 栈式上下文 + SparseArray 稀疏存储 + SafeArithmetic 溢出保护 |
-| 📝 **新指令** | EVAL/EVALS 动态求值、CALLSTR 动态调度、HTML_PRINTC 像素制表、SQL 全套、MAP 增强 |
-| 🔧 **语法扩展** | 可变参数 `...` / `ARGLEN`、`#REF`/`#REFS` 引用声明、`OUT` 输出参数 |
-| 🖼️ **图层渲染** | `SETIMAGELAYER` 独立图层系统、视口裁剪、动图离窗暂停、颜色矩阵 |
-| ⚡ **性能优化** | `SELECTCASE` 编译期跳转表（O(1) 查找）、SKPaint 池化、CharWidthCache |
-| 🐛 **Bug 修复** | 懒加载 EXISTFUNCTION、.als 指针、SPRITECREATE、SpriteG 快照、字体泄漏等 20+ 项 |
+|  **渲染引擎** | SkiaSharp 替代 GDI+，OpenGL 硬件加速，SRGB 色彩空间修复 |
+|  **浮点类型** | `#DIMF` / `#FUNCTIONF` / `LOCALF` / `ARGF` / `RESULTF`，三角函数与端数处理 |
+|  **运行时** | ExecutionContext 栈式上下文 + SparseArray 稀疏存储 + SafeArithmetic 溢出保护 |
+|  **新指令** | EVAL/EVALS 动态求值、CALLSTR 动态调度、HTML_PRINTC 像素制表、SQL 全套、MAP 增强 |
+|  **语法扩展** | 可变参数声明 `VARIADIC` / 可变参数长度`ARGLEN()`、`#REF`/`#REFS` 引用声明、`OUT` 输出参数 |
+|  **图层渲染** | `SETIMAGELAYER` 独立图层系统、视口裁剪、动图离窗暂停、颜色矩阵 |
+|  **性能优化** | `SELECTCASE` 编译期跳转表（O(1) 查找）、SQL图片缓存、LRU管理 |
+|  **Bug 修复** | 懒加载 EXISTFUNCTION、.als 指针、SPRITECREATE、SpriteG 快照、字体泄漏等 20+ 项 |
 
 ---
 
@@ -42,14 +42,19 @@
 
 ---
 
-## 致谢
+## 参考
 
-| 项目 | 来源 |
-|:---|:---|
-| Emuera | [Emuera EE](https://gitlab.com/EvilMask/emuera.em) |
-| Lazyloading | 지나가던 |
-| SkiaSharp | Google / .NET Foundation |
-| SoundTouch | [markheath/naudio](https://github.com/naudio/varispeed-sample) |
+| 项目 | 来源 | 说明 |
+|:---|:---|:---|
+| **Emuera EE** | [Emuera EE](https://gitlab.com/EvilMask/emuera.em) | 基础代码框架 |
+| **Lazyloading** | 지나가던 | 懒加载功能实现 |
+| **SkiaSharp** | [VVIIlet/emuera](https://gitlab.com/VVIIlet/emuera/-/commit/423fb6eb19f5f33af653a780e084bdd40b6efef1) | 渲染引擎替换 |
+| **SoundTouch** | [markheath/naudio](https://github.com/naudio/varispeed-sample) | 音频变速处理 |
+
+**SkiaSharp 移植说明**：
+- 初始实现来自 VVII 的 "SkiaSharpへの置き換え" 提交
+- 本项目引用 ee+em 的 b2fd164 版本作为起点
+- 在 1.0.0 版本完成完整的 SkiaSharp 功能集成，并进行了大量重构优化
 
 ---
 
