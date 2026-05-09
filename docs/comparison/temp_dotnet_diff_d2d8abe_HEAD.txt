@@ -1,0 +1,4200 @@
+﻿diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml
+index 622092c..5f63103 100644
+--- a/.gitlab-ci.yml
++++ b/.gitlab-ci.yml
+@@ -39,8 +39,7 @@ stages:
+ build_job:
+   stage: build
+   only:
+-    - master
+-    - SkiaSharp
++    - main
+   script:
+     - 'dotnet publish'  # build the project
+     - mkdir build
+diff --git a/Emuera.csproj b/Emuera.csproj
+index a1023d8..e3595cd 100644
+--- a/Emuera.csproj
++++ b/Emuera.csproj
+@@ -1,6 +1,6 @@
+ ﻿<Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
+-    <TargetFramework>net8.0-windows</TargetFramework>
++    <TargetFramework>net9.0-windows7.0</TargetFramework>
+     <OutputType>WinExe</OutputType>
+     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+ 
+@@ -14,13 +14,11 @@
+     <PublishSingleFile>true</PublishSingleFile>
+     <SelfContained>false</SelfContained>
+     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
++    <ServerGarbageCollection>true</ServerGarbageCollection>
+ 
+     <EnableNETAnalyzers>true</EnableNETAnalyzers>
+     <AnalysisMode>Minimum</AnalysisMode>
+     
+-    <TieredCompilation>false</TieredCompilation>
+-    <ServerGarbageCollection>true</ServerGarbageCollection>
+-
+     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+     
+     <UseWindowsForms>true</UseWindowsForms>
+@@ -36,6 +34,16 @@
+     <Compile Update="Forms\EraPictureBox.cs">
+       <SubType>Component</SubType>
+     </Compile>
++    <Compile Update="Properties\Resources.Designer.cs">
++      <DesignTime>True</DesignTime>
++      <AutoGen>True</AutoGen>
++      <DependentUpon>Resources.resx</DependentUpon>
++    </Compile>
++    <Compile Update="Properties\Settings.Designer.cs">
++      <DesignTimeSharedInput>True</DesignTimeSharedInput>
++      <AutoGen>True</AutoGen>
++      <DependentUpon>Settings.settings</DependentUpon>
++    </Compile>
+     <Compile Update="UI\Framework\FormLocalization.Designer.cs">
+       <DesignTime>True</DesignTime>
+       <AutoGen>True</AutoGen>
+@@ -48,18 +56,22 @@
+     </Compile>
+   </ItemGroup>
+   <ItemGroup>
+-    <PackageReference Include="AngleSharp" Version="1.1.2" />
+-    <PackageReference Include="Enums.NET" Version="4.0.2" />
+-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.5" />
+-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.49-beta">
++    <PackageReference Include="AngleSharp" Version="1.2.0" />
++    <PackageReference Include="Enums.NET" Version="5.0.0" />
++    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.1" />
++    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.162">
+       <PrivateAssets>all</PrivateAssets>
+     </PackageReference>
+-    <PackageReference Include="SkiaSharp" Version="3.0.0-preview.4.1  " />
+-    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.0.0-preview.4.1  " />
++    <PackageReference Include="SkiaSharp" Version="3.116.1" />
++    <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.116.1" />
++    <PackageReference Include="System.IO.Hashing" Version="9.0.1" />
+     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+-    <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+   </ItemGroup>
+   <ItemGroup>
++    <EmbeddedResource Update="Properties\Resources.resx">
++      <Generator>ResXFileCodeGenerator</Generator>
++      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
++    </EmbeddedResource>
+     <EmbeddedResource Update="UI\Framework\FormLocalization.resx">
+       <Generator>ResXFileCodeGenerator</Generator>
+       <LastGenOutput>FormLocalization.Designer.cs</LastGenOutput>
+@@ -69,4 +81,10 @@
+       <LastGenOutput>ConsoleLocalization.Designer.cs</LastGenOutput>
+     </EmbeddedResource>
+   </ItemGroup>
++  <ItemGroup>
++    <None Update="Properties\Settings.settings">
++      <Generator>SettingsSingleFileGenerator</Generator>
++      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
++    </None>
++  </ItemGroup>
+ </Project>
+\ No newline at end of file
+diff --git "a/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\222\260\345\242\203\343\201\256\346\272\226\345\202\231\346\226\271\346\263\225.txt" "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\222\260\345\242\203\343\201\256\346\272\226\345\202\231\346\226\271\346\263\225.txt"
+new file mode 100644
+index 0000000..7e1374e
+--- /dev/null
++++ "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\222\260\345\242\203\343\201\256\346\272\226\345\202\231\346\226\271\346\263\225.txt"
+@@ -0,0 +1,87 @@
++--------------------------------------------------------------------------
++GitLab上のリモートリポジトリをクローンして
++自分の端末にローカルリポジトリを作成する手順を記載する。
++--------------------------------------------------------------------------
++1.ローカルリポジトリ用のディレクトリを作成する
++※どこでもよいのだけれど、例として「C:\work\GitLab」とします。(カッコつけて)コマンドプロンプトで以下のコマンドでディレクトリを作成
++mkdir C:\work\GitLab
++
++作成された「C:\work\GitLab」で右クリックして「Open Git Bash Here」を選択
++→GitBashをそのディレクトリで起動する
++
++GitLab上のリモートリポジトリをクローンして、ローカルリポジトリを作成する
++→「EmueraDotNet」ディレクトリが作成され、その中にいろいろ入る。
++git clone https://gitlab.com/alnatiyan/EmueraDotNet.git
++
++作成されたディレクトリへ移動する
++cd EmueraDotNet
++
++正常にチェックアウトできたか確認する
++git branch
++
++リモートリポジトリのブランチを一覧表示する
++git branch -r
++
++リモートリポジトリから特定のブランチを取得する　※例として「SkiaSharp」ブランチ
++git checkout SkiaSharp
++git checkout BugFix_Test
++
++
++--------------------------------------------------------------------------
++簡易なデバッグ実行するための準備を行う
++-------------------------------------------------------------------------
++本格的に各種テストを行う場合はeraMegatenの全ファイルを
++C:\work\GitLab\EmueraDotNet\artifacts\bin\Emuera\debug_win-x64
++フォルダに配置すればよいが、それではあまりに重すぎるため
++ちょっとした関数の動作確認をしたい場合のために「デバッグ実行用の配置ファイル」フォルダを用意しています。
++
++1.「C:\work\GitLab\EmueraDotNet\Emuera.sln」を起動してリビルドする
++
++2.デバッグ実行に必要なファイルの配置
++上記のリビルドで作成された下記の「フォルダ1」をコピーして「フォルダ2」へ上書きする
++
++[フォルダ1]
++C:\work\GitLab\EmueraDotNet\Emuera以外(開発補助ツールなど)\デバッグ実行用の配置ファイル\1.簡易テスト用(可能な限りファイル数を少なく)\debug_win-x64
++
++[フォルダ2]
++C:\work\GitLab\EmueraDotNet\artifacts\bin\Emuera\debug_win-x64
++
++
++上記のコピーが面倒な場合、コマンドプロンプトで以下のコマンドを実行すればOK
++xcopy /E "C:\work\GitLab\EmueraDotNet\Emuera以外(開発補助ツールなど)\デバッグ実行用の配置ファイル\1.簡易テスト用(可能な限りファイル数を少なく)\debug_win-x64\Data\" "C:\work\GitLab\EmueraDotNet\artifacts\bin\Emuera\debug_win-x64\Data\"
++
++
++上記の「デバッグ実行するための準備を行う」で配置した
++以下のerbファイルの記述を変更することで
++erbの記述に対応したEmuera側の処理をデバッグ実行で確認します。
++
++C:\work\GitLab\EmueraDotNet\artifacts\bin\Emuera\debug_win-x64\Data\ERB\SYSTEM_TITLE.erb
++
++
++--------------------------------------------------------------------------
++がっつりデバッグ実行するための準備を行う
++--------------------------------------------------------------------------
++正式にリリースされているeraMegatenの全ファイルを導入し
++さらにテスト専用の「イベント125：開発テスト」を追加する
++
++1.「C:\work\GitLab\EmueraDotNet\Emuera.sln」を起動してリビルドする
++
++2.eraMegatenの正式にリリースされている各ファイルを配置する。
++普段プレイしているeraMegatenの全ファイル(「Data」「追加アイコン」フォルダなどがおいてあるところの一式)をコピーして
++下記の「フォルダ1」の中へ配置する
++
++[フォルダ1]
++C:\work\GitLab\EmueraDotNet\Emuera以外(開発補助ツールなど)\デバッグ実行用の配置ファイル\1.簡易テスト用(可能な限りファイル数を少なく)\debug_win-x64
++
++3.テスト専用の「イベント125：開発テスト」を配置する。
++下記の「フォルダ2」をコピーして「フォルダ3」を上書きする
++
++[フォルダ2]
++C:\work\GitLab\EmueraDotNet\Emuera以外(開発補助ツールなど)\デバッグ実行用の配置ファイル\2.がっつりテスト用(eraMegatenの本体にテスト用イベントを追加する)\debug_win-x64
++
++[フォルダ3]
++C:\work\GitLab\EmueraDotNet\artifacts\bin\Emuera\debug_win-x64
++
++
++上記のコピーが面倒な場合、コマンドプロンプトで以下のコマンドを実行すればOK
++xcopy /E "C:\work\GitLab\EmueraDotNet\Emuera以外(開発補助ツールなど)\デバッグ実行用の配置ファイル\2.がっつりテスト用(eraMegatenの本体にテスト用イベントを追加する)\debug_win-x64\Data\" "C:\work\GitLab\EmueraDotNet\artifacts\bin\Emuera\debug_win-x64\Data\"
+diff --git "a/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/1.\347\260\241\346\230\223\343\203\206\343\202\271\343\203\210\347\224\250(\345\217\257\350\203\275\343\201\252\351\231\220\343\202\212\343\203\225\343\202\241\343\202\244\343\203\253\346\225\260\343\202\222\345\260\221\343\201\252\343\201\217)/debug_win-x64/Data/ERB/SYSTEM_TITLE.erb" "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/1.\347\260\241\346\230\223\343\203\206\343\202\271\343\203\210\347\224\250(\345\217\257\350\203\275\343\201\252\351\231\220\343\202\212\343\203\225\343\202\241\343\202\244\343\203\253\346\225\260\343\202\222\345\260\221\343\201\252\343\201\217)/debug_win-x64/Data/ERB/SYSTEM_TITLE.erb"
+new file mode 100644
+index 0000000..4cd40b7
+--- /dev/null
++++ "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/1.\347\260\241\346\230\223\343\203\206\343\202\271\343\203\210\347\224\250(\345\217\257\350\203\275\343\201\252\351\231\220\343\202\212\343\203\225\343\202\241\343\202\244\343\203\253\346\225\260\343\202\222\345\260\221\343\201\252\343\201\217)/debug_win-x64/Data/ERB/SYSTEM_TITLE.erb"
+@@ -0,0 +1,29 @@
++﻿
++;_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/#
++; ここに、テスト用の処理を記載します。
++;_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/#
++@SYSTEM_TITLE
++#DIM numBuf
++#DIMS strBuf
++
++PRINTFORML テスト開始
++
++numBuf = ISNUMERIC("999")
++;numBuf = ISNUMERIC("-1")
++;numBuf = ISNUMERIC("0e")
++;numBuf = ISNUMERIC("-1-")
++
++;numBuf = TOINT("999")
++;numBuf = TOINT("-1")
++;numBuf = TOINT("0e")
++;numBuf = TOINT("-1-")
++
++PRINTFORML {numBuf}
++
++PRINTFORML テスト終了
++
++WAIT
++
++
++RETURN -1
++
+diff --git "a/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/2.\343\201\214\343\201\243\343\201\244\343\202\212\343\203\206\343\202\271\343\203\210\347\224\250(eraMegaten\343\201\256\346\234\254\344\275\223\343\201\253\343\203\206\343\202\271\343\203\210\347\224\250\343\202\244\343\203\231\343\203\263\343\203\210\343\202\222\350\277\275\345\212\240\343\201\231\343\202\213)/debug_win-x64/Data/ERB/RPG/\343\202\244\343\203\231\343\203\263\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210.ERB" "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/2.\343\201\214\343\201\243\343\201\244\343\202\212\343\203\206\343\202\271\343\203\210\347\224\250(eraMegaten\343\201\256\346\234\254\344\275\223\343\201\253\343\203\206\343\202\271\343\203\210\347\224\250\343\202\244\343\203\231\343\203\263\343\203\210\343\202\222\350\277\275\345\212\240\343\201\231\343\202\213)/debug_win-x64/Data/ERB/RPG/\343\202\244\343\203\231\343\203\263\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210.ERB"
+new file mode 100644
+index 0000000..94aca66
+--- /dev/null
++++ "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/2.\343\201\214\343\201\243\343\201\244\343\202\212\343\203\206\343\202\271\343\203\210\347\224\250(eraMegaten\343\201\256\346\234\254\344\275\223\343\201\253\343\203\206\343\202\271\343\203\210\347\224\250\343\202\244\343\203\231\343\203\263\343\203\210\343\202\222\350\277\275\345\212\240\343\201\231\343\202\213)/debug_win-x64/Data/ERB/RPG/\343\202\244\343\203\231\343\203\263\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210.ERB"
+@@ -0,0 +1,38 @@
++﻿;---------------------------------------------------------------------------------------------------------------------------------
++;イベント「開発時テスト」
++;---------------------------------------------------------------------------------------------------------------------------------
++;更新日時       更新者                  更新内容
++;2024/12/08     ロッド@カヤノソト	    ファイルを新規作成
++;---------------------------------------------------------------------------------------------------------------------------------
++;Emueraの開発時などにデバッグテストなどで使用するイベントです。eraMegaten本編には使用しません。
++;---------------------------------------------------------------------------------------------------------------------------------
++
++;====================
++;条件
++;====================
++@GET_EVENT_NAME_125
++#FUNCTIONS
++RESULTS_F '= "開発時テスト"
++RETURNF RESULTS_F
++
++@PLAYABLE_EVENT_125
++;常に解放
++RESULTS = 開発時テスト
++RETURN 1
++
++;====================
++;内容
++;====================
++@SHOPCOM_EVENT_125
++
++;------------------------
++;ここに、テストしたい内容を記述のこと！
++;------------------------
++
++PRINTFORML 開発時テストスタート！
++
++PRINTFORML 開発時テスト終了！
++WAIT
++
++
++
+diff --git "a/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/2.\343\201\214\343\201\243\343\201\244\343\202\212\343\203\206\343\202\271\343\203\210\347\224\250(eraMegaten\343\201\256\346\234\254\344\275\223\343\201\253\343\203\206\343\202\271\343\203\210\347\224\250\343\202\244\343\203\231\343\203\263\343\203\210\343\202\222\350\277\275\345\212\240\343\201\231\343\202\213)/debug_win-x64/Data/ERB/RPG/\343\202\244\343\203\231\343\203\263\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210.ERH" "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/2.\343\201\214\343\201\243\343\201\244\343\202\212\343\203\206\343\202\271\343\203\210\347\224\250(eraMegaten\343\201\256\346\234\254\344\275\223\343\201\253\343\203\206\343\202\271\343\203\210\347\224\250\343\202\244\343\203\231\343\203\263\343\203\210\343\202\222\350\277\275\345\212\240\343\201\231\343\202\213)/debug_win-x64/Data/ERB/RPG/\343\202\244\343\203\231\343\203\263\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210.ERH"
+new file mode 100644
+index 0000000..0779441
+--- /dev/null
++++ "b/Emuera\344\273\245\345\244\226(\351\226\213\347\231\272\350\243\234\345\212\251\343\203\204\343\203\274\343\203\253\343\201\252\343\201\251)/\343\203\207\343\203\220\343\203\203\343\202\260\345\256\237\350\241\214\347\224\250\343\201\256\351\205\215\347\275\256\343\203\225\343\202\241\343\202\244\343\203\253/2.\343\201\214\343\201\243\343\201\244\343\202\212\343\203\206\343\202\271\343\203\210\347\224\250(eraMegaten\343\201\256\346\234\254\344\275\223\343\201\253\343\203\206\343\202\271\343\203\210\347\224\250\343\202\244\343\203\231\343\203\263\343\203\210\343\202\222\350\277\275\345\212\240\343\201\231\343\202\213)/debug_win-x64/Data/ERB/RPG/\343\202\244\343\203\231\343\203\263\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210/EVENT_125_\351\226\213\347\231\272\346\231\202\343\203\206\343\202\271\343\203\210.ERH"
+@@ -0,0 +1,49 @@
++﻿;---------------------------------------------------------------------------------------------------------------------------------
++;イベント「開発時テスト」に使用する各種グローバス変数・定数
++;---------------------------------------------------------------------------------------------------------------------------------
++;更新日時       更新者                  更新内容
++;2024/12/08     ロッド@カヤノソト	    ファイルを新規作成
++;---------------------------------------------------------------------------------------------------------------------------------
++;Emueraの開発時などにデバッグテストなどで使用するイベントです。eraMegaten本編には使用しません。
++;---------------------------------------------------------------------------------------------------------------------------------
++
++;----------------------------------
++;定数宣言
++;----------------------------------
++;一度の周回あたりに解凍可能な数　※50日が経過した場合、回数無制限となる
++;#DIM CONST EVENT125_CONST_MAX_THAW_CNT = 3
++;冬眠ファイルの形式
++;#DIM CONST EVENT125_CONST_FILE_TYPE_NORMAL = 1      ;通常の冬眠
++;#DIM CONST EVENT125_CONST_FILE_TYPE_GROUP = 2       ;まとめて1ファイルに冬眠　※冬眠時と同セーブデータ・同周回の場合のみ解凍可能
++
++
++;----------------------------------
++;変数宣言
++;----------------------------------
++;解凍可能な残りのキャラクタ数
++;#DIM SAVEDATA EVENT125_ZAN_THAW_CNT
++
++;セーブデータのID
++;#DIM SAVEDATA EVENT125_SAVEDATE_ID = 0
++
++;セーブデータの現周回ID
++;#DIM SAVEDATA EVENT125_SAVEDATE_ORBITING_ID = 0
++
++;冬眠データのメモ情報(基本)を取得・格納する配列
++;0：冬眠ファイルの形式(通常の冬眠の他にも闘技場に登場させるPTデータなどを想定)
++;1：冬眠ファイル内のキャラクタ数
++;2：冬眠ファイル作成時のゲームバージョン　※古いバージョンで作成した冬眠ファイルを解凍する場合は警告を行う
++;3：冬眠時のセーブデータのユニークID　※セーブデータ自体と周回でそれぞれIDを付ける
++;4：冬眠時のセーブデータの現周回のユニークID　※セーブデータ自体と周回でそれぞれIDを付ける
++;#DIM EVENT125_ARRAY_FILE_MEMO, 5
++
++;冬眠データのメモ情報(キャラごとの詳細)を取得・格納する配列　※同じファイルに複数のキャラクタデータが格納されることを想定
++;要素1：ファイル内の冬眠キャラを指定する(最大200体まで)
++;要素2：0：冬眠キャラのCSV番号 / 1：冬眠キャラのユニークID / 2:セーブデータ内でのキャラクタ番号
++;#DIM EVENT125_ARRAY_FILE_MEMO_DETAIL, 200, 3
++
++;冬眠選択画面にて選択中のキャラクタ番号のリスト
++;#DIM EVENT125_ARRAY_SELECT_CHARA_NO_LIST, 200
++
++
++
+diff --git a/Program.cs b/Program.cs
+index 3209e37..e466805 100644
+--- a/Program.cs
++++ b/Program.cs
+@@ -11,6 +11,9 @@ using System.Runtime;
+ using System.Windows.Forms;
+ using MinorShift.Emuera.UI.Framework;
+ using System.Globalization;
++using System.Reflection;
++using System.Configuration;
++using System.Diagnostics;
+ 
+ namespace MinorShift.Emuera;
+ #nullable enable
+@@ -93,8 +96,23 @@ static partial class Program
+             AnalysisMode = true;
+         }
+ 
++        //利用推奨の.NET Coreのバージョン
++        string targetVersion = "9.0.0";
++
++        //使用している端末の.NET Coreのバージョンを確認し、一定以下の場合はエラーとする
++        if (Environment.Version.Build < new Version(targetVersion).Build)
++        {
++            //.Net Coreのバージョンが一定以下の場合はエラーメッセージを表示する
++            MessageBox.Show("ご使用の端末の「.NET Core」のバージョンは" + Environment.Version + "です。" + Environment.NewLine + targetVersion + "以上に更新してください。");
++
++            //App.configに.Net Coreのインストール用ページを開く
++            String installUrl = "https://dotnet.microsoft.com/en-us/download/dotnet/9.0";
++            Process.Start(new ProcessStartInfo(installUrl) { UseShellExecute = true });
++            return;
++        }
++
+         ProfileOptimization.SetProfileRoot(exeDir ?? ExeDir);
+-        ProfileOptimization.StartProfile("profile");
++        ProfileOptimization.StartProfile(AssemblyData.EmueraVersionText + ".profile");
+ 
+         ConfigData.Instance.LoadConfig();
+         JSONConfig.Load();
+diff --git a/Properties/Resources.Designer.cs b/Properties/Resources.Designer.cs
+new file mode 100644
+index 0000000..a7b5a18
+--- /dev/null
++++ b/Properties/Resources.Designer.cs
+@@ -0,0 +1,63 @@
++﻿//------------------------------------------------------------------------------
++// <auto-generated>
++//     このコードはツールによって生成されました。
++//     ランタイム バージョン:4.0.30319.42000
++//
++//     このファイルへの変更は、以下の状況下で不正な動作の原因になったり、
++//     コードが再生成されるときに損失したりします。
++// </auto-generated>
++//------------------------------------------------------------------------------
++
++namespace MinorShift.Emuera.Properties {
++    using System;
++    
++    
++    /// <summary>
++    ///   ローカライズされた文字列などを検索するための、厳密に型指定されたリソース クラスです。
++    /// </summary>
++    // このクラスは StronglyTypedResourceBuilder クラスが ResGen
++    // または Visual Studio のようなツールを使用して自動生成されました。
++    // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
++    // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
++    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
++    [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
++    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
++    internal class Resources {
++        
++        private static global::System.Resources.ResourceManager resourceMan;
++        
++        private static global::System.Globalization.CultureInfo resourceCulture;
++        
++        [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
++        internal Resources() {
++        }
++        
++        /// <summary>
++        ///   このクラスで使用されているキャッシュされた ResourceManager インスタンスを返します。
++        /// </summary>
++        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
++        internal static global::System.Resources.ResourceManager ResourceManager {
++            get {
++                if (object.ReferenceEquals(resourceMan, null)) {
++                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MinorShift.Emuera.Properties.Resources", typeof(Resources).Assembly);
++                    resourceMan = temp;
++                }
++                return resourceMan;
++            }
++        }
++        
++        /// <summary>
++        ///   すべてについて、現在のスレッドの CurrentUICulture プロパティをオーバーライドします
++        ///   現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
++        /// </summary>
++        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
++        internal static global::System.Globalization.CultureInfo Culture {
++            get {
++                return resourceCulture;
++            }
++            set {
++                resourceCulture = value;
++            }
++        }
++    }
++}
+diff --git a/Properties/Resources.resx b/Properties/Resources.resx
+new file mode 100644
+index 0000000..4fdb1b6
+--- /dev/null
++++ b/Properties/Resources.resx
+@@ -0,0 +1,101 @@
++﻿<?xml version="1.0" encoding="utf-8"?>
++<root>
++	<!-- 
++		Microsoft ResX Schema
++
++		Version 1.3
++
++		The primary goals of this format is to allow a simple XML format 
++		that is mostly human readable. The generation and parsing of the 
++		various data types are done through the TypeConverter classes 
++		associated with the data types.
++
++		Example:
++
++		... ado.net/XML headers & schema ...
++		<resheader name="resmimetype">text/microsoft-resx</resheader>
++		<resheader name="version">1.3</resheader>
++		<resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
++		<resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
++		<data name="Name1">this is my long string</data>
++		<data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
++		<data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
++			[base64 mime encoded serialized .NET Framework object]
++		</data>
++		<data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
++			[base64 mime encoded string representing a byte array form of the .NET Framework object]
++		</data>
++
++		There are any number of "resheader" rows that contain simple 
++		name/value pairs.
++
++		Each data row contains a name, and value. The row also contains a 
++		type or mimetype. Type corresponds to a .NET class that support 
++		text/value conversion through the TypeConverter architecture. 
++		Classes that don't support this are serialized and stored with the 
++		mimetype set.
++
++		The mimetype is used for serialized objects, and tells the 
++		ResXResourceReader how to depersist the object. This is currently not 
++		extensible. For a given mimetype the value must be set accordingly:
++
++		Note - application/x-microsoft.net.object.binary.base64 is the format 
++		that the ResXResourceWriter will generate, however the reader can 
++		read any of the formats listed below.
++
++		mimetype: application/x-microsoft.net.object.binary.base64
++		value   : The object must be serialized with 
++			: System.Serialization.Formatters.Binary.BinaryFormatter
++			: and then encoded with base64 encoding.
++
++		mimetype: application/x-microsoft.net.object.soap.base64
++		value   : The object must be serialized with 
++			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
++			: and then encoded with base64 encoding.
++
++		mimetype: application/x-microsoft.net.object.bytearray.base64
++		value   : The object must be serialized into a byte array 
++			: using a System.ComponentModel.TypeConverter
++			: and then encoded with base64 encoding.
++	-->
++	
++	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
++		<xsd:element name="root" msdata:IsDataSet="true">
++			<xsd:complexType>
++				<xsd:choice maxOccurs="unbounded">
++					<xsd:element name="data">
++						<xsd:complexType>
++							<xsd:sequence>
++								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
++								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
++							</xsd:sequence>
++							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
++							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
++							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
++						</xsd:complexType>
++					</xsd:element>
++					<xsd:element name="resheader">
++						<xsd:complexType>
++							<xsd:sequence>
++								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
++							</xsd:sequence>
++							<xsd:attribute name="name" type="xsd:string" use="required" />
++						</xsd:complexType>
++					</xsd:element>
++				</xsd:choice>
++			</xsd:complexType>
++		</xsd:element>
++	</xsd:schema>
++	<resheader name="resmimetype">
++		<value>text/microsoft-resx</value>
++	</resheader>
++	<resheader name="version">
++		<value>1.3</value>
++	</resheader>
++	<resheader name="reader">
++		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
++	</resheader>
++	<resheader name="writer">
++		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
++	</resheader>
++</root>
+\ No newline at end of file
+diff --git a/Properties/Settings.Designer.cs b/Properties/Settings.Designer.cs
+new file mode 100644
+index 0000000..8b67f2a
+--- /dev/null
++++ b/Properties/Settings.Designer.cs
+@@ -0,0 +1,26 @@
++﻿//------------------------------------------------------------------------------
++// <auto-generated>
++//     このコードはツールによって生成されました。
++//     ランタイム バージョン:4.0.30319.42000
++//
++//     このファイルへの変更は、以下の状況下で不正な動作の原因になったり、
++//     コードが再生成されるときに損失したりします。
++// </auto-generated>
++//------------------------------------------------------------------------------
++
++namespace MinorShift.Emuera.Properties {
++    
++    
++    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
++    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.11.0.0")]
++    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
++        
++        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
++        
++        public static Settings Default {
++            get {
++                return defaultInstance;
++            }
++        }
++    }
++}
+diff --git a/Properties/Settings.settings b/Properties/Settings.settings
+new file mode 100644
+index 0000000..049245f
+--- /dev/null
++++ b/Properties/Settings.settings
+@@ -0,0 +1,6 @@
++﻿<?xml version='1.0' encoding='utf-8'?>
++<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
++  <Profiles>
++    <Profile Name="(Default)" />
++  </Profiles>
++</SettingsFile>
+diff --git a/Runtime/Config/ConfigData.cs b/Runtime/Config/ConfigData.cs
+index 91668b0..be93c1b 100644
+--- a/Runtime/Config/ConfigData.cs
++++ b/Runtime/Config/ConfigData.cs
+@@ -1,4 +1,5 @@
+-﻿using MinorShift.Emuera.Runtime.Script.Statements.Expression;
++﻿using EnumsNET;
++using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+ using MinorShift.Emuera.Runtime.Utils;
+ using MinorShift.Emuera.Sub;
+ using System;
+@@ -25,91 +26,95 @@ internal sealed class ConfigData
+     private ConfigData() { setDefault(); }
+ 
+     //適当に大き目の配列を作っておく。
+-    private AConfigItem[] configArray = new AConfigItem[70];
++    private Dictionary<string, AConfigItem> configArray = new();
+     private AConfigItem[] replaceArray = new AConfigItem[50];
+     private AConfigItem[] debugArray = new AConfigItem[20];
+ 
++    private void SetConfigItem<T>(ConfigItem<T> configItem)
++    {
++        configArray[configItem.Text] = configItem;
++    }
++
+     private void setDefault()
+     {
+-        int i = 0;
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.IgnoreCase, "大文字小文字の違いを無視する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.UseRenameFile, "_Rename.csvを利用する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.UseReplaceFile, "_Replace.csvを利用する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.UseMouse, "マウスを使用する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.UseMenu, "メニューを使用する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.UseDebugCommand, "デバッグコマンドを使用する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.AllowMultipleInstances, "多重起動を許可する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.AutoSave, "オートセーブを行なう", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.UseKeyMacro, "キーボードマクロを使用する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SizableWindow, "ウィンドウの高さを可変にする", true);
+-        configArray[i++] = new ConfigItem<TextDrawingMode>(ConfigCode.TextDrawingMode, "描画インターフェース", TextDrawingMode.TEXTRENDERER);
+-        //configArray[i++] = new ConfigItem<bool>(ConfigCode.UseImageBuffer, "イメージバッファを使用する", true);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.WindowX, "ウィンドウ幅", 760);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.WindowY, "ウィンドウ高さ", 480);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.WindowPosX, "ウィンドウ位置X", 0);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.WindowPosY, "ウィンドウ位置Y", 0);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SetWindowPos, "起動時のウィンドウ位置を指定する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.WindowMaximixed, "起動時にウィンドウを最大化する", false);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.MaxLog, "履歴ログの行数", 5000);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.PrintCPerLine, "PRINTCを並べる数", 3);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.PrintCLength, "PRINTCの文字数", 25);
+-        configArray[i++] = new ConfigItem<string>(ConfigCode.FontName, "フォント名", "ＭＳ ゴシック");
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.FontSize, "フォントサイズ", 18);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.LineHeight, "一行の高さ", 19);
+-        configArray[i++] = new ConfigItem<Color>(ConfigCode.ForeColor, "文字色", Color.FromArgb(192, 192, 192));//LIGHTGRAY
+-        configArray[i++] = new ConfigItem<Color>(ConfigCode.BackColor, "背景色", Color.FromArgb(0, 0, 0));//BLACK
+-        configArray[i++] = new ConfigItem<Color>(ConfigCode.FocusColor, "選択中文字色", Color.FromArgb(255, 255, 0));//YELLOW
+-        configArray[i++] = new ConfigItem<Color>(ConfigCode.LogColor, "履歴文字色", Color.FromArgb(192, 192, 192));//LIGHTGRAY//Color.FromArgb(128, 128, 128);//GRAY
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.FPS, "フレーム毎秒", 5);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.SkipFrame, "最大スキップフレーム数", 3);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.ScrollHeight, "スクロール行数", 1);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.InfiniteLoopAlertTime, "無限ループ警告までのミリ秒数", 5000);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.DisplayWarningLevel, "表示する最低警告レベル", 1);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.DisplayReport, "ロード時にレポートを表示する", false);
+-        configArray[i++] = new ConfigItem<ReduceArgumentOnLoadFlag>(ConfigCode.ReduceArgumentOnLoad, "ロード時に引数を解析する", ReduceArgumentOnLoadFlag.NO);
+-        //configArray[i++] = new ConfigItem<bool>(ConfigCode.ReduceFormattedStringOnLoad, "ロード時にFORM文字列を解析する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.IgnoreUncalledFunction, "呼び出されなかった関数を無視する", true);
+-        configArray[i++] = new ConfigItem<DisplayWarningFlag>(ConfigCode.FunctionNotFoundWarning, "関数が見つからない警告の扱い", DisplayWarningFlag.IGNORE);
+-        configArray[i++] = new ConfigItem<DisplayWarningFlag>(ConfigCode.FunctionNotCalledWarning, "関数が呼び出されなかった警告の扱い", DisplayWarningFlag.IGNORE);
+-        //configArray[i++] = new ConfigItem<List<string>>(ConfigCode.IgnoreWarningFiles, "指定したファイル中の警告を無視する", new List<string>());
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.ChangeMasterNameIfDebug, "デバッグコマンドを使用した時にMASTERの名前を変更する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.ButtonWrap, "ボタンの途中で行を折りかえさない", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SearchSubdirectory, "サブディレクトリを検索する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SortWithFilename, "読み込み順をファイル名順にソートする", false);
+-        configArray[i++] = new ConfigItem<long>(ConfigCode.LastKey, "最終更新コード", 0);
+-        configArray[i++] = new ConfigItem<int>(ConfigCode.SaveDataNos, "表示するセーブデータ数", 20);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.WarnBackCompatibility, "eramaker互換性に関する警告を表示する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.AllowFunctionOverloading, "システム関数の上書きを許可する", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.WarnFunctionOverloading, "システム関数が上書きされたとき警告を表示する", true);
+-        configArray[i++] = new ConfigItem<string>(ConfigCode.TextEditor, "関連づけるテキストエディタ", "notepad");
+-        configArray[i++] = new ConfigItem<TextEditorType>(ConfigCode.EditorType, "テキストエディタコマンドライン指定", TextEditorType.USER_SETTING);
+-        configArray[i++] = new ConfigItem<string>(ConfigCode.EditorArgument, "エディタに渡す行指定引数", "");
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.WarnNormalFunctionOverloading, "同名の非イベント関数が複数定義されたとき警告する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiErrorLine, "解釈不可能な行があっても実行する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiCALLNAME, "CALLNAMEが空文字列の時にNAMEを代入する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.UseSaveFolder, "セーブデータをsavフォルダ内に作成する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiRAND, "擬似変数RANDの仕様をeramakerに合わせる", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiDRAWLINE, "DRAWLINEを常に新しい行で行う", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiFunctionNoignoreCase, "関数・属性については大文字小文字を無視しない", false); ;
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SystemAllowFullSpace, "全角スペースをホワイトスペースに含める", true);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SystemSaveInUTF8, "セーブデータをUTF-8で保存する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiLinefeedAs1739, "ver1739以前の非ボタン折り返しを再現する", false);
+-        configArray[i++] = new ConfigItem<UseLanguage>(ConfigCode.useLanguage, "内部で使用する東アジア言語", UseLanguage.JAPANESE);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.AllowLongInputByMouse, "ONEINPUT系命令でマウスによる2文字以上の入力を許可する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiCallEvent, "イベント関数のCALLを許可する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiSPChara, "SPキャラを使用する", false);
+-
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SystemSaveInBinary, "セーブデータをバイナリ形式で保存する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiFuncArgOptional, "ユーザー関数の全ての引数の省略を許可する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.CompatiFuncArgAutoConvert, "ユーザー関数の引数に自動的にTOSTRを補完する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SystemIgnoreTripleSymbol, "FORM中の三連記号を展開しない", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.TimesNotRigorousCalculation, "TIMESの計算をeramakerにあわせる", false);
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.IgnoreCase, "大文字小文字の違いを無視する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.UseRenameFile, "_Rename.csvを利用する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.UseReplaceFile, "_Replace.csvを利用する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.UseMouse, "マウスを使用する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.UseMenu, "メニューを使用する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.UseDebugCommand, "デバッグコマンドを使用する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.AllowMultipleInstances, "多重起動を許可する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.AutoSave, "オートセーブを行なう", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.UseKeyMacro, "キーボードマクロを使用する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SizableWindow, "ウィンドウの高さを可変にする", true));
++        SetConfigItem(new ConfigItem<TextDrawingMode>(ConfigCode.TextDrawingMode, "描画インターフェース", TextDrawingMode.TEXTRENDERER));
++        //SetConfigItem(new ConfigItem<bool>(ConfigCode.UseImageBuffer, "イメージバッファを使用する", true);
++        SetConfigItem(new ConfigItem<int>(ConfigCode.WindowX, "ウィンドウ幅", 760));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.WindowY, "ウィンドウ高さ", 480));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.WindowPosX, "ウィンドウ位置X", 0));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.WindowPosY, "ウィンドウ位置Y", 0));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SetWindowPos, "起動時のウィンドウ位置を指定する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.WindowMaximixed, "起動時にウィンドウを最大化する", false));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.MaxLog, "履歴ログの行数", 5000));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.PrintCPerLine, "PRINTCを並べる数", 3));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.PrintCLength, "PRINTCの文字数", 25));
++        SetConfigItem(new ConfigItem<string>(ConfigCode.FontName, "フォント名", "ＭＳ ゴシック"));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.FontSize, "フォントサイズ", 18));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.LineHeight, "一行の高さ", 19));
++        SetConfigItem(new ConfigItem<Color>(ConfigCode.ForeColor, "文字色", Color.FromArgb(192, 192, 192)));//LIGHTGRAY
++        SetConfigItem(new ConfigItem<Color>(ConfigCode.BackColor, "背景色", Color.FromArgb(0, 0, 0)));//BLACK
++        SetConfigItem(new ConfigItem<Color>(ConfigCode.FocusColor, "選択中文字色", Color.FromArgb(255, 255, 0)));//YELLOW
++        SetConfigItem(new ConfigItem<Color>(ConfigCode.LogColor, "履歴文字色", Color.FromArgb(192, 192, 192)));//LIGHTGRAY//Color.FromArgb(128, 128, 128));//GRAY
++        SetConfigItem(new ConfigItem<int>(ConfigCode.FPS, "フレーム毎秒", 5));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.SkipFrame, "最大スキップフレーム数", 3));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.ScrollHeight, "スクロール行数", 1));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.InfiniteLoopAlertTime, "無限ループ警告までのミリ秒数", 5000));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.DisplayWarningLevel, "表示する最低警告レベル", 1));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.DisplayReport, "ロード時にレポートを表示する", false));
++        SetConfigItem(new ConfigItem<ReduceArgumentOnLoadFlag>(ConfigCode.ReduceArgumentOnLoad, "ロード時に引数を解析する", ReduceArgumentOnLoadFlag.NO));
++        //SetConfigItem(new ConfigItem<bool>(ConfigCode.ReduceFormattedStringOnLoad, "ロード時にFORM文字列を解析する", true);
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.IgnoreUncalledFunction, "呼び出されなかった関数を無視する", true));
++        SetConfigItem(new ConfigItem<DisplayWarningFlag>(ConfigCode.FunctionNotFoundWarning, "関数が見つからない警告の扱い", DisplayWarningFlag.IGNORE));
++        SetConfigItem(new ConfigItem<DisplayWarningFlag>(ConfigCode.FunctionNotCalledWarning, "関数が呼び出されなかった警告の扱い", DisplayWarningFlag.IGNORE));
++        //SetConfigItem(new ConfigItem<List<string>>(ConfigCode.IgnoreWarningFiles, "指定したファイル中の警告を無視する", new List<string>()));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.ChangeMasterNameIfDebug, "デバッグコマンドを使用した時にMASTERの名前を変更する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.ButtonWrap, "ボタンの途中で行を折りかえさない", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SearchSubdirectory, "サブディレクトリを検索する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SortWithFilename, "読み込み順をファイル名順にソートする", false));
++        SetConfigItem(new ConfigItem<long>(ConfigCode.LastKey, "最終更新コード", 0));
++        SetConfigItem(new ConfigItem<int>(ConfigCode.SaveDataNos, "表示するセーブデータ数", 20));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.WarnBackCompatibility, "eramaker互換性に関する警告を表示する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.AllowFunctionOverloading, "システム関数の上書きを許可する", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.WarnFunctionOverloading, "システム関数が上書きされたとき警告を表示する", true));
++        SetConfigItem(new ConfigItem<string>(ConfigCode.TextEditor, "関連づけるテキストエディタ", "notepad"));
++        SetConfigItem(new ConfigItem<TextEditorType>(ConfigCode.EditorType, "テキストエディタコマンドライン指定", TextEditorType.USER_SETTING));
++        SetConfigItem(new ConfigItem<string>(ConfigCode.EditorArgument, "エディタに渡す行指定引数", ""));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.WarnNormalFunctionOverloading, "同名の非イベント関数が複数定義されたとき警告する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiErrorLine, "解釈不可能な行があっても実行する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiCALLNAME, "CALLNAMEが空文字列の時にNAMEを代入する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.UseSaveFolder, "セーブデータをsavフォルダ内に作成する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiRAND, "擬似変数RANDの仕様をeramakerに合わせる", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiDRAWLINE, "DRAWLINEを常に新しい行で行う", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiFunctionNoignoreCase, "関数・属性については大文字小文字を無視しない", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SystemAllowFullSpace, "全角スペースをホワイトスペースに含める", true));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SystemSaveInUTF8, "セーブデータをUTF-8で保存する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiLinefeedAs1739, "ver1739以前の非ボタン折り返しを再現する", false));
++        SetConfigItem(new ConfigItem<UseLanguage>(ConfigCode.useLanguage, "内部で使用する東アジア言語", UseLanguage.JAPANESE));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.AllowLongInputByMouse, "ONEINPUT系命令でマウスによる2文字以上の入力を許可する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiCallEvent, "イベント関数のCALLを許可する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiSPChara, "SPキャラを使用する", false));
++
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SystemSaveInBinary, "セーブデータをバイナリ形式で保存する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiFuncArgOptional, "ユーザー関数の全ての引数の省略を許可する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.CompatiFuncArgAutoConvert, "ユーザー関数の引数に自動的にTOSTRを補完する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SystemIgnoreTripleSymbol, "FORM中の三連記号を展開しない", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.TimesNotRigorousCalculation, "TIMESの計算をeramakerにあわせる", false));
+         //一文字変数の禁止オプションを考えた名残
+-        //configArray[i++] = new ConfigItem<bool>(ConfigCode.ForbidOneCodeVariable, "一文字変数の使用を禁止する", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SystemNoTarget, "キャラクタ変数の引数を補完しない", false);
+-        configArray[i++] = new ConfigItem<bool>(ConfigCode.SystemIgnoreStringSet, "文字列変数の代入に文字列式を強制する", false);
++        //SetConfigItem(new ConfigItem<bool>(ConfigCode.ForbidOneCodeVariable, "一文字変数の使用を禁止する", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SystemNoTarget, "キャラクタ変数の引数を補完しない", false));
++        SetConfigItem(new ConfigItem<bool>(ConfigCode.SystemIgnoreStringSet, "文字列変数の代入に文字列式を強制する", false));
+ 
+-        i = 0;
++        var i = 0;
+         debugArray[i++] = new ConfigItem<bool>(ConfigCode.DebugShowWindow, "起動時にデバッグウインドウを表示する", true);
+         debugArray[i++] = new ConfigItem<bool>(ConfigCode.DebugWindowTopMost, "デバッグウインドウを最前面に表示する", true);
+         debugArray[i++] = new ConfigItem<int>(ConfigCode.DebugWindowWidth, "デバッグウィンドウ幅", 400);
+@@ -139,26 +144,20 @@ internal sealed class ConfigData
+ 
+     public ConfigData Copy()
+     {
+-        ConfigData config = new();
+-        for (int i = 0; i < configArray.Length; i++)
+-            if (configArray[i] != null && config.configArray[i] != null)
+-                configArray[i].CopyTo(config.configArray[i]);
+-        for (int i = 0; i < configArray.Length; i++)
+-            if (configArray[i] != null && config.configArray[i] != null)
+-                configArray[i].CopyTo(config.configArray[i]);
+-        for (int i = 0; i < replaceArray.Length; i++)
+-            if (replaceArray[i] != null && config.replaceArray[i] != null)
+-                replaceArray[i].CopyTo(config.replaceArray[i]);
+-        return config;
++        return new()
++        {
++            configArray = new(configArray),
++            debugArray = [.. debugArray],
++            replaceArray = [.. replaceArray]
++        };
+     }
+ 
+     public Dictionary<ConfigCode, string> GetConfigNameDic()
+     {
+         Dictionary<ConfigCode, string> ret = [];
+-        foreach (AConfigItem item in configArray)
++        foreach ((_, var item) in configArray)
+         {
+-            if (item != null)
+-                ret.Add(item.Code, item.Text);
++            ret.Add(item.Code, item.Text);
+         }
+         return ret;
+     }
+@@ -201,7 +200,7 @@ internal sealed class ConfigData
+ 
+     public AConfigItem GetConfigItem(ConfigCode code)
+     {
+-        foreach (AConfigItem item in configArray)
++        foreach ((_, var item) in configArray)
+         {
+             if (item == null)
+                 continue;
+@@ -212,16 +211,8 @@ internal sealed class ConfigData
+     }
+     public AConfigItem GetConfigItem(string key)
+     {
+-        foreach (AConfigItem item in configArray)
+-        {
+-            if (item == null)
+-                continue;
+-            if (item.Name == key)
+-                return item;
+-            if (item.Text == key)
+-                return item;
+-        }
+-        return null;
++        configArray.TryGetValue(key, out var result);
++        return result;
+     }
+ 
+     public AConfigItem GetReplaceItem(ConfigCode code)
+@@ -359,9 +350,9 @@ internal sealed class ConfigData
+         try
+         {
+             writer = new StreamWriter(configPath, false, Config.Encode);
+-            for (int i = 0; i < configArray.Length; i++)
++
++            foreach ((_, var item) in configArray)
+             {
+-                AConfigItem item = configArray[i];
+                 if (item == null)
+                     continue;
+ 
+@@ -397,7 +388,7 @@ internal sealed class ConfigData
+     public bool ReLoadConfig()
+     {
+         //_fixed.configの中身が変わった場合、非固定になったものが保持されてしまうので、ここで一旦すべて解除
+-        foreach (AConfigItem item in configArray)
++        foreach ((_, var item) in configArray)
+         {
+             if (item == null)
+                 continue;
+@@ -437,22 +428,21 @@ internal sealed class ConfigData
+ 
+     private bool loadConfig(string confPath, bool fix)
+     {
+-        if (!File.Exists(confPath))
++        var file = new FileInfo(confPath);
++        if (!file.Exists)
+             return false;
+-        using var eReader = new EraStreamReader(false);
+-        if (!eReader.Open(confPath))
++        var lines = File.ReadAllLines(confPath, Config.Encode);
++        if (lines == null)
+             return false;
+         ScriptPosition? pos = null;
+         try
+         {
+-            string line = null;
+             //bool defineIgnoreWarningFiles = false;
+-            while ((line = eReader.ReadLine()) != null)
++            foreach (var rawline in lines)
+             {
+-                line = line.Trim();
++                var line = rawline.AsSpan().Trim();
+                 if (line[0] == ';')
+                     continue;
+-                pos = new ScriptPosition(eReader.Filename, eReader.LineNo);
+ 
+                 var index = line.IndexOf(':');
+                 if (index == -1)
+@@ -460,9 +450,8 @@ internal sealed class ConfigData
+                     continue;
+                 }
+ 
+-                var span = line.AsSpan();
+-                var key = span[0..index].Trim();
+-                var value = span[(index + 1)..];
++                var key = line[0..index].Trim();
++                var value = line[(index + 1)..];
+ 
+                 var item = GetConfigItem(key.ToString());
+                 if (item != null)
+@@ -500,6 +489,7 @@ internal sealed class ConfigData
+                         }
+                     }
+                 }
++
+             }
+         }
+         catch (EmueraException ee)
+diff --git a/Runtime/Dictionary/Dictionary.cs b/Runtime/Dictionary/Dictionary.cs
+new file mode 100644
+index 0000000..467b04f
+--- /dev/null
++++ b/Runtime/Dictionary/Dictionary.cs
+@@ -0,0 +1,33 @@
++
++using System.Collections.Generic;
++
++namespace Runtime.Dictionary;
++static class ERBDictionary
++{
++    static Dictionary<string, Dictionary<long, object>> _dictionarys = [];
++
++    public static T Get<T>(string dictName, long key)
++    {
++        return (T)_dictionarys[dictName][key];
++    }
++
++    public static void Set<T>(string dictName, long key, T value)
++    {
++        _dictionarys[dictName][key] = value;
++    }
++
++    public static bool ContainsKey(string dictName, long key)
++    {
++        return _dictionarys[dictName].ContainsKey(key);
++    }
++
++    public static bool ExitsDictionary(string dictName)
++    {
++        return _dictionarys.ContainsKey(dictName);
++    }
++
++    public static void CreateDictionary(string dictName)
++    {
++        _dictionarys[dictName] = [];
++    }
++}
+\ No newline at end of file
+diff --git a/Runtime/Script/Data/ConstantData.cs b/Runtime/Script/Data/ConstantData.cs
+index 576d2d2..49fc3bb 100644
+--- a/Runtime/Script/Data/ConstantData.cs
++++ b/Runtime/Script/Data/ConstantData.cs
+@@ -10,6 +10,12 @@ using System.IO;
+ using System.Text;
+ using MinorShift.Emuera.UI.Framework;
+ using MinorShift.Emuera.Runtime.Config.JSON;
++using System.Linq;
++using System.Collections.ObjectModel;
++using System.Diagnostics;
++using System.Collections.Concurrent;
++using System.Threading.Tasks;
++using System.Threading;
+ 
+ namespace MinorShift.Emuera.Runtime.Script.Data;
+ 
+@@ -92,7 +98,16 @@ internal sealed class ConstantData
+ 
+     public long[] ItemPrice;
+ 
++    readonly Lock _characterTmplListLock = new();
+     private readonly List<CharacterTemplate> CharacterTmplList;
++    private Dictionary<string, long> _nameToTemplateMap = new();
++    private Dictionary<string, long> _nicknameToTemplateMap = new();
++    private Dictionary<string, long> _callnameToTemplateMap = new();
++    private Dictionary<string, long> _masternameToTemplateMap = new();
++    public ReadOnlyDictionary<string, long> NameToTemplateMap => _nameToTemplateMap.AsReadOnly();
++    public ReadOnlyDictionary<string, long> NicknameToTemplateMap => _nicknameToTemplateMap.AsReadOnly();
++    public ReadOnlyDictionary<string, long> CallnameToTemplateMap => _callnameToTemplateMap.AsReadOnly();
++    public ReadOnlyDictionary<string, long> MasternameToTemplateMap => _masternameToTemplateMap.AsReadOnly();
+     private EmueraConsole output;
+ 
+     public ConstantData()
+@@ -578,15 +593,18 @@ internal sealed class ConstantData
+ 
+     public void LoadData(string csvDir, EmueraConsole console, bool disp)
+     {
+-
++        var startTime = Stopwatch.GetTimestamp();
++        Debug.WriteLine($"start:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
+         output = console;
+         loadVariableSizeData(Path.Combine(csvDir, "VariableSize.CSV"), disp);
++        Debug.WriteLine($"loadVariableSizeData:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
+         for (int i = 0; i < countNameCsv; i++)
+         {
+             names[i] = new string[MaxDataList[i]];
+             nameToIntDics[i] = [];
+         }
+         ItemPrice = new long[MaxDataList[itemIndex]];
++        Debug.WriteLine($"e1:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
+ 
+         loadDataTo(Path.Combine(csvDir, "ABL.CSV"), ablIndex, null, disp);
+         loadDataTo(Path.Combine(csvDir, "EXP.CSV"), expIndex, null, disp);
+@@ -615,6 +633,7 @@ internal sealed class ConstantData
+         loadDataTo(Path.Combine(csvDir, "SAVESTR.CSV"), savestrnameIndex, null, disp);
+         loadDataTo(Path.Combine(csvDir, "GLOBAL.CSV"), globalIndex, null, disp);
+         loadDataTo(Path.Combine(csvDir, "GLOBALS.CSV"), globalsIndex, null, disp);
++        Debug.WriteLine($"loadDataTo:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
+ 
+         //逆引き辞書を作成
+         for (int i = 0; i < names.Length; i++)
+@@ -628,8 +647,24 @@ internal sealed class ConstantData
+                     nameToIntDics[i].Add(nameArray[j], j);
+             }
+         }
++        Debug.WriteLine($"Reverse1:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
+         //if (!Program.AnalysisMode)
+         loadCharacterData(csvDir, disp);
++        Debug.WriteLine($"loadCharacterData:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
++
++        CharacterTmplList.Sort((left, right) => (int)(left.No - right.No));
++        foreach (var t in ((IEnumerable<CharacterTemplate>)CharacterTmplList).Reverse())
++        {
++            if (t.Name is not null)
++                _nameToTemplateMap[t.Name] = t.No;
++            if (t.Nickname is not null)
++                _nicknameToTemplateMap[t.Nickname] = t.No;
++            if (t.Callname is not null)
++                _callnameToTemplateMap[t.Callname] = t.No;
++            if (t.Mastername is not null)
++                _masternameToTemplateMap[t.Mastername] = t.No;
++        }
++        Debug.WriteLine($"Reverse2:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
+ 
+         //逆引き辞書を作成2 (RELATION)
+         for (int i = 0; i < CharacterTmplList.Count; i++)
+@@ -641,7 +676,10 @@ internal sealed class ConstantData
+                 relationDic.Add(tmpl.Callname, (int)tmpl.No);
+             if (!string.IsNullOrEmpty(tmpl.Nickname) && !relationDic.ContainsKey(tmpl.Nickname))
+                 relationDic.Add(tmpl.Nickname, (int)tmpl.No);
++            if (!string.IsNullOrEmpty(tmpl.Mastername) && !relationDic.ContainsKey(tmpl.Mastername))
++                relationDic.Add(tmpl.Mastername, (int)tmpl.No);
+         }
++        Debug.WriteLine($"Reverse3:{Stopwatch.GetElapsedTime(startTime).TotalMilliseconds}ms");
+     }
+ 
+     public bool isDefined(VariableCode varCode, string str)
+@@ -875,6 +913,8 @@ internal sealed class ConstantData
+                 break;
+             case VariableCode.NAME:
+             case VariableCode.CALLNAME:
++            case VariableCode.NICKNAME:
++            case VariableCode.MASTERNAME:
+                 ret = relationDic;
+                 errPos = "chara*.csv";
+                 allowIndex = -1;
+@@ -937,14 +977,35 @@ internal sealed class ConstantData
+     //    set { dummyChara = value; }
+     //}
+ 
++    ConcurrentQueue<string> logQueue = [];
++
+     private void loadCharacterData(string csvDir, bool disp)
+     {
+         if (!Directory.Exists(csvDir))
+             return;
+         List<KeyValuePair<string, string>> csvPaths = Config.Config.GetFiles(csvDir, "CHARA*.CSV");
+ 
+-        for (int i = 0; i < csvPaths.Count; i++)
+-            loadCharacterDataFile(csvPaths[i].Value, csvPaths[i].Key, disp);
++        var t1 = Task.Run(() => csvPaths.AsParallel().ForAll(x => loadCharacterDataFile(x.Value, x.Key, disp)));
++        var source = new CancellationTokenSource();
++        if (disp)
++        {
++            var locks = new Lock();
++            Task.Run(() =>
++            {
++                while (source.IsCancellationRequested)
++                {
++                    if (logQueue.TryDequeue(out var log))
++                    {
++                        lock (locks)
++                        {
++                            output.PrintSystemLine(log);
++                        }
++                    }
++                }
++            }, source.Token);
++        }
++        t1.Wait();
++        source.Cancel();
+ 
+         if (useCompatiName)
+         {
+@@ -978,6 +1039,7 @@ internal sealed class ConstantData
+         }
+     }
+ 
++
+     private void loadCharacterDataFile(string csvPath, string csvName, bool disp)
+     {
+         CharacterTemplate tmpl = null;
+@@ -988,8 +1050,6 @@ internal sealed class ConstantData
+             return;
+         }
+         ScriptPosition? position = null;
+-        if (disp)
+-            output.PrintSystemLine(string.Format(LocalizationManager.SystemLine.LoadingFile, eReader.Filename));
+         try
+         {
+             long index = -1;
+@@ -1036,7 +1096,10 @@ internal sealed class ConstantData
+                     else
+                         tmpl.csvNo = 0;
+                     //tmpl.csvNo = index;
+-                    CharacterTmplList.Add(tmpl);
++                    lock (_characterTmplListLock)
++                    {
++                        CharacterTmplList.Add(tmpl);
++                    }
+                     continue;
+                 }
+ 
+@@ -1047,8 +1110,6 @@ internal sealed class ConstantData
+                 }
+                 toCharacterTemplate(position, tmpl, tokens);
+             }
+-
+-            CharacterTmplList.Sort((left, right) => (int)(left.No - right.No));
+         }
+         catch
+         {
+diff --git a/Runtime/Script/Data/LabelDictionary.cs b/Runtime/Script/Data/LabelDictionary.cs
+index 33f1726..c077b67 100644
+--- a/Runtime/Script/Data/LabelDictionary.cs
++++ b/Runtime/Script/Data/LabelDictionary.cs
+@@ -1,7 +1,9 @@
+ ﻿using MinorShift.Emuera.Runtime.Config;
+ using MinorShift.Emuera.Runtime.Script.Statements;
+ using System;
++using System.Collections.Concurrent;
+ using System.Collections.Generic;
++using System.Threading;
+ 
+ namespace MinorShift.Emuera.Runtime.Script.Data;
+ 
+@@ -18,12 +20,12 @@ internal sealed class LabelDictionary
+     /// <summary>
+     /// 本体。全てのFunctionLabelLineを記録
+     /// </summary>
+-    Dictionary<string, List<FunctionLabelLine>> labelAtDic = new(Config.Config.StrComper);
+-    List<FunctionLabelLine> invalidList = [];
+-    Dictionary<string, Dictionary<FunctionLabelLine, GotoLabelLine>> labelDollarList = new(Config.Config.StrComper);
++    ConcurrentDictionary<string, List<FunctionLabelLine>> labelAtDic = new(Config.Config.StrComper);
++    ConcurrentBag<FunctionLabelLine> invalidList = [];
++    ConcurrentDictionary<string, Dictionary<FunctionLabelLine, GotoLabelLine>> labelDollarList = new(Config.Config.StrComper);
+     int count;
+ 
+-    HashSet<string> loadedFileSet = [];
++    ConcurrentDictionary<string, bool> loadedFileSet = [];
+     int currentFileCount;
+     int totalFileCount;
+ 
+@@ -156,10 +158,10 @@ internal sealed class LabelDictionary
+ 
+         foreach (var rKey in removeFunctions)
+         {
+-            labelAtDic.Remove(rKey);
++            labelAtDic.Remove(rKey, out _);
+         }
+ 
+-        invalidList.RemoveAll(line => IsMatch(fname, line));
++        //invalidList.RemoveAll(line => IsMatch(fname, line));
+ 
+         static bool IsMatch(string fname, FunctionLabelLine line)
+         {
+@@ -167,13 +169,12 @@ internal sealed class LabelDictionary
+         }
+     }
+ 
+-
+     /// <summary>
+     /// ファイルの重複をチェックし、重複していたらすでにあるそのファイルに関連するラベルを消去する
+     /// </summary>
+     public void RemoveDuplicationFileData(string filename)
+     {
+-        if (loadedFileSet.Contains(filename))
++        if (loadedFileSet.ContainsKey(filename))
+         {
+             currentFileCount = loadedFileSet.Count;
+             RemoveLabelWithPath(filename);
+@@ -181,11 +182,10 @@ internal sealed class LabelDictionary
+         }
+         totalFileCount++;
+         currentFileCount = totalFileCount;
+-        loadedFileSet.Add(filename);
++        loadedFileSet.TryAdd(filename, true);
+     }
+     public void AddLabel(FunctionLabelLine point)
+     {
+-        point.Index = count;
+         point.FileIndex = currentFileCount;
+         count++;
+         string id = point.LabelName;
+@@ -205,7 +205,7 @@ internal sealed class LabelDictionary
+         if (labelDollarList.TryGetValue(id, out var label))
+         {
+             return label.TryAdd(point.ParentLabelLine, point);
+-        };
++        }
+         labelDollarList.TryAdd(id, new() { { point.ParentLabelLine, point }, });
+         return true;
+     }
+diff --git a/Runtime/Script/Data/ParserMediator.cs b/Runtime/Script/Data/ParserMediator.cs
+index b92029e..1a338c8 100644
+--- a/Runtime/Script/Data/ParserMediator.cs
++++ b/Runtime/Script/Data/ParserMediator.cs
+@@ -5,8 +5,6 @@ using MinorShift.Emuera.Runtime.Utils;
+ using System;
+ using System.Collections.Generic;
+ using System.IO;
+-using System.IO.Hashing;
+-using System.Runtime.InteropServices;
+ using System.Text.RegularExpressions;
+ 
+ namespace MinorShift.Emuera;
+@@ -40,7 +38,7 @@ internal static partial class ParserMediator
+     }
+ 
+     #region Rename
+-    public static Dictionary<ulong, string> RenameDic { get; private set; }
++    public static Dictionary<string, string> RenameDic { get; private set; }
+     //1756 Process.Load.csより移動
+     public static void LoadEraExRenameFile(string filepath)
+     {
+@@ -68,7 +66,7 @@ internal static partial class ParserMediator
+                     //右がERB中の表記、左が変換先になる。
+                     string key = $"[[{tokens[1].Trim()}]]";
+                     string value = tokens[0].Trim();
+-                    RenameDic[XxHash3.HashToUInt64(MemoryMarshal.AsBytes(key.AsSpan()))] = value;
++                    RenameDic[key] = value;
+                 }
+                 lineNo++;
+             }
+diff --git a/Runtime/Script/KeyMacro.cs b/Runtime/Script/KeyMacro.cs
+index 3d2c1b6..83ed806 100644
+--- a/Runtime/Script/KeyMacro.cs
++++ b/Runtime/Script/KeyMacro.cs
+@@ -2,14 +2,15 @@
+ using MinorShift.Emuera.Sub;
+ using System;
+ using System.IO;
++using System.Text.RegularExpressions;
+ using MinorShift.Emuera.UI.Framework;
+ 
+ namespace MinorShift.Emuera.Runtime.Script;
+ 
+-internal static class KeyMacro
++internal static partial class KeyMacro
+ {
+-    readonly static string macroPath = Program.ExeDir + "macro.txt";
+-    public const string gID = "グループ";
++    public static readonly string macroPath = Program.ExeDir + "macro.txt";
++    private const string gID = "グループ{0}:{1}";
+     public const int MaxGroup = 10;
+     public const int MaxFkey = 12;
+     public const int MaxMacro = MaxFkey * MaxGroup;
+@@ -33,9 +34,9 @@ internal static class KeyMacro
+                 int i = f + g * MaxFkey;
+                 macro[i] = "";
+                 if (g == 0)
+-                    macroName[i] = string.Format(LocalizationManager.KeyMacro.MacroKeyF, (f + 1).ToString());
++                    macroName[i] = string.Format(LocalizationManager.KeyMacro.MacroKeyFJapanese, (f + 1).ToString());
+                 else
+-                    macroName[i] = string.Format(LocalizationManager.KeyMacro.GMacroKeyF, g.ToString(), (f + 1).ToString());
++                    macroName[i] = string.Format(LocalizationManager.KeyMacro.GMacroKeyFJapanese, g.ToString(), (f + 1).ToString());
+ 
+             }
+         }
+@@ -45,14 +46,12 @@ internal static class KeyMacro
+     {
+         if (!isMacroChanged)
+             return true;
+-        StreamWriter writer = null;
+-
+         try
+         {
+-            writer = new StreamWriter(macroPath, false, Config.Config.Encode);
++            using var writer = new StreamWriter(macroPath, false, Config.Config.Encode);
+             for (int g = 0; g < MaxGroup; g++)
+             {
+-                writer.WriteLine(gID + g.ToString() + ":" + groupName[g]);
++                writer.WriteLine(gID, g, groupName[g]);
+             }
+             for (int i = 0; i < MaxMacro; i++)
+             {
+@@ -63,49 +62,44 @@ internal static class KeyMacro
+         {
+             return false;
+         }
+-        finally
+-        {
+-            if (writer != null)
+-                writer.Close();
+-        }
+         return true;
+     }
++    
++    [GeneratedRegex(@"^グループ([0-9]):(.{3,})$")]
++    private static partial Regex MacroGroupNameRegex { get; }
++    
++    [GeneratedRegex(@"^(?:G([0-9]):)?マクロキーF([1-9]|1[0-2]):(.+)$")]
++    private static partial Regex MacroKeyRegex { get; }
+ 
+-    public static void LoadMacroFile(string filename)
++    public static bool LoadMacroFile(string filename)
+     {
+         using var eReader = new EraStreamReader(false);
+         if (!eReader.Open(filename))
+-            return;
++            return false;
+         try
+         {
+-            string line = null;
+-            while ((line = eReader.ReadLine()) != null)
++            while (eReader.ReadLine() is { } line)
+             {
+                 if (line.Length == 0 || line[0] == ';')
+                     continue;
+-                if (line.StartsWith(gID))
++                if (MacroGroupNameRegex.Match(line) is { Success: true } groupNameMatch)
+                 {
+-                    if (line.Length < gID.Length + 4)
+-                        continue;
+-                    int num = line[gID.Length] - '0';
+-                    if (num < 0 || num > 9)
+-                        continue;
+-                    if (line[gID.Length + 1] != ':')
+-                        continue;
+-                    groupName[num] = line[(gID.Length + 2)..];
++                    int num = int.Parse(groupNameMatch.Groups[1].Value);
++                    groupName[num] = groupNameMatch.Groups[2].Value;
+                 }
+-                for (int i = 0; i < MaxMacro; i++)
++                else if (MacroKeyRegex.Match(line) is { Success: true } macroMatch)
+                 {
+-                    if (line.StartsWith(macroName[i]))
+-                    {
+-                        macro[i] = line[macroName[i].Length..];
+-                        break;
+-                    }
++                    int groupNum = macroMatch.Groups[1].Success ? int.Parse(macroMatch.Groups[1].Value) : 0;
++                    int fkeyNum = int.Parse(macroMatch.Groups[2].Value);
++                    macro[fkeyNum + groupNum * MaxFkey - 1] = macroMatch.Groups[3].Value;
+                 }
+             }
+         }
+-        catch { return; }
+-        finally { eReader.Dispose(); }
++        catch
++        {
++            return false;
++        }
++        return true;
+     }
+ 
+     public static void SetMacro(int FkeyNum, int groupNum, string macroStr)
+diff --git a/Runtime/Script/Loader/ErbLoader.cs b/Runtime/Script/Loader/ErbLoader.cs
+index 7947f96..a936320 100644
+--- a/Runtime/Script/Loader/ErbLoader.cs
++++ b/Runtime/Script/Loader/ErbLoader.cs
+@@ -15,6 +15,9 @@ using System.Collections.Generic;
+ using System.IO;
+ using System.Threading.Tasks;
+ using MinorShift.Emuera.UI.Framework;
++using System.Linq;
++using System.Threading;
++using System.Collections.Concurrent;
+ 
+ namespace MinorShift.Emuera.Runtime.Script.Loader;
+ 
+@@ -55,19 +58,45 @@ internal sealed class ErbLoader
+         try
+         {
+             labelDic.RemoveAll();
+-            foreach (var erb in erbFiles)
++
++            ConcurrentQueue<string> logQueue = [];
++
++            var task = Task.Run(() => erbFiles.AsParallel().ForAll(erb =>
+             {
+                 string filename = erb.Key;
+                 string file = erb.Value;
++                loadErb(file, filename, isOnlyEvent);
+ #if DEBUG
+                 if (displayReport)
+-                    output.PrintSystemLine(string.Format(LocalizationManager.SystemLine.ElapsedTimeLoad, starttime.ElapsedMilliseconds, filename));
++                    logQueue.Enqueue(string.Format(LocalizationManager.SystemLine.ElapsedTimeLoad, starttime.ElapsedMilliseconds, filename));
+ #else
+                 if (displayReport)
+-                    output.PrintSystemLine(string.Format(LocalizationManager.SystemLine.LoadingFile, filename));
++                    logQueue.Enqueue(string.Format(LocalizationManager.SystemLine.LoadingFile, filename));
+ #endif
+-                await Task.Run(() => loadErb(file, filename, isOnlyEvent));
+-            };
++            }));
++
++            var source = new CancellationTokenSource();
++            if (displayReport)
++            {
++                var locks = new Lock();
++                await Task.Run(() =>
++                {
++                    while (source.IsCancellationRequested)
++                    {
++                        if (logQueue.TryDequeue(out var log))
++                        {
++                            lock (locks)
++                            {
++                                output.PrintSystemLine(log);
++                            }
++                        }
++                    }
++                }, source.Token);
++            }
++            await task;
++            source.Cancel();
++
++
+             ParserMediator.FlushWarningList();
+ #if DEBUG
+             output.PrintSystemLine(string.Format(LocalizationManager.SystemLine.ElapsedTime, starttime.ElapsedMilliseconds));
+@@ -130,13 +159,13 @@ internal sealed class ErbLoader
+                 fname = fpath;
+             if (Program.AnalysisMode)
+             {
+-                output.PrintSystemLine(string.Format(LocalizationManager.SystemLine.LoadingFile, fname));;
++                output.PrintSystemLine(string.Format(LocalizationManager.SystemLine.LoadingFile, fname)); ;
+             }
+             await Task.Run(() =>
+             {
+                 loadErb(fpath, fname, isOnlyEvent);
+             });
+-        };
++        }
+ 
+         if (Program.AnalysisMode)
+             output.NewLine();
+diff --git a/Runtime/Script/Parser/LexicalAnalyzer.cs b/Runtime/Script/Parser/LexicalAnalyzer.cs
+index 5845f82..9ff9642 100644
+--- a/Runtime/Script/Parser/LexicalAnalyzer.cs
++++ b/Runtime/Script/Parser/LexicalAnalyzer.cs
+@@ -194,6 +194,72 @@ internal static partial class LexicalAnalyzer
+         return significand;
+     }
+ 
++    //IsNumericにReadInt64を使うと、本来falseになるべき文字列の一部がCodeEEになってしまうので、新規に追加
++    public static bool NumericCheck(CharStream st)
++    {
++        Int64 significand;
++        int expBase = 0;
++        int exponent = 0;
++        int stStartPos = st.CurrentPosition;
++        int stEndPos;
++        int fromBase = 10;
++        if (st.Current == '0')
++        {
++            char c = st.Next;
++            if ((c == 'x') || (c == 'X'))
++            {
++                fromBase = 16;
++                st.ShiftNext();
++                st.ShiftNext();
++            }
++            else if ((c == 'b') || (c == 'B'))
++            {
++                fromBase = 2;
++                st.ShiftNext();
++                st.ShiftNext();
++            }
++        }
++        if (st.Current != '+' && st.Current != '-' && !char.IsDigit(st.Current))
++        {
++            if (fromBase != 16)
++                return false;
++            //else if (!hexadecimalDigits.Contains(st.Current))
++            else if (0 <= Array.IndexOf(hexadecimalDigits, st.Current))
++                return false;
++        }
++        // ここでエラーが発生する場合、そもそも文字列ではないのでfalseを返す
++        try
++        {
++            significand = readDigits(st, fromBase);
++        }
++        catch (CodeEE)
++        {
++            return false;
++        }
++        if ((st.Current == 'p') || (st.Current == 'P'))
++            expBase = 2;
++        else if ((st.Current == 'e') || (st.Current == 'E'))
++            expBase = 10;
++        if (expBase != 0)
++        {
++            st.ShiftNext();
++            if (st.EOS || !char.IsDigit(st.Current))
++                return false;
++            unchecked { exponent = (int)readDigits(st, fromBase); }
++        }
++        stEndPos = st.CurrentPosition;
++        if ((expBase != 0) && (exponent != 0))
++        {
++
++            double d = significand * Math.Pow(expBase, exponent);
++            if ((double.IsNaN(d)) || (double.IsInfinity(d)) || (d > Int64.MaxValue) || (d < Int64.MinValue))
++                throw new CodeEE("\"" + st.Substring(stStartPos, stEndPos) + "\"は64ビット符号付整数の範囲を超えています");
++        }
++
++        return true;
++    }
++
++
+     static readonly SearchValues<char> digit = SearchValues.Create(['0','1','2','3','4','5','6','7','8','9',
+                                                         'a', 'b', 'c', 'd', 'e', 'f',
+                                                         'A', 'B', 'C', 'D', 'E', 'F']);
+@@ -202,6 +268,7 @@ internal static partial class LexicalAnalyzer
+         var span = st.SubstringROS();
+ 
+         var searchStart = 0;
++        // "+"、"-"の符号が先頭につく場合、開始位置を符号の次の文字に設定する、
+         if (span[0] == '-' || span[0] == '+')
+         {
+             searchStart = 1;
+@@ -211,6 +278,11 @@ internal static partial class LexicalAnalyzer
+         if (end == -1)
+         {
+             end = searchStart + span.Length;
++            // "+"、"-"の符号が先頭につく場合、符号以降の文字数を取得する、
++            if (span[0] == '-' || span[0] == '+')
++            {
++                end -= 1;
++            }
+         }
+         st.Jump(end);
+ 
+@@ -399,7 +471,7 @@ internal static partial class LexicalAnalyzer
+     /// <returns></returns>
+     public static string ReadString(CharStream st, StrEndWith endWith)
+     {
+-        var buffer = new StringBuilder(100);
++        var buffer = new StringBuilder(st.RowString.Length - st.CurrentPosition);
+         void loop()
+         {
+             while (true)
+@@ -938,7 +1010,7 @@ internal static partial class LexicalAnalyzer
+                         }
+                 }
+             }
+-        };
++        }
+         local();
+         if (nestBracketS != 0 || nestBracketL != 0)
+         {
+@@ -1076,6 +1148,7 @@ internal static partial class LexicalAnalyzer
+         return wc;
+     }
+ 
++    public static StringBuilder buffer = new(100);
+     /// <summary>
+     /// @"などの直後からの開始
+     /// return時にはendWithの文字がCurrentになっているはず。終端の適切さの検証は呼び出し元が行う。
+@@ -1085,7 +1158,7 @@ internal static partial class LexicalAnalyzer
+     {
+         List<string> strs = [];
+         List<SubWord> SWTs = [];
+-        StringBuilder buffer = new(100);
++        buffer.Clear();
+         while (true)
+         {
+             char cur = st.Current;
+@@ -1118,7 +1191,7 @@ internal static partial class LexicalAnalyzer
+                     break;
+                 case '%':
+                     strs.Add(buffer.ToString());
+-                    buffer.Remove(0, buffer.Length);
++                    buffer.Clear();
+                     st.ShiftNext();
+                     SWTs.Add(new PercentSubWord(Analyse(st, LexEndWith.Percent, LexAnalyzeFlag.None)));
+                     if (st.Current != '%')
+@@ -1126,7 +1199,7 @@ internal static partial class LexicalAnalyzer
+                     break;
+                 case '{':
+                     strs.Add(buffer.ToString());
+-                    buffer.Remove(0, buffer.Length);
++                    buffer.Clear();
+                     st.ShiftNext();
+                     SWTs.Add(new CurlyBraceSubWord(Analyse(st, LexEndWith.RightCurlyBrace, LexAnalyzeFlag.None)));
+                     if (st.Current != '}')
+@@ -1140,7 +1213,7 @@ internal static partial class LexicalAnalyzer
+                     if (!Config.Config.SystemIgnoreTripleSymbol && st.TripleSymbol())
+                     {
+                         strs.Add(buffer.ToString());
+-                        buffer.Remove(0, buffer.Length);
++                        buffer.Clear();
+                         st.Jump(3);
+                         SWTs.Add(new TripleSymbolSubWord(cur));
+                         continue;
+@@ -1166,7 +1239,7 @@ internal static partial class LexicalAnalyzer
+                                 if (endWith == FormStrEndWith.YenAt || endWith == FormStrEndWith.Sharp)
+                                     goto end;
+                                 strs.Add(buffer.ToString());
+-                                buffer.Remove(0, buffer.Length);
++                                buffer.Clear();
+                                 st.ShiftNext();
+                                 SWTs.Add(AnalyseYenAt(st));
+                                 continue;
+diff --git a/Runtime/Script/Parser/LogicalLineParser.cs b/Runtime/Script/Parser/LogicalLineParser.cs
+index 15e968a..9b2c279 100644
+--- a/Runtime/Script/Parser/LogicalLineParser.cs
++++ b/Runtime/Script/Parser/LogicalLineParser.cs
+@@ -415,9 +415,8 @@ internal static class LogicalLineParser
+             if (idWT != null)
+             {
+                 FunctionIdentifier func = GlobalStatic.IdentifierDictionary.GetFunctionIdentifier(idWT.Code);
+-                //命令文
+-
+ 
++                //命令文
+                 if (func != null)//関数文
+                 {
+                     if (func.Code == FunctionCode.VARI || func.Code == FunctionCode.VARS)
+@@ -426,7 +425,7 @@ internal static class LogicalLineParser
+                         {
+                             ParentLabelLine = parentLine
+                         };
+-                        var statementsSpan = line.PopArgumentPrimitive().SubstringROS();
++                        var statementsSpan = stream.SubstringROS();
+                         var commentIndex = statementsSpan.IndexOf(';');
+                         if (commentIndex != -1)
+                         {
+@@ -452,7 +451,6 @@ internal static class LogicalLineParser
+ 
+                         if (func.Code == FunctionCode.VARI)
+                         {
+-                            AExpression exp = null;
+                             if (leftSplit.Length > 1)
+                             {
+                                 //配列である
+@@ -464,13 +462,7 @@ internal static class LogicalLineParser
+                             }
+                             else
+                             {
+-                                //初期値がある
+-                                if (!right.IsWhiteSpace())
+-                                {
+-                                    GlobalStatic.Process.scaningLine = line;
+-                                    var wc = LexicalAnalyzer.Analyse(new CharStream(right.ToString()), LexEndWith.EoL, LexAnalyzeFlag.None);
+-                                    exp = ExpressionParser.ReduceIntegerTerm(wc, TermEndWith.EoL);
+-                                }
++
+                             }
+ 
+                             var varData = new UserDefinedVariableData
+@@ -483,19 +475,10 @@ internal static class LogicalLineParser
+                             };
+                             parentLine.AddPrivateVariable(varData);
+ 
+-                            if (exp != null)
+-                            {
+-                                line.Argument = new IntAsignArgument(varName, [.. lengths], exp);
+-                            }
+-                            else
+-                            {
+-                                line.Argument = new IntAsignArgument(varName, [.. lengths], new SingleLongTerm(default));
+-                            }
+                             return line;
+                         }
+                         else if (func.Code == FunctionCode.VARS)
+                         {
+-                            string value = default;
+                             if (leftSplit.Length > 1)
+                             {
+                                 //配列である
+@@ -507,13 +490,7 @@ internal static class LogicalLineParser
+                             }
+                             else
+                             {
+-                                //初期値がある
+-                                if (!right.IsWhiteSpace())
+-                                {
+-                                    var literalStart = right.IndexOf('\"');
+-                                    var literalEnd = right.LastIndexOf('\"');
+-                                    value = right[(literalStart + 1)..literalEnd].ToString();
+-                                }
++
+                             }
+ 
+                             var varData = new UserDefinedVariableData
+@@ -526,7 +503,6 @@ internal static class LogicalLineParser
+                             };
+                             parentLine.AddPrivateVariable(varData);
+ 
+-                            line.Argument = new StrAsignArgument(varName, varData.Lengths, value);
+                             return line;
+                         }
+                     }
+diff --git a/Runtime/Script/Process.ScriptProc.cs b/Runtime/Script/Process.ScriptProc.cs
+index 154ed6c..7b2df47 100644
+--- a/Runtime/Script/Process.ScriptProc.cs
++++ b/Runtime/Script/Process.ScriptProc.cs
+@@ -369,15 +369,16 @@ internal sealed partial class Process
+                 }
+             case FunctionCode.GETTIME:
+                 {
+-                    long date = DateTime.Now.Year;
+-                    date = date * 100 + DateTime.Now.Month;
+-                    date = date * 100 + DateTime.Now.Day;
+-                    date = date * 100 + DateTime.Now.Hour;
+-                    date = date * 100 + DateTime.Now.Minute;
+-                    date = date * 100 + DateTime.Now.Second;
+-                    date = date * 1000 + DateTime.Now.Millisecond;
++                    var now = DateTime.Now;
++                    long date = now.Year;
++                    date = date * 100 + now.Month;
++                    date = date * 100 + now.Day;
++                    date = date * 100 + now.Hour;
++                    date = date * 100 + now.Minute;
++                    date = date * 100 + now.Second;
++                    date = date * 1000 + now.Millisecond;
+                     vEvaluator.RESULT = date;//17桁。2京くらい。
+-                    vEvaluator.RESULTS = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
++                    vEvaluator.RESULTS = now.ToString("yyyy/MM/dd HH:mm:ss");
+                 }
+                 break;
+             case FunctionCode.SETCOLOR:
+diff --git a/Runtime/Script/Process.cs b/Runtime/Script/Process.cs
+index ff78e1e..f51dc38 100644
+--- a/Runtime/Script/Process.cs
++++ b/Runtime/Script/Process.cs
+@@ -18,6 +18,9 @@ using System.IO;
+ using System.Linq;
+ using System.Threading.Tasks;
+ using MinorShift.Emuera.UI.Framework;
++using System.Reflection.Emit;
++using System.Reflection;
++using System.Runtime.Loader;
+ 
+ namespace MinorShift.Emuera.GameProc;
+ 
+@@ -52,8 +55,7 @@ internal sealed partial class Process(EmueraConsole view)
+ 
+     public async Task<bool> Initialize(StreamWriter logWriter)
+     {
+-        var stopWatch = new Stopwatch();
+-        stopWatch.Start();
++        var stopWatch = Stopwatch.StartNew();
+         LexicalAnalyzer.UseMacro = false;
+         state = new ProcessState(console);
+         originalState = state;
+@@ -93,11 +95,12 @@ internal sealed partial class Process(EmueraConsole view)
+             //キーマクロ読み込み
+             if (Config.UseKeyMacro && !Program.AnalysisMode)
+             {
+-                if (File.Exists(Program.ExeDir + "macro.txt"))
++                if (File.Exists(KeyMacro.macroPath))
+                 {
+                     if (Config.DisplayReport)
+                         console.PrintSystemLine(LocalizationManager.SystemLine.LoadingMacro);
+-                    KeyMacro.LoadMacroFile(Program.ExeDir + "macro.txt");
++                    if (!KeyMacro.LoadMacroFile(KeyMacro.macroPath))
++                        console.PrintSystemLine(LocalizationManager.Error.MacroLoadingError);
+                 }
+             }
+             logWriter.WriteLine($"Proc:Init:KeyMacro:End {stopWatch.ElapsedMilliseconds}ms");
+@@ -122,9 +125,10 @@ internal sealed partial class Process(EmueraConsole view)
+                     }
+                 }
+             }
++            Config.SetReplace(ConfigData.Instance);
++
+             logWriter.WriteLine($"Proc:Init:Replace:End {stopWatch.ElapsedMilliseconds}ms");
+ 
+-            Config.SetReplace(ConfigData.Instance);
+             //ここでBARを設定すれば、いいことに気づいた予感
+             console.setStBar(Config.DrawLineString);
+ 
+@@ -160,10 +164,10 @@ internal sealed partial class Process(EmueraConsole view)
+             GlobalStatic.GameBaseData = gamebase;
+             logWriter.WriteLine($"Proc:Init:MainCSV:End {stopWatch.ElapsedMilliseconds}ms");
+ 
++            logWriter.WriteLine($"Proc:Init:EtcCSV:Start {stopWatch.ElapsedMilliseconds}ms");
+             //前記以外のcsvを全て読み込み
+-            ConstantData constant = new();
++            var constant = new ConstantData();
+             constant.LoadData(Program.CsvDir, console, Config.DisplayReport);
+-            logWriter.WriteLine($"Proc:Init:EtcCSV:End {stopWatch.ElapsedMilliseconds}ms");
+             GlobalStatic.ConstantData = constant;
+             TrainName = constant.GetCsvNameList(VariableCode.TRAINNAME);
+             logWriter.WriteLine($"Proc:Init:EtcCSV:End {stopWatch.ElapsedMilliseconds}ms");
+@@ -326,12 +330,52 @@ internal sealed partial class Process(EmueraConsole view)
+     {
+         vEvaluator.RESULTS_ARRAY[index] = s;
+     }
++    public void CompileScript()
++    {
++        var ab = new PersistedAssemblyBuilder(new AssemblyName("MyAssembly"), typeof(object).Assembly);
++        var mob = ab.DefineDynamicModule("MyModule");
++        var tb = mob.DefineType("MyType", TypeAttributes.Public | TypeAttributes.Class);
++        systemProcessDictionary[state.SystemState]();
++        var line = state.CurrentLine;
++
++        if (line is FunctionLabelLine functionLabelLine)
++        {
++            var functionName = functionLabelLine.LabelName;
++            var args = functionLabelLine.Arg.Select(x => x.GetOperandType()).ToArray();
++            args = [];
++
++            var meb = tb.DefineMethod(functionName, MethodAttributes.Public | MethodAttributes.Static,
++                                                                    typeof(object), args);
++            var il = meb.GetILGenerator();
++
++            line = functionLabelLine.NextLine;
++            while (line != null)
++            {
++                if (line is InstructionLine instructionLine)
++                {
++                    il.EmitWriteLine(instructionLine.ToString());
++                }
++                line = line.NextLine;
++            }
++
++            il.Emit(OpCodes.Ldstr, "OK");
++            il.Emit(OpCodes.Ret);
++
++            tb.CreateType();
++            ab.Save(functionName + ".dll");
++
++
++            var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(functionName + ".dll"));
++            var method = assembly.GetType("MyType").GetMethod(functionName);
++            Console.WriteLine(method.Invoke(null, []));
++        }
++    }
+ 
+-    readonly Stopwatch startTime = new();
++    long startTime = Stopwatch.GetTimestamp();
+ 
+     public void DoScript()
+     {
+-        startTime.Restart();
++        startTime = Stopwatch.GetTimestamp();
+         state.lineCount = 0;
+         bool systemProcRunning = true;
+         try
+@@ -369,7 +413,7 @@ internal sealed partial class Process(EmueraConsole view)
+ 
+     public void UpdateCheckInfiniteLoopState()
+     {
+-        startTime.Restart();
++        startTime = Stopwatch.GetTimestamp();
+         state.lineCount = 0;
+     }
+ 
+@@ -386,7 +430,7 @@ internal sealed partial class Process(EmueraConsole view)
+         //    console.ReadAnyKey();
+         //    return;
+         //}
+-        var elapsedTime = startTime.ElapsedMilliseconds;
++        var elapsedTime = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
+         if (elapsedTime < Config.InfiniteLoopAlertTime)
+             return;
+         LogicalLine currentLine = state.CurrentLine;
+@@ -404,7 +448,7 @@ internal sealed partial class Process(EmueraConsole view)
+         else
+         {
+             state.lineCount = 0;
+-            startTime.Restart();
++            startTime = Stopwatch.GetTimestamp();
+         }
+     }
+ 
+@@ -484,17 +528,23 @@ internal sealed partial class Process(EmueraConsole view)
+         console.ThrowError(playSound);
+         if (exc is CodeEE)
+         {
+-            console.PrintError(string.Format(LocalizationManager.Error.FuncEndError, AssemblyData.EmueraVersionText));
++            console.PrintError(string.Format(LocalizationManager.Error.FuncEndError));
++            console.Print(string.Format(LocalizationManager.SystemLine.EnvironmentInfo,
++                AssemblyData.EmueraVersionText, GlobalStatic.GameBaseData?.ScriptWindowTitle));
+             console.PrintError(exc.Message);
+         }
+         else if (exc is ExeEE)
+         {
+-            console.PrintError(string.Format(LocalizationManager.Error.FuncEndEmueraError, AssemblyData.EmueraVersionText));
++            console.PrintError(string.Format(LocalizationManager.Error.FuncEndEmueraError));
++            console.Print(string.Format(LocalizationManager.SystemLine.EnvironmentInfo,
++                AssemblyData.EmueraVersionText, GlobalStatic.GameBaseData?.ScriptWindowTitle));
+             console.PrintError(exc.Message);
+         }
+         else
+         {
+-            console.PrintError(string.Format(LocalizationManager.Error.FuncEndUnexpectedError, AssemblyData.EmueraVersionText));
++            console.PrintError(string.Format(LocalizationManager.Error.FuncEndUnexpectedError));
++            console.Print(string.Format(LocalizationManager.SystemLine.EnvironmentInfo,
++                AssemblyData.EmueraVersionText, GlobalStatic.GameBaseData?.ScriptWindowTitle));
+             console.PrintError(exc.GetType().ToString() + ":" + exc.Message);
+             string[] stack = exc.StackTrace.Split('\n');
+             for (int i = 0; i < stack.Length; i++)
+@@ -533,7 +583,9 @@ internal sealed partial class Process(EmueraConsole view)
+                 }
+                 else
+                 {
+-                    console.PrintErrorButton(string.Format(LocalizationManager.Error.HasError, posString, AssemblyData.EmueraVersionText), position);
++                    console.PrintErrorButton(string.Format(LocalizationManager.Error.HasError, posString), position);
++                    console.Print(string.Format(LocalizationManager.SystemLine.EnvironmentInfo,
++                        AssemblyData.EmueraVersionText, GlobalStatic.GameBaseData?.ScriptWindowTitle));
+                     printRawLine(position);
+                     console.PrintError(string.Format(LocalizationManager.Error.ErrorMessage, exc.Message));
+                 }
+@@ -551,18 +603,24 @@ internal sealed partial class Process(EmueraConsole view)
+             }
+             else
+             {
+-                console.PrintError(string.Format(LocalizationManager.Error.HasError, posString, AssemblyData.EmueraVersionText));
++                console.PrintError(string.Format(LocalizationManager.Error.HasError, posString));
++                console.Print(string.Format(LocalizationManager.SystemLine.EnvironmentInfo,
++                    AssemblyData.EmueraVersionText, GlobalStatic.GameBaseData?.ScriptWindowTitle));
+                 console.PrintError(exc.Message);
+             }
+         }
+         else if (exc is ExeEE)
+         {
+-            console.PrintError(string.Format(LocalizationManager.Error.HasEmueraError, posString, AssemblyData.EmueraVersionText));
++            console.PrintError(string.Format(LocalizationManager.Error.HasEmueraError, posString));
++            console.Print(string.Format(LocalizationManager.SystemLine.EnvironmentInfo,
++                AssemblyData.EmueraVersionText, GlobalStatic.GameBaseData?.ScriptWindowTitle));
+             console.PrintError(exc.Message);
+         }
+         else
+         {
+-            console.PrintError(string.Format(LocalizationManager.Error.HasUnexpectedError, posString, AssemblyData.EmueraVersionText));
++            console.PrintError(string.Format(LocalizationManager.Error.HasUnexpectedError, posString));
++            console.Print(string.Format(LocalizationManager.SystemLine.EnvironmentInfo,
++                AssemblyData.EmueraVersionText, GlobalStatic.GameBaseData?.ScriptWindowTitle));
+             console.PrintError(exc.GetType() + ":" + exc.Message);
+             string[] stack = exc.StackTrace.Split('\n');
+             for (int i = 0; i < stack.Length; i++)
+diff --git a/Runtime/Script/Statements/Argument.cs b/Runtime/Script/Statements/Argument.cs
+index b2db845..21d4281 100644
+--- a/Runtime/Script/Statements/Argument.cs
++++ b/Runtime/Script/Statements/Argument.cs
+@@ -435,6 +435,23 @@ internal sealed class SpSaveVarArgument : Argument
+     readonly public VariableToken[] VarTokens;
+ }
+ 
++internal sealed class SpMatchAllArgument : Argument
++{
++	public SpMatchAllArgument(VariableToken token, AExpression value, AExpression beg, AExpression end, long? index)
++	{
++		Token = token;
++		Value = value;
++        Beg = beg;
++        End = end;
++        Index = index;
++	}
++	readonly public VariableToken Token;
++	readonly public AExpression Value;
++	readonly public AExpression Beg;
++	readonly public AExpression End;
++	readonly public long? Index;
++}
++
+ internal sealed class RefArgument : Argument
+ {
+     public RefArgument(UserDefinedRefMethod udrm, UserDefinedRefMethod src)
+diff --git a/Runtime/Script/Statements/ArgumentBuilder.cs b/Runtime/Script/Statements/ArgumentBuilder.cs
+index 038d88e..675f083 100644
+--- a/Runtime/Script/Statements/ArgumentBuilder.cs
++++ b/Runtime/Script/Statements/ArgumentBuilder.cs
+@@ -229,9 +229,9 @@ internal static partial class ArgumentParser
+         argb[FunctionArgType.SP_REFBYNAME] = new SP_REF_ArgumentBuilder(true);
+         argb[FunctionArgType.SP_HTMLSPLIT] = new SP_HTMLSPLIT_ArgumentBuilder();
+         argb[FunctionArgType.SP_HTML_PRINT] = new HTML_PRINT_ArgumentBuilder();
++        argb[FunctionArgType.SP_MATCHALL] = new SP_MATCHALL_ArgumentBuilder();
+         argb[FunctionArgType.SP_HTML_PRINT_ISLAND] = new HTML_PRINT_ISLAND_ArgumentBuilder();
+         argb[FunctionArgType.SP_HTML_PRINT_ISLAND_CLEAR] = new HTML_PRINT_ISLAND_CLEAR_ArgumentBuilder();
+-
+     }
+ 
+     private sealed class SP_PRINTV_ArgumentBuilder : ArgumentBuilder
+@@ -911,6 +911,104 @@ internal static partial class ArgumentParser
+         }
+     }
+ 
++    private sealed class SP_MATCHALL_ArgumentBuilder : ArgumentBuilder
++    {
++        public SP_MATCHALL_ArgumentBuilder()
++        {
++        }
++        public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
++        {
++            long? indexValue = null;
++            AExpression beg = null;
++            AExpression end = null;
++            var terms = popTerms(line);
++            int count = 0;
++            if (terms.Count <= count)
++            {
++                warn("引数がありません", line, 2, false);
++                return null;
++            }
++            ++count;
++            VariableTerm varTerm = getChangeableVariable(terms, 1, line);
++            var token = varTerm?.Identifier;
++            var targetType = token.VariableType;
++            if (token == null)
++            {
++                warn("第一引数が無効な変数指定です", line, 2, false);
++                return null;
++            }
++            if (token.IsArray3D || token.IsArray2D)
++            {
++                warn("変数の次元が大きすぎます", line, 2, false);
++                return null;
++            }
++            if (!token.IsCharacterData && !token.IsArray1D)
++            {
++                warn("非キャラクタ変数が対象の場合は1次元である必要があります", line, 2, false);
++                return null;
++            }
++            if (token.IsCharacterData && token.IsArray1D)
++            {
++                if (terms.Count <= count)
++                {
++                    warn("1次元キャラクタ変数に対するインデックス指定がありません", line, 2, false);
++                    return null;
++                }
++                var indexTerm = terms[count] as SingleLongTerm;
++                if (indexTerm is null)
++                {
++                    warn("1次元キャラクタ変数に対するインデックス指定は整数定数である必要があります", line, 2, false);
++                    return null;
++                }
++                ++count;
++                indexValue = indexTerm.GetIntValue(exm);
++                if (indexValue < 0)
++                {
++                    warn("インデックスが負の値です", line, 2, false);
++                    return null;
++                }
++            }
++            if (terms.Count <= count)
++            {
++                warn("探す値の指定がありません", line, 2, false);
++                return null;
++            }
++            var value = terms[count];
++            ++count;
++            if (value.GetOperandType() != targetType)
++            {
++                warn("検索する値と対象変数の型が一致しません", line, 2, false);
++                return null;
++            }
++            if (terms.Count > count)
++            {
++                beg = terms[count];
++                if (!beg.IsInteger)
++                {
++                    warn("範囲指定は整数値である必要があります", line, 2, false);
++                    return null;
++                }
++                ++count;
++            }
++            if (terms.Count > count)
++            {
++                end = terms[count];
++                if (!end.IsInteger)
++                {
++                    warn("範囲指定は整数値である必要があります", line, 2, false);
++                    return null;
++                }
++                ++count;
++            }
++            if (terms.Count > count)
++            {
++                warn("引数が多すぎます", line, 2, false);
++                return null;
++            }
++            return new SpMatchAllArgument(token, value, beg, end, indexValue);
++        }
++    }
++
+     #region 正規型 popTerms()とcheckArgumentType()を両方行うもの。考えることは最低限でよい。
+ 
+     private sealed class INT_EXPRESSION_ArgumentBuilder : ArgumentBuilder
+diff --git a/Runtime/Script/Statements/ArgumentParser.cs b/Runtime/Script/Statements/ArgumentParser.cs
+index 2751c56..16759d5 100644
+--- a/Runtime/Script/Statements/ArgumentParser.cs
++++ b/Runtime/Script/Statements/ArgumentParser.cs
+@@ -1,4 +1,7 @@
+-﻿using MinorShift.Emuera.Runtime.Script.Statements;
++﻿using System;
++using System.Collections.Generic;
++using System.Diagnostics;
++using MinorShift.Emuera.Runtime.Script.Statements;
+ using MinorShift.Emuera.Runtime.Utils;
+ 
+ namespace MinorShift.Emuera.GameProc.Function;
+@@ -47,15 +50,14 @@ internal static partial class ArgumentParser
+         if (arg == null)
+             line.IsError = true;
+         return true;
++    }
++    static bool error(InstructionLine line, string errmes)
++    {
++        System.Media.SystemSounds.Hand.Play();
+ 
+-        static bool error(InstructionLine line, string errmes)
+-        {
+-            System.Media.SystemSounds.Hand.Play();
+-
+-            line.IsError = true;
+-            line.ErrMes = errmes;
+-            ParserMediator.Warn(errmes, line, 2, true, false);
+-            return false;
+-        }
++        line.IsError = true;
++        line.ErrMes = errmes;
++        ParserMediator.Warn(errmes, line, 2, true, false);
++        return false;
+     }
+ }
+diff --git a/Runtime/Script/Statements/BuiltInFunctionCode.cs b/Runtime/Script/Statements/BuiltInFunctionCode.cs
+index 994be35..1672b1d 100644
+--- a/Runtime/Script/Statements/BuiltInFunctionCode.cs
++++ b/Runtime/Script/Statements/BuiltInFunctionCode.cs
+@@ -240,6 +240,8 @@ enum FunctionCode
+     VARSET,
+     CVARSET,
+ 
++    MATCHALL,
++
+     RESET_STAIN,
+ 
+     SAVENOS,//引数の仕様が違うので(ry
+diff --git a/Runtime/Script/Statements/Function/Creator.Method.cs b/Runtime/Script/Statements/Function/Creator.Method.cs
+index af739f6..30c9a6c 100644
+--- a/Runtime/Script/Statements/Function/Creator.Method.cs
++++ b/Runtime/Script/Statements/Function/Creator.Method.cs
+@@ -223,7 +223,34 @@ internal static partial class FunctionMethodCreator
+             return exm.VEvaluator.GetCharacterIntfromCSVData(x, charaInt, z != 0, y);
+         }
+     }
++    private sealed class GetCsvNoMethod : FunctionMethod
++    {
++        private CharacterStrData _type;
++        public GetCsvNoMethod(CharacterStrData data)
++        {
++            ReturnType = typeof(Int64);
++            argumentTypeArray = new Type[] { typeof(string) };
++            CanRestructure = true;
++            _type = data;
++        }
++        public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++        {
++            var str = arguments[0].GetStrValue(exm);
++            long ret;
+ 
++            var b = _type switch
++            {
++                CharacterStrData.NAME => exm.VEvaluator.Constant.NameToTemplateMap.TryGetValue(str, out ret),
++                CharacterStrData.NICKNAME => exm.VEvaluator.Constant.NicknameToTemplateMap.TryGetValue(str, out ret),
++                CharacterStrData.CALLNAME => exm.VEvaluator.Constant.CallnameToTemplateMap.TryGetValue(str, out ret),
++                CharacterStrData.MASTERNAME => exm.VEvaluator.Constant.MasternameToTemplateMap.TryGetValue(str, out ret),
++                _ => throw new ExeEE("error")
++            };
++            if (!b)
++                ret = -1;
++            return ret;
++        }
++    }
+     private sealed class FindcharaMethod : FunctionMethod
+     {
+         public FindcharaMethod(bool last)
+@@ -838,13 +865,14 @@ internal static partial class FunctionMethodCreator
+         }
+         public override Int64 GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+         {
+-            long date = DateTime.Now.Year;
+-            date = date * 100 + DateTime.Now.Month;
+-            date = date * 100 + DateTime.Now.Day;
+-            date = date * 100 + DateTime.Now.Hour;
+-            date = date * 100 + DateTime.Now.Minute;
+-            date = date * 100 + DateTime.Now.Second;
+-            date = date * 1000 + DateTime.Now.Millisecond;
++            var now = DateTime.Now;
++            long date = now.Year;
++            date = date * 100 + now.Month;
++            date = date * 100 + now.Day;
++            date = date * 100 + now.Hour;
++            date = date * 100 + now.Minute;
++            date = date * 100 + now.Second;
++            date = date * 1000 + now.Millisecond;
+             return date;//17桁。2京くらい。
+         }
+     }
+@@ -2348,7 +2376,16 @@ internal static partial class FunctionMethodCreator
+                 return 0;
+             else if ((st.Current == '+' || st.Current == '-') && !char.IsDigit(st.Next))
+                 return 0;
+-            Int64 ret = LexicalAnalyzer.ReadInt64(st, true);
++            Int64 ret = 0;
++            //ここでエラーが発生する場合、文字列ではないので0を返す
++            try
++            {
++                ret = LexicalAnalyzer.ReadInt64(st, true);
++            }
++            catch (Exception)
++            {
++                return 0;
++            }
+             if (!st.EOS)
+             {
+                 if (st.Current == '.')
+@@ -2543,7 +2580,8 @@ internal static partial class FunctionMethodCreator
+                 return 0;
+             else if ((st.Current == '+' || st.Current == '-') && !char.IsDigit(st.Next))
+                 return 0;
+-            _ = LexicalAnalyzer.ReadInt64(st, true);
++            if (!LexicalAnalyzer.NumericCheck(st))
++                return (0);
+             if (!st.EOS)
+             {
+                 if (st.Current == '.')
+@@ -3117,7 +3155,11 @@ internal static partial class FunctionMethodCreator
+             if (!g.IsCreated)
+                 return 0;
+             var c = ReadColor(Name, exm, arguments, 1);
+-            g.GSetBrush(new SKPaint() { Color = c.ToSKColor() });
++
++            using (var paint = new SKPaint() { Color = c.ToSKColor() })
++            {
++                g.GSetBrush(paint);
++            }
+             return 1;
+         }
+     }
+@@ -3166,7 +3208,10 @@ internal static partial class FunctionMethodCreator
+                 return 0;
+             var c = ReadColor(Name, exm, arguments, 1);
+             var width = arguments[2].GetIntValue(exm);
+-            g.GSetPen(new SKPaint() { Color = c.ToSKColor(), StrokeWidth = width, IsStroke = true });
++            using (var paint = new SKPaint() { Color = c.ToSKColor(), StrokeWidth = width, IsStroke = true })
++            {
++                g.GSetPen(paint);
++            }
+             return 1;
+         }
+     }
+diff --git a/Runtime/Script/Statements/Function/Creator.cs b/Runtime/Script/Statements/Function/Creator.cs
+index ace0b51..c951f35 100644
+--- a/Runtime/Script/Statements/Function/Creator.cs
++++ b/Runtime/Script/Statements/Function/Creator.cs
+@@ -31,6 +31,10 @@ internal static partial class FunctionMethodCreator
+             ["CSVCFLAG"] = new CsvDataMethod(CharacterIntData.CFLAG),
+             ["CSVEQUIP"] = new CsvDataMethod(CharacterIntData.EQUIP),
+             ["CSVJUEL"] = new CsvDataMethod(CharacterIntData.JUEL),
++            ["GETCSVNOBYNAME"] = new GetCsvNoMethod(CharacterStrData.NAME),
++            ["GETCSVNOBYNICKNAME"] = new GetCsvNoMethod(CharacterStrData.NICKNAME),
++            ["GETCSVNOBYCALLNAME"] = new GetCsvNoMethod(CharacterStrData.CALLNAME),
++            ["GETCSVNOBYMASTERNAME"] = new GetCsvNoMethod(CharacterStrData.MASTERNAME),
+             ["FINDCHARA"] = new FindcharaMethod(false),
+             ["FINDLASTCHARA"] = new FindcharaMethod(true),
+             ["EXISTCSV"] = new ExistCsvMethod(),
+@@ -230,7 +234,14 @@ internal static partial class FunctionMethodCreator
+             ["HASH_XXH3"] = new XXH3(),
+             ["HASH_XXH32"] = new XXH32(),
+ 
+-            ["EXISTFUNCTION"] = new EXISTFUNCTION()
++            ["EXISTFUNCTION"] = new EXISTFUNCTION(),
++
++            ["DICT_CREATE"] = new DictCreate(),
++            ["DICT_EXIST"] = new DictExist(),
++            ["DICT_CONTAINS_KEY"] = new DictContainsKey(),
++            ["DICT_SET_VALUE"] = new DictSetValue(),
++            ["DICT_GET_VALUE_STRING"] = new DictGetValueString(),
++            ["DICT_GET_VALUE_LONG"] = new DictGetValueInt()
+         };
+ 
+ 
+diff --git a/Runtime/Script/Statements/Function/Method/Dictionary.cs b/Runtime/Script/Statements/Function/Method/Dictionary.cs
+new file mode 100644
+index 0000000..bbcd6d0
+--- /dev/null
++++ b/Runtime/Script/Statements/Function/Method/Dictionary.cs
+@@ -0,0 +1,181 @@
++using System.Collections.Generic;
++using MinorShift.Emuera.Runtime.Script.Statements.Expression;
++using MinorShift.Emuera.Runtime.Script.Statements.Function;
++using Runtime.Dictionary;
++
++namespace MinorShift.Emuera.GameData.Function;
++internal static partial class FunctionMethodCreator
++{
++    public sealed class DictCreate : FunctionMethod
++    {
++        public DictCreate()
++        {
++            ReturnType = typeof(long);
++            argumentTypeArray = [typeof(string)];
++            CanRestructure = false;
++        }
++        public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++        {
++            var name = arguments[0].GetStrValue(exm);
++            ERBDictionary.CreateDictionary(name);
++            return 1;
++        }
++    }
++    public sealed class DictExist : FunctionMethod
++    {
++        public DictExist()
++        {
++            ReturnType = typeof(long);
++            argumentTypeArray = [typeof(string)];
++            CanRestructure = false;
++        }
++        public override string CheckArgumentType(string name, List<AExpression> arguments)
++        {
++            return null;
++        }
++        public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++        {
++            var name = arguments[0].GetStrValue(exm);
++
++            return ERBDictionary.ExitsDictionary(name) ? 1 : 0;
++        }
++    }
++    public sealed class DictContainsKey : FunctionMethod
++    {
++        public DictContainsKey()
++        {
++            ReturnType = typeof(long);
++            CanRestructure = false;
++        }
++        public override string CheckArgumentType(string name, List<AExpression> arguments)
++        {
++            return null;
++        }
++        public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++        {
++            var name = arguments[0].GetStrValue(exm);
++            long key;
++            if (arguments[1].IsString)
++            {
++                key = arguments[1].GetStrValue(exm).GetHashCode();
++            }
++            else if (arguments[1].IsInteger)
++            {
++                key = arguments[1].GetIntValue(exm);
++            }
++            else
++            {
++                throw new System.Exception("謎の型");
++            }
++
++            return ERBDictionary.ContainsKey(name, key) ? 1 : 0;
++        }
++    }
++
++    public sealed class DictGetValueInt : FunctionMethod
++    {
++        public DictGetValueInt()
++        {
++            ReturnType = typeof(long);
++            CanRestructure = false;
++        }
++        public override string CheckArgumentType(string name, List<AExpression> arguments)
++        {
++            return null;
++        }
++        public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++        {
++            var name = arguments[0].GetStrValue(exm);
++            long key;
++            if (arguments[1].IsString)
++            {
++                key = arguments[1].GetStrValue(exm).GetHashCode();
++            }
++            else if (arguments[1].IsInteger)
++            {
++                key = arguments[1].GetIntValue(exm);
++            }
++            else
++            {
++                throw new System.Exception("謎の型");
++            }
++
++            return ERBDictionary.Get<long>(name, key);
++        }
++    }
++    public sealed class DictGetValueString : FunctionMethod
++    {
++        public DictGetValueString()
++        {
++            ReturnType = typeof(string);
++            CanRestructure = false;
++        }
++        public override string CheckArgumentType(string name, List<AExpression> arguments)
++        {
++            return null;
++        }
++        public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
++        {
++            var name = arguments[0].GetStrValue(exm);
++            long key;
++            if (arguments[1].IsString)
++            {
++                key = arguments[1].GetStrValue(exm).GetHashCode();
++            }
++            else if (arguments[1].IsInteger)
++            {
++                key = arguments[1].GetIntValue(exm);
++            }
++            else
++            {
++                throw new System.Exception("謎の型");
++            }
++
++            return ERBDictionary.Get<string>(name, key);
++        }
++    }
++    public sealed class DictSetValue : FunctionMethod
++    {
++        public DictSetValue()
++        {
++            ReturnType = typeof(long);
++            CanRestructure = false;
++        }
++        public override string CheckArgumentType(string name, List<AExpression> arguments)
++        {
++            return null;
++        }
++        public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++        {
++            var name = arguments[0].GetStrValue(exm);
++            long key;
++            if (arguments[1].IsString)
++            {
++                key = arguments[1].GetStrValue(exm).GetHashCode();
++            }
++            else if (arguments[1].IsInteger)
++            {
++                key = arguments[1].GetIntValue(exm);
++            }
++            else
++            {
++                throw new System.Exception("謎の型");
++            }
++
++            if (arguments[2].IsString)
++            {
++                ERBDictionary.Set(name, key, arguments[2].GetStrValue(exm));
++            }
++            else if (arguments[2].IsInteger)
++            {
++                ERBDictionary.Set(name, key, arguments[2].GetIntValue(exm));
++            }
++            else
++            {
++                throw new System.Exception("謎の型");
++            }
++
++            return 1;
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/Runtime/Script/Statements/FunctionArgType.cs b/Runtime/Script/Statements/FunctionArgType.cs
+index 950f452..a465d25 100644
+--- a/Runtime/Script/Statements/FunctionArgType.cs
++++ b/Runtime/Script/Statements/FunctionArgType.cs
+@@ -44,10 +44,11 @@ enum FunctionArgType
+     EXPRESSION,//<式>、変数の型は不問
+     EXPRESSION_NULLABLE,//<式>、変数の型は不問
+     CASE,//<CASE条件式>(, <CASE条件式>...)
++    SP_MATCHALL,
+ 
+ 
+-    //TODO　省略時の処理に違いがあるが統合可能なはず
+-    VAR_INT,//<可変数値変数> //引数は省略可
++	//TODO　省略時の処理に違いがあるが統合可能なはず
++	VAR_INT,//<可変数値変数> //引数は省略可
+     SP_GETINT,//<可変数値変数>(今までこれがないことに驚いた)
+ 
+     VAR_STR,//<可変数値変数> //引数は省略可
+diff --git a/Runtime/Script/Statements/FunctionIdentifier.cs b/Runtime/Script/Statements/FunctionIdentifier.cs
+index dbb9205..34437a3 100644
+--- a/Runtime/Script/Statements/FunctionIdentifier.cs
++++ b/Runtime/Script/Statements/FunctionIdentifier.cs
+@@ -330,7 +330,9 @@ internal sealed partial class FunctionIdentifier
+         addFunction(FunctionCode.ARRAYSORT, argb[FunctionArgType.SP_SORTARRAY], METHOD_SAFE | EXTENDED);
+         addFunction(FunctionCode.ARRAYCOPY, argb[FunctionArgType.SP_COPY_ARRAY], METHOD_SAFE | EXTENDED);
+ 
+-        addFunction(FunctionCode.JUMP, new CALL_Instruction(false, true, false, false));//関数に移動
++		addFunction(FunctionCode.MATCHALL, new MATCHALL_Instruction());
++
++		addFunction(FunctionCode.JUMP, new CALL_Instruction(false, true, false, false));//関数に移動
+         addFunction(FunctionCode.CALL, new CALL_Instruction(false, false, false, false));//関数に移動。移動元を記憶し、RETURNで帰る。
+         addFunction(FunctionCode.TRYJUMP, new CALL_Instruction(false, true, true, false), EXTENDED);
+         addFunction(FunctionCode.TRYCALL, new CALL_Instruction(false, false, true, false), EXTENDED);
+diff --git a/Runtime/Script/Statements/Instraction.Child.cs b/Runtime/Script/Statements/Instraction.Child.cs
+index 414b333..bd4736b 100644
+--- a/Runtime/Script/Statements/Instraction.Child.cs
++++ b/Runtime/Script/Statements/Instraction.Child.cs
+@@ -17,6 +17,7 @@ using System.Drawing;
+ using System.Linq;
+ using System.Text;
+ using MinorShift.Emuera.UI.Framework;
++using System.Threading;
+ 
+ namespace MinorShift.Emuera.GameProc.Function;
+ 
+@@ -26,6 +27,12 @@ internal sealed partial class FunctionIdentifier
+ 
+     private sealed class VARI_Instruction : AInstruction
+     {
++
++        public VARI_Instruction()
++        {
++            flag = EXTENDED | METHOD_SAFE;
++            //ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
++        }
+         public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+         {
+             var arg = (IntAsignArgument)func.Argument;
+@@ -44,11 +51,70 @@ internal sealed partial class FunctionIdentifier
+ 
+         public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+         {
+-            return null;
++            var statementsSpan = line.PopArgumentPrimitive().SubstringROS();
++            var commentIndex = statementsSpan.IndexOf(';');
++            if (commentIndex != -1)
++            {
++                statementsSpan = statementsSpan[..commentIndex];
++            }
++
++            var equalsIndex = statementsSpan.IndexOf('=');
++            string left;
++            ReadOnlySpan<char> right = "";
++            if (equalsIndex == -1)
++            {
++                left = statementsSpan.ToString();
++            }
++            else
++            {
++                left = statementsSpan[..equalsIndex].ToString();
++                right = statementsSpan[(equalsIndex + 1)..];
++            }
++
++            var leftSplit = left.Split(',');
++            var varName = leftSplit[0].Trim();
++            List<int> lengths = [1];
++
++
++            AExpression exp = null;
++            if (leftSplit.Length > 1)
++            {
++                //配列である
++                lengths.Clear();
++                for (int i = 1; i < leftSplit.Length; i++)
++                {
++                    lengths.Add(int.Parse(leftSplit[i].Trim()));
++                }
++            }
++            else
++            {
++                //初期値がある
++                if (!right.IsWhiteSpace())
++                {
++                    var wc = LexicalAnalyzer.Analyse(new CharStream(right.ToString()), LexEndWith.EoL, LexAnalyzeFlag.None);
++                    exp = ExpressionParser.ReduceIntegerTerm(wc, TermEndWith.EoL);
++                }
++            }
++
++            IntAsignArgument argment;
++            if (exp != null)
++            {
++                argment = new IntAsignArgument(varName, [.. lengths], exp);
++            }
++            else
++            {
++                argment = new IntAsignArgument(varName, [.. lengths], new SingleLongTerm(default));
++            }
++            return argment;
+         }
+     }
+     private sealed class VARS_Instruction : AInstruction
+     {
++        public VARS_Instruction()
++        {
++            flag = EXTENDED | METHOD_SAFE;
++            //ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.INT_EXPRESSION);
++        }
+         public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+         {
+             var arg = (StrAsignArgument)func.Argument;
+@@ -67,7 +133,61 @@ internal sealed partial class FunctionIdentifier
+ 
+         public override Argument CreateArgument(InstructionLine line, ExpressionMediator exm)
+         {
+-            return null;
++            var statementsSpan = line.PopArgumentPrimitive().SubstringROS();
++            var commentIndex = statementsSpan.IndexOf(';');
++            if (commentIndex != -1)
++            {
++                statementsSpan = statementsSpan[..commentIndex];
++            }
++
++            var equalsIndex = statementsSpan.IndexOf('=');
++            string left;
++            ReadOnlySpan<char> right = "";
++            if (equalsIndex == -1)
++            {
++                left = statementsSpan.ToString();
++            }
++            else
++            {
++                left = statementsSpan[..equalsIndex].ToString();
++                right = statementsSpan[(equalsIndex + 1)..];
++            }
++
++            var leftSplit = left.Split(',');
++            var varName = leftSplit[0].Trim();
++            List<int> lengths = [1];
++
++            string value = default;
++            if (leftSplit.Length > 1)
++            {
++                //配列である
++                lengths.Clear();
++                for (int i = 1; i < leftSplit.Length; i++)
++                {
++                    lengths.Add(int.Parse(leftSplit[i].Trim()));
++                }
++            }
++            else
++            {
++                //初期値がある
++                if (!right.IsWhiteSpace())
++                {
++                    var literalStart = right.IndexOf('\"');
++                    var literalEnd = right.LastIndexOf('\"');
++                    value = right[(literalStart + 1)..literalEnd].ToString();
++                }
++            }
++
++            var varData = new UserDefinedVariableData
++            {
++                Name = varName,
++                Static = false,
++                Lengths = [.. lengths],
++                Dimension = lengths.Count,
++                TypeIsStr = true
++            };
++
++            return new StrAsignArgument(varName, varData.Lengths, value);
+         }
+     }
+ 
+@@ -1858,6 +1978,91 @@ internal sealed partial class FunctionIdentifier
+             exm.Console.Await((int)waittime);
+         }
+     }
++
++    private sealed class MATCHALL_Instruction : AInstruction
++    {
++        public MATCHALL_Instruction()
++        {
++            ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_MATCHALL);
++            flag = EXTENDED | METHOD_SAFE;
++        }
++
++        public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
++        {
++            var arg = func.Argument as SpMatchAllArgument;
++            var token = arg.Token;
++            var valExpr = arg.Value;
++            var type = valExpr.GetOperandType();
++            var beg = arg.Beg?.GetIntValue(exm) ?? 0;
++            long end;
++            long len;
++            var count = 0;
++            var arr = exm.VEvaluator.RESULT_ARRAY;
++            var output = arr.AsSpan()[1..];
++            if (token.IsCharacterData)
++            {
++                if (token.IsArray1D)
++                    len = exm.VEvaluator.CHARANUM;
++                else if (token.IsArray2D || token.IsArray3D)
++                    throw new ExeEE("type error");
++                else
++                    len = exm.VEvaluator.CHARANUM;
++            }
++            else
++            {
++                if (token.IsArray1D)
++                    len = token.GetLength(0);
++                else
++                    throw new ExeEE("type error");
++            }
++            if (arg.End is not null)
++                end = arg.End.GetIntValue(exm);
++            else
++                end = len;
++            if (beg < 0 || end < 0)
++                throw new CodeEE("検索範囲に負の値が渡されました");
++            if (beg > end)
++                throw new CodeEE("検索範囲の指定が不正です");
++            if (long.Max(beg, end) > len)
++                throw new CodeEE("検索範囲が変数のサイズを超えています");
++
++            var idxs = new long[2];
++            int p = 0;
++            if (arg.Index.HasValue)
++                idxs[1] = arg.Index.Value;
++            if (type == typeof(long))
++            {
++                var val = valExpr.GetIntValue(exm);
++                for (var i = beg; i < end; i++)
++                {
++                    idxs[p] = i;
++                    if (val == token.GetIntValue(exm, idxs))
++                    {
++                        if (output.Length > count)
++                            output[count] = i;
++                        ++count;
++                    }
++                }
++            }
++            else if (type == typeof(string))
++            {
++                var val = valExpr.GetStrValue(exm);
++                for (var i = beg; i < end; i++)
++                {
++                    idxs[p] = i;
++                    if (val == token.GetStrValue(exm, idxs))
++                    {
++                        if (output.Length > count)
++                            output[count] = i;
++                        ++count;
++                    }
++                }
++            }
++            else
++                throw new ExeEE("unknown type");
++            arr[0] = count;
++        }
++    }
+     #endregion
+ 
+     #region flowControlFunction
+diff --git a/Runtime/Script/Statements/LogicalLine.cs b/Runtime/Script/Statements/LogicalLine.cs
+index b0c9866..21158f5 100644
+--- a/Runtime/Script/Statements/LogicalLine.cs
++++ b/Runtime/Script/Statements/LogicalLine.cs
+@@ -203,7 +203,6 @@ internal sealed class InvalidLabelLine : FunctionLabelLine
+         LabelName = labelname;
+         errMes = err;
+         IsSingle = false;
+-        Index = -1;
+         Depth = -1;
+         IsMethod = false;
+         MethodType = typeof(void);
+@@ -226,7 +225,6 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
+         LabelName = labelname;
+         IsSingle = false;
+         hasPrivDynamicVar = false;
+-        Index = -1;
+         Depth = -1;
+         LocalLength = 0;
+         LocalsLength = 0;
+@@ -272,16 +270,13 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
+ 
+     #region IComparable<FunctionLabelLine> メンバ
+     //ソート用情報
+-    public int Index { get; set; }
+     public int FileIndex { get; set; }
+     public int CompareTo(FunctionLabelLine other)
+     {
+         if (FileIndex != other.FileIndex)
+             return FileIndex.CompareTo(other.FileIndex);
+         //position == nullであるLine(デバッグコマンドなど)をSortすることはないはず
+-        if (Position.Value.LineNo != other.Position.Value.LineNo)
+-            return Position.Value.LineNo.CompareTo(other.Position.Value.LineNo);
+-        return Index.CompareTo(other.Index);
++        return Position.Value.LineNo.CompareTo(other.Position.Value.LineNo);
+     }
+     #endregion
+     #region private変数
+diff --git a/Runtime/Utils/EraStreamReader.cs b/Runtime/Utils/EraStreamReader.cs
+index d9d038d..4f2ce07 100644
+--- a/Runtime/Utils/EraStreamReader.cs
++++ b/Runtime/Utils/EraStreamReader.cs
+@@ -95,12 +95,16 @@ internal sealed partial class EraStreamReader : IDisposable
+             if (line.Length == 0)
+                 continue;
+ 
++            st = new CharStream(line);
++            LexicalAnalyzer.SkipWhiteSpace(st);
++
+             if (useRename)
+             {
+-                Rename.RenameString(ref line);
++                line = Rename.RenameString(st.Substring(), new ScriptPosition(filename, LineNo));
++                st = new CharStream(line);
++                LexicalAnalyzer.SkipWhiteSpace(st);
+             }
+-            st = new CharStream(line);
+-            LexicalAnalyzer.SkipWhiteSpace(st);
++
+             if (st.EOS)
+                 continue;
+             //[SKIPSTART]～[SKIPEND]中にここが誤爆するので無効化
+@@ -129,7 +133,7 @@ internal sealed partial class EraStreamReader : IDisposable
+ 
+             if (useRename)
+             {
+-                Rename.RenameString(ref line);
++                line = Rename.RenameString(line);
+             }
+             var test = line.AsSpan().TrimStart();
+             if (test.Length > 0)
+diff --git a/Runtime/Utils/Preload.cs b/Runtime/Utils/Preload.cs
+index 4c2e792..353c737 100644
+--- a/Runtime/Utils/Preload.cs
++++ b/Runtime/Utils/Preload.cs
+@@ -7,6 +7,8 @@ using System.Collections.Generic;
+ using System.Diagnostics;
+ using System.IO;
+ using System.Linq;
++using System.Text;
++using System.Text.Unicode;
+ using System.Threading.Tasks;
+ 
+ namespace MinorShift.Emuera.Runtime.Utils;
+@@ -39,21 +41,51 @@ static partial class Preload
+                             ext.Equals(".erh", StringComparison.OrdinalIgnoreCase);
+                 }).ForAll((childPath) =>
+                 {
+-                    if (JSONConfig.Game.CheckUTF8withBOM)
++                    var bytes = File.ReadAllBytes(childPath.FullName).AsSpan();
++
++                    if (bytes.IsEmpty)
+                     {
+-                        using var file = File.OpenRead(childPath.FullName);
+-                        Span<byte> bom = stackalloc byte[3];
+-                        _ = file.Read(bom);
+-                        file.Close();
+-                        if (!bom.SequenceEqual<byte>([0xEF, 0xBB, 0xBF]))
++                        files[childPath.FullName] = [""];
++                        return;
++                    }
++
++                    var encoding = Config.Config.Encode;
++                    if (bytes.StartsWith<byte>([0xEF, 0xBB, 0xBF]))
++                    {
++                        encoding = Encoding.UTF8;
++                        bytes = bytes[3..];
++                    }
++                    else
++                    {
++                        if (JSONConfig.Game.CheckUTF8withBOM)
+                         {
+                             ParserMediator.ConfigWarn(LocalizationManager.Error.FileNotUTF8BOM, new ScriptPosition(childPath.FullName, 0), 0, "");
+                         }
+                     }
+ 
++                    var lines = new List<string>();
++                    var n = (byte)'\n';
+ 
+-                    var value = File.ReadAllLines(childPath.FullName, Config.Config.Encode);
+-                    files[childPath.FullName] = value;
++                    foreach (var range in ((ReadOnlySpan<byte>)bytes[..]).Split(n))
++                    {
++                        if (bytes[range].IsEmpty)
++                        {
++                            lines.Add("");
++                        }
++                        else
++                        {
++                            if (bytes[range].EndsWith([(byte)'\r']))
++                            {
++                                lines.Add(encoding.GetString(bytes[range.Start..(range.End.Value - 1)]));
++                            }
++                            else
++                            {
++                                lines.Add(encoding.GetString(bytes[range]));
++                            }
++
++                        }
++                    }
++                    files[childPath.FullName] = [.. lines];
+                 });
+             });
+         }
+@@ -62,10 +94,7 @@ static partial class Preload
+             var key = path;
+             var value = File.ReadAllLines(path, Config.Config.Encode);
+             files[key] = value;
+-        };
+-
+-
+-
++        }
+ 
+         Debug.WriteLine($"Load: {path} : End in {(DateTime.Now - startTime).TotalMilliseconds}ms");
+     }
+diff --git a/Runtime/Utils/Rename.cs b/Runtime/Utils/Rename.cs
+index 9437050..d1fda2c 100644
+--- a/Runtime/Utils/Rename.cs
++++ b/Runtime/Utils/Rename.cs
+@@ -1,26 +1,29 @@
+-using System;
+-using System.IO.Hashing;
+-using System.Runtime.InteropServices;
+ using System.Text.RegularExpressions;
+ using MinorShift.Emuera;
++using MinorShift.Emuera.Runtime.Utils;
+ 
+ static partial class Rename
+ {
+     [GeneratedRegex(@"\[\[.*?\]\]")]
+     private static partial Regex regexRenameIdentifer();
+ 
+-    public static void RenameString(ref string @string)
++    public static string RenameString(string @string, ScriptPosition? position = null)
+     {
+-        var span = MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(@string.AsSpan()), @string.Length);
+-        var matches = regexRenameIdentifer().EnumerateMatches(span);
+-        foreach (var match in matches)
++        var match = regexRenameIdentifer().Match(@string);
++        while (match.Success)
+         {
+-            var destSpan = span[match.Index..(match.Index + match.Length)];
+-            if (ParserMediator.RenameDic.TryGetValue(XxHash3.HashToUInt64(MemoryMarshal.AsBytes(destSpan)), out var targetStr))
++            //この段階でマッチしないパターンもある
++            if (ParserMediator.RenameDic.TryGetValue(match.Value, out var targetStr))
+             {
+-                targetStr.AsSpan().CopyTo(destSpan);
+-                span[(match.Index + targetStr.Length)..(match.Index + match.Length)].Fill(' ');
++                @string = @string.Replace(match.Value, targetStr);
+             }
++            else
++            {
++                ParserMediator.Warn($"Renameに失敗 {match}", position, 1);
++            }
++
++            match = match.NextMatch();
+         }
++        return @string;
+     }
+ }
+\ No newline at end of file
+diff --git a/UI/FontFactory.cs b/UI/FontFactory.cs
+index f15758f..69da880 100644
+--- a/UI/FontFactory.cs
++++ b/UI/FontFactory.cs
+@@ -4,29 +4,50 @@ using MinorShift.Emuera.UI.Game;
+ using SkiaSharp;
+ using System.Collections.Generic;
+ using System.Drawing;
++using System.Drawing.Text;
+ using System.IO;
++using System.Linq;
+ 
+ namespace MinorShift.Emuera.UI;
+ 
+ static class FontFactory
+ {
+     static Dictionary<string, SKTypeface> _typefaces = [];
++    
++    //フォントを事前読み込み
++    public static readonly List<string> AvailableFonts =
++        new InstalledFontCollection().Families.Where(FontCheck).Select(x => x.Name).ToList();
++    
++    private static bool FontCheck(FontFamily ff)
++    {
++        return ff.IsStyleAvailable(FontStyle.Regular) &&
++               ff.IsStyleAvailable(FontStyle.Bold) &&
++               ff.IsStyleAvailable(FontStyle.Italic) &&
++               ff.IsStyleAvailable(FontStyle.Strikeout) &&
++               ff.IsStyleAvailable(FontStyle.Underline);
++    }
+ 
+     public static void LoadFontFolder()
+     {
+         var fontFolder = new DirectoryInfo(Program.ExeDir + "font");
+-        if (fontFolder.Exists)
++        
++        if (!fontFolder.Exists)
++            return;
++
++        foreach (var fontFile in fontFolder.EnumerateFiles("", SearchOption.AllDirectories))
+         {
+-            foreach (var fontFile in fontFolder.EnumerateFiles("", SearchOption.AllDirectories))
+-            {
+-                var typeface = SKTypeface.FromFile(fontFile.FullName);
+-                if (typeface != null)
+-                {
+-                    _typefaces[typeface.FamilyName] = typeface;
+-                    _typefaces[fontFile.Name] = typeface;
+-                }
+-            }
++            if(!(fontFile.Extension.Equals(".ttf") || fontFile.Extension.Equals(".otf")))
++                continue;
++            
++            var typeface = SKTypeface.FromFile(fontFile.FullName);
++            
++            if (typeface == null)
++                continue;
++            AvailableFonts.Add(typeface.FamilyName);
++            _typefaces[typeface.FamilyName] = typeface;
++            _typefaces[fontFile.Name] = typeface;
+         }
++        AvailableFonts.Sort();
+     }
+ 
+     static readonly Dictionary<(string fontname, float fontSize, FontStyle fontStyle), SKFont> fontDic = [];
+diff --git a/UI/Framework/ConsoleLocalization.Designer.cs b/UI/Framework/ConsoleLocalization.Designer.cs
+index c7ded54..de54810 100644
+--- a/UI/Framework/ConsoleLocalization.Designer.cs
++++ b/UI/Framework/ConsoleLocalization.Designer.cs
+@@ -2758,7 +2758,7 @@ namespace MinorShift.Emuera.UI.Framework {
+         }
+         
+         /// <summary>
+-        ///   Looks up a localized string similar to An Emuera error has occurred at the end of the function:{0}.
++        ///   Looks up a localized string similar to An Emuera error has occurred at the end of the function..
+         /// </summary>
+         internal static string Error_FuncEndEmueraError {
+             get {
+@@ -2767,7 +2767,7 @@ namespace MinorShift.Emuera.UI.Framework {
+         }
+         
+         /// <summary>
+-        ///   Looks up a localized string similar to An error has occurred at the end of the function:{0}.
++        ///   Looks up a localized string similar to An error has occurred at the end of the function..
+         /// </summary>
+         internal static string Error_FuncEndError {
+             get {
+@@ -2776,7 +2776,7 @@ namespace MinorShift.Emuera.UI.Framework {
+         }
+         
+         /// <summary>
+-        ///   Looks up a localized string similar to An unexpected error has occurred at the end of the function:{0}.
++        ///   Looks up a localized string similar to An unexpected error has occurred at the end of the function..
+         /// </summary>
+         internal static string Error_FuncEndUnexpectedError {
+             get {
+@@ -2965,7 +2965,7 @@ namespace MinorShift.Emuera.UI.Framework {
+         }
+         
+         /// <summary>
+-        ///   Looks up a localized string similar to {0}Emuera has encountered an error: {1}.
++        ///   Looks up a localized string similar to {0}. Emuera has encountered an error..
+         /// </summary>
+         internal static string Error_HasEmueraError {
+             get {
+@@ -2974,7 +2974,7 @@ namespace MinorShift.Emuera.UI.Framework {
+         }
+         
+         /// <summary>
+-        ///   Looks up a localized string similar to {0}Error has occurred:{1}.
++        ///   Looks up a localized string similar to {0}. An Error has occurred..
+         /// </summary>
+         internal static string Error_HasError {
+             get {
+@@ -3010,7 +3010,7 @@ namespace MinorShift.Emuera.UI.Framework {
+         }
+         
+         /// <summary>
+-        ///   Looks up a localized string similar to {0}Unexpected error has occurred: {1}.
++        ///   Looks up a localized string similar to {0}. A unexpected error has occurred..
+         /// </summary>
+         internal static string Error_HasUnexpectedError {
+             get {
+@@ -4017,6 +4017,15 @@ namespace MinorShift.Emuera.UI.Framework {
+             }
+         }
+         
++        /// <summary>
++        ///   Looks up a localized string similar to An error occurred while loading macro.txt.
++        /// </summary>
++        internal static string Error_MacroLoading {
++            get {
++                return ResourceManager.GetString("Error_MacroLoading", resourceCulture);
++            }
++        }
++        
+         /// <summary>
+         ///   Looks up a localized string similar to Macro name &quot;{0}&quot; is already used as a user-defined global variable.
+         /// </summary>
+@@ -6996,6 +7005,16 @@ namespace MinorShift.Emuera.UI.Framework {
+             }
+         }
+         
++        /// <summary>
++        ///   Looks up a localized string similar to Emuera Version: {0}
++        ///  Game Version: {1}.
++        /// </summary>
++        internal static string SystemLine_EnvironmentInfo {
++            get {
++                return ResourceManager.GetString("SystemLine_EnvironmentInfo", resourceCulture);
++            }
++        }
++        
+         /// <summary>
+         ///   Looks up a localized string similar to Processing was terminated because a problem occurred while loading ERH files.
+         /// </summary>
+diff --git a/UI/Framework/ConsoleLocalization.ja-jp.resx b/UI/Framework/ConsoleLocalization.ja-jp.resx
+index 5dad9c9..37d522d 100644
+--- a/UI/Framework/ConsoleLocalization.ja-jp.resx
++++ b/UI/Framework/ConsoleLocalization.ja-jp.resx
+@@ -1995,15 +1995,15 @@
+     </data>
+ 
+     <data name="Error_FuncEndError" xml:space="preserve">
+-        <value>関数の終端でエラーが発生しました:{0}</value>
++        <value>関数の終端でエラーが発生しました.</value>
+     </data>
+ 
+     <data name="Error_FuncEndEmueraError" xml:space="preserve">
+-        <value>関数の終端でEmueraのエラーが発生しました:{0}</value>
++        <value>関数の終端でEmueraのエラーが発生しました.</value>
+     </data>
+ 
+     <data name="Error_FuncEndUnexpectedError" xml:space="preserve">
+-        <value>関数の終端で予期しないエラーが発生しました:{0}</value>
++        <value>関数の終端で予期しないエラーが発生しました.</value>
+     </data>
+ 
+     <data name="Error_ErrorFileAndLine" xml:space="preserve">
+@@ -2019,7 +2019,7 @@
+     </data>
+ 
+     <data name="Error_HasError" xml:space="preserve">
+-        <value>{0}エラーが発生しました:{1}</value>
++        <value>{0}エラーが発生しました.</value>
+     </data>
+ 
+     <data name="Error_ThrowMessage" xml:space="preserve">
+@@ -2043,11 +2043,11 @@
+     </data>
+ 
+     <data name="Error_HasEmueraError" xml:space="preserve">
+-        <value>{0}Emueraのエラーが発生しました:{1}</value>
++        <value>{0}Emueraのエラーが発生しました.</value>
+     </data>
+ 
+     <data name="Error_HasUnexpectedError" xml:space="preserve">
+-        <value>{0}予期しないエラーが発生しました:{1}</value>
++        <value>{0}予期しないエラーが発生しました.</value>
+     </data>
+ 
+     <data name="Error_SkipdispInputError1" xml:space="preserve">
+@@ -3205,4 +3205,11 @@
+     <data name="Error_CanNotUseDumprand" xml:space="preserve">
+         <value>新しい乱数アルゴリズムではDUMPRANDは機能しません</value>
+     </data>
++    <data name="SystemLine_EnvironmentInfo" xml:space="preserve">
++        <value>Emueraのバージョン:{0}
++ゲームのバージョン:{1}</value>
++    </data>
++    <data name="Error_MacroLoading" xml:space="preserve">
++        <value>macro.txt の読み込み中にエラーが発生しました</value>
++    </data>
+ </root>
+\ No newline at end of file
+diff --git a/UI/Framework/ConsoleLocalization.resx b/UI/Framework/ConsoleLocalization.resx
+index fc8ac5f..b7cda8d 100644
+--- a/UI/Framework/ConsoleLocalization.resx
++++ b/UI/Framework/ConsoleLocalization.resx
+@@ -2002,15 +2002,15 @@
+     </data>
+ 
+     <data name="Error_FuncEndError" xml:space="preserve">
+-        <value>An error has occurred at the end of the function:{0}</value>
++        <value>An error has occurred at the end of the function.</value>
+     </data>
+ 
+     <data name="Error_FuncEndEmueraError" xml:space="preserve">
+-        <value>An Emuera error has occurred at the end of the function:{0}</value>
++        <value>An Emuera error has occurred at the end of the function.</value>
+     </data>
+ 
+     <data name="Error_FuncEndUnexpectedError" xml:space="preserve">
+-        <value>An unexpected error has occurred at the end of the function:{0}</value>
++        <value>An unexpected error has occurred at the end of the function.</value>
+     </data>
+ 
+     <data name="Error_ErrorFileAndLine" xml:space="preserve">
+@@ -2026,7 +2026,7 @@
+     </data>
+ 
+     <data name="Error_HasError" xml:space="preserve">
+-        <value>{0}Error has occurred:{1}</value>
++        <value>{0}. An Error has occurred.</value>
+     </data>
+ 
+     <data name="Error_ThrowMessage" xml:space="preserve">
+@@ -2050,11 +2050,11 @@
+     </data>
+ 
+     <data name="Error_HasEmueraError" xml:space="preserve">
+-        <value>{0}Emuera has encountered an error: {1}</value>
++        <value>{0}. Emuera has encountered an error.</value>
+     </data>
+ 
+     <data name="Error_HasUnexpectedError" xml:space="preserve">
+-        <value>{0}Unexpected error has occurred: {1}</value>
++        <value>{0}. A unexpected error has occurred.</value>
+     </data>
+ 
+     <data name="Error_SkipdispInputError1" xml:space="preserve">
+@@ -3212,4 +3212,11 @@ Error.AttributeCanNotInterpretNum	&lt;{0}&gt; tag has a {1}" attribute with a va
+     <data name="Error_CanNotUseDumprand" xml:space="preserve">
+         <value>DUMPRAND does not work with the new random number algorithm</value>
+     </data>
++    <data name="SystemLine_EnvironmentInfo" xml:space="preserve">
++        <value>Emuera Version: {0}
++  Game Version: {1}</value>
++    </data>
++    <data name="Error_MacroLoading" xml:space="preserve">
++        <value>An error occurred while loading macro.txt</value>
++    </data>
+ </root>
+\ No newline at end of file
+diff --git a/UI/Framework/ConsoleLocalization.zh-hans.resx b/UI/Framework/ConsoleLocalization.zh-hans.resx
+index d6eb07a..6e62b84 100644
+--- a/UI/Framework/ConsoleLocalization.zh-hans.resx
++++ b/UI/Framework/ConsoleLocalization.zh-hans.resx
+@@ -1995,15 +1995,15 @@
+     </data>
+ 
+     <data name="Error_FuncEndError" xml:space="preserve">
+-        <value>函数结尾发生错误:{0}</value>
++        <value>函数结尾发生错误.}</value>
+     </data>
+ 
+     <data name="Error_FuncEndEmueraError" xml:space="preserve">
+-        <value>函数结尾发生Emuera错误:{0}</value>
++        <value>函数结尾发生Emuera错误.</value>
+     </data>
+ 
+     <data name="Error_FuncEndUnexpectedError" xml:space="preserve">
+-        <value>函数结尾发生意料之外的错误:{0}</value>
++        <value>函数结尾发生意料之外的错误.</value>
+     </data>
+ 
+     <data name="Error_ErrorFileAndLine" xml:space="preserve">
+@@ -2019,7 +2019,7 @@
+     </data>
+ 
+     <data name="Error_HasError" xml:space="preserve">
+-        <value>{0}错误发生在:{1}</value>
++        <value>{0}错误发生在.</value>
+     </data>
+ 
+     <data name="Error_ThrowMessage" xml:space="preserve">
+@@ -2043,11 +2043,11 @@
+     </data>
+ 
+     <data name="Error_HasEmueraError" xml:space="preserve">
+-        <value>{0}发生了Emuera错误:{1}</value>
++        <value>{0}发生了Emuera错误.</value>
+     </data>
+ 
+     <data name="Error_HasUnexpectedError" xml:space="preserve">
+-        <value>{0}发生了意料之外的错误:{1}</value>
++        <value>{0}发生了意料之外的错误.</value>
+     </data>
+ 
+     <data name="Error_SkipdispInputError1" xml:space="preserve">
+@@ -3175,4 +3175,11 @@
+     <data name="Error_ExtraCharacterAfterDeclaration" xml:space="preserve">
+         <value>声明之后有多余的字符</value>
+     </data>
++    <data name="Error_MacroLoading" xml:space="preserve">
++        <value>加载 macro.txt 时发生错误。</value>
++    </data>
++    <data name="SystemLine_EnvironmentInfo" xml:space="preserve">
++        <value>Emuera 版本：{0}
++游戏版本：{1}</value>
++    </data>
+ </root>
+\ No newline at end of file
+diff --git a/UI/Framework/Forms/ColorBox.cs b/UI/Framework/Forms/ColorBox.cs
+index 215a8f1..fdf9e34 100644
+--- a/UI/Framework/Forms/ColorBox.cs
++++ b/UI/Framework/Forms/ColorBox.cs
+@@ -1,6 +1,7 @@
+ ﻿using System;
+ using System.Drawing;
+ using System.Windows.Forms;
++using System.ComponentModel;
+ 
+ namespace MinorShift.Emuera.Forms;
+ 
+@@ -10,11 +11,13 @@ public partial class ColorBox : UserControl
+     {
+         InitializeComponent();
+     }
++    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+     public Color SelectingColor
+     {
+         get { return pictureBox1.BackColor; }
+         set { pictureBox1.BackColor = value; }
+     }
++    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+     public string LabelText
+     {
+         get { return label1.Text; }
+diff --git a/UI/Framework/Forms/ConfigDialog.cs b/UI/Framework/Forms/ConfigDialog.cs
+index f6b119b..798c559 100644
+--- a/UI/Framework/Forms/ConfigDialog.cs
++++ b/UI/Framework/Forms/ConfigDialog.cs
+@@ -4,6 +4,7 @@ using System;
+ using System.Drawing;
+ using System.Drawing.Text;
+ using System.Windows.Forms;
++using MinorShift.Emuera.UI;
+ using MinorShift.Emuera.UI.Framework;
+ 
+ namespace MinorShift.Emuera.Forms;
+@@ -49,17 +50,9 @@ internal sealed partial class ConfigDialog : Form
+ 
+     private void shown(object sender, EventArgs e)
+     {
+-        //フォントを事前読み込み
+-        foreach (var ff in new InstalledFontCollection().Families)
++        foreach (var fontName in FontFactory.AvailableFonts)
+         {
+-            if (ff.IsStyleAvailable(FontStyle.Regular) &&
+-                ff.IsStyleAvailable(FontStyle.Bold) &&
+-                ff.IsStyleAvailable(FontStyle.Italic) &&
+-                ff.IsStyleAvailable(FontStyle.Strikeout) &&
+-                ff.IsStyleAvailable(FontStyle.Underline))
+-            {
+-                comboBox2.Items.Add(ff.Name);
+-            }
++            comboBox2.Items.Add(fontName);
+         }
+     }
+ 
+diff --git a/UI/Framework/Forms/DebugDialog.cs b/UI/Framework/Forms/DebugDialog.cs
+index 8c1dd74..0e2aed7 100644
+--- a/UI/Framework/Forms/DebugDialog.cs
++++ b/UI/Framework/Forms/DebugDialog.cs
+@@ -75,11 +75,13 @@ public partial class DebugDialog : Form
+         mainConsole = console;
+     }
+ 
++    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+     public string ConsoleText
+     {
+         get { return textBoxConsole.Text; }
+         set { textBoxConsole.Text = value; }
+     }
++    [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+     public string TraceText
+     {
+         get { return textBoxTrace.Text; }
+@@ -149,7 +151,7 @@ public partial class DebugDialog : Form
+         {
+             if (Config.UseRenameFile)
+             {
+-                Rename.RenameString(ref str);
++                str = Rename.RenameString(str);
+             }
+             CharStream st = new(str);
+             WordCollection wc = LexicalAnalyzer.Analyse(st, LexEndWith.EoL, LexAnalyzeFlag.None);
+diff --git a/UI/Framework/Forms/MainWindow.cs b/UI/Framework/Forms/MainWindow.cs
+index 0237df4..11984c7 100644
+--- a/UI/Framework/Forms/MainWindow.cs
++++ b/UI/Framework/Forms/MainWindow.cs
+@@ -587,6 +587,8 @@ internal sealed partial class MainWindow : Form
+     public void ShowConfigDialog()
+     {
+ 
++        if (console == null || GlobalStatic.Console == null)
++            return;
+         ConfigDialog dialog = new()
+         {
+             StartPosition = FormStartPosition.CenterParent
+@@ -1183,7 +1185,7 @@ internal sealed partial class MainWindow : Form
+             this.マクロToolStripMenuItem.DropDownItems[i].Text = LocalizationManager.MainWindow.ContextMenu_KeyMacro + i.ToString("D2");
+         this.マクログループToolStripMenuItem.Text = LocalizationManager.MainWindow.ContextMenu_KeyMacroGroup;
+         for (int i = 0; i < this.マクログループToolStripMenuItem.DropDownItems.Count; i++)
+-            this.マクログループToolStripMenuItem.DropDownItems[i].Text = string.Format(LocalizationManager.MainWindow.ContextMenu_KeyMacroGroup_Group, i);
++            this.マクログループToolStripMenuItem.DropDownItems[i].Text = KeyMacro.GetGroupName(i);
+ 
+         this.切り取り.Text = LocalizationManager.MainWindow.ContextMenu_Cut;
+         this.コピー.Text = LocalizationManager.MainWindow.ContextMenu_Copy;
+@@ -1203,35 +1205,45 @@ internal sealed partial class MainWindow : Form
+ 
+     private void englishToolStripMenuItem_Click(object sender, EventArgs e)
+     {
+-        LocalizationManager.SetLanguage("en");
++        LocalizationManager.SetLanguage(LocalizationManager.English);
+         Localize();
+     }
+ 
+     private void japaneseToolStripMenuItem_Click(object sender, EventArgs e)
+     {
+-        LocalizationManager.SetLanguage("ja-jp");
++        LocalizationManager.SetLanguage(LocalizationManager.Japanese);
+         Localize();
+     }
+ 
+     private void chineseToolStripMenuItem_Click(object sender, EventArgs e)
+     {
+-        LocalizationManager.SetLanguage("zh-hans");
++        LocalizationManager.SetLanguage(LocalizationManager.ChineseSimplified);
+         Localize();
+     }
+ 
+     private void koreanToolStripMenuItem_Click(object sender, EventArgs e)
+     {
+-        LocalizationManager.SetLanguage("kr");
+-        Localize();
++        //Not implemented yet
++        return;
++        //LocalizationManager.SetLanguage(Korean);
++        //Localize();
+     }
+ 
+     private void クリップボードにコピーToolStripMenuItem_Click(object sender, EventArgs e)
+     {
+-        if(クリップボードにコピーToolStripMenuItem.Checked)
+-            GlobalStatic.Console.CBProc.Init();
++        if (console == null || GlobalStatic.Console == null)
++            return;
++        if (クリップボードにコピーToolStripMenuItem.Checked)
++            console.CBProc.Init();
+         else
+-            GlobalStatic.Console.CBProc.Reset();
++            console.CBProc.Reset();
+         JSONConfig.User.CBUseClipboard = クリップボードにコピーToolStripMenuItem.Checked;
+         JSONConfig.Save();
+     }
++
++    public void SetMacroGroupNames()
++    {
++        for (int i = 0; i < this.マクログループToolStripMenuItem.DropDownItems.Count; i++)
++            this.マクログループToolStripMenuItem.DropDownItems[i].Text = KeyMacro.GetGroupName(i);
++    }
+ }
+\ No newline at end of file
+diff --git a/UI/Framework/LocalizationManager.cs b/UI/Framework/LocalizationManager.cs
+index e681e43..01a0ddc 100644
+--- a/UI/Framework/LocalizationManager.cs
++++ b/UI/Framework/LocalizationManager.cs
+@@ -322,6 +322,17 @@ public static class LocalizationManager
+         public static string SetMacroGroup => FormLocalization.KeyMacro_SetMacroGroup;
+         public static string MacroKeyF => FormLocalization.KeyMacro_MacroKeyF;
+         public static string GMacroKeyF => FormLocalization.KeyMacro_GMacroKeyF;
++        public static string SetMacroGroupEnglish => FormLocalization.ResourceManager.GetString("KeyMacro_SetMacroGroup", English);
++        public static string MacroKeyFEnglish => FormLocalization.ResourceManager.GetString("KeyMacro_MacroKeyF", English);
++        public static string GMacroKeyFEnglish => FormLocalization.ResourceManager.GetString("KeyMacro_GMacroKeyF", English);
++
++        public static string SetMacroGroupJapanese => FormLocalization.ResourceManager.GetString("KeyMacro_SetMacroGroup", Japanese);
++        public static string MacroKeyFJapanese => FormLocalization.ResourceManager.GetString("KeyMacro_MacroKeyF", Japanese);
++        public static string GMacroKeyFJapanese => FormLocalization.ResourceManager.GetString("KeyMacro_GMacroKeyF", Japanese);
++        
++        public static string SetMacroGroupChinese => FormLocalization.ResourceManager.GetString("KeyMacro_SetMacroGroup", ChineseSimplified);
++        public static string MacroKeyFChinese => FormLocalization.ResourceManager.GetString("KeyMacro_MacroKeyF", ChineseSimplified);
++        public static string GMacroKeyFChinese => FormLocalization.ResourceManager.GetString("KeyMacro_GMacroKeyF", ChineseSimplified);
+     }
+ 
+     public static class Error
+@@ -1169,6 +1180,7 @@ public static class LocalizationManager
+         public static string CanNotUseDumprand => ConsoleLocalization.Error_CanNotUseDumprand;
+         public static string CanNotUseInitrand => ConsoleLocalization.Error_CanNotUseInitrand;
+         public static string IgnoreRandomize => ConsoleLocalization.Error_IgnoreRandomize;
++        public static string MacroLoadingError => ConsoleLocalization.Error_MacroLoading;
+     }
+ 
+     public static class SystemLine
+@@ -1220,13 +1232,20 @@ public static class LocalizationManager
+         public static string LogFileHasBeenCreated => ConsoleLocalization.SystemLine_LogFileHasBeenCreated;
+         public static string MinusWontWork => ConsoleLocalization.SystemLine_MinusWontWork;
+         public static string Patch => ConsoleLocalization.SystemLine_Patch;
+-        public static string Enviroment => ConsoleLocalization.SystemLine_Enviroment;
++        public static string Environment => ConsoleLocalization.SystemLine_Enviroment;
+         public static string Log => ConsoleLocalization.SystemLine_Log;
++        public static string EnvironmentInfo => ConsoleLocalization.SystemLine_EnvironmentInfo;
+     }
+ 
+-    public static void SetLanguage(string language)
++    public static void SetLanguage(CultureInfo culture)
+     {
+-        var culture = new CultureInfo(language);
+         Thread.CurrentThread.CurrentUICulture = culture;
+     }
++    
++    public static CultureInfo CurrentCulture => Thread.CurrentThread.CurrentUICulture;
++
++    public static CultureInfo Japanese => new("ja-jp");
++    public static CultureInfo English => new("en");
++    public static CultureInfo ChineseSimplified => new("zh-hans");
++    
+ }
+\ No newline at end of file
+diff --git a/UI/Game/ConsoleDivElement.cs b/UI/Game/ConsoleDivElement.cs
+index 3e669bc..7507e33 100644
+--- a/UI/Game/ConsoleDivElement.cs
++++ b/UI/Game/ConsoleDivElement.cs
+@@ -1,6 +1,5 @@
+ using System;
+ using System.Collections.Generic;
+-using AngleSharp.Dom;
+ using MinorShift.Emuera;
+ using MinorShift.Emuera.Runtime.Config;
+ using MinorShift.Emuera.Runtime.Config.JSON;
+@@ -130,20 +129,18 @@ class ConsoleDivElement : AConsoleDisplayNode
+ 
+             if (_backColor.HasValue)
+             {
+-                var paint = new SKPaint()
++                using (var paint = new SKPaint() { Color = _backColor.Value, })
+                 {
+-                    Color = _backColor.Value,
+-                };
+-                canvas.DrawRect(SKRect.Create(Point, Size), paint);
++                    canvas.DrawRect(SKRect.Create(Point, Size), paint);
++                }
+             }
+ 
+             if (isSelecting && _hoverBackColor != SKColor.Empty)
+             {
+-                var paint = new SKPaint()
++                using (var paint = new SKPaint() { Color = _hoverBackColor, })
+                 {
+-                    Color = _hoverBackColor,
+-                };
+-                canvas.DrawRect(SKRect.Create(Point, Size), paint);
++                    canvas.DrawRect(SKRect.Create(Point, Size), paint);
++                }
+             }
+ 
+         }
+diff --git a/UI/Game/ConsoleImagePart.cs b/UI/Game/ConsoleImagePart.cs
+index dcf258e..903b746 100644
+--- a/UI/Game/ConsoleImagePart.cs
++++ b/UI/Game/ConsoleImagePart.cs
+@@ -196,7 +196,10 @@ sealed class ConsoleImagePart : AConsoleDisplayNode
+         else
+         {
+             point.Offset(0, -Config.DefaultFont.Metrics.Top);
+-            graph.DrawText(AltText, point, SKTextAlign.Left, Config.DefaultFont, new SKPaint() { Color = Config.ForeColor.ToSKColor() });
++            using (var paint = new SKPaint() { Color = Config.ForeColor.ToSKColor() })
++            {
++                graph.DrawText(AltText, point, SKTextAlign.Left, Config.DefaultFont, paint);
++            }
+         }
+     }
+ }
+diff --git a/UI/Game/ConsoleShapePart.cs b/UI/Game/ConsoleShapePart.cs
+index e8c96a3..94d7460 100644
+--- a/UI/Game/ConsoleShapePart.cs
++++ b/UI/Game/ConsoleShapePart.cs
+@@ -131,12 +131,14 @@ internal sealed class ConsoleRectangleShapePart : ConsoleShapePart
+ 
+         Color dcolor = isSelecting ? ButtonColor : Color;
+ 
+-        var paint = new SKPaint
++        using (var paint = new SKPaint()
+         {
+             Style = SKPaintStyle.Fill,
+             Color = dcolor.ToSKColor()
+-        };
+-        graph.DrawRect(targetRect, paint);
++        })
++        {
++            graph.DrawRect(targetRect, paint);
++        }
+     }
+     public override void SetWidth(StringMeasure sm, float subPixel)
+     {
+@@ -179,7 +181,10 @@ internal sealed class ConsoleErrorShapePart : ConsoleShapePart
+     public override void DrawTo(SKCanvas graph, SKPoint point, bool isSelecting, bool isBackLog, TextDrawingMode mode, bool isButton = false)
+     {
+         point.Offset(0, -Config.DefaultFont.Metrics.Top);
+-        graph.DrawText(Text, point, SKTextAlign.Left, Config.DefaultFont, new SKPaint() { Color = Config.ForeColor.ToSKColor() });
++        using (var paint = new SKPaint() { Color = Config.ForeColor.ToSKColor() })
++        {
++            graph.DrawText(Text, point, SKTextAlign.Left, Config.DefaultFont, paint);
++        }
+     }
+     public override void SetWidth(StringMeasure sm, float subPixel)
+     {
+diff --git a/UI/Game/ConsoleStyledString.cs b/UI/Game/ConsoleStyledString.cs
+index c5c585f..8e39d80 100644
+--- a/UI/Game/ConsoleStyledString.cs
++++ b/UI/Game/ConsoleStyledString.cs
+@@ -202,59 +202,59 @@ internal sealed class ConsoleStyledString : AConsoleColoredNode
+             color = Config.LogColor;
+         }
+ 
+-        var paint = new SKPaint
++        using (var paint = new SKPaint() { Color = color.ToSKColor() })
+         {
+-            Color = color.ToSKColor()
+-        };
+-
+-        var point = new SKPoint(origin.X, origin.Y);
++            var point = new SKPoint(origin.X, origin.Y);
+ 
+-        Point = point;
++            Point = point;
+ 
+-        if (backcolor.HasValue)
+-        {
+-            var size = new SKSize(Width, Font.Size);
+-            graph.DrawRect(SKRect.Create(point, size), new SKPaint() { Color = backcolor.Value });
+-        }
++            if (backcolor.HasValue)
++            {
++                var size = new SKSize(Width, Font.Size);
++                using (var paint2 = new SKPaint() { Color = backcolor.Value })
++                {
++                    graph.DrawRect(SKRect.Create(point, size), paint2);
++                }
++            }
+ 
+-        if (_texts == null)
+-        {
+-            point.Offset(0, Math.Abs(Font.Metrics.Top));
+-            graph.DrawText(Text, point, SKTextAlign.Left, Font, paint);
+-        }
+-        else
+-        {
+-            foreach (var text in _texts)
++            if (_texts == null)
+             {
+-                var offsetPoint = point with { Y = point.Y + Math.Abs(text.Font.Metrics.Top) };
+-                graph.DrawText(text.Text, offsetPoint, SKTextAlign.Left, text.Font, paint);
++                point.Offset(0, Math.Abs(Font.Metrics.Top));
++                graph.DrawText(Text, point, SKTextAlign.Left, Font, paint);
++            }
++            else
++            {
++                foreach (var text in _texts)
++                {
++                    var offsetPoint = point with { Y = point.Y + Math.Abs(text.Font.Metrics.Top) };
++                    graph.DrawText(text.Text, offsetPoint, SKTextAlign.Left, text.Font, paint);
+ 
+-                point.Offset(text.Width, 0);
++                    point.Offset(text.Width, 0);
++                }
+             }
+-        }
+ 
+ 
+-        if (StringStyle.HasUnderline)
+-        {
+-            var underlinePosition = Point;
+-            underlinePosition.Offset(0, -Font.Metrics.Top + (Font.Metrics.UnderlinePosition ?? 0));
++            if (StringStyle.HasUnderline)
++            {
++                var underlinePosition = Point;
++                underlinePosition.Offset(0, -Font.Metrics.Top + (Font.Metrics.UnderlinePosition ?? 0));
+ 
+-            var width = paint.StrokeWidth;
+-            paint.StrokeWidth = Font.Metrics.UnderlineThickness ?? 1;
+-            graph.DrawLine(underlinePosition, underlinePosition + new SKPoint(Width, 0), paint);
+-            paint.StrokeWidth = width;
+-        }
++                var width = paint.StrokeWidth;
++                paint.StrokeWidth = Font.Metrics.UnderlineThickness ?? 1;
++                graph.DrawLine(underlinePosition, underlinePosition + new SKPoint(Width, 0), paint);
++                paint.StrokeWidth = width;
++            }
+ 
+-        if (StringStyle.HasStrikeout)
+-        {
+-            var strikeoutPosition = Point;
+-            strikeoutPosition.Offset(0, -Font.Metrics.Top + (Font.Metrics.StrikeoutPosition ?? 0));
++            if (StringStyle.HasStrikeout)
++            {
++                var strikeoutPosition = Point;
++                strikeoutPosition.Offset(0, -Font.Metrics.Top + (Font.Metrics.StrikeoutPosition ?? 0));
+ 
+-            var width = paint.StrokeWidth;
+-            paint.StrokeWidth = Font.Metrics.StrikeoutThickness ?? 1;
+-            graph.DrawLine(strikeoutPosition, strikeoutPosition + new SKPoint(Width, 0), paint);
+-            paint.StrokeWidth = width;
++                var width = paint.StrokeWidth;
++                paint.StrokeWidth = Font.Metrics.StrikeoutThickness ?? 1;
++                graph.DrawLine(strikeoutPosition, strikeoutPosition + new SKPoint(Width, 0), paint);
++                paint.StrokeWidth = width;
++            }
+         }
+-
+     }
+ }
+diff --git a/UI/Game/EmueraConsole.Print.cs b/UI/Game/EmueraConsole.Print.cs
+index 6c4ccb5..b1ae697 100644
+--- a/UI/Game/EmueraConsole.Print.cs
++++ b/UI/Game/EmueraConsole.Print.cs
+@@ -89,7 +89,7 @@ internal sealed partial class EmueraConsole : IDisposable
+     /// </summary>
+     string stBar;
+ 
+-    Stopwatch _drawStopwatch;
++    long _drawStopwatch;
+     bool forceTextBoxColor;
+     public void SetBgColor(Color color)
+     {
+@@ -100,19 +100,21 @@ internal sealed partial class EmueraConsole : IDisposable
+         if (redraw == ConsoleRedraw.None && window.ScrollBar.Value == window.ScrollBar.Maximum)
+             return;
+         //色変化が速くなりすぎないように一定時間以内の再呼び出しは強制待ちにする
+-        if (_drawStopwatch == null)
++        var now = Stopwatch.GetTimestamp();
++        if (_drawStopwatch == 0)
+         {
+-            _drawStopwatch = Stopwatch.StartNew();
++            _drawStopwatch = now;
+         }
+         else
+         {
+-            while (_drawStopwatch.ElapsedMilliseconds < msPerFrame)
++            while (Stopwatch.GetElapsedTime(_drawStopwatch, now).TotalMilliseconds < msPerFrame)
+             {
+                 Application.DoEvents();
++                now = Stopwatch.GetTimestamp();
+             }
+         }
+         RefreshStrings(true);
+-        _drawStopwatch.Restart();
++        _drawStopwatch = Stopwatch.GetTimestamp();
+     }
+ 
+     //完全に独立したHTML
+@@ -696,9 +698,10 @@ internal sealed partial class EmueraConsole : IDisposable
+         var builder = new StringBuilder();
+ 
+ 
+-        builder.AppendLine(LocalizationManager.SystemLine.Enviroment);
++        builder.AppendLine(LocalizationManager.SystemLine.Environment);
+         builder.AppendLine(AssemblyData.EmueraVersionText);
+-
++        if (!string.IsNullOrEmpty(GlobalStatic.GameBaseData?.ScriptWindowTitle))
++            builder.AppendLine(GlobalStatic.GameBaseData.ScriptWindowTitle);
+         var patchVersionsPath = Path.Combine(Program.ExeDir, "patch_versions");
+         if (Directory.Exists(patchVersionsPath))
+         {
+diff --git a/UI/Game/EmueraConsole.cs b/UI/Game/EmueraConsole.cs
+index 143ae5b..8fe707e 100644
+--- a/UI/Game/EmueraConsole.cs
++++ b/UI/Game/EmueraConsole.cs
+@@ -86,6 +86,7 @@ internal sealed partial class EmueraConsole : IDisposable
+         genericTimer.Elapsed += tickTimer;
+         genericTimer.Interval = 10;
+         genericTimer.Enabled = false;
++        genericTimer.SynchronizingObject = parent;
+         CBG_Clear();//文字列描画用ダミー追加
+ 
+         redrawTimer = new(TimeSpan.FromMilliseconds(10));
+@@ -94,10 +95,11 @@ internal sealed partial class EmueraConsole : IDisposable
+             {
+                 while (await redrawTimer.WaitForNextTickAsync())
+                 {
+-                    if (isRedrawEnabled)
+-                    {
+-                        Draw();
+-                    }
++                    //描画が重いと入力が処理できないので、描画毎に入力を捌く
++                    Application.DoEvents();
++
++                    //画面再描画(アニメーション処理)
++                    Draw();
+                 }
+             }
+         );
+@@ -369,7 +371,7 @@ internal sealed partial class EmueraConsole : IDisposable
+         using var fs = new FileStream(Program.ExeDir + "time.log", FileMode.Create);
+         using var logWriter = new StreamWriter(fs);
+         logWriter.WriteLine("Init:Start");
+-        _genericTimerStopwatch.Restart();
++        _genericTimerStopwatch = Stopwatch.GetTimestamp();
+ 
+         //必要なソースファイルを事前にメモリに一気に読み込む
+         logWriter.WriteLine("File:Preload:Start");
+@@ -399,12 +401,16 @@ internal sealed partial class EmueraConsole : IDisposable
+             RefreshStrings(true);
+             return;
+         }
++        window.SetMacroGroupNames();
+         RunEmueraProgram("");
+         RefreshStrings(true);
+ 
+         Preload.Clear();
+ 
+         logWriter.WriteLine("Init:End " + boottimeDebugStopwatch.ElapsedMilliseconds + "ms");
++
++        Debug.WriteLine($"GC:{GC.GetTotalMemory(true):N0}");
++        Debug.WriteLine($"WorkingSet:{Environment.WorkingSet:N0}");
+     }
+ 
+ 
+@@ -592,6 +598,7 @@ internal sealed partial class EmueraConsole : IDisposable
+         if (tickcount <= 0)
+         {
+             isRedrawEnabled = false;
++            redrawTimer.Period = Timeout.InfiniteTimeSpan;
+             return;
+         }
+ 
+@@ -608,7 +615,7 @@ internal sealed partial class EmueraConsole : IDisposable
+ 
+     System.Timers.Timer genericTimer = new();
+     Int64 timerID = -1;
+-    readonly Stopwatch _genericTimerStopwatch = new();//現在のタイマーを開始した時のミリ秒数（WinmmTimer.TickCount基準）
++    long _genericTimerStopwatch = Stopwatch.GetTimestamp();//現在のタイマーを開始した時のミリ秒数（WinmmTimer.TickCount基準）
+     Int64 timer_endTime;//現在のタイマーを終了する時のTickCountミリ秒数
+     bool isTimeout;
+     public bool IsTimeOut { get { return isTimeout; } }
+@@ -624,7 +631,7 @@ internal sealed partial class EmueraConsole : IDisposable
+ 
+         if (inputReq.DisplayTime)
+         {
+-            var remainingMs = inputReq.Timelimit - _genericTimerStopwatch.ElapsedMilliseconds;
++            var remainingMs = inputReq.Timelimit - Stopwatch.GetElapsedTime(_genericTimerStopwatch).TotalMilliseconds;
+             PrintSingleLine($"{LocalizationManager.SystemLine.Remaining} {remainingMs} ms");
+         }
+     }
+@@ -633,7 +640,7 @@ internal sealed partial class EmueraConsole : IDisposable
+         isTimeout = false;
+         timerID = inputReq.ID;
+         genericTimer.Enabled = true;
+-        _genericTimerStopwatch.Restart();
++        _genericTimerStopwatch = Stopwatch.GetTimestamp();
+         timer_endTime = inputReq.Timelimit;
+     }
+ 
+@@ -647,7 +654,7 @@ internal sealed partial class EmueraConsole : IDisposable
+             stopTimer();
+             return;
+         }
+-        var elapsedMs = _genericTimerStopwatch.ElapsedMilliseconds;
++        var elapsedMs = Stopwatch.GetElapsedTime(_genericTimerStopwatch).TotalMilliseconds;
+         if (elapsedMs >= timer_endTime)
+         {
+             endTimer();
+@@ -656,7 +663,7 @@ internal sealed partial class EmueraConsole : IDisposable
+ 
+         if (inputReq.DisplayTime)
+         {
+-            var remainingMs = inputReq.Timelimit - _genericTimerStopwatch.ElapsedMilliseconds;
++            var remainingMs = inputReq.Timelimit - Stopwatch.GetElapsedTime(_genericTimerStopwatch).TotalMilliseconds;
+             window.Invoke(() => changeLastLine($"{LocalizationManager.SystemLine.Remaining} {remainingMs / 1000.0f:0.0}"));
+         }
+     }
+@@ -733,6 +740,7 @@ internal sealed partial class EmueraConsole : IDisposable
+                 return;
+         }
+         state = ConsoleState.Running;
++        //process.CompileScript();
+         process.DoScript();
+         if (state == ConsoleState.Running)
+         {//RunningならProcessは処理を継続するべき
+@@ -1212,7 +1220,7 @@ internal sealed partial class EmueraConsole : IDisposable
+     #endregion
+ 
+     #region 描画系
+-    Stopwatch _frameDeltaTimer = Stopwatch.StartNew();
++    long _frameStartTime = Stopwatch.GetTimestamp();
+     uint msPerFrame = 1000 / 60;//60FPS
+     ConsoleRedraw redraw = ConsoleRedraw.Normal;
+     public ConsoleRedraw Redraw { get { return redraw; } }
+@@ -1282,31 +1290,37 @@ internal sealed partial class EmueraConsole : IDisposable
+                 return;
+             //まだ書き換えるタイミングでないなら次の更新を待ってみる
+             //ただし、入力待ちなど、しばらく更新のタイミングがない場合には強制的に書き換えてみる
+-            if (_frameDeltaTimer.ElapsedMilliseconds < msPerFrame && (state == ConsoleState.Running || state == ConsoleState.Initializing))
++            if (Stopwatch.GetElapsedTime(_frameStartTime).TotalMilliseconds < msPerFrame && (state == ConsoleState.Running || state == ConsoleState.Initializing))
+                 return;
+         }
+ 
+         if (forceTextBoxColor)
+         {
+-            var sec = _genericTimerStopwatch.ElapsedMilliseconds;
++            var now = Stopwatch.GetTimestamp();
++            var sec = Stopwatch.GetElapsedTime(_genericTimerStopwatch, now).TotalMilliseconds;
++
+             //色変化が速くなりすぎないように一定時間以内の再呼び出しは強制待ちにする
+-            if (_drawStopwatch == null)
++            if (_drawStopwatch == 0)
+             {
+-                _drawStopwatch = Stopwatch.StartNew();
++                _drawStopwatch = now;
+             }
+             else
+             {
+-                while (_drawStopwatch.ElapsedMilliseconds < msPerFrame)
++                while (Stopwatch.GetElapsedTime(_drawStopwatch, now).TotalMilliseconds < msPerFrame)
+                 {
+                     Application.DoEvents();
++                    now = Stopwatch.GetTimestamp();
+                 }
+             }
+             window.TextBox.BackColor = this.bgColor.ToDrawingColor();
+ 
+-            _drawStopwatch.Restart();
++            _drawStopwatch = now;
+         }
+         window.Invoke(() =>
+         {
++            //描画が重いと入力が処理できないので、描画毎に入力を捌く
++            Application.DoEvents();
++
+             verticalScrollBarUpdate();
+             window.MainPicBox.Refresh();//OnPaint発行
+         });
+@@ -1327,14 +1341,11 @@ internal sealed partial class EmueraConsole : IDisposable
+         if (!this.Enabled)
+             return;
+ 
+-        //描画が重いと入力が処理できないので、描画毎に入力を捌く
+-        Application.DoEvents();
+-
+         //デバッグ用。描画が超重い環境を想定1
+         //Task.Delay(100).Wait();
+ 
+         //1824 アニメスプライト用・現在フレームの時間を決定
+-        _frameDeltaTimer.Restart();
++        _frameStartTime = Stopwatch.GetTimestamp();
+ 
+         bool isBackLog = window.ScrollBar.Value != window.ScrollBar.Maximum;
+         int pointY = window.MainPicBox.Height - Config.LineHeight;
+@@ -1599,7 +1610,7 @@ internal sealed partial class EmueraConsole : IDisposable
+             {
+                 if (Config.UseRenameFile)
+                 {
+-                    Rename.RenameString(ref com);
++                    com = Rename.RenameString(com);
+                 }
+                 line = LogicalLineParser.ParseLine(com, null);
+             }
+diff --git a/UI/Game/HtmlManager.cs b/UI/Game/HtmlManager.cs
+index 471d906..5691c60 100644
+--- a/UI/Game/HtmlManager.cs
++++ b/UI/Game/HtmlManager.cs
+@@ -1,15 +1,12 @@
+ ﻿using AngleSharp.Dom;
+ using MinorShift.Emuera.GameView;
+ using MinorShift.Emuera.Runtime.Config;
+-using MinorShift.Emuera.Runtime.Script.Parser;
+-using MinorShift.Emuera.Runtime.Script.Statements.Expression;
+ using MinorShift.Emuera.Runtime.Utils;
+ using SkiaSharp;
+ using SkiaSharp.Views.Desktop;
+ using System;
+ using System.Collections.Generic;
+ using System.Drawing;
+-using System.Linq;
+ using System.Text;
+ using System.Text.RegularExpressions;
+ using MinorShift.Emuera.UI.Framework;
+@@ -294,7 +291,7 @@ internal static partial class HtmlManager
+     /// <param name="console">実際の表示に使わないならnullにする</param>
+     /// <returns></returns>
+     /// 
+-    static AngleSharp.Html.Parser.HtmlParser parser = new();
++    static readonly AngleSharp.Html.Parser.HtmlParser parser = new();
+     public static ConsoleDisplayLine[] Html2DisplayLine(string str, StringMeasure sm, EmueraConsole console, bool lineEnd)
+     {
+ 
+@@ -679,6 +676,8 @@ internal static partial class HtmlManager
+ 
+                             }
+                             break;
++                        case "#comment":
++                            break;
+                         default:
+                             {
+                                 throw new Exception($"タグ名 {node.NodeName} は解釈出来ません");
+diff --git a/UI/Game/Image/CroppedImage.cs b/UI/Game/Image/CroppedImage.cs
+index 45b93c5..b1ed52e 100644
+--- a/UI/Game/Image/CroppedImage.cs
++++ b/UI/Game/Image/CroppedImage.cs
+@@ -8,6 +8,7 @@ using System.Collections.Generic;
+ using System.Drawing;
+ using System.Drawing.Imaging;
+ using MinorShift.Emuera.UI.Framework;
++using System.Diagnostics;
+ 
+ namespace MinorShift.Emuera.UI.Game.Image;
+ 
+@@ -282,16 +283,16 @@ internal sealed class SpriteAnime : ASprite
+     /// </summary>
+     internal void ResetTime()
+     {
+-        StartTime = DateTime.Now;
+-        lastFrameTime = DateTime.Now;
++        startTime = Stopwatch.GetTimestamp();
++        lastFrameTime = startTime;
+         lastFrame = -1;
+     }
+ 
+     /// <summary>
+     /// 開始時間調整用の値。ミリ秒でUInt32の範囲まで想定。
+     /// </summary>
+-    DateTime StartTime;
+-    DateTime lastFrameTime;
++    long startTime;
++    long lastFrameTime;
+     int lastFrame = -1;
+     private AnimeFrame GetCurrentFrame()
+     {
+@@ -303,23 +304,25 @@ internal sealed class SpriteAnime : ASprite
+         if (lastFrame >= FrameList.Count)
+             throw new ExeEE(LocalizationManager.Error.OoRLasframe);
+ #endif
++        var now = Stopwatch.GetTimestamp();
++
+         //一度もフレーム取得したことがない場合は現在時間を記録して最初のフレームを返す。
+         if (lastFrame == -1)
+         {
+-            StartTime = DateTime.Now;
++            startTime = now;
+             lastFrame = 0;
+             return FrameList[0];
+         }
+-        //時間経過なしに複数回呼ばれた場合はさっき返したフレームをもう一度返す。
+-        if (DateTime.Now == lastFrameTime && lastFrame >= 0)
++
++        //あまりに短い時間で複数回呼ばれた場合はさっき返したフレームをもう一度返す。
++        if (Stopwatch.GetElapsedTime(lastFrameTime, now).TotalMilliseconds < 1 && lastFrame >= 0)
+             return FrameList[lastFrame];
+-        //StartTimeからの経過時間(ms)をtotaltimeで剰余計算
+-        var elapsedTime = (DateTime.Now - StartTime).TotalMilliseconds % totaltime;
+ 
+-        foreach (AnimeFrame frame in FrameList)
++        var elapsedMs = Stopwatch.GetElapsedTime(startTime, now).Milliseconds;
++        foreach (var frame in FrameList)
+         {
+-            elapsedTime -= frame.DelayTimeMs;
+-            if (elapsedTime <= 0)
++            elapsedMs -= frame.DelayTimeMs;
++            if (elapsedMs <= 0)
+             {
+                 lastFrame = frame.index;
+                 return frame;
+@@ -399,11 +402,10 @@ internal sealed class SpriteAnime : ASprite
+         //g.DrawImage(frame.BaseImage.Bitmap, destRect, SrcRectangle, GraphicsUnit.Pixel, attr);←このパターンがない
+         //g.DrawImage(frame.BaseImage.SKBitmap.ToBitmap(), destRect, frame.SrcRectangle.X, frame.SrcRectangle.Y, frame.SrcRectangle.Width, frame.SrcRectangle.Height, GraphicsUnit.Pixel, attr);
+ 
+-        var paint = new SKPaint()
++        using (var paint = new SKPaint() { ColorFilter = attr })
+         {
+-            ColorFilter = attr
+-        };
+-        g.DrawBitmap(frame.BaseImage.Bitmap, destRect.ToSKRect(), paint);
++            g.DrawBitmap(frame.BaseImage.Bitmap, destRect.ToSKRect(), paint);
++        }
+     }
+ 
+ }
+diff --git a/UI/Game/Image/GraphicsImage.cs b/UI/Game/Image/GraphicsImage.cs
+index fa27802..dbfa60e 100644
+--- a/UI/Game/Image/GraphicsImage.cs
++++ b/UI/Game/Image/GraphicsImage.cs
+@@ -109,8 +109,10 @@ internal sealed class GraphicsImage : AbstractImage
+             //using var b = new SolidBrush(Config.BackColor);
+             //canvas.FillRectangle(b, rect);
+ 
+-            var paint = new SKPaint();
+-            canvas.DrawRect(rect.ToSKRect(), paint);
++            using (var paint = new SKPaint())
++            {
++                canvas.DrawRect(rect.ToSKRect(), paint);
++            }
+         }
+     }
+ 
+@@ -123,10 +125,11 @@ internal sealed class GraphicsImage : AbstractImage
+         {
+             throw new NullReferenceException("DrawPolygonに渡されるPointsが空です");
+         }
+-        var paint = _pen ?? new SKPaint();
+-        paint.Style = SKPaintStyle.Stroke;
+-
+-        canvas.DrawPoints(SKPointMode.Polygon, [.. _points, _points[0]], paint);
++        using (var paint = _pen ?? new SKPaint())
++        {
++            paint.Style = SKPaintStyle.Stroke;
++            canvas.DrawPoints(SKPointMode.Polygon, [.. _points, _points[0]], paint);
++        }
+     }
+     public void GFillPolygon()
+     {
+@@ -136,16 +139,18 @@ internal sealed class GraphicsImage : AbstractImage
+         {
+             throw new NullReferenceException("FillPolygonに渡されるPointsが空です");
+         }
+-        var paint = _brush ?? new SKPaint();
+-        paint.Style = SKPaintStyle.Fill;
+-
+-        var path = new SKPath();
+-        foreach (var p in _points)
++        using (var paint = _brush ?? new SKPaint())
+         {
+-            path.LineTo(p);
++            paint.Style = SKPaintStyle.Fill;
++
++            var path = new SKPath();
++            foreach (var p in _points)
++            {
++                path.LineTo(p);
++            }
++            path.LineTo(_points[0]);
++            canvas.DrawPath(path, paint);
+         }
+-        path.LineTo(_points[0]);
+-        canvas.DrawPath(path, paint);
+     }
+ 
+     public void GDrawPolygonAddPoint(SKPoint point)
+@@ -234,7 +239,10 @@ internal sealed class GraphicsImage : AbstractImage
+             cm[0][3],cm[1][3],cm[2][3],cm[3][3],cm[3][4],
+         ];
+         var filter = SKColorFilter.CreateColorMatrix(skiaCM);
+-        canvas.DrawBitmap(src, srcRect.ToSKRect(), destRect.ToSKRect(), new SKPaint() { ColorFilter = filter });
++        using (var paint = new SKPaint() { ColorFilter = filter })
++        {
++            canvas.DrawBitmap(src, srcRect.ToSKRect(), destRect.ToSKRect(), paint);
++        }
+     }
+ 
+ 
+@@ -305,7 +313,10 @@ internal sealed class GraphicsImage : AbstractImage
+     {
+         var font = _font ?? new SKFont();
+         point.Offset(0, -font.Metrics.Top);
+-        canvas.DrawText(text, point, font, _brush ?? new SKPaint());
++        using (var paint = _brush ?? new SKPaint())
++        {
++            canvas.DrawText(text, point, font, paint);
++        }
+     }
+ 
+     public void GSetFont(SKFont r)
+diff --git a/UI/Game/PrintStringBuffer.cs b/UI/Game/PrintStringBuffer.cs
+index c67245d..2109bfc 100644
+--- a/UI/Game/PrintStringBuffer.cs
++++ b/UI/Game/PrintStringBuffer.cs
+@@ -7,6 +7,8 @@ using System.Collections.Generic;
+ using System.Drawing;
+ using System.Text;
+ using MinorShift.Emuera.UI.Framework;
++using System.Linq;
++using System.Windows.Forms;
+ 
+ namespace MinorShift.Emuera.UI.Game;
+ 
+@@ -162,7 +164,10 @@ internal sealed class PrintStringBuffer
+     {
+         fromCssToButton();
+         ConsoleDisplayLine[] ret = ButtonsToDisplayLines(m_buttonList, stringMeasure, false, temporary);
+-        ret[^1].IsLineEnd = isLastLineEnd;
++        if (ret.Length > 0)
++        {
++            ret[^1].IsLineEnd = isLastLineEnd;
++        }
+         clearBuffer();
+         return ret;
+     }
+@@ -185,6 +190,12 @@ internal sealed class PrintStringBuffer
+         bool firstLine = true;
+         for (int i = 0; i < buttonList.Count; i++)
+         {
++            if (buttonList.Count == 0)
++                return [];
++
++            if (i > buttonList.Count - 1)
++                break;
++
+             if (buttonList[i] == null)
+             {//強制改行フラグ
+                 lineList.Add(m_buttonsToDisplayLine(lineButtonList, firstLine, temporary));
+@@ -231,7 +242,7 @@ internal sealed class PrintStringBuffer
+             int pointX = 0;
+             for (int j = i; j < buttonList.Count; j++)
+             {
+-                if (buttonList[j] == null)//強制改行を挟んだ後は調整無用
++                if (j >= buttonList.Count || buttonList[j] == null)//強制改行を挟んだ後は調整無用
+                     break;
+                 buttonList[j].CalcPointX(pointX);
+                 pointX += buttonList[j].Width;
