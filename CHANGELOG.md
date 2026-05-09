@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
+## [3.7.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
+
+### Added
+
+- **SQL_CONNECTION_OPEN 便利函数**（源自 DotNet）
+  - `SQL_CONNECTION_OPEN(string name)` — 自动在 `sav/sql/` 目录下创建/打开 SQLite 数据库连接
+  - 若同名连接已存在则自动关闭重建
+
+### Fixed
+
+- **SQL_CONNECTION_OPEN 数据库崩溃损坏风险**：`PRAGMA journal_mode=OFF; synchronous=OFF` 改为 `WAL; NORMAL`，兼顾写入性能与崩溃安全
+- **SQL_CONNECTION_OPEN 路径穿越漏洞**：`name` 参数增加非法字符和 `..` 校验，阻止 ERB 脚本穿透 `sav/sql/` 目录
+- **SQL_CONNECTION_OPEN 连接句柄泄露**：`conn.Open()` 后 PRAGMA 执行失败时未 Dispose，已加 try-catch 防护
+- **SQL_CONNECTION_OPEN 路径拼接不规范**：`$"{dir}{name}.db"` 改为 `Path.Combine(dir, $"{name}.db")`
+
+### Changed
+
+- **SQL_CONNECTION_OPEN PRAGMA 策略调整**：DotNet 上游使用 `journal_mode=OFF; synchronous=OFF` 追求极致写入速度但存在崩溃损坏风险；Skia 变体改为 `WAL; NORMAL`，写入性能接近 OFF 模式且崩溃时数据库不会损坏
+- **SQL 泛型重构**
+  - `SqlManager` 内部 `ExecuteScalarLong`/`ExecuteScalarString`/`ExecuteScalarFloat` 合并为泛型 `ExecuteScalar<T>`
+  - 保留所有 ERB 层 API 不变（`SQL_EXECUTE_SCALAR_LONG`/`STRING`/`FLOAT`）
+  
 ## [3.6.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
 
 ### Added

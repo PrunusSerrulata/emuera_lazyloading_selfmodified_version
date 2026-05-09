@@ -402,6 +402,7 @@ internal static partial class FunctionMethodCreator
 			["EVALF"] = new EvalFMethod(),
 			["EVALS"] = new EvalSMethod(),
 			// SQL 扩展
+			["SQL_CONNECTION_OPEN"] = new SqlConnectionOpenMethod(),
 			["SQL_CONNECT"] = new SqlConnectMethod(),
 			["SQL_DISCONNECT"] = new SqlDisconnectMethod(),
 			["SQL_EXECUTE_NONQUERY"] = new SqlExecuteNonQueryMethod(),

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using Microsoft.Data.Sqlite;
+using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Utils;
 
 namespace MinorShift.Emuera.GameData.Function
@@ -12,6 +13,47 @@ namespace MinorShift.Emuera.GameData.Function
 	internal static partial class SqlManager
 	{
 		private static Dictionary<string, SqliteConnection> _connections = new Dictionary<string, SqliteConnection>(StringComparer.OrdinalIgnoreCase);
+		
+		public static bool ConnectionOpen(string name)
+		{
+			if (string.IsNullOrWhiteSpace(name) || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains(".."))
+				throw new CodeEE($"SQL_CONNECTION_OPEN: 无效或不安全的数据库名称 '{name}'。名称不能包含路径字符或非法字符。");
+
+			string dir = Config.SavDir + "sql" + Path.DirectorySeparatorChar;
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+
+			if (_connections.ContainsKey(name))
+			{
+				_connections[name].Close();
+				_connections[name].Dispose();
+				_connections.Remove(name);
+			}
+
+			var connStr = new SqliteConnectionStringBuilder
+			{
+				DataSource = Path.Combine(dir, $"{name}.db")
+			};
+			var conn = new SqliteConnection(connStr.ConnectionString);
+			try
+			{
+				conn.Open();
+
+				using (var cmd = conn.CreateCommand())
+				{
+					cmd.CommandText = "PRAGMA journal_mode = WAL;PRAGMA synchronous = NORMAL;";
+					cmd.ExecuteNonQuery();
+				}
+
+				_connections[name] = conn;
+				return true;
+			}
+			catch (Exception ex)
+			{
+				conn.Dispose();
+				throw new CodeEE($"SQL_CONNECTION_OPEN 失败: {ex.Message}");
+			}
+		}
 		
 		public class ReaderContext
 		{
@@ -193,95 +235,51 @@ namespace MinorShift.Emuera.GameData.Function
 			_connections.Clear();
 		}
 
-		// 10. 执行标量查询 (Long)
+		private static T ExecuteScalar<T>(string dbName, string sql, string[] paramValues = null)
+		{
+			if (!_connections.TryGetValue(dbName, out var conn))
+				throw new CodeEE($"数据库 '{dbName}' 未连接。");
+
+			try
+			{
+				using var cmd = conn.CreateCommand();
+				cmd.CommandText = sql;
+				if (paramValues != null)
+				{
+					for (int i = 0; i < paramValues.Length; i++)
+					{
+						var p = cmd.CreateParameter();
+						p.ParameterName = "@" + i;
+						p.Value = paramValues[i] ?? (object)DBNull.Value;
+						cmd.Parameters.Add(p);
+					}
+				}
+				var result = cmd.ExecuteScalar();
+				if (result == null || result == DBNull.Value)
+				{
+					if (typeof(T) == typeof(long)) return (T)(object)0L;
+					if (typeof(T) == typeof(double)) return (T)(object)0.0;
+					if (typeof(T) == typeof(string)) return (T)(object)string.Empty;
+					return default;
+				}
+				if (typeof(T) == typeof(long)) return (T)(object)Convert.ToInt64(result);
+				if (typeof(T) == typeof(double)) return (T)(object)Convert.ToDouble(result);
+				return (T)(object)result.ToString();
+			}
+			catch (Exception ex)
+			{
+				throw new CodeEE($"SQL 标量查询错误: {ex.Message}\n语句: {sql}");
+			}
+		}
+
 		public static long ExecuteScalarLong(string dbName, string sql, string[] paramValues = null)
-		{
-			if (!_connections.TryGetValue(dbName, out var conn))
-				throw new CodeEE($"数据库 '{dbName}' 未连接。");
+			=> ExecuteScalar<long>(dbName, sql, paramValues);
 
-			try
-			{
-				using var cmd = conn.CreateCommand();
-				cmd.CommandText = sql;
-				if (paramValues != null)
-				{
-					for (int i = 0; i < paramValues.Length; i++)
-					{
-						var p = cmd.CreateParameter();
-						p.ParameterName = "@" + i;
-						p.Value = paramValues[i] ?? (object)DBNull.Value;
-						cmd.Parameters.Add(p);
-					}
-				}
-				var result = cmd.ExecuteScalar();
-				if (result == null || result == DBNull.Value) return 0;
-				return Convert.ToInt64(result);
-			}
-			catch (Exception ex)
-			{
-				throw new CodeEE($"SQL 标量查询错误: {ex.Message}\n语句: {sql}");
-			}
-		}
-
-		// 11. 执行标量查询 (String)
 		public static string ExecuteScalarString(string dbName, string sql, string[] paramValues = null)
-		{
-			if (!_connections.TryGetValue(dbName, out var conn))
-				throw new CodeEE($"数据库 '{dbName}' 未连接。");
+			=> ExecuteScalar<string>(dbName, sql, paramValues);
 
-			try
-			{
-				using var cmd = conn.CreateCommand();
-				cmd.CommandText = sql;
-				if (paramValues != null)
-				{
-					for (int i = 0; i < paramValues.Length; i++)
-					{
-						var p = cmd.CreateParameter();
-						p.ParameterName = "@" + i;
-						p.Value = paramValues[i] ?? (object)DBNull.Value;
-						cmd.Parameters.Add(p);
-					}
-				}
-				var result = cmd.ExecuteScalar();
-				if (result == null || result == DBNull.Value) return string.Empty;
-				return result.ToString();
-			}
-			catch (Exception ex)
-			{
-				throw new CodeEE($"SQL 标量查询错误: {ex.Message}\n语句: {sql}");
-			}
-		}
-
-		// 11b. 执行标量查询 (Float)
 		public static double ExecuteScalarFloat(string dbName, string sql, string[] paramValues = null)
-		{
-			if (!_connections.TryGetValue(dbName, out var conn))
-				throw new CodeEE($"数据库 '{dbName}' 未连接。");
-
-			try
-			{
-				using var cmd = conn.CreateCommand();
-				cmd.CommandText = sql;
-				if (paramValues != null)
-				{
-					for (int i = 0; i < paramValues.Length; i++)
-					{
-						var p = cmd.CreateParameter();
-						p.ParameterName = "@" + i;
-						p.Value = paramValues[i] ?? (object)DBNull.Value;
-						cmd.Parameters.Add(p);
-					}
-				}
-				var result = cmd.ExecuteScalar();
-				if (result == null || result == DBNull.Value) return 0.0;
-				return Convert.ToDouble(result);
-			}
-			catch (Exception ex)
-			{
-				throw new CodeEE($"SQL 标量查询错误: {ex.Message}\n语句: {sql}");
-			}
-		}
+			=> ExecuteScalar<double>(dbName, sql, paramValues);
 
         // 12. [流式导入] 将 MAP 格式的 XML 直接导入到 SQLite
         public static long ImportMapXml(string dbName, string tableName, string filePath)

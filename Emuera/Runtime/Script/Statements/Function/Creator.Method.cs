@@ -10041,6 +10041,15 @@ internal static partial class FunctionMethodCreator
 		}
 	}
 
+	private sealed class SqlConnectionOpenMethod : FunctionMethod
+	{
+		public SqlConnectionOpenMethod() { ReturnType = EraType.Integer; argumentTypeArray = new[] { EraType.String }; CanRestructure = false; }
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			return SqlManager.ConnectionOpen(arguments[0].GetStrValue(exm)) ? 1 : 0;
+		}
+	}
+
 	private sealed class SqlConnectMethod : FunctionMethod
 	{
 		public SqlConnectMethod()
@@ -10052,7 +10061,6 @@ internal static partial class FunctionMethodCreator
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			string dbName = arguments[0].GetStrValue(exm);
-			// 如果省略连接字符串，默认使用内存数据库
 			string connStr = arguments.Count > 1 && arguments[1] != null ? arguments[1].GetStrValue(exm) : "Data Source=:memory:";
 			return SqlManager.Connect(dbName, connStr) ? 1 : 0;
 		}
