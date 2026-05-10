@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
+## [3.8.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
+
+### Added
+
+- **BEFORE_THROW / BEFORE_ERROR 事件函数**（SK 专属）
+  - `BEFORE_THROW`：在 `THROW` 指令抛出异常前调用，允许脚本拦截和处理异常
+  - `BEFORE_ERROR`：在任何错误第一次发生时调用，提供错误处理的钩子
+  - 若事件函数存在，异常会被延迟抛出，允许脚本进行清理或恢复操作
+  
 ## [3.7.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
 
 ### Added
@@ -346,6 +355,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **EXISTFUNCTION**：支持 Lazyloading 包含且未运行的函数检测
 - **.als 文件**：序号 10 后的字符串指针读取修复
 - **SPRITECREATE**：支持 8/10 参数写法，与 CSV 能力对齐
+- **SPRITECREATEFROMFILE**：从图像文件直接创建 Sprite，无需 GCREATE 中转
+- **GCREATEFROMFILE isRelative 参数**：第三参数非 0 时从当前工作目录解析相对路径
 
 ***
 

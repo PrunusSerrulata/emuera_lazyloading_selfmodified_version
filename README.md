@@ -1,6 +1,6 @@
 # Emuera-SKIA
 
-> **画蛇又添足版** — 基于 Emuera 1.824 + EMv18 + EEv53 + Lazyloading v2.4 私家改造。
+> **画蛇又添足改造版** — 基于 Emuera 1.824 + EMv18 + EEv53 + Lazyloading v2.4 私家改造。
 
 [![Base](https://img.shields.io/badge/base-Emuera%201.824%20%2B%20EEv53-blue)](#)
 [![Lang](https://img.shields.io/badge/lang-C%23%20%2F%20ERABASIC-green)](#)
@@ -38,6 +38,7 @@
 |:---|:---|
 | [CHANGELOG.md](CHANGELOG.md) | 版本更新日志（Release Notes） |
 | [Readme/参考手册/](Readme/参考手册/) | 各功能模块详细参考手册 |
+| [在线帮助手册](https://gitgud.io/qrchen/emuera.sk.doc) | SkiaSharp 版本在线文档 |
 | [Readme/画蛇又添足版自改emuera相关说明.txt](Readme/画蛇又添足版自改emuera相关说明.txt) | 原始开发日志（历史参考） |
 
 ---
@@ -47,7 +48,7 @@
 | 项目 | 来源 | 说明 |
 |:---|:---|:---|
 | **Emuera EE** | [Emuera EE](https://gitlab.com/EvilMask/emuera.em) | 基础代码框架 |
-| **Lazyloading** | 지나가던 | 懒加载功能实现 |
+| **Lazyloading** | [CRER/emuera.em](https://gitlab.com/CRER/emuera.em) | 懒加载功能实现（lazyloading分支） |
 | **SkiaSharp** | [VVIIlet/emuera](https://gitlab.com/VVIIlet/emuera/-/commit/423fb6eb19f5f33af653a780e084bdd40b6efef1) | 渲染引擎替换 |
 | **SoundTouch** | [markheath/naudio](https://github.com/naudio/varispeed-sample) | 音频变速处理 |
 
