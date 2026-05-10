@@ -329,9 +329,9 @@ internal sealed partial class Process(EmueraConsole view)
 		startTime.Restart();
 		state.lineCount = 0;
 		bool systemProcRunning = true;
-		try
+		while (true)
 		{
-			while (true)
+			try
 			{
 				methodStack = 0;
 				systemProcRunning = true;
@@ -342,16 +342,45 @@ internal sealed partial class Process(EmueraConsole view)
 				systemProcRunning = false;
 				runScriptProc();
 			}
-		}
-		catch (Exception ec)
-		{
-			LogicalLine currentLine = state.ErrorLine;
-			if (currentLine != null && currentLine is NullLine)
-				currentLine = null;
-			if (systemProcRunning)
-				handleExceptionInSystemProc(ec, currentLine, true);
-			else
-				handleException(ec, currentLine, true);
+			catch (Exception ec)
+			{
+				LogicalLine currentLine = state.ErrorLine;
+				if (currentLine != null && currentLine is NullLine)
+					currentLine = null;
+				if (state.InBeforeError)
+				{
+					if (state.PendingErrorSystemProc)
+						handleExceptionInSystemProc(ec, currentLine, true);
+					else
+						handleException(ec, currentLine, true);
+					return;
+				}
+				if (state.SkipBeforeError)
+				{
+					state.SkipBeforeError = false;
+					if (systemProcRunning)
+						handleExceptionInSystemProc(ec, currentLine, true);
+					else
+						handleException(ec, currentLine, true);
+					return;
+				}
+				state.InBeforeError = true;
+				var beforeError = CalledFunction.CallEventFunction(this, "BEFORE_ERROR", null);
+				if (beforeError != null)
+				{
+					state.IntoFunction(beforeError, null, null);
+					state.PendingErrorException = ec;
+					state.PendingErrorCurrentLine = currentLine;
+					state.PendingErrorSystemProc = systemProcRunning;
+					continue;
+				}
+				state.InBeforeError = false;
+				if (systemProcRunning)
+					handleExceptionInSystemProc(ec, currentLine, true);
+				else
+					handleException(ec, currentLine, true);
+				return;
+			}
 		}
 	}
 

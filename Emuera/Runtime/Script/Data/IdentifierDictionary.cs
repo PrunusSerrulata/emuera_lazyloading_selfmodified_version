@@ -65,6 +65,8 @@ internal partial class IdentifierDictionary
 			case "EVENTCOMEND":
 			case "EVENTEND":
 			case "EVENTLOAD":
+			case "BEFORE_THROW":
+			case "BEFORE_ERROR":
 				return true;
 		}
 		return false;
