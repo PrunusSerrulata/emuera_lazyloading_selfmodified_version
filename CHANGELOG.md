@@ -6,14 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
-## [3.8.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
+## [3.8.1](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-11
 
 ### Fixed
 
+- **SELECTCASE 跳转表现在支持可折叠常量的表达式函数**
+  - `TryBuild()` 中当 `LeftTerm.IsConst` 为 `false` 时尝试调用 `Restructure(null)` 折叠表达式
+  - 纯函数（如 `ABS(3)`、`SIN(0)`、`TOINT("123")` 等 `CanRestructure=true` 的函数）可被折叠为 `SingleTerm`，参与跳转表 O(1) 查找
+  - 有副作用或依赖运行时状态的函数（如 `RAND()`、`RESULT`、`GETTIME` 等 `CanRestructure=false`）不受影响，自动回退到线性扫描
+  - try-catch 包裹 `Restructure` 调用，折叠失败时安全回退到线性扫描
+- **SELECTCASE 跳转表重复值处理策略（FIFO）**
+  - 重复的 CASE 值保留第一个出现的分枝，后续重复项触发 warning 后跳过
+  - 此行为与线性扫描的 fallthrough 语义一致，且不影响跳转表的确定性
 - **TOSTRF 第二参数现在可省略**
   - 修复了 `argumentTypeArray` 导致强制校验参数个数、第二参数无法省略的问题
   - 改用 `argumentTypeArrayEx` + `OmitStart = 1`，允许 `TOSTRF(value)` 单参数调用
   - 扩展 `ArgType` 枚举增加 `Float` 类型，完善浮点参数类型支持
+
+## [3.8.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
 
 ### Added
 
@@ -21,6 +31,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `BEFORE_THROW`：在 `THROW` 指令抛出异常前调用，允许脚本拦截和处理异常
   - `BEFORE_ERROR`：在任何错误第一次发生时调用，提供错误处理的钩子
   - 若事件函数存在，异常会被延迟抛出，允许脚本进行清理或恢复操作
+- **TEXT_BGC_ON / TEXT_BGC_OFF 文本背景色控制**（SK 专属）
+  - `TEXT_BGC_ON R, G, B, Alpha%`：为后续所有行设置整行背景色（Alpha 为 0～100 不透明度）
+  - `TEXT_BGC_OFF`：清除背景色，恢复透明
+  - 背景以行全宽 × 行高的矩形绘制，仅当行内存在实际文本时才绘制
+- **STRICT_FONT_FALLBACK 严格字体回退模式**（SK 专属）
+  - `STRICT_FONT_FALLBACK value`：设为 1 启用严格模式，不存在字形的字符显示为 □（tofu）而非回退字体
+  - 设为 0 恢复默认回退行为
   
 ## [3.7.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
 
@@ -293,11 +310,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **渲染控制 API**：SET\_TEXT\_DRAWING\_MODE / GET\_TEXT\_DRAWING\_MODE / SET\_SKIA\_QUALITY / GET\_SKIA\_QUALITY
 - **HTML\_PRINT font 渲染属性扩展**：render/edging/hinting
 - **全屏功能 (F11)**：覆盖开始菜单，鼠标移到顶部自动显示工具栏
+- **SPRITECREATEFROMFILE**：从图像文件直接创建 Sprite，无需 GCREATE 中转
 - **BitArray 功能**
 - **DIV 渲染性能优化**：命中测试 O(1) 定位 + Y轴预剔除
 - **ToolTip 防遮挡**：屏幕边缘自动翻转
 - **图像资源管理重构**：SharedBitmapCache 全局位图池 + ConstImage 轻量外壳
-- **SPRITEANIMEFRAME**：动画精灵帧数查询
 - **STRICT\_FONT\_FALLBACK**：严格字体回退模式
 - **SETANIMETIMER**：动画帧间隔控制
 - **BITMAP\_CACHE\_ENABLE**：位图缓存开关
@@ -362,7 +379,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **EXISTFUNCTION**：支持 Lazyloading 包含且未运行的函数检测
 - **.als 文件**：序号 10 后的字符串指针读取修复
 - **SPRITECREATE**：支持 8/10 参数写法，与 CSV 能力对齐
-- **SPRITECREATEFROMFILE**：从图像文件直接创建 Sprite，无需 GCREATE 中转
 - **GCREATEFROMFILE isRelative 参数**：第三参数非 0 时从当前工作目录解析相对路径
 
 ***

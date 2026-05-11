@@ -1,5 +1,6 @@
 using MinorShift.Emuera.Runtime.Script.Statements.Expression;
 using System.Collections.Generic;
+using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements;
 
@@ -49,21 +50,46 @@ internal sealed class SelectCaseJumpTable
 					return null;
 
 				AExpression leftTerm = caseExp.LeftTerm;
-				if (leftTerm == null || !leftTerm.IsConst)
+				if (leftTerm == null)
 					return null;
+				if (!leftTerm.IsConst)
+				{
+					try
+					{
+						AExpression restructured = leftTerm.Restructure(null);
+						if (restructured is SingleTerm st)
+							leftTerm = st;
+						else
+							return null;
+					}
+					catch
+					{
+						return null;
+					}
+				}
 
 				if (selectType == EraType.Integer)
 				{
 					long val = leftTerm.GetIntValue(null);
 					if (table._intTable.ContainsKey(val))
-						return null;
+					{
+						var prevPos = table._intTable[val].Position;
+						string prevCaseId = prevPos.HasValue ? $"{prevPos.Value.Filename}:{prevPos.Value.LineNo}" : "?";
+						ParserMediator.Warn(string.Format(trerror.DuplicateCaseValue.Text, val, prevCaseId), caseLine, 1, false, false);
+						continue;
+					}
 					table._intTable.Add(val, caseLine);
 				}
 				else if (selectType == EraType.String)
 				{
 					string val = leftTerm.GetStrValue(null);
 					if (table._strTable.ContainsKey(val))
-						return null;
+					{
+						var prevPos = table._strTable[val].Position;
+						string prevCaseId = prevPos.HasValue ? $"{prevPos.Value.Filename}:{prevPos.Value.LineNo}" : "?";
+						ParserMediator.Warn(string.Format(trerror.DuplicateCaseValue.Text, val, prevCaseId), caseLine, 1, false, false);
+						continue;
+					}
 					table._strTable.Add(val, caseLine);
 				}
 				else

@@ -697,6 +697,7 @@ Settings apply only at start]]></tr>
     <tr id="Error.NumberOfArg"><![CDATA[The {0} argument of "@{0}" function:{2}]]></tr>
     <tr id="Error.CanNotOmitArgWithMessage"><![CDATA[The {1} argument cannot be omitted for "@{0}" function (This error can be ignored by using "Allow Omission Of All Arguments" compatibility option)]]></tr>
     <tr id="Error.CanNotConvertStrToInt"><![CDATA[Unable to convert {1} argument from a string type to an integer type for "@{0}" function]]></tr>
+    <tr id="Error.DuplicateCaseValue"><![CDATA[Duplicate constant value {0} in SELECTCASE. Value {0} is already handled by CASE {1}, this branch will never be executed]]></tr>
     <tr id="Error.CanNotConvertIntToStr"><![CDATA[Unable to convert {1} argument from a string type to an integer type for "@{0}" function (This error can be ignored by using "Add TOSTR Automatically" compatibility option)]]></tr>
     <tr id="Error.CalltrainArgMoreThanSelectcom"><![CDATA[The value of the arguments of the CALLTRAIN instruction exceeds the number of SELECTCOM elements]]></tr>
     <tr id="Error.SelectExitInfiniteLoopMB"><![CDATA[Forced termination was selected due to suspected infinite loop]]></tr>

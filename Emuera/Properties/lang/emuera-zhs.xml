@@ -711,6 +711,7 @@ Emuera的历史版本有效的内容变得无效等等现象而设置的。
     <tr id="Error.NumberOfArg"><![CDATA[@{0}的第{1}个参数:{2}]]></tr>
     <tr id="Error.CanNotOmitArgWithMessage"><![CDATA[@{0}的第{1}个参数不能省略(此警告可以用兼容性配置「{2}」来无视)]]></tr>
     <tr id="Error.CanNotConvertStrToInt"><![CDATA[不能将"@{0}"的第{1}个参数从字符串型转换为整型]]></tr>
+    <tr id="Error.DuplicateCaseValue"><![CDATA[SELECTCASE中存在重复的常量值{0}。该值已被CASE {1}匹配，当前CASE分支将不可达]]></tr>
     <tr id="Error.CanNotConvertIntToStr"><![CDATA[不能将"@{0}"的第{1}个参数从整转换为字符串型型(此警告可以用兼容性配置「{2}」来无视)]]></tr>
     <tr id="Error.CalltrainArgMoreThanSelectcom"><![CDATA[CALLTRAIN命令的参数值超过SELECTCOM的元素数]]></tr>
     <tr id="Error.SelectExitInfiniteLoopMB"><![CDATA[可能进入了无限循环因此选择强制终止]]></tr>
