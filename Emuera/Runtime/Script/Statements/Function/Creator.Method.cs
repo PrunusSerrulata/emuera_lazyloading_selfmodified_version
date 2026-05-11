@@ -6127,7 +6127,9 @@ internal static partial class FunctionMethodCreator
 		public ToStrfMethod()
 		{
 			ReturnType = EraType.String;
-			argumentTypeArray = [EraType.Float, EraType.String];
+			argumentTypeArrayEx = [
+					new ArgTypeList{ ArgTypes = { ArgType.Float, ArgType.String }, OmitStart = 1 }
+				];
 			CanRestructure = true;
 		}
 

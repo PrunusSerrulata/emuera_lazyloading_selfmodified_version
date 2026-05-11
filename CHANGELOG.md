@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [3.8.0](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-10
 
+### Fixed
+
+- **TOSTRF 第二参数现在可省略**
+  - 修复了 `argumentTypeArray` 导致强制校验参数个数、第二参数无法省略的问题
+  - 改用 `argumentTypeArrayEx` + `OmitStart = 1`，允许 `TOSTRF(value)` 单参数调用
+  - 扩展 `ArgType` 枚举增加 `Float` 类型，完善浮点参数类型支持
+
 ### Added
 
 - **BEFORE_THROW / BEFORE_ERROR 事件函数**

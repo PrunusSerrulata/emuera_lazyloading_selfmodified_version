@@ -31,6 +31,7 @@ internal abstract class FunctionMethod
 		CharacterData = Ref | 1 << 10,
 		AllowConstRef = 1 << 11,
 		DisallowVoid = 1 << 12,
+		Float = 1 << 13,
 
 		RefInt = Ref | Int,
 		RefAny = Ref | Any,
@@ -59,7 +60,15 @@ internal abstract class FunctionMethod
 		{
 			type = t;
 		}
-		public EraType EraType { get { return Int ? EraType.Integer : EraType.String; } }
+		public static EraType ToEraType(ArgType type)
+		{
+			if ((type & ArgType.Int) != 0)
+				return EraType.Integer;
+			if ((type & ArgType.Float) != 0)
+				return EraType.Float;
+			return EraType.String;
+		}
+		public EraType EraType => ToEraType(this.type);
 		public ArgType type = ArgType.Invalid;
 		public bool AllowConstRef { get { return (type & ArgType.AllowConstRef) != 0; } }
 		public bool DisallowVoid { get { return (type & ArgType.DisallowVoid) != 0; } }
@@ -71,6 +80,7 @@ internal abstract class FunctionMethod
 		public bool Array2D { get { return (type & ArgType.Array2D) != 0; } }
 		public bool Array3D { get { return (type & ArgType.Array2D) != 0; } }
 		public bool String { get { return (type & ArgType.String) != 0; } }
+		public bool Float { get { return (type & ArgType.Float) != 0; } }
 		public bool Variadic { get { return (type & ArgType.Variadic) != 0; } }
 		public bool SameAsFirst { get { return (type & ArgType.SameAsFirst) != 0; } }
 		public bool CharacterData { get { return ((int)type & 1 << 10) != 0; } }
