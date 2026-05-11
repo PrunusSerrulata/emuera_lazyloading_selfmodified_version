@@ -104,6 +104,7 @@ internal sealed class ProcessState
 	private string pendingThrowMessage;
 	private bool inBeforeError;
 	private bool skipBeforeError;
+	private InstructionLine pendingThrowLine;
 	private Exception pendingErrorException;
 	private LogicalLine pendingErrorCurrentLine;
 	private bool pendingErrorSystemProc;
@@ -149,6 +150,7 @@ internal sealed class ProcessState
 	public string PendingThrowMessage { get { return pendingThrowMessage; } set { pendingThrowMessage = value; } }
 	public bool HasPendingThrow { get { return pendingThrowMessage != null; } }
 	public void ClearPendingThrow() { pendingThrowMessage = null; }
+	public InstructionLine PendingThrowLine { get { return pendingThrowLine; } set { pendingThrowLine = value; } }
 
 	public bool InBeforeError { get { return inBeforeError; } set { inBeforeError = value; } }
 	public bool SkipBeforeError { get { return skipBeforeError; } set { skipBeforeError = value; } }
@@ -466,15 +468,14 @@ internal sealed class ProcessState
 			functionList.RemoveAt(functionList.Count - 1);
 			pendingThrowMessage = null;
 			skipBeforeError = true;
-			throw new CodeEE(msg);
+			throw new CodeEE(msg, pendingThrowLine?.Position);
 		}
 		if (currentLine == null && called.IsEvent && called.FunctionName == "BEFORE_ERROR" && pendingErrorException != null)
 		{
 			Exception ec = pendingErrorException;
-			ScriptPosition? pos = (ec is EmueraException ee) ? ee.Position : null;
+			ScriptPosition? pos = (ec is EmueraException ee) ? ee.Position : pendingErrorCurrentLine?.Position;
 			functionList.RemoveAt(functionList.Count - 1);
 			pendingErrorException = null;
-			pendingErrorCurrentLine = null;
 			inBeforeError = true;
 			throw new CodeEE(ec.Message, pos);
 		}

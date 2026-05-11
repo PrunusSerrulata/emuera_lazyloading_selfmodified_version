@@ -378,6 +378,22 @@
     - **REMOVEBGIMAGE**：移除指定资源名的背景图。
     - **CLEARBGIMAGE**：清除所有背景图。
 
+    !!! note "参数解析说明"
+
+        `resourceName` 参数的解析方式因版本而异：
+
+        | 版本 | 解析方式 | 变量参数行为 |
+        |:---|:---|:---|
+        | emuera.em | `FORM_STR_ANY` | ❌ 变量名被当作字面量字符串查找，静默失败 |
+        | lazyloading 变体 | 类型化字符串表达式 | ✅ 正确读取变量值 |
+
+        **示例**：
+        ```erb
+        #DIMS temp_name
+        temp_name = "小帽_笑_3"
+        SETBGIMAGE temp_name  ; lazyloading 正常工作，emuera.em 静默失败
+        ```
+
     !!! warning "注意"
         仅支持命令语法，不支持表达式。WINAPI 模式不支持。背景图会自动缩放以适应控制台窗口并保持宽高比。
 

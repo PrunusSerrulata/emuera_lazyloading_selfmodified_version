@@ -771,6 +771,7 @@ internal sealed partial class Process
 					break;
 				}
 				state.PendingThrowMessage = throwMessage;
+				state.PendingThrowLine = func;
 				var beforeThrow = CalledFunction.CallEventFunction(this, "BEFORE_THROW", func);
 				if (beforeThrow == null)
 				{

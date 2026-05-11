@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **BEFORE_THROW / BEFORE_ERROR 事件函数**（SK 专属）
+- **BEFORE_THROW / BEFORE_ERROR 事件函数**
   - `BEFORE_THROW`：在 `THROW` 指令抛出异常前调用，允许脚本拦截和处理异常
   - `BEFORE_ERROR`：在任何错误第一次发生时调用，提供错误处理的钩子
   - 若事件函数存在，异常会被延迟抛出，允许脚本进行清理或恢复操作
@@ -146,7 +146,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **ColorMatrix 解析代码重复**：提取到 `ColorMatrixHelper`，ConsoleImagePart 和 Instraction.Child 共用
 - **ArgumentBuilder 手动 LexicalAnalyzer 解析导致参数丢失**：改用 popTerms 标准方法
-- **SETBGIMAGE 只解析单参数**：新增 SpSetBgImageArgument，完整参数解析
+- **SETBGIMAGE 参数解析方式修复**：`FORM_STR_ANY` → `SP_SETBGIMAGE`，修复变量参数被当作字面量字符串的 bug（depth/opacity 自上游已有）
 - **ClientBackGroundImage 缺少 width/height**：添加字段，OnPaint 中使用缩放尺寸
 - **FollowScroll 使用绝对 scrollY 导致图片在视口外**：存储 initialScrollY，改用滚动增量
 - **SETIMAGELAYER 坐标系与 CBGSETSPRITE 不一致**：改为左下原点坐标系

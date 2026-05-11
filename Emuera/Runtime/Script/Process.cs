@@ -349,19 +349,26 @@ internal sealed partial class Process(EmueraConsole view)
 					currentLine = null;
 				if (state.InBeforeError)
 				{
+					LogicalLine errorLine = state.PendingErrorCurrentLine;
+					if (errorLine != null && errorLine is NullLine)
+						errorLine = null;
+					if (errorLine == null)
+						errorLine = currentLine;
 					if (state.PendingErrorSystemProc)
-						handleExceptionInSystemProc(ec, currentLine, true);
+						handleExceptionInSystemProc(ec, errorLine, true);
 					else
-						handleException(ec, currentLine, true);
+						handleException(ec, errorLine, true);
 					return;
 				}
 				if (state.SkipBeforeError)
 				{
 					state.SkipBeforeError = false;
+					LogicalLine throwLine = state.PendingThrowLine ?? currentLine;
+					state.PendingThrowLine = null;
 					if (systemProcRunning)
-						handleExceptionInSystemProc(ec, currentLine, true);
+						handleExceptionInSystemProc(ec, throwLine, true);
 					else
-						handleException(ec, currentLine, true);
+						handleException(ec, throwLine, true);
 					return;
 				}
 				state.InBeforeError = true;
