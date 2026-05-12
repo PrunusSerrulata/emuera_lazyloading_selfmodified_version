@@ -32,12 +32,12 @@ internal sealed partial class Process(EmueraConsole view)
 		if (!DebugLogEnabled) return;
 		if (debugLogFirstWrite)
 		{
-			System.IO.File.WriteAllText("debug_log.txt", msg);
+			System.IO.File.WriteAllText("debug_log.log", msg);
 			debugLogFirstWrite = false;
 		}
 		else
 		{
-			System.IO.File.AppendAllText("debug_log.txt", msg);
+			System.IO.File.AppendAllText("debug_log.log", msg);
 		}
 	}
 
