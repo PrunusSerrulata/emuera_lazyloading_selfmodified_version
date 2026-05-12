@@ -1,4 +1,5 @@
 using MinorShift.Emuera.GameData.Variable;
+using GameProcProcess = MinorShift.Emuera.GameProc.Process;
 using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
 using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
 using System;
@@ -104,6 +105,7 @@ internal sealed class ProcessState
 	private string pendingThrowMessage;
 	private bool inBeforeError;
 	private bool skipBeforeError;
+	private bool inBeforeThrow;
 	private InstructionLine pendingThrowLine;
 	private Exception pendingErrorException;
 	private LogicalLine pendingErrorCurrentLine;
@@ -154,6 +156,7 @@ internal sealed class ProcessState
 
 	public bool InBeforeError { get { return inBeforeError; } set { inBeforeError = value; } }
 	public bool SkipBeforeError { get { return skipBeforeError; } set { skipBeforeError = value; } }
+	public bool InBeforeThrow { get { return inBeforeThrow; } set { inBeforeThrow = value; } }
 
 	public Exception PendingErrorException { get { return pendingErrorException; } set { pendingErrorException = value; } }
 	public LogicalLine PendingErrorCurrentLine { get { return pendingErrorCurrentLine; } set { pendingErrorCurrentLine = value; } }
@@ -291,6 +294,7 @@ internal sealed class ProcessState
 
 	public void ClearFunctionList()
 	{
+		if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[ClearFunctionList] clearing {0} functions\n", functionList.Count));
 		if (Program.DebugMode && !isClone && GlobalStatic.Process.MethodStack() == 0)
 			console.DebugClearTraceLog();
 		foreach (CalledFunction called in functionList)
@@ -303,6 +307,7 @@ internal sealed class ProcessState
 		}
 		functionList.Clear();
 		begintype = BeginType.NULL;
+		if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog("[ClearFunctionList] done\n");
 	}
 
 	public bool calledWhenNormal = true;
@@ -407,18 +412,16 @@ internal sealed class ProcessState
 
 	public void Return(long ret)
 	{
-		if (IsFunctionMethod)
+		CalledFunction called = functionList[^1];
+		if (IsFunctionMethod && !(called.IsEvent && (called.FunctionName == "BEFORE_THROW" || called.FunctionName == "BEFORE_ERROR")))
 		{
+			if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[Return] IsFunctionMethod fast path, called={0} IsEvent={1}, delegating to ReturnF\n",
+				called.FunctionName, called.IsEvent));
 			ReturnF(null);
 			return;
 		}
-		//sequential = false;//いずれにしろ順列ではない。
-		//呼び出し元は全部スクリプト処理
-		//if (functionList.Count == 0)
-		//{
-		//    throw new ExeEE("実行中の関数が存在しません");
-		//}
-		CalledFunction called = functionList[^1];
+		if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[Return] called={0} IsEvent={1} IsJump={2} functionList.Count={3} inBeforeError={4} pendingErrorException={5} pendingThrowMessage={6}\n",
+			called.FunctionName, called.IsEvent, called.IsJump, functionList.Count, inBeforeError, pendingErrorException != null, pendingThrowMessage != null));
 		if (called.IsJump)
 		{
 			if (called.TopLabel.hasPrivDynamicVar)
@@ -462,28 +465,63 @@ internal sealed class ProcessState
 		}
 		if (Program.DebugMode)
 			console.DebugRemoveTraceLog();
-		if (currentLine == null && called.IsEvent && called.FunctionName == "BEFORE_THROW" && pendingThrowMessage != null)
-		{
-			string msg = pendingThrowMessage;
-			functionList.RemoveAt(functionList.Count - 1);
-			pendingThrowMessage = null;
-			skipBeforeError = true;
-			throw new CodeEE(msg, pendingThrowLine?.Position);
-		}
-		if (currentLine == null && called.IsEvent && called.FunctionName == "BEFORE_ERROR" && pendingErrorException != null)
-		{
-			Exception ec = pendingErrorException;
-			ScriptPosition? pos = (ec is EmueraException ee) ? ee.Position : pendingErrorCurrentLine?.Position;
-			functionList.RemoveAt(functionList.Count - 1);
-			pendingErrorException = null;
-			inBeforeError = true;
-			throw new CodeEE(ec.Message, pos);
-		}
 		//関数終了
 		if (currentLine == null)
 		{
+			if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[Return-関数終了] called={0} IsEvent={1} pendingThrowMessage={2} pendingErrorException={3}\n",
+				called.FunctionName, called.IsEvent, pendingThrowMessage != null, pendingErrorException != null));
+			if (called.IsEvent && called.FunctionName == "BEFORE_THROW" && pendingThrowMessage != null)
+			{
+				if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog("[Return-BEFORE_THROW] throwing CodeEE\n");
+				string msg = pendingThrowMessage;
+				functionList.RemoveAt(functionList.Count - 1);
+				pendingThrowMessage = null;
+				inBeforeThrow = false;
+				skipBeforeError = true;
+				throw new CodeEE(msg, pendingThrowLine?.Position);
+			}
+			if (called.IsEvent && called.FunctionName == "BEFORE_THROW" && pendingThrowMessage == null)
+			{
+				if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog("[Return-BEFORE_THROW] SKIPPED! pendingThrowMessage is null, falling through\n");
+				inBeforeThrow = false;
+			}
+			if (called.IsEvent && called.FunctionName == "BEFORE_ERROR")
+			{
+				if (GameProcProcess.DebugLogEnabled)
+				{
+					GameProcProcess.DebugLog(string.Format("[Return-BEFORE_ERROR] pendingThrowMessage is null={0} value='{1}'\n",
+						pendingThrowMessage == null, pendingThrowMessage ?? "(null)"));
+					GameProcProcess.DebugLog(string.Format("[Return-BEFORE_ERROR] pendingErrorException is null={0} msg='{1}'\n",
+						pendingErrorException == null, pendingErrorException?.Message ?? "(null)"));
+				}
+				functionList.RemoveAt(functionList.Count - 1);
+				inBeforeError = true;
+				if (pendingThrowMessage != null)
+				{
+					if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog("[Return-BEFORE_ERROR] using original THROW message\n");
+					string msg = pendingThrowMessage;
+					ScriptPosition? pos = pendingThrowLine?.Position;
+					pendingThrowMessage = null;
+					pendingThrowLine = null;
+					pendingErrorException = null;
+					throw new CodeEE(msg, pos);
+				}
+				if (pendingErrorException != null)
+				{
+					if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog("[Return-BEFORE_ERROR] using pendingErrorException message\n");
+					Exception ec = pendingErrorException;
+					ScriptPosition? pos = (ec is EmueraException ee) ? ee.Position : pendingErrorCurrentLine?.Position;
+					pendingErrorException = null;
+					throw new CodeEE(ec.Message, pos);
+				}
+				if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog("[Return-BEFORE_ERROR] no message available, throwing fallback\n");
+				pendingErrorException = null;
+				throw new CodeEE("BEFORE_ERROR finished but no pending error");
+			}
 			currentLine = called.ReturnAddress;
 			functionList.RemoveAt(functionList.Count - 1);
+			if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[Return-関数終了] removed from list, currentLine={0} functionList.Count={1}\n",
+				currentLine != null ? currentLine.Position.ToString() : "null", functionList.Count));
 			if (currentLine == null)
 			{
 				//この時点でfunctionListは空のはず
@@ -509,6 +547,9 @@ internal sealed class ProcessState
 			}
 			console.DebugAddTraceLog(string.Format(trsl.DebugTraceCall.Text, label.LabelName, label.Position.Value.Filename, label.Position.Value.LineNo, currentLineNo));
 		}
+		if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[Return] event continued, currentLine={0} Label={1}\n",
+			currentLine != null ? currentLine.Position.ToString() : "null",
+			called.CurrentLabel != null ? called.CurrentLabel.LabelName : "null"));
 		lineCount++;
 		//ShfitNextLine();
 		return;
@@ -516,6 +557,8 @@ internal sealed class ProcessState
 
 	public void IntoFunction(CalledFunction call, UserDefinedFunctionArgument srcArgs, ExpressionMediator exm)
 	{
+		if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[IntoFunction] name={0} IsEvent={1} IsJump={2} functionList.Count before={3}\n",
+			call.FunctionName, call.IsEvent, call.IsJump, functionList.Count));
 
 		if (call.IsEvent)
 		{
@@ -656,6 +699,7 @@ internal sealed class ProcessState
 				call.TopLabel.ScopeIn();
 		}
 		functionList.Add(call);
+		if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[IntoFunction] added, functionList.Count after={0}\n", functionList.Count));
 		//sequential = false;
 		currentLine = call.CurrentLabel;
 		lineCount++;
@@ -675,6 +719,8 @@ internal sealed class ProcessState
 
 	public void ReturnF(SingleTerm ret)
 	{
+		if (GameProcProcess.DebugLogEnabled) GameProcProcess.DebugLog(string.Format("[ReturnF] called={0} functionList.Count={1}\n",
+			functionList.Count > 0 ? functionList[^1].FunctionName : "empty", functionList.Count));
 		//読み込み時のチェック済みのはず
 		//if (!IsFunctionMethod)
 		//    throw new ExeEE("ReturnFと#FUNCTIONのチェックがおかしい");

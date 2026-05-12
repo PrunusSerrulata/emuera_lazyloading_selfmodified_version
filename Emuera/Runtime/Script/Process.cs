@@ -25,6 +25,22 @@ namespace MinorShift.Emuera.GameProc;
 
 internal sealed partial class Process(EmueraConsole view)
 {
+	public static bool DebugLogEnabled = false;
+	private static bool debugLogFirstWrite = true;
+	internal static void DebugLog(string msg)
+	{
+		if (!DebugLogEnabled) return;
+		if (debugLogFirstWrite)
+		{
+			System.IO.File.WriteAllText("debug_log.txt", msg);
+			debugLogFirstWrite = false;
+		}
+		else
+		{
+			System.IO.File.AppendAllText("debug_log.txt", msg);
+		}
+	}
+
 	public LogicalLine getCurrentLine { get { return state.CurrentLine; } }
 
 	/// <summary>
@@ -344,48 +360,99 @@ internal sealed partial class Process(EmueraConsole view)
 			}
 			catch (Exception ec)
 			{
+				debugLogFirstWrite = true;
+				DebugLogEnabled = true;
 				LogicalLine currentLine = state.ErrorLine;
+				DebugLog(string.Format("========== ERROR CAUGHT ==========\n"));
+				DebugLog(string.Format("[DoScript-catch] Exception: {0}: {1}\n", ec.GetType().Name, ec.Message));
+				DebugLog(string.Format("[DoScript-catch] InBeforeError={0} SkipBeforeError={1} systemProcRunning={2}\n",
+					state.InBeforeError, state.SkipBeforeError, systemProcRunning));
+				DebugLog(string.Format("[DoScript-catch] ErrorLine={0}\n", currentLine != null ? currentLine.Position.ToString() : "null"));
+				DebugLog(string.Format("[DoScript-catch] functionList.Count={0}\n", state.FunctionList.Count));
+				for (int i = 0; i < state.FunctionList.Count; i++)
+				{
+					var cf = state.FunctionList[i];
+					DebugLog(string.Format("  [{0}] {1} IsEvent={2} IsJump={3} Label={4}\n",
+						i, cf.FunctionName, cf.IsEvent, cf.IsJump,
+						cf.CurrentLabel != null ? cf.CurrentLabel.LabelName + ":" + cf.CurrentLabel.Position?.LineNo : "null"));
+				}
+				DebugLog(string.Format("==================================\n"));
 				if (currentLine != null && currentLine is NullLine)
 					currentLine = null;
 				if (state.InBeforeError)
 				{
+					DebugLog("[DoScript-catch] >>> InBeforeError path\n");
 					LogicalLine errorLine = state.PendingErrorCurrentLine;
 					if (errorLine != null && errorLine is NullLine)
 						errorLine = null;
 					if (errorLine == null)
 						errorLine = currentLine;
+					DebugLog(string.Format("[DoScript-catch] InBeforeError: errorLine={0} PendingErrorSystemProc={1}\n",
+						errorLine != null ? errorLine.Position.ToString() : "null", state.PendingErrorSystemProc));
 					if (state.PendingErrorSystemProc)
 						handleExceptionInSystemProc(ec, errorLine, true);
 					else
 						handleException(ec, errorLine, true);
+					DebugLog("[DoScript-catch] InBeforeError: calling ClearFunctionList and returning\n");
+					state.ClearFunctionList();
 					return;
 				}
 				if (state.SkipBeforeError)
 				{
+					DebugLog("[DoScript-catch] >>> SkipBeforeError path\n");
 					state.SkipBeforeError = false;
 					LogicalLine throwLine = state.PendingThrowLine ?? currentLine;
 					state.PendingThrowLine = null;
+					DebugLog(string.Format("[DoScript-catch] SkipBeforeError: throwLine={0}\n",
+						throwLine != null ? throwLine.Position.ToString() : "null"));
 					if (systemProcRunning)
 						handleExceptionInSystemProc(ec, throwLine, true);
 					else
 						handleException(ec, throwLine, true);
+					DebugLog("[DoScript-catch] SkipBeforeError: calling ClearFunctionList and returning\n");
+					state.ClearFunctionList();
+					return;
+				}
+				if (state.InBeforeThrow)
+				{
+					DebugLog("[DoScript-catch] >>> InBeforeThrow path (skip BEFORE_ERROR)\n");
+					state.InBeforeThrow = false;
+					string throwMsg = state.PendingThrowMessage ?? ec.Message;
+					LogicalLine throwLine = state.PendingThrowLine ?? currentLine;
+					state.PendingThrowMessage = null;
+					state.PendingThrowLine = null;
+					DebugLog(string.Format("[DoScript-catch] InBeforeThrow: throwMsg='{0}' throwLine={1}\n",
+						throwMsg, throwLine != null ? throwLine.Position.ToString() : "null"));
+					if (systemProcRunning)
+						handleExceptionInSystemProc(new CodeEE(throwMsg), throwLine, true);
+					else
+						handleException(new CodeEE(throwMsg), throwLine, true);
+					DebugLog("[DoScript-catch] InBeforeThrow: calling ClearFunctionList and returning\n");
+					state.ClearFunctionList();
 					return;
 				}
 				state.InBeforeError = true;
+				DebugLog("[DoScript-catch] >>> Normal path, checking BEFORE_ERROR\n");
 				var beforeError = CalledFunction.CallEventFunction(this, "BEFORE_ERROR", null);
+				DebugLog(string.Format("[DoScript-catch] BEFORE_ERROR found={0}\n", beforeError != null));
 				if (beforeError != null)
 				{
+					DebugLog(string.Format("[DoScript-catch] Pushing BEFORE_ERROR, functionList.Count before={0}\n", state.FunctionList.Count));
 					state.IntoFunction(beforeError, null, null);
 					state.PendingErrorException = ec;
 					state.PendingErrorCurrentLine = currentLine;
 					state.PendingErrorSystemProc = systemProcRunning;
+					DebugLog(string.Format("[DoScript-catch] BEFORE_ERROR pushed, functionList.Count after={0}, continuing loop\n", state.FunctionList.Count));
 					continue;
 				}
 				state.InBeforeError = false;
+				DebugLog("[DoScript-catch] >>> No BEFORE_ERROR, normal error handling\n");
 				if (systemProcRunning)
 					handleExceptionInSystemProc(ec, currentLine, true);
 				else
 					handleException(ec, currentLine, true);
+				DebugLog("[DoScript-catch] Normal path: calling ClearFunctionList and returning\n");
+				state.ClearFunctionList();
 				return;
 			}
 		}
@@ -444,6 +511,8 @@ internal sealed partial class Process(EmueraConsole view)
 	public SingleTerm GetValue(SuperUserDefinedMethodTerm udmt)
 	{
 		methodStack++;
+		if (DebugLogEnabled) DebugLog(string.Format("[GetValue] methodStack={0} func={1} functionList.Count={2}\n",
+			methodStack, udmt.Call.FunctionName, state.FunctionList.Count));
 		if (methodStack > 100)
 		{
 			//StackOverflowExceptionはcatchできない上に再現性がないので発生前に一定数で打ち切る。
@@ -464,6 +533,8 @@ internal sealed partial class Process(EmueraConsole view)
 		}
 		finally
 		{
+			if (DebugLogEnabled) DebugLog(string.Format("[GetValue-finally] func={0} methodStack={1} functionList.Count={2}\n",
+				udmt.Call.FunctionName, methodStack, state.FunctionList.Count));
 			if (udmt.Call.TopLabel.hasPrivDynamicVar)
 				udmt.Call.TopLabel.ScopeOut();
 			var popped = state.PopContext();

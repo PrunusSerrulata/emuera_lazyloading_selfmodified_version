@@ -756,7 +756,21 @@ internal sealed partial class Process
 			case FunctionCode.THROW:
 			{
 				string throwMessage = ((ExpressionArgument)func.Argument).Term.GetStrValue(exm);
+				debugLogFirstWrite = true;
+				DebugLogEnabled = true;
+				DebugLog(string.Format("========== THROW ==========\n"));
+				DebugLog(string.Format("[THROW] message={0}\n", throwMessage));
+				DebugLog(string.Format("[THROW] functionList.Count={0}\n", state.FunctionList.Count));
+				for (int i = 0; i < state.FunctionList.Count; i++)
+				{
+					var cf = state.FunctionList[i];
+					DebugLog(string.Format("  [{0}] {1} IsEvent={2} Label={3}\n",
+						i, cf.FunctionName, cf.IsEvent,
+						cf.CurrentLabel != null ? cf.CurrentLabel.LabelName + ":" + cf.CurrentLabel.Position?.LineNo : "null"));
+				}
+				DebugLog(string.Format("===========================\n"));
 				bool inBeforeThrow = false;
+				bool inBeforeError = false;
 				foreach (var called in state.FunctionList)
 				{
 					if (called.IsEvent && called.FunctionName == "BEFORE_THROW")
@@ -765,20 +779,41 @@ internal sealed partial class Process
 						break;
 					}
 				}
+				foreach (var called in state.FunctionList)
+				{
+					if (called.IsEvent && called.FunctionName == "BEFORE_ERROR")
+					{
+						inBeforeError = true;
+						break;
+					}
+				}
 				if (inBeforeThrow)
 				{
+					DebugLog("[THROW] inBeforeThrow=true, printing and breaking\n");
+					console.PrintSingleLine(throwMessage);
+					break;
+				}
+				if (inBeforeError)
+				{
+					DebugLog("[THROW] inBeforeError=true, printing and breaking\n");
 					console.PrintSingleLine(throwMessage);
 					break;
 				}
 				state.PendingThrowMessage = throwMessage;
 				state.PendingThrowLine = func;
+				DebugLog("[THROW] calling CallEventFunction for BEFORE_THROW\n");
 				var beforeThrow = CalledFunction.CallEventFunction(this, "BEFORE_THROW", func);
+				DebugLog(string.Format("[THROW] BEFORE_THROW found={0}\n", beforeThrow != null));
 				if (beforeThrow == null)
 				{
+					DebugLog("[THROW] no BEFORE_THROW, throwing CodeEE directly\n");
 					state.ClearPendingThrow();
 					throw new CodeEE(throwMessage);
 				}
+				DebugLog("[THROW] pushing BEFORE_THROW into functionList\n");
 				state.IntoFunction(beforeThrow, null, null);
+				state.InBeforeThrow = true;
+				DebugLog("[THROW] set InBeforeThrow=true\n");
 				break;
 			}
 			case FunctionCode.CLEARTEXTBOX:
