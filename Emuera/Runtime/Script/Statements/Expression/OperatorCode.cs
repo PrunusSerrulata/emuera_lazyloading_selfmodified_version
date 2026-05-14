@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace MinorShift.Emuera.Runtime.Script.Statements.Expression;
 
@@ -56,6 +56,9 @@ internal static class OperatorManager
 		{ "+", OperatorCode.Plus },
 		{ "-", OperatorCode.Minus },
 		{ "*", OperatorCode.Mult },
+		{ "/", OperatorCode.Div },
+		{ "%", OperatorCode.Mod },
+		{ "==", OperatorCode.Equal },
 		{ ">", OperatorCode.Greater },
 		{ "<", OperatorCode.Less },
 		{ ">=", OperatorCode.GreaterEqual },
