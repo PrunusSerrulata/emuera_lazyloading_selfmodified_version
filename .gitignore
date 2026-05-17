@@ -1,15 +1,20 @@
 .vs/*
+.vscode/*
 .idea/*
-Emuera/bin/*
-Emuera/obj/*
-artifacts/*
-Emuera/Properties/PublishProfiles/FolderProfile.pubxml.user
-/Emuera/Properties/PublishProfiles/FolderProfile1.pubxml.user
-EmueraPluginExample/bin/*
-EmueraPluginExample/obj/*
+
+**/bin/*
+**/obj/*
+**/artifacts/**
+
+Emuera/Properties/PublishProfiles/*.pubxml.user
+Emuera/Properties/launchSettings.json
+Emuera/Emuera.csproj.user
+
+*.diff
 *.patch
+*.user
+*.suo
 
-*/artifacts/*
-
-*/Emuera.csproj.user
+# Xamarin project (develop-skiasharp 上不保留)
+Emuera.Xamarin/
 
