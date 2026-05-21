@@ -4051,7 +4051,7 @@ internal sealed partial class FunctionIdentifier
 			}
 			catch (EmueraException e)
 			{
-				if (!isTry) throw e;
+				if (!isTry) throw;
 				if (func.JumpToEndCatch != null) state.JumpTo(func.JumpToEndCatch);
 				return;
 			}
