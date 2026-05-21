@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # Project Rules — emuera_lazyloading_selfmodified_version
 
 本项目包含树种子规则文件，按主题拆分以便维护：

@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # 项目特异配置
 
 - 解决方案：`Emuera.sln`

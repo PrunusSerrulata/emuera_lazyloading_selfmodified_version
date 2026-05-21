@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # ERB 脚本编写规则
 
 > 编写 ERB/ERH 测试脚本时，必须先查阅 erabasic 语法知识库：[syntax-quickref.md](file:///d:/emuera/shared-trae/knowledge/erabasic/syntax-quickref.md)

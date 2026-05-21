@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # 知识库与技能架构
 
 本项目使用三层知识管理架构，skills 和 knowledge 通过符号链接共享：
