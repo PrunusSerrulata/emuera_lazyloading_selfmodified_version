@@ -22,6 +22,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Windows.Forms;
 using static MinorShift.Emuera.Runtime.Utils.EvilMask.Utils;
@@ -2973,7 +2974,6 @@ internal sealed partial class FunctionIdentifier
 			}
 
 			string url = GlobalStatic.GameBaseData.UpdateCheckURL;
-			WebClient wc = new();
 			if (url == null || url == "")
 			{
 				exm.VEvaluator.RESULT = 3;
@@ -2981,8 +2981,11 @@ internal sealed partial class FunctionIdentifier
 			}
 			try
 			{
-				Stream st = wc.OpenRead(url);
-				StreamReader sr = new(st);
+				using var httpClient = new HttpClient();
+				var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+				response.EnsureSuccessStatusCode();
+				using var stream = response.Content.ReadAsStream();
+				using var sr = new StreamReader(stream);
 				try
 				{
 					var version = sr.ReadLine();
@@ -3013,32 +3016,23 @@ internal sealed partial class FunctionIdentifier
 								UseShellExecute = true,
 								FileName = link,
 							});
-							//System.Diagnostics.Process.Start(link);
-							st.Close();
-							wc.Dispose();
 							return;
 						}
 						else
 						{
 							exm.VEvaluator.RESULT = 1;
-							st.Close();
-							wc.Dispose();
 							return;
 						}
 					}
 					else
 					{
 						exm.VEvaluator.RESULT = 0;
-						st.Close();
-						wc.Dispose();
 						return;
 					}
 				}
 				catch
 				{
 					exm.VEvaluator.RESULT = 3;
-					st.Close();
-					wc.Dispose();
 					return;
 				}
 			}
