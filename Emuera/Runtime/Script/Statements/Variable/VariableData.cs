@@ -156,8 +156,8 @@ internal sealed partial class VariableData : IDisposable
 		dataFloatArray = new double[(int)VariableCode.__COUNT_STRING_ARRAY__][];
 		for (int i = 0; i < dataFloatArray.Length; i++)
 			dataFloatArray[i] = [];
-		dataFloatArray2D = new double[(int)VariableCode.__COUNT_STRING_ARRAY_2D__][,];
-		dataFloatArray3D = new double[(int)VariableCode.__COUNT_STRING_ARRAY_3D__][,,];
+		dataFloatArray2D = Array.Empty<double[,]>();
+		dataFloatArray3D = Array.Empty<double[,,]>();
 		for (int i = 0; i < 9; i++)
 		{
 			userDefinedSaveVarList[i] = [];

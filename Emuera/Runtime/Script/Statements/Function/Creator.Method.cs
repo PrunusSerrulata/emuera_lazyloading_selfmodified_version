@@ -2278,7 +2278,7 @@ internal static partial class FunctionMethodCreator
 				bool isNotEmpty = false;
 				foreach (var k in sMap.Keys)
 				{
-					if (isNotEmpty) sb.Append(",").Append(k);
+					if (isNotEmpty) sb.Append(',').Append(k);
 					else
 					{
 						isNotEmpty = true;
@@ -2399,7 +2399,7 @@ internal static partial class FunctionMethodCreator
 			bool isNotEmpty = false;
 			foreach (var v in sMap.Values)
 			{
-				if (isNotEmpty) sb.Append(",").Append(v);
+				if (isNotEmpty) sb.Append(',').Append(v);
 				else
 				{
 					isNotEmpty = true;
@@ -2508,7 +2508,7 @@ internal static partial class FunctionMethodCreator
 					foreach (var k in sMap.Keys)
 					{
 						if (!k.Contains(matchValue)) continue;
-						if (isNotEmpty) sb.Append(",");
+						if (isNotEmpty) sb.Append(',');
 						isNotEmpty = true;
 						sb.Append(k);
 					}
@@ -2517,7 +2517,7 @@ internal static partial class FunctionMethodCreator
 					foreach (var k in sMap.Keys)
 					{
 						if (!k.StartsWith(matchValue)) continue;
-						if (isNotEmpty) sb.Append(",");
+						if (isNotEmpty) sb.Append(',');
 						isNotEmpty = true;
 						sb.Append(k);
 					}
@@ -2526,7 +2526,7 @@ internal static partial class FunctionMethodCreator
 					foreach (var k in sMap.Keys)
 					{
 						if (!k.EndsWith(matchValue)) continue;
-						if (isNotEmpty) sb.Append(",");
+						if (isNotEmpty) sb.Append(',');
 						isNotEmpty = true;
 						sb.Append(k);
 					}
@@ -2535,7 +2535,7 @@ internal static partial class FunctionMethodCreator
 					foreach (var kvp in sMap)
 					{
 						if (!kvp.Value.Contains(matchValue)) continue;
-						if (isNotEmpty) sb.Append(",");
+						if (isNotEmpty) sb.Append(',');
 						isNotEmpty = true;
 						sb.Append(kvp.Key);
 					}
@@ -2544,7 +2544,7 @@ internal static partial class FunctionMethodCreator
 					foreach (var kvp in sMap)
 					{
 						if (kvp.Value != matchValue) continue;
-						if (isNotEmpty) sb.Append(",");
+						if (isNotEmpty) sb.Append(',');
 						isNotEmpty = true;
 						sb.Append(kvp.Key);
 					}
@@ -10333,7 +10333,7 @@ internal static partial class FunctionMethodCreator
 		public GetTextDrawingModeMethod()
 		{
 			ReturnType = EraType.Integer;
-			argumentTypeArray = new EraType[] { };
+			argumentTypeArray = Array.Empty<EraType>();
 			CanRestructure = false;
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
