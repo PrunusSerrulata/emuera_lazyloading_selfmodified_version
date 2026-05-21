@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script.Loader;
@@ -70,7 +69,6 @@ internal sealed partial class Process
 
 	private List<string> LoadLazyLoadingFolders()
 	{
-		var oldChar = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\\' : '/';
 		char newChar = Path.DirectorySeparatorChar;
 
 		if (!File.Exists(LazyLoadingConfigFilePath))
@@ -85,7 +83,12 @@ internal sealed partial class Process
 		{
 			using var reader = new StreamReader(LazyLoadingConfigFilePath, Encoding.UTF8);
 			while ((line = reader.ReadLine()) != null)
-				ret.Add(line.Trim().Replace(oldChar, newChar));
+			{
+				// 将两种分隔符都替换为当前平台的分隔符
+				// lazyloading.cfg 可能在 Windows 上创建（使用 \），但在 Android/Linux 上运行（使用 /）
+				var normalized = line.Trim().Replace('\\', newChar).Replace('/', newChar);
+				ret.Add(normalized);
+			}
 		}
 		catch (Exception e)
 		{
@@ -433,11 +436,6 @@ internal sealed partial class Process
 
 	static string ErbPath(string a)
 	{
-		return string.Create(a.Length + "ERB/".Length, (a, b: "ERB/"), (span, tuple) =>
-		{
-			tuple.b.AsSpan().CopyTo(span);
-			span = span[tuple.b.Length..];
-			tuple.a.AsSpan().CopyTo(span);
-		});
+		return Program.ErbDir + a;
 	}
 }

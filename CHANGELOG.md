@@ -6,6 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
+## [Unreleased] — A类修复回流（feature/xamarin → develop-skiasharp）
+
+### Fixed — 内核 Bug 修复（A类，从 feature/xamarin 回流）
+
+> 以下修复源自 Xamarin 移植过程中发现的跨平台 Bug，WinForms 版同样受益。
+
+- **Process.State.cs** — 4 项修复
+  - `ShiftNextLine` null guard：`currentLine==null` 时直接 return，防止空栈 NRE（A1）
+  - `ReturnF` 空栈 guard：`functionList.Count==0` 时安全退出（A2）
+  - `CurrentLabel` null 检查：DebugMode 追踪日志中 `called.CurrentLabel` 可能为 null，添加 guard（A3）
+  - BEFORE_ERROR/BEFORE_THROW 逻辑简化：合并两个 BEFORE_THROW 分支为单一条件判断，移除冗余 `GameProcProcess.DebugLog` 调用，逻辑等价（A4）
+
+- **Process.LazyLoading.cs** — 2 项修复
+  - `LoadLazyLoadingFolders`：同时替换 `\` 和 `/` 为 `Path.DirectorySeparatorChar`，不再依赖 `RuntimeInformation.IsOSPlatform`（A5）
+  - `ErbPath`：从 `string.Create("ERB/" + a)` 简化为 `Program.ErbDir + a`，使用已有的跨平台路径属性（A6）
+
+- **CharacterData.cs** — 数组 null 检查
+  - `SaveToStreamBinary`：1D/2D 数组 `dataIntegerArray`/`dataStringArray`/`dataFloatArray` 在 `ToArray()`/`WriteWithKey` 前检查 null，防止空角色数据保存崩溃（A7）
+
+- **VariableEvaluator.cs** — StainDefault null 兜底
+  - `setDefaultStain`：`Config.StainDefault ?? new List<long>(new long[] { 0, 0, 2, 1, 8 })`，防止配置缺失时 NRE（A8）
+
+- **Instraction.Child.cs** — 2 项修复
+  - CALLPLUGIN null guard：`arg.CallFunc == null` 时设置 RESULT=0 并 return，防止插件未加载时 NRE（A11）
+  - TIMES 溢出：`null` → `default(ScriptPosition)`，修复 `PrintWarning` 参数类型（A12）
+
+- **Creator.Method.cs** — GetCurrentProcess try-catch
+  - `GetMemoryUseMethod`/`ClearMemoryMethod`：`Process.GetCurrentProcess()` 包裹 try-catch，Android 上可能抛异常，返回 0L 降级（A16）
+
+- **Config.cs** — 属性可见性改 internal
+  - 17 个配置属性从 `private set` 改为 `internal set`，允许 Xamarin 项目覆盖配置值（A21）
+  - 涉及：CompatiLinefeedAs1739, SystemAllowFullSpace, SystemSaveInBinary, CompatiFuncArgAutoConvert, CompatiFuncArgOptional, CompatiCallEvent, CompatiSPChara, SystemIgnoreTripleSymbol, SystemNoTarget, SystemIgnoreStringSet, Language, SavDir, ForceSavDir, NeedReduceArgumentOnLoad, AllowLongInputByMouse, TimesNotRigorousCalculation, UseLazyLoading, ForbidUpdateCheck, UseERD, VarsizeDimConfig, ReplaceContinuationBR, ValidExtension, ZipSaveData, EnglishConfigOutput, EmueraLang, EmueraIcon, RikaiEnabled, RikaiFilename, RikaiColorBack, RikaiColorText, RikaiUseSeparateBoxes
+
+- **OperatorMethod.cs** — 溢出警告参数修正
+  - `null` → `default(ScriptPosition)`：4 处整数溢出警告的第二个参数从 null 改为 default(ScriptPosition)，修复 PrintWarning 参数类型
+
+### 未回流（需前置依赖）
+
+> 以下 A 类修复依赖 develop-skiasharp 端尚不存在的 API，需先实现依赖后再回流：
+
+- A9/A20：`GetFilesCaseInsensitive` 替代 `Directory.GetFiles` — 需先在 Config.cs 实现
+- A10/A15：`PlatformInterop.ShowMessage/ShowQuestion` 替代 `MessageBox.Show` — 需先实现 PlatformInterop 抽象层
+- A13：音频路径 `Program.MusicDir` — 需先在 Program.cs 实现 MusicDir 属性
+- A14：`Program.FileExists` 替代 `File.Exists` — 需先在 Program.cs 实现 FileExists 方法
+
+***
+
 ## [3.8.2](https://gitgud.io/minus010001/emuera_lazyloading_selfmodified_version) — 2026-05-15
 
 ### Fixed

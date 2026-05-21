@@ -2263,18 +2263,19 @@ internal sealed class VariableEvaluator : IDisposable
 	private static void setDefaultStain(CharacterData chara)
 	{
 		var array = chara.DataIntegerArray[(int)(VariableCode.STAIN & VariableCode.__LOWERCASE__)];
+		var stainDefault = Config.Config.StainDefault ?? new List<long>(new long[] { 0, 0, 2, 1, 8 });
 		//STAINの配列要素数 < _REPLACE.CSVのSTAIN初期値の指定数の時エラーになるのを対処
-		if (array.Length >= Config.Config.StainDefault.Count)
+		if (array.Length >= stainDefault.Count)
 		{
-			for (int i = 0; i < Config.Config.StainDefault.Count; i++)
-				array[i] = Config.Config.StainDefault[i];
-			for (int i = Config.Config.StainDefault.Count; i < array.Length; i++)
+			for (int i = 0; i < stainDefault.Count; i++)
+				array[i] = stainDefault[i];
+			for (int i = stainDefault.Count; i < array.Length; i++)
 				array[i] = 0;
 		}
 		else
 		{
 			for (int i = 0; i < array.Length; i++)
-				array[i] = Config.Config.StainDefault[i];
+				array[i] = stainDefault[i];
 		}
 	}
 

@@ -1,4 +1,4 @@
-﻿﻿using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils;
 using MinorShift.Emuera.UI;
 using SkiaSharp;
 using System;
@@ -569,31 +569,31 @@ internal static class Config
 	public static bool UseSaveFolder { get; private set; }
 	public static bool CompatiRAND { get; private set; }
 	//public static bool CompatiDRAWLINE { get; private set; }
-	public static bool CompatiLinefeedAs1739 { get; private set; }
-	public static bool SystemAllowFullSpace { get; private set; }
-	public static bool SystemSaveInBinary { get; private set; }
-	public static bool CompatiFuncArgAutoConvert { get; private set; }
-	public static bool CompatiFuncArgOptional { get; private set; }
-	public static bool CompatiCallEvent { get; private set; }
-	public static bool CompatiSPChara { get; private set; }
-	public static bool SystemIgnoreTripleSymbol { get; private set; }
-	public static bool SystemNoTarget { get; private set; }
-	public static bool SystemIgnoreStringSet { get; private set; }
+	public static bool CompatiLinefeedAs1739 { get; internal set; }
+	public static bool SystemAllowFullSpace { get; internal set; }
+	public static bool SystemSaveInBinary { get; internal set; }
+	public static bool CompatiFuncArgAutoConvert { get; internal set; }
+	public static bool CompatiFuncArgOptional { get; internal set; }
+	public static bool CompatiCallEvent { get; internal set; }
+	public static bool CompatiSPChara { get; internal set; }
+	public static bool SystemIgnoreTripleSymbol { get; internal set; }
+	public static bool SystemNoTarget { get; internal set; }
+	public static bool SystemIgnoreStringSet { get; internal set; }
 
-	public static int Language { get; private set; }
+	public static int Language { get; internal set; }
 
-	public static string SavDir { get; private set; }
-	public static string ForceSavDir { get; private set; }
+	public static string SavDir { get; internal set; }
+	public static string ForceSavDir { get; internal set; }
 
-	public static bool NeedReduceArgumentOnLoad { get; private set; }
+	public static bool NeedReduceArgumentOnLoad { get; internal set; }
 
-	public static bool AllowLongInputByMouse { get; private set; }
+	public static bool AllowLongInputByMouse { get; internal set; }
 
-	public static bool TimesNotRigorousCalculation { get; private set; }
+	public static bool TimesNotRigorousCalculation { get; internal set; }
 	//一文字変数の禁止オプションを考えた名残
 	//public static bool ForbidOneCodeVariable { get; private set; }
 
-	public static bool UseLazyLoading { get; private set; }
+	public static bool UseLazyLoading { get; internal set; }
 	#endregion
 
 	#region debug
@@ -662,10 +662,10 @@ internal static class Config
 	public static StringComparer StrComper = StringComparer.OrdinalIgnoreCase;
 
 	#region EE版_UPDATECHECK
-	public static bool ForbidUpdateCheck { get; private set; }
+	public static bool ForbidUpdateCheck { get; internal set; }
 	#endregion
 	#region EE版_ERDConfig
-	public static bool UseERD { get; private set; }
+	public static bool UseERD { get; internal set; }
 	#endregion
 	#region EE_ERDNAME
 	public static bool VarsizeDimConfig { get; private set; }
@@ -674,20 +674,20 @@ internal static class Config
 	public static bool CheckDuplicateIdentifier { get; private set; }
 	#endregion
 	#region EE_行連結の改行コード置換
-	public static string ReplaceContinuationBR { get; private set; }
+	public static string ReplaceContinuationBR { get; internal set; }
 	#endregion
 	#region EM_私家版_LoadText＆SaveText機能拡張
 	public static List<string> ValidExtension { get; private set; }
 	#endregion
 	#region EM_私家版_セーブ圧縮
-	public static bool ZipSaveData { get; private set; }
+	public static bool ZipSaveData { get; internal set; }
 	#endregion
 	#region EM_私家版_Emuera多言語化改造
 	public static bool EnglishConfigOutput { get; private set; }
 	public static string EmueraLang { get; private set; }
 	#endregion
 	#region EM_私家版_Icon指定機能
-	public static string EmueraIcon { get; private set; }
+	public static string EmueraIcon { get; internal set; }
 	#endregion
 	#region EE_AnchorのCB機能移植
 	public static bool CBUseClipboard { get; private set; }
@@ -706,11 +706,11 @@ internal static class Config
 	public static int CBMinTimer { get; private set; }
 	#endregion
 	#region EmuEra-Rikaichan related settings
-	public static bool RikaiEnabled { get; private set; }
-	public static string RikaiFilename { get; private set; }
-	public static Color RikaiColorBack { get; private set; }
-	public static Color RikaiColorText { get; private set; }
-	public static bool RikaiUseSeparateBoxes { get; private set; }
+	public static bool RikaiEnabled { get; internal set; }
+	public static string RikaiFilename { get; internal set; }
+	public static Color RikaiColorBack { get; internal set; }
+	public static Color RikaiColorText { get; internal set; }
+	public static bool RikaiUseSeparateBoxes { get; internal set; }
 	#endregion
 
 	public static bool Ctrl_Z_Enabled { get; private set; }
