@@ -2,19 +2,31 @@
 alwaysApply: true
 ---
 
-# Project Rules — emuera_lazyloading_selfmodified_version
+# Project Rules — LazyLoading
 
-本项目包含树种子规则文件，按主题拆分以便维护：
+## 项目类型
 
-## 项目基建
+.NET C# 解决方案（Emuera 原版派生的懒加载修改版）
 
-- [项目特异配置](project-config.md) — 解决方案、构建/测试命令、项目类型
-- [知识库与技能架构](knowledge-architecture.md) — 三层架构、知识积累规则、会话结束检查
+- 解决方案：`Emuera.sln`
+- 构建：`dotnet build "D:\emuera\emuera_lazyloading_selfmodified_version\Emuera.sln" 2>&1`
+- 测试：`dotnet test 2>&1`
 
-## 编码规范
+## 技能
 
-- [ERB 脚本编写规则](erb-script-rules.md) — #DIM 语法、字符串字面量、API 确认流程
+通用语言：[CONTEXT.md](file:///d:/emuera/shared-trae/CONTEXT.md)
 
-## Agent 行为
+| 技能 | 激活条件 |
+|------|---------|
+| **lazyloading** | 内核开发、分支管理、回流 |
+| **erabasic** | ERABASIC 解析/运行时、.erb/.erh/.csv |
+| **powershell-git** | 终端命令、Git |
+| **knowledge-builder** | 发现新洞见 |
 
-- [默认技能激活规则](skill-activation.md) — 默认技能、激活条件、违反后果
+## 子规则
+
+- [内核修改分类](kernel/modification-classification.md) — A/B/C 类分类与回流策略
+
+## 会话结束规则
+
+1. 按 knowledge-builder 方法论同步知识库
