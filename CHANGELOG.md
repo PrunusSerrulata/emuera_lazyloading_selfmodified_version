@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
-## [Unreleased] — A类修复回流（feature/xamarin → develop-skiasharp）
+## [3.9.0] — A类修复回流 + 编译警告修复
 
 ### Fixed — 内核 Bug 修复（A类，从 feature/xamarin 回流）
 
@@ -37,19 +37,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **Config.cs** — 属性可见性改 internal
   - 17 个配置属性从 `private set` 改为 `internal set`，允许 Xamarin 项目覆盖配置值（A21）
-  - 涉及：CompatiLinefeedAs1739, SystemAllowFullSpace, SystemSaveInBinary, CompatiFuncArgAutoConvert, CompatiFuncArgOptional, CompatiCallEvent, CompatiSPChara, SystemIgnoreTripleSymbol, SystemNoTarget, SystemIgnoreStringSet, Language, SavDir, ForceSavDir, NeedReduceArgumentOnLoad, AllowLongInputByMouse, TimesNotRigorousCalculation, UseLazyLoading, ForbidUpdateCheck, UseERD, VarsizeDimConfig, ReplaceContinuationBR, ValidExtension, ZipSaveData, EnglishConfigOutput, EmueraLang, EmueraIcon, RikaiEnabled, RikaiFilename, RikaiColorBack, RikaiColorText, RikaiUseSeparateBoxes
 
 - **OperatorMethod.cs** — 溢出警告参数修正
   - `null` → `default(ScriptPosition)`：4 处整数溢出警告的第二个参数从 null 改为 default(ScriptPosition)，修复 PrintWarning 参数类型
 
-### 未回流（需前置依赖）
+### Fixed — 编译警告修复（1035→240，减少 77%）
 
-> 以下 A 类修复依赖 develop-skiasharp 端尚不存在的 API，需先实现依赖后再回流：
-
-- A9/A20：`GetFilesCaseInsensitive` 替代 `Directory.GetFiles` — 需先在 Config.cs 实现
-- A10/A15：`PlatformInterop.ShowMessage/ShowQuestion` 替代 `MessageBox.Show` — 需先实现 PlatformInterop 抽象层
-- A13：音频路径 `Program.MusicDir` — 需先在 Program.cs 实现 MusicDir 属性
-- A14：`Program.FileExists` 替代 `File.Exists` — 需先在 Program.cs 实现 FileExists 方法
+- **CA2200** — `Instraction.Child.cs`：`throw e` → `throw`，保留原始异常堆栈
+- **SYSLIB0014** — `Instraction.Child.cs`：`WebClient` → `HttpClient`，移除过时 API
+- **CS4014** — `MainWindow.cs`：未 await 的 `ReloadPartialErb` 调用添加 `_ =` 丢弃标记
+- **CA1069** — `VariableCode.cs`：枚举添加 `[Flags]` 属性和 `SuppressMessage`，`__COUNT_*__` 值重复是设计意图
+- **CA1806** — `WinmmTimer.cs`：检查 `timeBeginPeriod`/`timeEndPeriod` 返回值
+- **CA1825** — `VariableData.cs`/`CharacterData.cs`/`Creator.Method.cs`：零长度数组 `new T[0]` → `Array.Empty<T>()`
+- **CA1834** — 7 个文件：单字符 `Append("x")` → `Append('x')`，使用 char 重载
+- **CA1854** — 9 个文件：`ContainsKey` + 索引器 → `TryGetValue`，消除双重字典查找
 
 ***
 

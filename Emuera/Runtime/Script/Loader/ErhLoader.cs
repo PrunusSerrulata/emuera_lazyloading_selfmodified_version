@@ -309,10 +309,9 @@ internal sealed class ErhLoader
 						if (data.Dimension == 1)
 						{
 							key = data.Name.ToUpper(CultureInfo.InvariantCulture);
-							if (erdFileNames.ContainsKey(key))
+							if (erdFileNames.TryGetValue(key, out var info1))
 							{
-								var info = erdFileNames[key];
-								GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name, data.Lengths[0], Config.Config.DisplayReport, dimline.SC);
+								GlobalStatic.ConstantData.UserDefineLoadData(info1, data.Name, data.Lengths[0], Config.Config.DisplayReport, dimline.SC);
 							}
 							System.Windows.Forms.Application.DoEvents();
 						}
@@ -321,10 +320,9 @@ internal sealed class ErhLoader
 							for (int dim = 1; dim < 3; dim++)
 							{
 								key = data.Name.ToUpper(CultureInfo.InvariantCulture) + "@" + dim;
-								if (erdFileNames.ContainsKey(key))
+								if (erdFileNames.TryGetValue(key, out var info2))
 								{
-									var info = erdFileNames[key];
-									GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
+									GlobalStatic.ConstantData.UserDefineLoadData(info2, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
 								}
 								System.Windows.Forms.Application.DoEvents();
 							}
@@ -334,10 +332,9 @@ internal sealed class ErhLoader
 							for (int dim = 1; dim < 4; dim++)
 							{
 								key = data.Name.ToUpper(CultureInfo.InvariantCulture) + "@" + dim;
-								if (erdFileNames.ContainsKey(key))
+								if (erdFileNames.TryGetValue(key, out var info3))
 								{
-									var info = erdFileNames[key];
-									GlobalStatic.ConstantData.UserDefineLoadData(info, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
+									GlobalStatic.ConstantData.UserDefineLoadData(info3, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
 								}
 								System.Windows.Forms.Application.DoEvents();
 							}
@@ -381,18 +378,18 @@ internal sealed class ErhLoader
 		foreach (var path in Directory.GetFiles(Program.ErbDir, "*.erd", SearchOption.AllDirectories))
 		{
 			var key = Path.GetFileNameWithoutExtension(path).ToUpper(CultureInfo.InvariantCulture);
-			if (!erdFileNames.ContainsKey(key))
+			if (!erdFileNames.TryGetValue(key, out var list))
 				erdFileNames[key] = [path];
 			else
-				erdFileNames[key].Add(path);
+				list.Add(path);
 		}
 		foreach (var path in Directory.GetFiles(Program.CsvDir, "*.csv", SearchOption.TopDirectoryOnly))
 		{
 			var key = Path.GetFileNameWithoutExtension(path).ToUpper(CultureInfo.InvariantCulture);
-			if (!erdFileNames.ContainsKey(key))
+			if (!erdFileNames.TryGetValue(key, out var list))
 				erdFileNames[key] = [path];
 			else
-				erdFileNames[key].Add(path);
+				list.Add(path);
 		}
 	}
 	#endregion

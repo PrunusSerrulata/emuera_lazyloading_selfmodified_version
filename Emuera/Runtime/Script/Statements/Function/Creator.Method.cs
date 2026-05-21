@@ -106,7 +106,7 @@ internal static partial class FunctionMethodCreator
 			{
 				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
-				if (dict.ContainsKey(idx)) doc = dict[idx];
+				if (dict.TryGetValue(idx, out doc)) { }
 				else return -1;
 			}
 			else
@@ -1012,7 +1012,7 @@ internal static partial class FunctionMethodCreator
 				saveToArg0 = false;
 				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
-				if (dict.ContainsKey(idx)) doc = dict[idx];
+				if (dict.TryGetValue(idx, out doc)) { }
 				else return -1;
 			}
 			else
@@ -1073,8 +1073,8 @@ internal static partial class FunctionMethodCreator
 		{
 			string idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 			var xmlDict = exm.VEvaluator.VariableData.DataXmlDocument;
-			if (!xmlDict.ContainsKey(idx)) return string.Empty;
-			return xmlDict[idx].OuterXml;
+			if (!xmlDict.TryGetValue(idx, out var xmlVal)) return string.Empty;
+			return xmlVal.OuterXml;
 		}
 	}
 	private sealed class XmlAddNodeMethod : FunctionMethod
@@ -1188,7 +1188,7 @@ internal static partial class FunctionMethodCreator
 				saveToArg0 = false;
 				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
-				if (dict.ContainsKey(idx)) doc = dict[idx];
+				if (dict.TryGetValue(idx, out doc)) { }
 				else return -1;
 			}
 			else
@@ -1350,7 +1350,7 @@ internal static partial class FunctionMethodCreator
 				saveToArg0 = false;
 				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
-				if (dict.ContainsKey(idx)) doc = dict[idx];
+				if (dict.TryGetValue(idx, out doc)) { }
 				else return -1;
 			}
 			else
@@ -1445,7 +1445,7 @@ internal static partial class FunctionMethodCreator
 				saveToArg0 = false;
 				var idx = arguments[0].GetEraType() == EraType.String ? arguments[0].GetStrValue(exm) : arguments[0].GetIntValue(exm).ToString();
 				var dict = exm.VEvaluator.VariableData.DataXmlDocument;
-				if (!dict.ContainsKey(idx)) return -1;
+				if (!dict.TryGetValue(idx, out _)) return -1;
 				if (arguments.Count == 2)
 				{
 					dict[idx] = newXml;
@@ -1536,14 +1536,14 @@ internal static partial class FunctionMethodCreator
 		{
 			string key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			bool contains = dict.ContainsKey(key);
+			bool contains = dict.TryGetValue(key, out var existingDt);
 			switch (op)
 			{
 				case Operation.Clear:
 					{
 						if (contains)
 						{
-							dict[key].Clear();
+							existingDt.Clear();
 							return 1;
 						}
 						return -1;
@@ -1552,7 +1552,7 @@ internal static partial class FunctionMethodCreator
 					{
 						if (contains)
 						{
-							dict[key].CaseSensitive = arguments[1].GetIntValue(exm) == 0;
+							existingDt.CaseSensitive = arguments[1].GetIntValue(exm) == 0;
 							return 1;
 						}
 						return -1;
@@ -1597,8 +1597,8 @@ internal static partial class FunctionMethodCreator
 		{
 			string key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return -1;
-			var dt = dict[key];
+			if (!dict.TryGetValue(key, out var dt))
+				return -1;
 			if (op == Operation.Names)
 			{
 				if (arguments.Count > 1 && arguments[1] is VariableTerm v)
@@ -1718,8 +1718,8 @@ internal static partial class FunctionMethodCreator
 			var b = op == Operation.Add ? 0 : 1;
 			string key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return -1;
-			var dt = dict[key];
+			if (!dict.TryGetValue(key, out var dt))
+				return -1;
 			var cCount = 0L;
 			DataRow row;
 			if (op == Operation.Set)
@@ -1824,8 +1824,8 @@ internal static partial class FunctionMethodCreator
 		{
 			string key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return -1;
-			return op == Operation.Row ? dict[key].Rows.Count : dict[key].Columns.Count;
+			if (!dict.TryGetValue(key, out var dtRows)) return -1;
+			return op == Operation.Row ? dtRows.Rows.Count : dtRows.Columns.Count;
 		}
 	}
 	private sealed class DataTableRowRemoveMethod : FunctionMethod
@@ -1843,8 +1843,8 @@ internal static partial class FunctionMethodCreator
 		{
 			string key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return -1;
-			var dt = dict[key];
+			if (!dict.TryGetValue(key, out var dt))
+				return -1;
 			DataRow[] rows;
 			if (arguments.Count == 3)
 			{
@@ -1896,9 +1896,9 @@ internal static partial class FunctionMethodCreator
 		{
 			var key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return op == Operation.IsNull ? -1 : 0;
+			if (!dict.TryGetValue(key, out var dt))
+				return op == Operation.IsNull ? -1 : 0;
 			bool asId = arguments.Count == 4 ? arguments[3].GetIntValue(exm) != 0 : false;
-			var dt = dict[key];
 			var idx = arguments[1].GetIntValue(exm);
 			var name = arguments[2].GetStrValue(exm);
 			if (asId)
@@ -1923,9 +1923,9 @@ internal static partial class FunctionMethodCreator
 		{
 			var key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return string.Empty;
+			if (!dict.TryGetValue(key, out var dt))
+				return string.Empty;
 			bool asId = arguments.Count == 4 ? arguments[3].GetIntValue(exm) != 0 : false;
-			var dt = dict[key];
 			var idx = arguments[1].GetIntValue(exm);
 			var name = arguments[2].GetStrValue(exm);
 			if (asId)
@@ -1961,9 +1961,9 @@ internal static partial class FunctionMethodCreator
 		{
 			var key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return -1;
+			if (!dict.TryGetValue(key, out var dt))
+				return -1;
 			bool asId = arguments.Count == 5 ? arguments[4].GetIntValue(exm) != 0 : false;
-			var dt = dict[key];
 			var idx = arguments[1].GetIntValue(exm);
 			var name = arguments[2].GetStrValue(exm);
 			if (name.ToLower() == "id") return 0;
@@ -2003,8 +2003,8 @@ internal static partial class FunctionMethodCreator
 		{
 			var key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return -1;
-			var dt = dict[key];
+			if (!dict.TryGetValue(key, out var dt))
+				return -1;
 			string filter = arguments.Count > 1 ? (arguments[1] != null ? arguments[1].GetStrValue(exm) : null) : null;
 			string sort = arguments.Count > 2 ? (arguments[2] != null ? arguments[2].GetStrValue(exm) : null) : null;
 			DataRow[] res;
@@ -2068,8 +2068,8 @@ internal static partial class FunctionMethodCreator
 		{
 			var key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return string.Empty;
-			var dt = dict[key];
+			if (!dict.TryGetValue(key, out var dt))
+				return string.Empty;
 			var idx = arguments.Count > 1 ? 0 : 1;
 
 			var sb = new StringBuilder();
@@ -2121,7 +2121,7 @@ internal static partial class FunctionMethodCreator
 			{
 				return 0;
 			}
-			if (dict.ContainsKey(key)) dict[key] = dt;
+			if (dict.TryGetValue(key, out _)) dict[key] = dt;
 			else dict.Add(key, dt);
 			return 1;
 		}
@@ -2177,8 +2177,7 @@ internal static partial class FunctionMethodCreator
 		{
 			var map = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
-			if (!dict.ContainsKey(map)) return -1;
-			var sMap = dict[map];
+			if (!dict.TryGetValue(map, out var sMap)) return -1;
 			if (op == Operation.Clear) sMap.Clear();
 			else if (op == Operation.Size) return sMap.Count;
 			else
@@ -2220,12 +2219,11 @@ internal static partial class FunctionMethodCreator
 		{
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
 			var map = arguments[0].GetStrValue(exm);
-			if (!dict.ContainsKey(map)) return "";
-			var sMap = dict[map];
+			if (!dict.TryGetValue(map, out var sMap)) return "";
 			if (op == Operation.Get)
 			{
 				var key = arguments[1].GetStrValue(exm);
-				if (sMap.ContainsKey(key)) return sMap[key];
+				if (sMap.TryGetValue(key, out var val)) return val;
 				return "";
 			}
 			else if (op == Operation.GetKeys && arguments.Count > 1)
@@ -2308,9 +2306,8 @@ internal static partial class FunctionMethodCreator
 		{
 			var map = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
-			if (!dict.ContainsKey(map)) return 0;
+			if (!dict.TryGetValue(map, out var sMap)) return 0;
 			var xml = arguments[1].GetStrValue(exm);
-			var sMap = dict[map];
 			XmlDocument doc = new();
 			XmlNodeList nodes;
 			try
@@ -2350,8 +2347,7 @@ internal static partial class FunctionMethodCreator
 		{
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
 			var map = arguments[0].GetStrValue(exm);
-			if (!dict.ContainsKey(map)) return "";
-			var sMap = dict[map];
+			if (!dict.TryGetValue(map, out var sMap)) return "";
 			if (arguments.Count > 1)
 			{
 				int count = 0;
@@ -2423,9 +2419,7 @@ internal static partial class FunctionMethodCreator
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
 			var destMap = arguments[0].GetStrValue(exm);
 			var srcMap = arguments[1].GetStrValue(exm);
-			if (!dict.ContainsKey(destMap) || !dict.ContainsKey(srcMap)) return 0;
-			var dest = dict[destMap];
-			var src = dict[srcMap];
+			if (!dict.TryGetValue(destMap, out var dest) || !dict.TryGetValue(srcMap, out var src)) return 0;
 			foreach (var kvp in src)
 				dest[kvp.Key] = kvp.Value;
 			return 1;
@@ -2444,8 +2438,7 @@ internal static partial class FunctionMethodCreator
 		{
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
 			var map = arguments[0].GetStrValue(exm);
-			if (!dict.ContainsKey(map)) return 0;
-			var sMap = dict[map];
+			if (!dict.TryGetValue(map, out var sMap)) return 0;
 			var matchValue = arguments[1].GetStrValue(exm);
 			var mode = arguments[2].GetStrValue(exm);
 			List<string> toRemove = new();
@@ -2496,8 +2489,7 @@ internal static partial class FunctionMethodCreator
 		{
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
 			var map = arguments[0].GetStrValue(exm);
-			if (!dict.ContainsKey(map)) return "";
-			var sMap = dict[map];
+			if (!dict.TryGetValue(map, out var sMap)) return "";
 			var matchValue = arguments[1].GetStrValue(exm);
 			var mode = arguments[2].GetStrValue(exm);
 			StringBuilder sb = new();
@@ -2569,8 +2561,7 @@ internal static partial class FunctionMethodCreator
 		{
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
 			var map = arguments[0].GetStrValue(exm);
-			if (!dict.ContainsKey(map)) return "";
-			var sMap = dict[map];
+			if (!dict.TryGetValue(map, out var sMap)) return "";
 			var sep = arguments.Count > 1 ? arguments[1].GetStrValue(exm) : ",";
 			var kvSep = arguments.Count > 2 ? arguments[2].GetStrValue(exm) : "=";
 			StringBuilder sb = new();
@@ -2599,8 +2590,7 @@ internal static partial class FunctionMethodCreator
 		{
 			var dict = exm.VEvaluator.VariableData.DataStringMaps;
 			var map = arguments[0].GetStrValue(exm);
-			if (!dict.ContainsKey(map)) return 0;
-			var sMap = dict[map];
+			if (!dict.TryGetValue(map, out var sMap)) return 0;
 			var data = arguments[1].GetStrValue(exm);
 			var sep = arguments.Count > 2 ? arguments[2].GetStrValue(exm) : ",";
 			var kvSep = arguments.Count > 3 ? arguments[3].GetStrValue(exm) : "=";
@@ -10488,9 +10478,8 @@ internal static partial class FunctionMethodCreator
 		{
 			var key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return 0.0;
+			if (!dict.TryGetValue(key, out var dt)) return 0.0;
 			bool asId = arguments.Count == 4 ? arguments[3].GetIntValue(exm) != 0 : false;
-			var dt = dict[key];
 			var idx = arguments[1].GetIntValue(exm);
 			var name = arguments[2].GetStrValue(exm);
 			if (asId)
@@ -10528,9 +10517,9 @@ internal static partial class FunctionMethodCreator
 		{
 			var key = arguments[0].GetStrValue(exm);
 			var dict = exm.VEvaluator.VariableData.DataDataTables;
-			if (!dict.ContainsKey(key)) return -1;
+			if (!dict.TryGetValue(key, out var dt))
+				return -1;
 			bool asId = arguments.Count == 5 ? arguments[4].GetIntValue(exm) != 0 : false;
-			var dt = dict[key];
 			var idx = arguments[1].GetIntValue(exm);
 			var name = arguments[2].GetStrValue(exm);
 			if (name.ToLower() == "id") return 0;

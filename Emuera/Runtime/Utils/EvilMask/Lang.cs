@@ -1457,8 +1457,8 @@ internal sealed partial class Lang
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			var attr = nodes[i].Attributes["id"];
-			if (attr != null && trItems.ContainsKey(attr.Value))
-				trItems[attr.Value].Set(nodes[i].InnerText);
+			if (attr != null && trItems.TryGetValue(attr.Value, out var item))
+				item.Set(nodes[i].InnerText);
 		}
 	}
 	
