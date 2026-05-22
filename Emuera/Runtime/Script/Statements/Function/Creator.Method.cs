@@ -7135,7 +7135,7 @@ internal static partial class FunctionMethodCreator
 					{
 						if (ff.Name == fontname)
 						{
-							styledFont = new SKFont(SKTypeface.FromFamilyName(ff.Name), fontsize);
+							styledFont = FontFactory.GetFont(ff.Name, fs, fontsize);
 							goto foundfont;
 						}
 					}

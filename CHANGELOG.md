@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ***
 
-## [3.9.1] — A类修复回流（第二轮）+ 上游对齐
+## [3.9.1] — A类修复回流（第二轮）+ 上游对齐 + EmueraFL bug 修复
 
 ### Fixed — 内核 Bug 修复（A类，从 feature/xamarin 回流）
 
@@ -29,6 +29,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Utils.cs** — `GetValidPath` 文档注释同步
   - 同步上游 ee+em a4d3665 的注释：标注 `GetValidPath` 返回绝对路径，调用方需自行 `GetRelativePath`
 
+### Fixed — EmueraFL bug 修复（从闭源引擎 commit 提取）
+
+> 以下修复源自 EmueraFL（Kom1 闭源引擎）commit 历史中的引擎 bug 描述，我们在源码中验证并修复。
+
+- **Creator.Method.cs** — GSETFONT FontStyle 丢失（A26）
+  - `GSETFONT` 从 `Pfc.Families` 找到字体时，`new SKFont(SKTypeface.FromFamilyName(...), fontsize)` 未传入 `fs` 参数
+  - 导致 Bold/Italic/Underline/Strikeout 样式被忽略，始终为 Regular
+  - 修复：改为 `FontFactory.GetFont(ff.Name, fs, fontsize)` 统一处理
+  - 对应 EmueraFL commit `ae958303`
 
 ***
 
