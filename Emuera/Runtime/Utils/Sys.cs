@@ -15,8 +15,6 @@ public static class AssemblyData
 		ExeDir = Path.GetDirectoryName(ExePath) + Path.DirectorySeparatorChar;
 		ExeName = Path.GetFileName(ExePath);
 		emueraVer = typeof(AssemblyData).Assembly.GetName().Version;
-
-		EmueraVersionText = "Emuera.NET SkiaSharp " + PlatformInterop.GetProductVersion();
 	}
 
 	/// <summary>
@@ -26,7 +24,7 @@ public static class AssemblyData
 
 	public readonly static Version emueraVer;
 
-	public readonly static string EmueraVersionText;
+	public static string EmueraVersionText => "Emuera.NET SkiaSharp " + PlatformInterop.GetProductVersion();
 
 	/// <summary>
 	/// 実行ファイルのディレクトリ。最後に\を付けたstring

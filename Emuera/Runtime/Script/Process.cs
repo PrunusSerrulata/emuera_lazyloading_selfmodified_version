@@ -395,6 +395,7 @@ internal sealed partial class Process(EmueraConsole view)
 						handleException(ec, errorLine, true);
 					DebugLog("[DoScript-catch] InBeforeError: calling ClearFunctionList and returning\n");
 					state.ClearFunctionList();
+					DebugLogEnabled = false;
 					return;
 				}
 				if (state.SkipBeforeError)
@@ -411,6 +412,7 @@ internal sealed partial class Process(EmueraConsole view)
 						handleException(ec, throwLine, true);
 					DebugLog("[DoScript-catch] SkipBeforeError: calling ClearFunctionList and returning\n");
 					state.ClearFunctionList();
+					DebugLogEnabled = false;
 					return;
 				}
 				if (state.InBeforeThrow)
@@ -429,6 +431,7 @@ internal sealed partial class Process(EmueraConsole view)
 						handleException(new CodeEE(throwMsg), throwLine, true);
 					DebugLog("[DoScript-catch] InBeforeThrow: calling ClearFunctionList and returning\n");
 					state.ClearFunctionList();
+					DebugLogEnabled = false;
 					return;
 				}
 				state.InBeforeError = true;
@@ -453,6 +456,7 @@ internal sealed partial class Process(EmueraConsole view)
 					handleException(ec, currentLine, true);
 				DebugLog("[DoScript-catch] Normal path: calling ClearFunctionList and returning\n");
 				state.ClearFunctionList();
+				DebugLogEnabled = false;
 				return;
 			}
 		}
