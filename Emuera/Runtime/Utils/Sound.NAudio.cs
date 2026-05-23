@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Diagnostics;
 using NAudio.Wave;
@@ -295,7 +295,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 
 		private static void SoundEnded(object sender, SampleProviderEventArgs args)
 		{
-			((Sound)(args.SampleProvider)).Playing = false;
+			((NAudioSound)(args.SampleProvider)).Playing = false;
 		}
 
 		private static void InitializeOutput(MMDevice device)
@@ -320,20 +320,20 @@ namespace MinorShift.Emuera.Runtime.Utils
 			InitializeOutput(device);
 		}
 
-		public static void PlaySound(Sound sound)
+		public static void PlaySound(NAudioSound sound)
 		{
 			sound.Playing = true;
 			mixer.AddMixerInput(sound);
 		}
 
-		public static void StopSound(Sound sound)
+		public static void StopSound(NAudioSound sound)
 		{
 			sound.Playing = false;
 			mixer.RemoveMixerInput(sound);
 		}
 	}
 
-	internal class Sound : ISampleProvider
+	internal class NAudioSound : Sound, ISampleProvider
 	{
 		private float volume = 1.0f;
 		private bool paused = false;  // 新增：暂停状态标志
@@ -342,11 +342,10 @@ namespace MinorShift.Emuera.Runtime.Utils
 		private bool preservePitch = true; // 新增：默认保持音调不变
 		private WaveStream stream; // 确保这个字段保留对原始流的引用
 		private VolumeSampleProvider volumeProvider;
-		public volatile bool Playing = false;
 		public WaveFormat WaveFormat { get => volumeProvider.WaveFormat; }
 	
 		// 新增：获取当前播放时间（秒）
-		public double GetCurrentTime()
+		public override double GetCurrentTime()
 		{
 			if (stream == null || volumeProvider == null) return 0;
 			
@@ -363,7 +362,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 		}
 
 		// 新增：获取音频总长度（秒）
-		public double GetTotalTime()
+		public override double GetTotalTime()
 		{
 			if (stream == null || volumeProvider == null) return 0;
 			
@@ -378,7 +377,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 			return volumeProvider.Read(buffer, offset, count);
 		}
 
-		public void play(string filename, int repeat = 1)
+		public override void play(string filename, int repeat = 1)
 		{
 			if (!SoundMixer.Initialized)
 				SoundMixer.Initialize();
@@ -429,7 +428,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 			SoundMixer.PlaySound(this);
 		}
 		// 新增：暂停方法
-		public void pause()
+		public override void pause()
 		{
 			if (!SoundMixer.Initialized || !Playing)
 				return;
@@ -444,7 +443,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 			SoundMixer.StopSound(this);  // 从混音器中移除
 		}
 		// 新增：恢复方法
-		public void resume()
+		public override void resume()
 		{
 			if (!SoundMixer.Initialized || !paused)
 				return;
@@ -457,7 +456,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 			}
 			SoundMixer.PlaySound(this);  // 重新添加到混音器
 		}
-		public void stop()
+		public override void stop()
 		{
 			if (SoundMixer.Initialized)
 			{
@@ -472,29 +471,29 @@ namespace MinorShift.Emuera.Runtime.Utils
 			}
 		}
 
-		public void close()
+		public override void close()
 		{
 			stop();
 			volumeProvider = null;
 		}
 
-		public bool isPlaying()
+		public override bool isPlaying()
 		{
 			return Playing && !paused;
 		}
 
-		public void setVolume(int volume)
+		public override void setVolume(int volume)
 		{
 			this.volume = Math.Clamp(volume, 0, 100) / 100.0f;
 			if (volumeProvider != null)
 				volumeProvider.Volume = this.volume;
 		}
-		public int getVolume()
+		public override int getVolume()
 		{
 			return (int)(volume * 100);
 		}
 		// 添加变速方法
-		public void setSpeed(float speed)
+		public override void setSpeed(float speed)
 		{
 			if (varispeedProvider != null)
 			{
@@ -504,7 +503,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 			}
 		}
 
-		public double getSpeed()
+		public override double getSpeed()
 		{
 			return varispeedProvider?.PlaybackRate ?? 1.0;
 		}
@@ -566,7 +565,7 @@ namespace MinorShift.Emuera.Runtime.Utils
 			Seek(targetTime);
 		}
 		// 添加设置音调保持的方法
-		public void SetPreservePitch(bool preserve)
+		public override void SetPreservePitch(bool preserve)
 		{
 			preservePitch = preserve;
 			if (varispeedProvider != null)

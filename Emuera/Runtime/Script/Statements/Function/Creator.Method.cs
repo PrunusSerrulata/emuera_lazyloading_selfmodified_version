@@ -3417,8 +3417,8 @@ internal static partial class FunctionMethodCreator
 		readonly bool defaultColor;
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			Color color = defaultColor ? Config.BackColor : GlobalStatic.Console.bgColor.ToDrawingColor();
-			return color.ToArgb() & 0xFFFFFF;
+			var skc = defaultColor ? Config.BackColor.ToSKColor() : GlobalStatic.Console.bgColor;
+			return ((long)skc.Red << 16 | (long)skc.Green << 8 | skc.Blue) & 0xFFFFFF;
 		}
 	}
 
@@ -6184,13 +6184,63 @@ internal static partial class FunctionMethodCreator
 				case StrFormType.Lower:
 					return str.ToLower();
 				case StrFormType.Half:
+#if WINDOWS
 					return Microsoft.VisualBasic.Strings.StrConv(str, Microsoft.VisualBasic.VbStrConv.Narrow, Config.Language);
+#else
+					return ToHalfWidth(str);
+#endif
 				case StrFormType.Full:
+#if WINDOWS
 					return Microsoft.VisualBasic.Strings.StrConv(str, Microsoft.VisualBasic.VbStrConv.Wide, Config.Language);
+#else
+					return ToFullWidth(str);
+#endif
 			}
 			return "";
 		}
 	}
+
+#if !WINDOWS
+		static string ToFullWidth(string str)
+		{
+			var sb = new StringBuilder(str.Length);
+			foreach (char c in str)
+			{
+				if (c >= '0' && c <= '9')
+					sb.Append((char)(c + 0xFEE0));
+				else if (c >= 'A' && c <= 'Z')
+					sb.Append((char)(c + 0xFEE0));
+				else if (c >= 'a' && c <= 'z')
+					sb.Append((char)(c - 0x20 + 0xFEE0));
+				else if (c == ' ')
+					sb.Append('\u3000');
+				else
+					sb.Append(c);
+			}
+			return sb.ToString();
+		}
+
+		static string ToHalfWidth(string str)
+		{
+			var sb = new StringBuilder(str.Length);
+			foreach (char c in str)
+			{
+				if (c >= '０' && c <= '９')
+					sb.Append((char)(c - 0xFEE0));
+				else if (c >= 'Ａ' && c <= 'Ｚ')
+					sb.Append((char)(c - 0xFEE0));
+				else if (c >= 'ａ' && c <= 'ｚ')
+					sb.Append((char)(c + 0x20 - 0xFEE0));
+				else if (c == '\u3000')
+					sb.Append(' ');
+				else if (c >= 'ｦ' && c <= 'ﾝ')
+					sb.Append(c);
+				else
+					sb.Append(c);
+			}
+			return sb.ToString();
+		}
+#endif
 
 	private sealed class LineIsEmptyMethod : FunctionMethod
 	{
@@ -7011,9 +7061,9 @@ internal static partial class FunctionMethodCreator
 			Point p = ReadPoint(Name, exm, arguments, 1);
 			if (p.X < 0 || p.X >= g.Width || p.X < 0 || p.Y >= g.Height)
 				return -1;
-			var c = g.GGetColor(p.X, p.Y).ToDrawingColor();
+			var c = g.GGetColor(p.X, p.Y);
 			//Color.ToArgb()はInt32の負の値をとることがあり、Int64にうまく変換できない?（と思ったが気のせいだった
-			return c.ToArgb() & 0xFFFFFFFFL;
+			return ((long)c.Alpha << 24 | (long)c.Red << 16 | (long)c.Green << 8 | c.Blue) & 0xFFFFFFFFL;
 		}
 	}
 
@@ -9130,7 +9180,14 @@ internal static partial class FunctionMethodCreator
 			try
 			{
 				Config.CreateSavDir();
+#if WINDOWS
 				g.SKBitmap.ToBitmap().Save(filepath);
+#else
+				using var fileStream = File.OpenWrite(filepath);
+				if (g.SKBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100))
+					return 1;
+				return 0;
+#endif
 			}
 			catch
 			{
@@ -9208,8 +9265,8 @@ internal static partial class FunctionMethodCreator
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
 			string str = arguments[0].GetStrValue(exm);
-			string filepath = Path.GetFullPath(".\\sound\\" + str);
-			if (File.Exists(filepath))
+			string filepath = Program.MusicDir + str;
+			if (Program.FileExists(ref filepath))
 				return 1;
 			return 0;
 		}
@@ -9693,7 +9750,7 @@ internal static partial class FunctionMethodCreator
 			else if (channelId >= 0 && channelId < GlobalStatic.Sound.Length)
 			{
 				if (GlobalStatic.Sound[channelId] == null)
-					GlobalStatic.Sound[channelId] = new Sound();
+					GlobalStatic.Sound[channelId] = Sound.Factory();
 				targetSound = GlobalStatic.Sound[channelId];
 			}
 
@@ -9810,7 +9867,7 @@ internal static partial class FunctionMethodCreator
 			// 确保通道已初始化
 			if (GlobalStatic.Sound[channelId] == null)
 			{
-				GlobalStatic.Sound[channelId] = new Sound();
+				GlobalStatic.Sound[channelId] = Sound.Factory();
 			}
 			
 			// 根据控制行为执行相应操作
@@ -9898,7 +9955,7 @@ internal static partial class FunctionMethodCreator
 			// 确保通道已初始化
 			if (GlobalStatic.Bgm == null)
 			{
-				GlobalStatic.Bgm = new Sound();
+				GlobalStatic.Bgm = Sound.Factory();
 			}
 			
 			// 根据控制行为执行相应操作

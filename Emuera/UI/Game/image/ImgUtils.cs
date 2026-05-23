@@ -1,13 +1,16 @@
-﻿using MinorShift.Emuera.Runtime.Utils;
+using MinorShift.Emuera.Runtime.Utils;
 using SkiaSharp;
+#if WINDOWS
 using SkiaSharp.Views.Desktop;
 using System.Drawing;
+#endif
 using System.IO;
 
 namespace MinorShift.Emuera.UI.Game.Image;
 
 static class ImgUtils
 {
+#if WINDOWS
 	public static Bitmap LoadImage(string filepath)
 	{
 		if (!File.Exists(filepath))
@@ -29,4 +32,5 @@ static class ImgUtils
 			return null;
 		}
 	}
+#endif
 }

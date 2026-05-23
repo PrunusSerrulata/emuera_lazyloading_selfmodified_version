@@ -1379,8 +1379,7 @@ internal sealed partial class Lang
 
 	}
 
-	[GeneratedRegex(@".*emuera.*\.xml")]
-	private static partial Regex LangFileRegex();
+	private static readonly Regex LangFileRegex = new(@".*emuera.*\.xml", RegexOptions.Compiled);
 	
 	private static void AddLanguageFile(string path)
 	{
@@ -1410,7 +1409,7 @@ internal sealed partial class Lang
 		
 		foreach (var path in resources)
 		{
-			if(!LangFileRegex().IsMatch(path))
+			if(!LangFileRegex.IsMatch(path))
 				continue;
 			AddLanguageFile(path);
 		}

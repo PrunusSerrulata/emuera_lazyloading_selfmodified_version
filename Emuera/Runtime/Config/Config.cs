@@ -7,6 +7,7 @@ using System.Linq;
 using System.Drawing;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Reflection;
 using trmb = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.MessageBox;
@@ -227,7 +228,7 @@ internal static class Config
 		}
 		if (TextDrawingMode == TextDrawingMode.WINAPI)
 		{
-			MessageBox.Show(trmb.DoNotSupportWINAPI.Text);
+			PlatformInterop.ShowMessage(trmb.DoNotSupportWINAPI.Text);
 			TextDrawingMode = TextDrawingMode.TEXTRENDERER;
 		}
 
@@ -342,7 +343,7 @@ internal static class Config
 		// bool existGlobal = File.Exists(Program.ExeDir + "global.sav");
 		// string[] savFiles = Directory.GetFiles(Program.ExeDir, "save*.sav", SearchOption.TopDirectoryOnly);
 		bool existGlobal = File.Exists(Program.ExeDir + "global.sav");
-		string[] savFiles = Directory.GetFiles(Program.ExeDir, "save*.sav", SearchOption.TopDirectoryOnly);
+		string[] savFiles = GetFilesCaseInsensitive(Program.ExeDir, "save*.sav", SearchOption.TopDirectoryOnly);
 		#endregion
 		if (!existGlobal && savFiles.Length == 0)
 			return;
@@ -398,8 +399,8 @@ internal static class Config
 		SearchOption option = SearchOption.TopDirectoryOnly;
 		if (SearchSubdirectory)
 			option = SearchOption.AllDirectories;
-		string[] erbFiles = Directory.GetFiles(Program.ErbDir, "*.ERB", option);
-		string[] csvFiles = Directory.GetFiles(Program.CsvDir, "*.CSV", option);
+		string[] erbFiles = GetFilesCaseInsensitive(Program.ErbDir, "*.ERB", option);
+		string[] csvFiles = GetFilesCaseInsensitive(Program.CsvDir, "*.CSV", option);
 		long[] writetimes = new long[erbFiles.Length + csvFiles.Length];
 		for (int i = 0; i < erbFiles.Length; i++)
 			if (Path.GetExtension(erbFiles[i]).Equals(".ERB", StringComparison.OrdinalIgnoreCase))
@@ -418,6 +419,30 @@ internal static class Config
 		return key;
 	}
 
+	private static string WildcardToRegex(string pattern)
+	{
+		var parts = pattern.Split('*');
+		var regex = new StringBuilder("^");
+		for (int i = 0; i < parts.Length; i++)
+		{
+			if (i > 0)
+				regex.Append(".*");
+			regex.Append(Regex.Escape(parts[i]).Replace("\\?", "."));
+		}
+		regex.Append("$");
+		return regex.ToString();
+	}
+
+	internal static string[] GetFilesCaseInsensitive(string dir, string pattern, SearchOption searchOption)
+	{
+		if (!Directory.Exists(dir))
+			return [];
+		var regex = new Regex(WildcardToRegex(pattern), RegexOptions.IgnoreCase);
+		IEnumerable<string> files = searchOption == SearchOption.AllDirectories
+			? Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
+			: Directory.EnumerateFiles(dir);
+		return files.Where(f => regex.IsMatch(Path.GetFileName(f))).ToArray();
+	}
 
 	public static List<KeyValuePair<string, string>> GetFiles(string rootdir, string pattern)
 	{
@@ -447,7 +472,7 @@ internal static class Config
 				RelativePath += "\\";//末尾が\又は/で終わるように。後でFile名を直接加算できるようにしておく
 		}
 		//filepathsは完全パスである
-		string[] filepaths = Directory.GetFiles(dir, pattern, SearchOption.TopDirectoryOnly);
+		string[] filepaths = GetFilesCaseInsensitive(dir, pattern, SearchOption.TopDirectoryOnly);
 		if (sort)
 			Array.Sort(filepaths);
 		for (int i = 0; i < filepaths.Length; i++)

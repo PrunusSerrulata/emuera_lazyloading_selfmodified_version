@@ -83,9 +83,10 @@ internal static class GlobalStatic
 			{
 				if (Sound[i] != null)
 				{
-					Sound[i].stop(); // 确保调用 stop 释放资源
-					Sound[i] = null; // 清空引用
+					Sound[i].stop();
+					Sound[i].close();
 				}
+				Sound[i] = Runtime.Utils.Sound.Factory();
 			}
 		}
 
@@ -93,8 +94,9 @@ internal static class GlobalStatic
 		if (Bgm != null)
 		{
 			Bgm.stop();
-			Bgm = null;
+			Bgm.close();
 		}
+		Bgm = Runtime.Utils.Sound.Factory();
 
 		// 清理数据库资源
 		SqlManager.CloseAll();

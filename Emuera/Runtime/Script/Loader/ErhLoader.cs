@@ -313,7 +313,7 @@ internal sealed class ErhLoader
 							{
 								GlobalStatic.ConstantData.UserDefineLoadData(info1, data.Name, data.Lengths[0], Config.Config.DisplayReport, dimline.SC);
 							}
-							System.Windows.Forms.Application.DoEvents();
+							PlatformInterop.DoEvents();
 						}
 						else if (data.Dimension == 2)
 						{
@@ -324,7 +324,7 @@ internal sealed class ErhLoader
 								{
 									GlobalStatic.ConstantData.UserDefineLoadData(info2, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
 								}
-								System.Windows.Forms.Application.DoEvents();
+								PlatformInterop.DoEvents();
 							}
 						}
 						else if (data.Dimension == 3)
@@ -336,7 +336,7 @@ internal sealed class ErhLoader
 								{
 									GlobalStatic.ConstantData.UserDefineLoadData(info3, data.Name + "@" + dim, data.Lengths[dim - 1], Config.Config.DisplayReport, dimline.SC);
 								}
-								System.Windows.Forms.Application.DoEvents();
+								PlatformInterop.DoEvents();
 							}
 						}
 					}

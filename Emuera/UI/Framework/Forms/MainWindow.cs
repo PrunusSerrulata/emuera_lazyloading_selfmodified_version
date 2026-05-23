@@ -1347,7 +1347,7 @@ namespace MinorShift.Emuera.Forms
 		{
 			richTextBox1.TextChanged -= new EventHandler(richTextBox1_TextChanged);
 			richTextBox1.KeyDown -= new KeyEventHandler(richTextBox1_KeyDown);
-			Application.DoEvents();
+			PlatformInterop.DoEvents();
 			richTextBox1.TextChanged += new EventHandler(richTextBox1_TextChanged);
 			richTextBox1.KeyDown += new KeyEventHandler(richTextBox1_KeyDown);
 			last_inputed = richTextBox1.Text;
@@ -1391,12 +1391,14 @@ namespace MinorShift.Emuera.Forms
 		Keys? modifiersWhileWaintingInputWithMouse;
 		private void richTextBox1_ModifierRecorder_KeyUp(object sender, KeyEventArgs e)
 		{
+			WinInput.SetKeyReleased((int)e.KeyCode);
 			if (console == null || !console.IsWaintingInputWithMouse)
 				return;
 			modifiersWhileWaintingInputWithMouse = null;
 		}
 		private void richTextBox1_ModifierRecorder_KeyDown(object sender, KeyEventArgs e)
 		{
+			WinInput.SetKeyPressed((int)e.KeyCode);
 			if (console == null || !console.IsWaintingInputWithMouse)
 				return;
 			modifiersWhileWaintingInputWithMouse = e.Modifiers;
