@@ -338,7 +338,6 @@ internal static partial class FunctionMethodCreator
 			["DT_CELL_ISNULL"] = new DataTableCellGetMethod(DataTableCellGetMethod.Operation.IsNull),
 			["DT_CELL_GETS"] = new DataTableCellGetMethod(DataTableCellGetMethod.Operation.Gets),
 			["DT_CELL_SET"] = new DataTableCellSetMethod(),
-			["DT_CELL_SETF"] = new DataTableCellSetFloatMethod(),
 
 			["DT_SELECT"] = new DataTableSelectMethod(),
 
@@ -388,11 +387,9 @@ internal static partial class FunctionMethodCreator
 			["HOTKEY_STATE"] = new HotkeyStateMethod(),
 			["HOTKEY_STATE_INIT"] = new HotkeyStateInitMethod(),
 
-			["ARGLEN"] = new ArgLengthMethod(),
-
-			["EXISTSIMAGELAYER"] = new ExistsImageLayerMethod(),
-
 			#region 尊尼获加荣誉出品
+			["ARGLEN"] = new ArgLengthMethod(),
+			["EXISTSIMAGELAYER"] = new ExistsImageLayerMethod(),
 			["GETSOUNDORBGMINFO"] = new GetSoundOrBgmInfoMethod(),
 			["ISPLAYINGSOUND"] = new IsPlayingSoundMethod(),
 			["SOUNDCONTROL"] = new SoundControlMethod(),
