@@ -607,13 +607,11 @@ internal sealed partial class EmueraConsole : IDisposable
 		int width;
 		if (str != null)
 		{
-			#region .NET 7化の弊害でPRINTC系の文字数カウントがおかしい不具合修正
-			// Use Config.Encode with fallback to avoid crashing on unencodable chars
-			// (e.g. Chinese chars in Shift-JIS). Config.Encode respects
-			// DEFAULT ANSI ENCODING setting (GB2312 for Chinese, etc.)
-			var encode = Encoding.GetEncoding(Config.Encode.CodePage, EncoderFallback.ReplacementFallback, DecoderFallback.ReplacementFallback);
-			length = encode.GetByteCount(str);
-			#endregion
+			// Use LangManager (ANSI encoding based on language setting) instead of
+			// Config.Encode (which defaults to UTF-8 where CJK chars are 3 bytes).
+			// PRINTC column width is defined in half-width character units, so we
+			// must use the ANSI byte count where CJK = 2 half-width units.
+			length = LangManager.GetStrlenLang(str);
 		}
 		int printcLength = Config.PrintCLength;
 		var font = new SKFont(SKTypeface.FromFamilyName(Style.Fontname), Config.DefaultFont.Size); 
