@@ -865,32 +865,22 @@ internal sealed partial class FunctionIdentifier
 
 	private sealed class INPUT_Instruction : AInstruction
 	{
-		public INPUT_Instruction()
+		public INPUT_Instruction(bool noFocus = false)
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_INPUT);
 			flag = IS_PRINT | IS_INPUT;
+			_noFocus = noFocus;
 		}
+		readonly bool _noFocus;
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			#region EM_私家版_INPUT系機能拡張
-			//ExpressionArgument arg = (ExpressionArgument)func.Argument;
-			//InputRequest req = new InputRequest();
-			//req.InputType = InputType.IntValue;
-			//if (arg.Term != null)
-			//{
-			//	Int64 def;
-			//	if (arg.IsConst)
-			//		def = arg.ConstInt;
-			//	else
-			//		def = arg.Term.GetIntValue(exm);
-			//	req.HasDefValue = true;
-			//	req.DefIntValue = def;
-			//}
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
 			InputRequest req = new()
 			{
-				InputType = InputType.IntValue
+				InputType = InputType.IntValue,
+				NoFocus = _noFocus
 			};
 
 			if (arg.Def != null)
@@ -904,7 +894,8 @@ internal sealed partial class FunctionIdentifier
 			{
 				req.MouseInput = arg.Mouse.GetIntValue(exm) != 0;
 			}
-			exm.Console.Window.ApplyTextBoxChanges();
+			if (!_noFocus)
+				exm.Console.Window.ApplyTextBoxChanges();
 			#endregion
 			#region EE_INPUT機能拡張
 			if (arg.CanSkip != null && GlobalStatic.Console.MesSkip)
@@ -915,38 +906,33 @@ internal sealed partial class FunctionIdentifier
 					GlobalStatic.VEvaluator.RESULT_ARRAY[1] = arg.Def.GetIntValue(exm);
 			}
 			else
-				exm.Console.WaitInput(req);
+			{
+				if (_noFocus)
+					exm.Console.WaitInputNoFocus(req);
+				else
+					exm.Console.WaitInput(req);
+			}
 			#endregion
 		}
 	}
 	private sealed class INPUTS_Instruction : AInstruction
 	{
-		public INPUTS_Instruction()
+		public INPUTS_Instruction(bool noFocus = false)
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_INPUTS);
 			flag = IS_PRINT | IS_INPUT;
+			_noFocus = noFocus;
 		}
+		readonly bool _noFocus;
 
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			#region EM_私家版_INPUT系機能拡張
-			//ExpressionArgument arg = (ExpressionArgument)func.Argument;
-			//InputRequest req = new InputRequest();
-			//req.InputType = InputType.StrValue;
-			//if (arg.Term != null)
-			//{
-			//	string def;
-			//	if (arg.IsConst)
-			//		def = arg.ConstStr;
-			//	else
-			//		def = arg.Term.GetStrValue(exm);
-			//	req.HasDefValue = true;
-			//	req.DefStrValue = def;
-			//}
 			SpInputsArgument arg = (SpInputsArgument)func.Argument;
 			InputRequest req = new()
 			{
-				InputType = InputType.StrValue
+				InputType = InputType.StrValue,
+				NoFocus = _noFocus
 			};
 			if (arg.Def != null)
 			{
@@ -959,7 +945,8 @@ internal sealed partial class FunctionIdentifier
 			{
 				req.MouseInput = arg.Mouse.GetIntValue(exm) != 0;
 			}
-			exm.Console.Window.ApplyTextBoxChanges();
+			if (!_noFocus)
+				exm.Console.Window.ApplyTextBoxChanges();
 			#endregion
 			#region EE_INPUT機能拡張
 			if (arg.CanSkip != null && GlobalStatic.Console.MesSkip)
@@ -970,7 +957,12 @@ internal sealed partial class FunctionIdentifier
 					GlobalStatic.VEvaluator.RESULTS_ARRAY[1] = arg.Def.GetStrValue(exm);
 			}
 			else
-				exm.Console.WaitInput(req);
+			{
+				if (_noFocus)
+					exm.Console.WaitInputNoFocus(req);
+				else
+					exm.Console.WaitInput(req);
+			}
 			#endregion
 		}
 	}
@@ -1105,13 +1097,15 @@ internal sealed partial class FunctionIdentifier
 
 	private sealed class TINPUT_Instruction : AInstruction
 	{
-		public TINPUT_Instruction(bool oneInput)
+		public TINPUT_Instruction(bool oneInput, bool noFocus = false)
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_TINPUT);
 			flag = IS_PRINT | IS_INPUT | EXTENDED;
 			isOne = oneInput;
+			_noFocus = noFocus;
 		}
 		bool isOne;
+		readonly bool _noFocus;
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			SpTInputsArgument tinputarg = (SpTInputsArgument)func.Argument;
@@ -1120,19 +1114,13 @@ internal sealed partial class FunctionIdentifier
 			{
 				InputType = InputType.IntValue,
 				HasDefValue = true,
-				OneInput = isOne
+				OneInput = isOne,
+				NoFocus = _noFocus
 			};
 			long x = tinputarg.Time.GetIntValue(exm);
 			long y = tinputarg.Def.GetIntValue(exm);
 			//TODO:ONEINPUTと標準の値を統一
 			#region EM_私家版_INPUT系機能拡張
-			//if (isOne)
-			//{
-			//	if (y < 0)
-			//		y = Math.Abs(y);
-			//	if (y >= 10)
-			//		y = y / (long)(Math.Pow(10.0, Math.Log10((double)y)));
-			//}
 			if (tinputarg.Mouse != null)
 			{
 				req.MouseInput = tinputarg.Mouse.GetIntValue(exm) == 1;
@@ -1143,9 +1131,6 @@ internal sealed partial class FunctionIdentifier
 			req.DefIntValue = y;
 			req.DisplayTime = z != 0;
 			req.TimeUpMes = (tinputarg.Timeout != null) ? tinputarg.Timeout.GetStrValue(exm) : Config.TimeupLabel;
-			#region EM_私家版_INPUT系機能拡張
-			//GlobalStatic.Process.InputInteger(1, 0);
-			#endregion
 			#region EE_INPUT機能拡張
 			if (tinputarg.CanSkip != null && GlobalStatic.Console.MesSkip)
 			{
@@ -1155,20 +1140,27 @@ internal sealed partial class FunctionIdentifier
 					GlobalStatic.VEvaluator.RESULT_ARRAY[1] = tinputarg.Def.GetIntValue(exm);
 			}
 			else
-				exm.Console.WaitInput(req);
+			{
+				if (_noFocus)
+					exm.Console.WaitInputNoFocus(req);
+				else
+					exm.Console.WaitInput(req);
+			}
 			#endregion
 		}
 	}
 
 	private sealed class TINPUTS_Instruction : AInstruction
 	{
-		public TINPUTS_Instruction(bool oneInput)
+		public TINPUTS_Instruction(bool oneInput, bool noFocus = false)
 		{
 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_TINPUTS);
 			flag = IS_PRINT | IS_INPUT | EXTENDED;
 			isOne = oneInput;
+			_noFocus = noFocus;
 		}
 		bool isOne;
+		readonly bool _noFocus;
 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
 		{
 			SpTInputsArgument tinputarg = (SpTInputsArgument)func.Argument;
@@ -1176,13 +1168,12 @@ internal sealed partial class FunctionIdentifier
 			{
 				InputType = InputType.StrValue,
 				HasDefValue = true,
-				OneInput = isOne
+				OneInput = isOne,
+				NoFocus = _noFocus
 			};
 			long x = tinputarg.Time.GetIntValue(exm);
 			string strs = tinputarg.Def.GetStrValue(exm);
 			#region EM_私家版_INPUT系機能拡張
-			//if (isOne && strs.Length > 1)
-			//	strs = strs.Remove(1);
 			if (tinputarg.Mouse != null)
 			{
 				req.MouseInput = tinputarg.Mouse.GetIntValue(exm) == 1;
@@ -1193,9 +1184,6 @@ internal sealed partial class FunctionIdentifier
 			req.DefStrValue = strs;
 			req.DisplayTime = z != 0;
 			req.TimeUpMes = (tinputarg.Timeout != null) ? tinputarg.Timeout.GetStrValue(exm) : Config.TimeupLabel;
-			#region EM_私家版_INPUT系機能拡張
-			//GlobalStatic.Process.InputInteger(1, 0);
-			#endregion
 			#region EE_INPUT機能拡張
 			if (tinputarg.CanSkip != null && GlobalStatic.Console.MesSkip)
 			{
@@ -1205,7 +1193,12 @@ internal sealed partial class FunctionIdentifier
 					GlobalStatic.VEvaluator.RESULTS_ARRAY[1] = tinputarg.Def.GetStrValue(exm);
 			}
 			else
-				exm.Console.WaitInput(req);
+			{
+				if (_noFocus)
+					exm.Console.WaitInputNoFocus(req);
+				else
+					exm.Console.WaitInput(req);
+			}
 			#endregion
 		}
 	}
