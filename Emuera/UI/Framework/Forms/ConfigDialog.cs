@@ -106,6 +106,7 @@ namespace MinorShift.Emuera.Forms
 			checkBox24.Text = Lang.UI.ConfigDialog.Environment.UseSaveFolder.Text;
 			checkBox33.Text = Lang.UI.ConfigDialog.Environment.EnglishConfigOutput.Text;
 			checkBox27.Text = Lang.UI.ConfigDialog.Environment.UseCtrlZUndo.Text;
+			checkBox36.Text = Lang.UI.ConfigDialog.Environment.PluginAvailableWarn.Text;
 			label6.Text = Lang.UI.ConfigDialog.Environment.MaxLog.Text;
 			label17.Text = Lang.UI.ConfigDialog.Environment.InfiniteLoopAlertTime.Text;
 			label20.Text = Lang.UI.ConfigDialog.Environment.SaveDataPerPage.Text;
@@ -190,6 +191,7 @@ namespace MinorShift.Emuera.Forms
 			checkBox19.Text = Lang.UI.ConfigDialog.System.SystemFuncOverrideWarn.Text;
 			checkBox22.Text = Lang.UI.ConfigDialog.System.DuplicateFuncWarn.Text;
 			checkBoxSystemFullSpace.Text = Lang.UI.ConfigDialog.System.WSIncludesFullWidth.Text;
+			checkBoxUseLazyLoading.Text = Lang.UI.ConfigDialog.System.UseLazyLoading.Text;
 			label11.Text = Lang.UI.ConfigDialog.System.ANSI.Text;
 
 			tabPageSystem2.Text = Lang.UI.ConfigDialog.System2.Text;
@@ -409,6 +411,7 @@ namespace MinorShift.Emuera.Forms
 			setCheckBox(checkBox28, ConfigCode.CompatiCallEvent);
 			setCheckBox(checkBoxFuncNoIgnoreCase, ConfigCode.CompatiFunctionNoignoreCase);
 			setCheckBox(checkBoxSystemFullSpace, ConfigCode.SystemAllowFullSpace);
+			setCheckBox(checkBoxUseLazyLoading, ConfigCode.UseLazyLoading);
 			setCheckBox(checkBox12, ConfigCode.CompatiFuncArgOptional);
 			setCheckBox(checkBox25, ConfigCode.CompatiFuncArgAutoConvert);
 			setCheckBox(checkBox26, ConfigCode.SystemSaveInBinary);
@@ -598,6 +601,8 @@ namespace MinorShift.Emuera.Forms
 
 			setCheckBox(checkBox27, ConfigCode.Ctrl_Z_Enabled);
 
+			setCheckBox(checkBox36, ConfigCode.PluginAvailableWarn);
+
 		}
 
 		private void SaveConfig()
@@ -639,6 +644,7 @@ namespace MinorShift.Emuera.Forms
 
 			config.GetConfigItem(ConfigCode.CompatiFunctionNoignoreCase).SetValue(checkBoxFuncNoIgnoreCase.Checked);
 			config.GetConfigItem(ConfigCode.SystemAllowFullSpace).SetValue(checkBoxSystemFullSpace.Checked);
+			config.GetConfigItem(ConfigCode.UseLazyLoading).SetValue(checkBoxUseLazyLoading.Checked);
 			config.GetConfigItem(ConfigCode.CompatiSPChara).SetValue(checkBoxCompatiSP.Checked);
 			config.GetConfigItem(ConfigCode.TimesNotRigorousCalculation).SetValue(checkBox9.Checked);
 			config.GetConfigItem(ConfigCode.SystemNoTarget).SetValue(checkBox29.Checked);
@@ -791,6 +797,8 @@ namespace MinorShift.Emuera.Forms
 			config.GetConfigItem(ConfigCode.RikaiUseSeparateBoxes).SetValue(rikaiCheckBoxSeparateBoxes.Checked);
 
 			config.GetConfigItem(ConfigCode.Ctrl_Z_Enabled).SetValue(checkBox27.Checked);
+
+			config.GetConfigItem(ConfigCode.PluginAvailableWarn).SetValue(checkBox36.Checked);
 
 			config.SaveConfig();
 
@@ -1074,6 +1082,11 @@ namespace MinorShift.Emuera.Forms
 		private void _useVAR_CheckedChanged(object sender, EventArgs e)
 		{
 			JSONConfig.Data.UseScopedVariableInstruction = _useVAR.Checked;
+		}
+
+		private void checkBox36_CheckedChanged(object sender, EventArgs e)
+		{
+
 		}
 	}
 }
