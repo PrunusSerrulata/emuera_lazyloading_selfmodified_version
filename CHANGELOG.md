@@ -4,18 +4,20 @@ All notable changes to Emuera-SKIA will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [5.3.0] — ExecutionContext 调试修复：LOCAL@FUNCNAME + 调用栈保留 + 监视窗口
+## [6.0.0] — 调试窗口修复：LOCAL@FUNCNAME + 调用栈保留 + 监视稳定性
 
 ### Fixed
 
-- **LOCAL@FUNCNAME 检测失效** — Phase 1.1 ExecutionContext 改造后，`GetArrayLocal()` 始终返回 `CurrentContext` 的数组，忽略了 `subID`（函数名）。现在按 `subID` 在上下文栈中查找匹配的 `ExecutionContext`，`LOCAL@FOO` 语法和调试窗口监视 `LOCAL@函数名` 均恢复正常
-- **错误/THROW 后调试窗口调用栈被清空** — 与上游 emuera.em 对齐：`handleException` 后不再调用 `ClearFunctionList()`，保留 `dTraceLogList` 和 `_contextStack` 供调试窗口查看。新增 `ClearFunctionListPreserveTrace()` 方法，仅在 BEFORE_ERROR/BEFORE_THROW 内部错误路径中使用（清理函数列表但保留调试追踪日志）
-- **调试窗口监视含 LOCAL 变量的表达式报错** — `saveCurrentState` 克隆 state 后 `CurrentContext` 为 null，导致 LOCAL 变量走 FallbackArray 返回空数组。现在 `Clone()` 保留对原始 `_contextStack` 的引用（`_savedContextStack`），`CurrentContext` 和 `FindContextByLabel` 在自身栈为空时自动回退到保存的栈
-- **调试窗口一个监视报错后其他监视全部失败** — `Process.GetValue` 的 finally 块在 `runScriptProc()` 抛出异常时，只 `PopContext()` 一次但未清理 `functionList` 残留条目。后续监视表达式求值时 `state.Scope` 返回错误的函数名，导致私有变量查找失败。现在 `GetValue` 在 `IntoFunction` 前记录 `functionList`/`_contextStack` 快照，异常时通过 `RollbackToState()` 回滚到调用前状态，确保一个监视报错不影响后续监视
+- **LOCAL@FUNCNAME 检测失效** — `GetArrayLocal()` 忽略 `subID`，始终返回 `CurrentContext` 的数组。现在按 `subID` 在上下文栈中查找匹配的 `ExecutionContext`
+- **错误/THROW 后调试窗口调用栈被清空** — `handleException` 后不再调用 `ClearFunctionList()`，保留调用栈供调试窗口查看。新增 `ClearFunctionListPreserveTrace()` 供 BEFORE_ERROR/BEFORE_THROW 内部使用
+- **调试窗口监视含 LOCAL 变量的表达式报错** — `saveCurrentState` 克隆 state 后 `CurrentContext` 为 null，LOCAL 变量走 FallbackArray 返回空数组。现在 `Clone()` 保留对原始 `_contextStack` 的引用，`CurrentContext` 在自身栈为空时自动回退
+- **调试窗口表达式函数求值后 currentLine 残留** — `Process.GetValue` 的 finally 块在成功路径下 `PopContext()` 但未恢复 `currentLine`。现在 `CaptureCallState` 同时保存 `currentLine`，成功/失败路径均恢复
+- **调试窗口一个监视报错后其他监视全部失败** — 上述 currentLine 残留导致后续监视在错误函数上下文中解析私有变量。修复 currentLine 恢复后错误传播链断裂
 
 ### Changed
 
-- `DisableBeforeErrorThrow` 配置项不再必要（错误后调用栈已默认保留），但保留配置项以维持向后兼容
+- `DisableBeforeErrorThrow` 配置项不再必要（错误后调用栈已默认保留），但保留以维持向后兼容
+- 新增 `ProcessState.ContextStackCount` 属性
 
 ***
 

@@ -132,10 +132,11 @@ internal sealed class ProcessState
 
 	public void PushContext(ExecutionContext ctx) => _contextStack.Push(ctx);
 	public ExecutionContext PopContext() => _contextStack.Count > 0 ? _contextStack.Pop() : null;
+	public int ContextStackCount => _contextStack.Count;
 
-	public (int funcCount, int ctxCount) CaptureCallState() => (functionList.Count, _contextStack.Count);
+	public (int funcCount, int ctxCount, LogicalLine currentLine) CaptureCallState() => (functionList.Count, _contextStack.Count, CurrentLine);
 
-	public void RollbackToState(int targetFuncCount, int targetCtxCount)
+	public void RollbackToState(int targetFuncCount, int targetCtxCount, LogicalLine targetCurrentLine)
 	{
 		while (functionList.Count > targetFuncCount)
 		{
@@ -149,6 +150,7 @@ internal sealed class ProcessState
 			var ctx = _contextStack.Pop();
 			ctx?.Dispose();
 		}
+		CurrentLine = targetCurrentLine;
 	}
 
 	//private LogicalLine nextLine;

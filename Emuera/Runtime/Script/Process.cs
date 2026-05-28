@@ -538,23 +538,24 @@ internal sealed partial class Process(EmueraConsole view)
 			success = true;
 		}
 		finally
-		{
-			if (DebugLogEnabled) DebugLog(string.Format("[GetValue-finally] func={0} methodStack={1} functionList.Count={2} success={3}\n",
-				udmt.Call.FunctionName, methodStack, state.FunctionList.Count, success));
-			if (success)
 			{
-				if (udmt.Call.TopLabel.hasPrivDynamicVar)
-					udmt.Call.TopLabel.ScopeOut();
-				var popped = state.PopContext();
-				popped?.Dispose();
+				if (DebugLogEnabled) DebugLog(string.Format("[GetValue-finally] func={0} methodStack={1} functionList.Count={2} success={3}\n",
+					udmt.Call.FunctionName, methodStack, state.FunctionList.Count, success));
+				if (success)
+				{
+					if (udmt.Call.TopLabel.hasPrivDynamicVar)
+						udmt.Call.TopLabel.ScopeOut();
+					var popped = state.PopContext();
+					popped?.Dispose();
+					state.CurrentLine = savedState.currentLine;
+				}
+				else
+				{
+					state.RollbackToState(savedState.funcCount, savedState.ctxCount, savedState.currentLine);
+				}
+				state.currentMin = temp_current;
+				methodStack--;
 			}
-			else
-			{
-				state.RollbackToState(savedState.funcCount, savedState.ctxCount);
-			}
-			state.currentMin = temp_current;
-			methodStack--;
-		}
 		return ret;
 	}
 
