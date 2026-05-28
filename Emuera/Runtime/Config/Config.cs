@@ -150,6 +150,9 @@ internal static class Config
 		#region EE_CALLSHARP注意
 		PluginAvailableWarn = instance.GetConfigValue<bool>(ConfigCode.PluginAvailableWarn);
 		#endregion
+		#region LL_BEFORE_EVENT
+		DisableBeforeErrorThrow = instance.GetConfigValue<bool>(ConfigCode.DisableBeforeErrorThrow);
+		#endregion
 
 		#region EM_私家版_LoadText＆SaveText機能拡張
 		ValidExtension = instance.GetConfigValue<List<string>>(ConfigCode.ValidExtension);
@@ -706,6 +709,9 @@ internal static class Config
 	#endregion
 	#region EE_CALLSHARP注意
 	public static bool PluginAvailableWarn { get; private set; }
+	#endregion
+	#region LL_BEFORE_EVENT
+	public static bool DisableBeforeErrorThrow { get; internal set; }
 	#endregion
 	#region EM_私家版_LoadText＆SaveText機能拡張
 	public static List<string> ValidExtension { get; private set; }
