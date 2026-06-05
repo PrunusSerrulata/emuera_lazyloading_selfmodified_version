@@ -9536,10 +9536,9 @@ internal static partial class FunctionMethodCreator
 			else
 			{
 				// 从最下往上数第 |n| 行: -1=最后一行, -2=倒数第二行
-				int fromBottom = (int)(-num);
-				if (fromBottom > count)
+				if (num == long.MinValue || -num > count)
 					return "";
-				index = count - fromBottom;
+				index = count + (int)num; // count - (-num) = count + num (num is negative)
 			}
 			return exm.Console.DisplayLineList[index].ToString();
 		}
