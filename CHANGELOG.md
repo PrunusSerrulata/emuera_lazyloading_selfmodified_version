@@ -4,6 +4,16 @@ All notable changes to Emuera-SKIA will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [7.3.2] — font 标签颜色继承修复 + SETIMAGELAYERL 注释修正
+
+### Fixed
+
+- **font 标签颜色继承失效**：`font.Color` 初始值已改为 `int.MinValue`，但继承检查仍用 `font.Color == -1`（死代码），导致嵌套 `<font>` 标签不继承外层颜色
+  - 修复：`font.Color == -1` → `font.Color == int.MinValue`，`font.BColor == -1` → `font.BColor == int.MinValue`
+- **SETIMAGELAYERL 过时注释**：`Instraction.Child.cs` 和 `ArgumentBuilder.cs` 中 "Always anchors to LINECOUNT" 修正为 "Always anchors to GetLineNo (current display line index)"
+
+***
+
 ## [7.3.1] — 颜色哨兵值修复 + SETIMAGELAYERL GetLineNo 修复 + border 默认颜色
 
 ### Fixed
