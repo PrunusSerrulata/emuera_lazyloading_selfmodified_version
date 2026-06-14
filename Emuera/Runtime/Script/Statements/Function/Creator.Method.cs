@@ -723,7 +723,7 @@ internal static partial class FunctionMethodCreator
 							else if (arguments[1].GetEraType() == EraType.Float)
 								val = arguments[1].GetFloatValue(exm);
 							else
-								throw new CodeEE(string.Format(trerror.SetIntToStr.Text, name));
+								throw new CodeEE(string.Format(trerror.SetStrToFloat.Text, name));
 						}
 						if (var.Identifier.IsArray1D)
 							var.Identifier.SetValueAll(val, start, end, 0);
@@ -769,7 +769,12 @@ internal static partial class FunctionMethodCreator
 					{
 						long val = 0;
 						if (arguments.Count > 1 && arguments[1].GetEraType() != EraType.Integer)
-							throw new CodeEE(string.Format(trerror.SetIntToStr.Text, name));
+						{
+							if (arguments[1].GetEraType() == EraType.Float)
+								throw new CodeEE(string.Format(trerror.SetFloatToInt.Text, name));
+							else
+								throw new CodeEE(string.Format(trerror.SetStrToInt.Text, name));
+						}
 						if (arguments.Count > 1)
 							val = arguments[1].GetIntValue(exm);
 						if (var.Identifier.IsArray1D)
@@ -3853,6 +3858,7 @@ internal static partial class FunctionMethodCreator
 		public MaxMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny}, OmitStart = 1 }
 				];
@@ -3862,6 +3868,7 @@ internal static partial class FunctionMethodCreator
 		public MaxMethod(bool max)
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 					new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.VariadicAny}, OmitStart = 1 }
 				];
@@ -3870,11 +3877,11 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
+			double ret = ToDouble(arguments[0], exm);
 
 			for (int i = 1; i < arguments.Count; i++)
 			{
-				long newRet = arguments[i].GetIntValue(exm);
+				double newRet = ToDouble(arguments[i], exm);
 				if (isMax)
 				{
 					if (ret < newRet)
@@ -3886,7 +3893,7 @@ internal static partial class FunctionMethodCreator
 						ret = newRet;
 				}
 			}
-			return ret;
+			return (long)ret;
 		}
 
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
@@ -3920,6 +3927,7 @@ internal static partial class FunctionMethodCreator
 		public AbsMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -3927,7 +3935,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
+			long ret = arguments[0].GetEraType() == EraType.Integer ? arguments[0].GetIntValue(exm) : (long)arguments[0].GetFloatValue(exm);
 			if (ret == long.MinValue)
 				throw new CodeEE(string.Format(trerror.MinInt64CanNotApplyABS.Text, Name, long.MinValue));
 			return Math.Abs(ret);
@@ -3949,6 +3957,7 @@ internal static partial class FunctionMethodCreator
 		public PowerMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any } }
 			];
@@ -3956,9 +3965,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long x = arguments[0].GetIntValue(exm);
-			long y = arguments[1].GetIntValue(exm);
-			double pow = Math.Pow(x, y);
+			double pow = Math.Pow(ToDouble(arguments[0], exm), ToDouble(arguments[1], exm));
 			if (double.IsNaN(pow))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(pow))
@@ -3989,6 +3996,7 @@ internal static partial class FunctionMethodCreator
 		public SqrtMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -3996,7 +4004,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
+			double ret = ToDouble(arguments[0], exm);
 			if (ret < 0)
 				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
 			return (long)Math.Sqrt(ret);
@@ -4021,6 +4029,7 @@ internal static partial class FunctionMethodCreator
 		public CbrtMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4028,7 +4037,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
+			double ret = ToDouble(arguments[0], exm);
 			if (ret < 0)
 				throw new CodeEE(string.Format(trerror.ArgIsNegative.Text, Name, 1, ret));
 			return (long)Math.Pow(ret, 1.0 / 3.0);
@@ -4054,6 +4063,7 @@ internal static partial class FunctionMethodCreator
 		public LogMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4063,6 +4073,7 @@ internal static partial class FunctionMethodCreator
 		public LogMethod(double b)
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4071,14 +4082,14 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
+			double ret = ToDouble(arguments[0], exm);
 			if (ret <= 0)
 				throw new CodeEE(string.Format(trerror.ArgIsNotMoreThan0.Text, Name, 1, ret));
-			double dret = ret;
+			double dret;
 			if (Base == Math.E)
-				dret = Math.Log(dret);
+				dret = Math.Log(ret);
 			else
-				dret = Math.Log10(dret);
+				dret = Math.Log10(ret);
 			if (double.IsNaN(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(dret))
@@ -4116,6 +4127,7 @@ internal static partial class FunctionMethodCreator
 		public ExpMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4123,8 +4135,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Exp(ret);
+			double dret = Math.Exp(ToDouble(arguments[0], exm));
 			if (double.IsNaN(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(dret))
@@ -4156,6 +4167,7 @@ internal static partial class FunctionMethodCreator
 		public SignMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4163,8 +4175,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			return Math.Sign(ret);
+			return (long)Math.Sign(ToDouble(arguments[0], exm));
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4183,6 +4194,7 @@ internal static partial class FunctionMethodCreator
 		public GetLimitMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any, ArgType.Any, ArgType.Any } }
 			];
@@ -4190,17 +4202,14 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long value = arguments[0].GetIntValue(exm);
-			long min = arguments[1].GetIntValue(exm);
-			long max = arguments[2].GetIntValue(exm);
-			long ret;
+			double value = ToDouble(arguments[0], exm);
+			double min = ToDouble(arguments[1], exm);
+			double max = ToDouble(arguments[2], exm);
 			if (value < min)
-				ret = min;
-			else if (value > max)
-				ret = max;
-			else
-				ret = value;
-			return ret;
+				return (long)min;
+			if (value > max)
+				return (long)max;
+			return (long)value;
 		}
 		public override double GetFloatValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
@@ -4241,6 +4250,7 @@ internal static partial class FunctionMethodCreator
 		public SinMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4248,8 +4258,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Sin(ret);
+			double dret = Math.Sin(ToDouble(arguments[0], exm));
 			if (double.IsNaN(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(dret))
@@ -4280,6 +4289,7 @@ internal static partial class FunctionMethodCreator
 		public CosMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4287,8 +4297,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Cos(ret);
+			double dret = Math.Cos(ToDouble(arguments[0], exm));
 			if (double.IsNaN(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(dret))
@@ -4319,6 +4328,7 @@ internal static partial class FunctionMethodCreator
 		public TanMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4326,8 +4336,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Tan(ret);
+			double dret = Math.Tan(ToDouble(arguments[0], exm));
 			if (double.IsNaN(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			else if (double.IsInfinity(dret))
@@ -4358,6 +4367,7 @@ internal static partial class FunctionMethodCreator
 		public AsinMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4365,8 +4375,8 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			if (ret < -1 || ret > 1)
+			double ret = ToDouble(arguments[0], exm);
+			if (ret < -1.0 || ret > 1.0)
 				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, ret, -1, 1));
 			double dret = Math.Asin(ret);
 			if (double.IsNaN(dret))
@@ -4396,6 +4406,7 @@ internal static partial class FunctionMethodCreator
 		public AcosMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4403,8 +4414,8 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			if (ret < -1 || ret > 1)
+			double ret = ToDouble(arguments[0], exm);
+			if (ret < -1.0 || ret > 1.0)
 				throw new CodeEE(string.Format(trerror.ArgIsOutOfRange.Text, Name, 1, ret, -1, 1));
 			double dret = Math.Acos(ret);
 			if (double.IsNaN(dret))
@@ -4434,6 +4445,7 @@ internal static partial class FunctionMethodCreator
 		public AtanMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4441,8 +4453,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Atan(ret);
+			double dret = Math.Atan(ToDouble(arguments[0], exm));
 			if (double.IsNaN(dret))
 				throw new CodeEE(string.Format(trerror.ResultIsNaN.Text, Name));
 			return (long)dret;
@@ -4467,6 +4478,7 @@ internal static partial class FunctionMethodCreator
 		public FloorMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4474,8 +4486,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Floor((double)ret);
+			double dret = Math.Floor(ToDouble(arguments[0], exm));
 			if ((dret >= long.MaxValue) || (dret <= long.MinValue))
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
@@ -4497,6 +4508,7 @@ internal static partial class FunctionMethodCreator
 		public CeilMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4504,8 +4516,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Ceiling((double)ret);
+			double dret = Math.Ceiling(ToDouble(arguments[0], exm));
 			if ((dret >= long.MaxValue) || (dret <= long.MinValue))
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;
@@ -4527,6 +4538,7 @@ internal static partial class FunctionMethodCreator
 		public RoundMethod()
 		{
 			ReturnType = EraType.Integer;
+			CanReturnFloat = true;
 			argumentTypeArrayEx = [
 				new ArgTypeList{ ArgTypes = { ArgType.Any } }
 			];
@@ -4534,8 +4546,7 @@ internal static partial class FunctionMethodCreator
 		}
 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
 		{
-			long ret = arguments[0].GetIntValue(exm);
-			double dret = Math.Round((double)ret, MidpointRounding.AwayFromZero);
+			double dret = Math.Round(ToDouble(arguments[0], exm), MidpointRounding.AwayFromZero);
 			if ((dret >= long.MaxValue) || (dret <= long.MinValue))
 				throw new CodeEE(string.Format(trerror.ResultIsOutOfTheRangeOfInt64.Text, Name, dret));
 			return (long)dret;

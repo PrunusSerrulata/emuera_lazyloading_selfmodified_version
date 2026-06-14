@@ -289,7 +289,7 @@ internal sealed class CalledFunction
 				}
 				else if (destArg.GetEraType() == EraType.Integer && term.GetEraType() == EraType.Float)
 				{
-					errMes = string.Format(trerror.CanNotConvertStrToInt.Text, func.LabelName, (i + 1).ToString());
+					errMes = string.Format(trerror.CanNotConvertFloatToInt.Text, func.LabelName, (i + 1).ToString());
 					return null;
 				}
 				else
@@ -333,7 +333,7 @@ internal sealed class CalledFunction
 					}
 					else if (destArg.GetEraType() == EraType.Integer && term.GetEraType() == EraType.Float)
 					{
-						errMes = string.Format(trerror.CanNotConvertStrToInt.Text, func.LabelName, (i + 1).ToString());
+						errMes = string.Format(trerror.CanNotConvertFloatToInt.Text, func.LabelName, (i + 1).ToString());
 						return null;
 					}
 					else
