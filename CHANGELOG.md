@@ -4,6 +4,33 @@ All notable changes to Emuera-SKIA will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [9.0.0] — F11 全屏比例缩放
+
+### Added
+
+- **F11 全屏比例缩放**：按 F11 时，游戏窗口内容（字体、图片、分割线、HTML shape、ImageLayer、CBG 背景图等所有可见元素）按配置中的宽度比例缩放到全屏，适配高分辨率显示屏
+  - 核心机制：在 `SKCanvas` 绘制入口处应用一次 `canvas.Scale()` 变换，所有后续绘制操作自动按比例放大
+  - 不修改 `Config.FontSize`、`Config.WindowX`、`Config.DrawableWidth`——引擎继续以逻辑尺寸布局
+  - 不重排显示行——避免 HTML 往返 bug
+  - 鼠标坐标自动转换为逻辑坐标
+  - 输入框（WinForms RichTextBox）单独缩放字体和高度
+  - 支持多显示器（`Screen.FromControl` 获取当前屏幕）
+  - 引入 `RenderWidth`/`RenderHeight` 属性表示逻辑渲染尺寸，`EmueraConsole.OnPaint` 及相关方法使用此属性替代 `MainPicBox.Width`/`Height`
+  - 安卓端零影响（不编译桌面 `MainWindow.cs` 和 `EmueraConsole.cs`）
+
+### Fixed
+
+- **全屏时窗口宽度不填满屏幕**：`initControlSizeAndLocation()` 设置的 `MaximumSize.Width` 锁定为初始窗口宽度，阻止 `Bounds = screen.Bounds` 生效。修复：进入全屏前保存并重置 `MaximumSize`/`MinimumSize` 为 `(0,0)`，退出时恢复
+- **全屏时内容向下溢出约三行**：`RenderHeight` 使用屏幕高度而非 `mainPicBox` 实际高度，导致渲染高度超出画布。修复：`RenderHeight` 改为基于 `mainPicBox.Height / fullscreenScale`；显式设置 `mainPicBox.Size` 填满窗口剩余空间
+- **退出全屏后工具栏消失**：全屏时显式设置 `mainPicBox.Location = (0, 0)`，退出时 Anchor 不会自动恢复原始 `Y=menuHeight` 位置，`mainPicBox` 覆盖了 `menuStrip`。修复：退出全屏时显式恢复 `mainPicBox.Location`/`Size` 和 `richTextBox1.Location`/`Size`
+- **全屏时鼠标移到顶部菜单栏不复现**：`mainPicBox` 是 `SKGLControl`（OpenGL 控件），其硬件加速渲染会覆盖 Z-order 中的 WinForms 控件，导致 `menuStrip.Visible = true` 后仍不可见。修复：菜单显示时下移 `mainPicBox` 并缩减高度，菜单隐藏时恢复原位
+
+### Changed
+
+- **版本签名**：`v24+Skiav8.2` → `v25+Skiav9`（`1824+v25+EMv18+EEv56+Skiav9`）
+
+***
+
 ## [8.2.0] — 调试窗口 WaitInput 状态下自定义函数求值修复
 
 ### Fixed
