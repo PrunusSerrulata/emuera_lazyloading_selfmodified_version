@@ -4,6 +4,24 @@ All notable changes to Emuera-SKIA will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [9.1.0] — STRFORMCHECK 函数 + HTML_PRINT font valign 扩展
+
+### Added
+
+- **STRFORMCHECK 函数**：接收一个字符串参数，判断其是否能作为 `STRFORM` 展开；可展开返回 `1`，不可展开返回 `0`
+  - 解析失败（语法错误）返回 `0`
+  - 运行时求值失败（变量不存在等）返回 `0`
+  - 与 `STRFORM` 共享同一套解析器，语义一致
+- **HTML_PRINT `<font>` valign 属性**：在已有 `size` 属性基础上新增 `valign` 属性（`top`/`middle`/`bottom`），控制行内不同字号文本的垂直基准位置
+  - `valign='top'`（默认）：文本顶部对齐，与现有行为一致
+  - `valign='middle'`：文本垂直居中
+  - `valign='bottom'`：文本底部对齐
+  - 非法值（如 `center`）抛出 `CanNotInterpretAttribute` 错误
+  - 嵌套 `<font>` 标签继承外层 `valign` 设置
+  - Desktop 端与 SkiaX Xamarin 端同步实现
+
+***
+
 ## [9.0.0] — F11 全屏比例缩放
 
 ### Added
@@ -18,16 +36,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - 引入 `RenderWidth`/`RenderHeight` 属性表示逻辑渲染尺寸，`EmueraConsole.OnPaint` 及相关方法使用此属性替代 `MainPicBox.Width`/`Height`
   - 安卓端零影响（不编译桌面 `MainWindow.cs` 和 `EmueraConsole.cs`）
 
-### Fixed
-
-- **全屏时窗口宽度不填满屏幕**：`initControlSizeAndLocation()` 设置的 `MaximumSize.Width` 锁定为初始窗口宽度，阻止 `Bounds = screen.Bounds` 生效。修复：进入全屏前保存并重置 `MaximumSize`/`MinimumSize` 为 `(0,0)`，退出时恢复
-- **全屏时内容向下溢出约三行**：`RenderHeight` 使用屏幕高度而非 `mainPicBox` 实际高度，导致渲染高度超出画布。修复：`RenderHeight` 改为基于 `mainPicBox.Height / fullscreenScale`；显式设置 `mainPicBox.Size` 填满窗口剩余空间
-- **退出全屏后工具栏消失**：全屏时显式设置 `mainPicBox.Location = (0, 0)`，退出时 Anchor 不会自动恢复原始 `Y=menuHeight` 位置，`mainPicBox` 覆盖了 `menuStrip`。修复：退出全屏时显式恢复 `mainPicBox.Location`/`Size` 和 `richTextBox1.Location`/`Size`
-- **全屏时鼠标移到顶部菜单栏不复现**：`mainPicBox` 是 `SKGLControl`（OpenGL 控件），其硬件加速渲染会覆盖 Z-order 中的 WinForms 控件，导致 `menuStrip.Visible = true` 后仍不可见。修复：菜单显示时下移 `mainPicBox` 并缩减高度，菜单隐藏时恢复原位
-
-### Changed
-
-- **版本签名**：`v24+Skiav8.2` → `v25+Skiav9`（`1824+v25+EMv18+EEv56+Skiav9`）
 
 ***
 
