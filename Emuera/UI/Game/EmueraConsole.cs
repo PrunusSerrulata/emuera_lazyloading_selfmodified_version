@@ -694,7 +694,7 @@ internal sealed partial class EmueraConsole : IDisposable
 		state = ConsoleState.Running;
 	}
 
-	#region EE_SEQUENCEINPUT
+	#region 尊尼获加_SEQUENCEINPUT
 	// 把 SEQUENCEINPUT 排队的整段字符串作为一次"用户按 Enter"提交，调用 PressEnterKey。
 	// PressEnterKey 内部会做 parseInput 宏展开、\n 拆分、\e MesSkip 等全部处理。
 	// for 循环会同步处理所有展开后的片段，每段喂入一个 ERB WaitInput。
@@ -712,7 +712,7 @@ internal sealed partial class EmueraConsole : IDisposable
 
 	public void WaitInput(InputRequest req)
 	{
-		#region EE_SEQUENCEINPUT
+		#region 尊尼获加_SEQUENCEINPUT
 		if (process.hasSequenceInput)
 		{
 			SimulatePressEnter(req);
@@ -776,7 +776,7 @@ internal sealed partial class EmueraConsole : IDisposable
 
 	public void WaitInputNoFocus(InputRequest req)
 	{
-		#region EE_SEQUENCEINPUT
+		#region 尊尼获加_SEQUENCEINPUT
 		if (process.hasSequenceInput)
 		{
 			SimulatePressEnter(req);

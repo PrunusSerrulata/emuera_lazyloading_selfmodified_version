@@ -1,4 +1,4 @@
-﻿﻿using MinorShift.Emuera.Runtime;
+using MinorShift.Emuera.Runtime;
 using MinorShift.Emuera.Runtime.Config;
 using MinorShift.Emuera.Runtime.Script;
 using MinorShift.Emuera.Runtime.Utils;
@@ -113,7 +113,7 @@ internal sealed partial class Process
 	public bool flowinputForceSkip = false;
 	#endregion
 
-	#region EE_SEQUENCEINPUT
+	#region 尊尼获加_SEQUENCEINPUT
 	public string sequenceInputValue = null;
 	public bool hasSequenceInput = false;
 	#endregion

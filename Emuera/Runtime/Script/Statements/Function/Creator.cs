@@ -374,8 +374,11 @@ internal static partial class FunctionMethodCreator
 			["GETDOINGFUNCTION"] = new GetDoingFunctionMethod(),
 			["FLOWINPUT"] = new FlowInputMethod(),
 			["FLOWINPUTS"] = new FlowInputsMethod(),
-			["SEQUENCEINPUT"] = new SequenceInputMethod(),
 
+			#endregion
+
+			#region 尊尼获加_SEQUENCEINPUT
+			["SEQUENCEINPUT"] = new SequenceInputMethod(),
 			#endregion
 
 			#region daughter-patch追加

@@ -9643,7 +9643,7 @@ internal static partial class FunctionMethodCreator
 	}
 	#endregion
 
-	#region EE_SEQUENCEINPUT
+	#region 尊尼获加_SEQUENCEINPUT
 	private sealed class SequenceInputMethod : FunctionMethod
 	{
 		public SequenceInputMethod()
