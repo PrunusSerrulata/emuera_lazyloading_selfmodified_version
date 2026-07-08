@@ -379,6 +379,8 @@ internal static partial class FunctionMethodCreator
 
 			#region 尊尼获加_SEQUENCEINPUT
 			["SEQUENCEINPUT"] = new SequenceInputMethod(),
+			["DISABLE_INPUT_MACRO"] = new DisableInputMacroMethod(),
+			["ENABLE_INPUT_MACRO"] = new EnableInputMacroMethod(),
 			#endregion
 
 			#region daughter-patch追加
