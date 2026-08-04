@@ -1,4 +1,4 @@
-﻿namespace MinorShift.Emuera.Runtime.Config;
+namespace MinorShift.Emuera.Runtime.Config;
 
 internal enum DisplayWarningFlag
 {
@@ -237,5 +237,9 @@ internal enum ConfigCode
 	CBBufferSize,
 	CBScrollCount,
 	CBMinTimer,
+	#endregion
+
+	#region LL_内存诊断
+	MemoryDiagnosticEnabled,
 	#endregion
 }
