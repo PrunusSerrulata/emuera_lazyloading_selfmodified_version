@@ -58,6 +58,13 @@ internal sealed class WinInput
 		_keyToggle[nVirtKey] = value;
 	}
 
+	internal static int HeadlessPeekLatch(int keyCode)
+	{
+		if (!Program.HeadlessMode)
+			throw new System.InvalidOperationException("Input observation requires headless mode");
+		return System.Threading.Volatile.Read(ref _keyLatch[keyCode]);
+	}
+
 	public static void ResetAllKeys()
 	{
 		for (int i = 0; i < 256; i++)

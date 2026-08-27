@@ -342,7 +342,7 @@ internal sealed partial class EmueraConsole : IDisposable
 	/// 現在、Emueraがアクティブかどうか
 	/// </summary>
 	internal bool IsActive
-	{ get { return !Program.HeadlessMode && !(window == null || !window.Created || Form.ActiveForm == null); } }
+	{ get { return Program.HeadlessMode ? MinorShift.Emuera.Runtime.Utils.HeadlessInput.Enabled && MinorShift.Emuera.Runtime.Utils.HeadlessInput.Active : !(window == null || !window.Created || Form.ActiveForm == null); } }
 
 	/// <summary>
 	/// スクリプトが継続中かどうか
@@ -685,7 +685,10 @@ internal sealed partial class EmueraConsole : IDisposable
 		// Clear latches before DoEvents to prevent leakage from previous
 		// input mode (INPUTS/TINPUTS) into AWAIT+GETKEYTRIGGERED loops.
 		WinInput.ClearLatches();
-		PlatformInterop.DoEvents();
+		if (Program.HeadlessMode && MinorShift.Emuera.Runtime.Utils.HeadlessInput.Enabled)
+			MinorShift.Emuera.Runtime.Utils.HeadlessInput.PumpEvents();
+		else
+			PlatformInterop.DoEvents();
 		if (time > 0)
 			System.Threading.Thread.Sleep(time);
 		////DoEvents()の間にウインドウが閉じられたらおしまい。
