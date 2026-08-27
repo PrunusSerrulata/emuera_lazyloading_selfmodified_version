@@ -268,7 +268,30 @@ internal sealed class ConsoleStyledString : AConsoleColoredPart
 		textsWithFont.Width = paint.MeasureText(textsWithFont.Text);
 		return textsWithFont;
 	}
-	public SKFont Font { get; private set; }
+    // Read the same cached path selected by SetWidth, without measuring again.
+    internal (string Provider, string Version, string Family, float? Size) HeadlessReadFontProvider()
+    {
+        if (!Program.HeadlessMode)
+            throw new InvalidOperationException("Font observation requires headless mode");
+        if (RenderMode == TextDrawingMode.TEXTRENDERER && GdiFont != null && _gdiTexts != null)
+            return ("system-windows-forms-text-renderer", typeof(TextRenderer).Assembly.GetName().Version?.ToString(),
+                GdiFont.FontFamily.Name, GdiFont.Size);
+        return ("skia-measure-text", typeof(SKPaint).Assembly.GetName().Version?.ToString(),
+            Font?.Typeface?.FamilyName, Font?.Size);
+    }
+
+	internal (string Text, string Family, float Width)[] HeadlessReadFontRuns()
+    {
+        if (!Program.HeadlessMode)
+            throw new InvalidOperationException("Font observation requires headless mode");
+        if (RenderMode == TextDrawingMode.TEXTRENDERER && GdiFont != null && _gdiTexts != null)
+            return _gdiTexts.Select(run => (run.Text, run.Font.FontFamily.Name, run.Width)).ToArray();
+        if (_texts != null)
+            return _texts.Select(run => (run.Text, run.Font.Typeface.FamilyName, run.Width)).ToArray();
+        return new[] { (Text, Font?.Typeface?.FamilyName, (float)Width) };
+    }
+
+    public SKFont Font { get; private set; }
 	SKFont _fallbackFont;
 	List<TextsWithFont> _texts;//フォントフォールバック用
 	List<GdiTextsWithFont> _gdiTexts;

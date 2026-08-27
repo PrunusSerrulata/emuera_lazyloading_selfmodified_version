@@ -42,6 +42,7 @@ internal sealed partial class EmueraConsole
 		redrawTimer = null;
 	}
 
+	internal bool HeadlessHasPendingDisplay => !printBuffer.IsEmpty;
 	internal ConsoleState HeadlessState => state;
 	internal Process HeadlessProcess => process;
 	internal InputRequest HeadlessInputRequest => inputReq;
