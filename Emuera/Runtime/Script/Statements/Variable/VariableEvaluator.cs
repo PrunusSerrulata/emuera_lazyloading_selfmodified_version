@@ -45,6 +45,13 @@ internal sealed class VariableEvaluator : IDisposable
 		_newRand = new((int)seed);
 	}
 
+	internal void HeadlessSetRandomSeed(long seed)
+	{
+		if (!Program.HeadlessMode)
+			throw new InvalidOperationException("Random seeding is available only in headless mode");
+		Randomize(seed);
+	}
+
 	public void InitRanddata()
 	{
 		rand.SetRand(RANDDATA.ToArray(MTRandom.N32 + 1));
@@ -3038,6 +3045,18 @@ internal sealed class VariableEvaluator : IDisposable
 	public bool LoadFrom(int dataIndex)
 	{
 		string filepath = getSaveDataPath(dataIndex);
+		return LoadFromPath(filepath, dataIndex);
+	}
+
+	internal bool HeadlessLoadFrom(string filepath)
+	{
+		if (!Program.HeadlessMode)
+			throw new InvalidOperationException("Direct save loading is available only in headless mode");
+		return LoadFromPath(Path.GetFullPath(filepath), -1);
+	}
+
+	bool LoadFromPath(string filepath, int dataIndex)
+	{
 		if (!File.Exists(filepath))
 			throw new ExeEE(trerror.NotExistPath.Text);
 

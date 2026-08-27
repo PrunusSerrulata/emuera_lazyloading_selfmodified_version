@@ -1,5 +1,7 @@
 # Emuera-SKIA
 
+开发测试：[无窗口 NDJSON CLI 与固定 fixture](emuera-reference-cli/README.md)。
+
 > **画蛇又添足改造版** — Emuera 1824+v24+EMv18+EEv56+Skiav9
 
 [![Base](https://img.shields.io/badge/base-Emuera%201.824%20%2B%20EEv56-blue)](#)

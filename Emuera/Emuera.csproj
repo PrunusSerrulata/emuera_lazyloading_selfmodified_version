@@ -3,6 +3,7 @@
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net8.0-windows</TargetFramework>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
         <Platforms>x64;x86</Platforms>
         <UseWindowsForms>true</UseWindowsForms>
@@ -141,6 +142,10 @@
       <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
       <PackageReference Include="SkiaSharp" Version="3.119.2" />
       <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <InternalsVisibleTo Include="Emuera.ReferenceCli" />
     </ItemGroup>
 
 

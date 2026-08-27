@@ -26,6 +26,7 @@ internal sealed partial class Process
 	{
 		while (true)
 		{
+			HeadlessCheckLimit();
 			// ScriptEndチェックをループ先頭に移動。
 			// ReturnF後にcurrentLineがnullでもNullReferenceExceptionを起こさない。
 			if ((!console.IsRunning && !forceRunning) || state.ScriptEnd)

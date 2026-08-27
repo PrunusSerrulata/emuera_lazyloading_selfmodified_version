@@ -19,7 +19,8 @@ namespace MinorShift.Emuera.Runtime.Config;
 internal sealed class ConfigData
 {
 	#region eee_カレントディレクトリー
-	readonly static string configPath = Program.ExeDir + "emuera.config";
+	readonly static string originalConfigPath = Program.ExeDir + "emuera.config";
+	static string configPath => Program.HeadlessMode ? Program.ExeDir + "emuera.config" : originalConfigPath;
 	#endregion
 	readonly static string configdebugPath = Program.DebugDir + "debug.config";
 
@@ -28,6 +29,14 @@ internal sealed class ConfigData
 	public static ConfigData Instance { get { return instance; } }
 
 	private ConfigData() { setDefault(); }
+
+	internal static void HeadlessLoad()
+	{
+		if (!Program.HeadlessMode)
+			throw new InvalidOperationException("Isolated config loading is available only in headless mode");
+		instance = new ConfigData();
+		instance.LoadConfig();
+	}
 	#region EM_私家版_Emuera多言語化改造
 	//適当に大き目の配列を作っておく。
 	#region EE_configArrayの拡張

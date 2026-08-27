@@ -269,8 +269,8 @@ internal sealed partial class EmueraConsole : IDisposable
 		cbgList.Sort();
 		return true;
 	}
-	public int ClientWidth { get { return window.RenderWidth; } }
-	public int ClientHeight { get { return window.RenderHeight; } }
+	public int ClientWidth { get { return Program.HeadlessMode ? Config.WindowX : window.RenderWidth; } }
+	public int ClientHeight { get { return Program.HeadlessMode ? Config.WindowY - Config.LineHeight : window.RenderHeight; } }
 
 	public void CBGSetImage(string spriteName)
 	{
@@ -336,13 +336,13 @@ internal sealed partial class EmueraConsole : IDisposable
 		}
 	}
 	#endregion
-	public bool Enabled { get { return window.Created; } }
+	public bool Enabled { get { return Program.HeadlessMode || window.Created; } }
 
 	/// <summary>
 	/// 現在、Emueraがアクティブかどうか
 	/// </summary>
 	internal bool IsActive
-	{ get { return !(window == null || !window.Created || Form.ActiveForm == null); } }
+	{ get { return !Program.HeadlessMode && !(window == null || !window.Created || Form.ActiveForm == null); } }
 
 	/// <summary>
 	/// スクリプトが継続中かどうか
@@ -508,7 +508,7 @@ internal sealed partial class EmueraConsole : IDisposable
 		// GlobalStatic.MainWindow = window;
 		process = new GameProc.Process(this);
 		GlobalStatic.Process = process;
-		if (Program.DebugMode && Config.DebugShowWindow)
+		if (!Program.HeadlessMode && Program.DebugMode && Config.DebugShowWindow)
 		{
 			OpenDebugDialog();
 			window.Focus();
@@ -522,6 +522,10 @@ internal sealed partial class EmueraConsole : IDisposable
 			RefreshStrings(true);
 			return;
 		}
+		if (Program.HeadlessMode && Program.HeadlessRandomSeed is long randomSeed)
+			process.HeadlessSetRandomSeed(randomSeed);
+		if (Program.HeadlessMode)
+			process.ConfigureHeadlessLimits(Program.HeadlessInstructionLimit, Program.HeadlessTimeout);
 		RunEmueraProgram("");
 		RefreshStrings(true);
 
@@ -725,6 +729,12 @@ internal sealed partial class EmueraConsole : IDisposable
 		#endregion
 		state = ConsoleState.WaitInput;
 		inputReq = req;
+		if (Program.HeadlessMode)
+		{
+			if (req.Timelimit > 0)
+				presetTimer();
+			return;
+		}
 		// 尊尼获加：非 NF 的 WaitInput 清除上滚标志和偏移量，恢复正常跟随滚动
 		nfUserScrolledBack = false;
 		nfScrollOffsetFromBottom = 0;
@@ -785,6 +795,14 @@ internal sealed partial class EmueraConsole : IDisposable
 		#endregion
 		if (Config.CBUseClipboard)
 			CBProc.Check(ClipboardProcessor.CBTriggers.InputWait);
+		if (Program.HeadlessMode)
+		{
+			state = ConsoleState.WaitInputNoFocus;
+			inputReq = req;
+			if (req.Timelimit > 0)
+				presetTimer();
+			return;
+		}
 		// 尊尼获加：NF 上滚状态管理
 		// 只有从上一个 WaitInputNoFocus 继承的 nfBack 才保留（动态地图循环场景）
 		// 如果是从其他状态（Running/WaitInput）进入，清除 nfBack（demo 退出场景）
@@ -943,6 +961,8 @@ internal sealed partial class EmueraConsole : IDisposable
 	/// </summary>
 	public void setRedrawTimer(int tickcount)
 	{
+		if (Program.HeadlessMode)
+			return;
 		if (tickcount <= 0)
 		{
 			redrawTimer.Enabled = false;
@@ -1127,6 +1147,8 @@ internal sealed partial class EmueraConsole : IDisposable
 		// 因为超时后的 ERB 代码（CLEARLINE + redraw + TINPUTSNF）仍在 NF 上下文中
 		state = ConsoleState.Running;
 		process.DoScript();
+		if (Program.HeadlessMode && process.HeadlessRunCompleted && state == ConsoleState.Running)
+			state = ConsoleState.WaitInput;
 		if (state == ConsoleState.Running)
 		{//RunningならProcessは処理を継続するべき
 			state = ConsoleState.Error;
@@ -1299,7 +1321,7 @@ internal sealed partial class EmueraConsole : IDisposable
 		PrintFlush(false);
 		#region EM_textbox位置指定拡張
 		// 入力成功した
-		if (window.TextBoxPosChanged)
+		if (!Program.HeadlessMode && window.TextBoxPosChanged)
 			window.ResetTextBoxPos();
 		#endregion
 		return true;
@@ -1532,7 +1554,7 @@ internal sealed partial class EmueraConsole : IDisposable
 
 		void endMacro()
 		{
-			if (IsWaitInputState && inputReq.NeedValue)
+			if (!Program.HeadlessMode && IsWaitInputState && inputReq.NeedValue)
 			{
 				Point point = window.MainPicBox.PointToClient(Control.MousePosition);
 				if (window.MainPicBox.ClientRectangle.Contains(point))
@@ -1769,6 +1791,11 @@ internal sealed partial class EmueraConsole : IDisposable
 	string debugTitle;
 	public void SetWindowTitle(string str)
 	{
+		if (Program.HeadlessMode)
+		{
+			headlessWindowTitle = str;
+			return;
+		}
 		if (Program.DebugMode)
 		{
 			debugTitle = str;
@@ -1780,10 +1807,14 @@ internal sealed partial class EmueraConsole : IDisposable
 
 	public void SetEmueraVersionInfo(string str)
 	{
+		if (Program.HeadlessMode)
+			return;
 		window.TextBox.Text = str;
 	}
 	public string GetWindowTitle()
 	{
+		if (Program.HeadlessMode)
+			return headlessWindowTitle;
 		if (Program.DebugMode && debugTitle != null)
 			return debugTitle;
 		return window.Text;
@@ -1795,6 +1826,8 @@ internal sealed partial class EmueraConsole : IDisposable
 	/// </summary>
 	public void RefreshStrings(bool force_Paint)
 	{
+		if (Program.HeadlessMode)
+			return;
 		bool isBackLog = window.ScrollBar.Value != window.ScrollBar.Maximum;
 		//ログ表示はREDRAWの設定に関係なく行うようにする
 		if ((redraw == ConsoleRedraw.None) && (!force_Paint) && (!isBackLog))
@@ -2254,6 +2287,8 @@ internal sealed partial class EmueraConsole : IDisposable
 	}
 	public void SetToolTipDelay(int delay)
 	{
+		if (Program.HeadlessMode)
+			return;
 		window.ToolTip.InitialDelay = delay;
 	}
 
@@ -2841,6 +2876,8 @@ internal sealed partial class EmueraConsole : IDisposable
 	#region EM_textbox位置指定拡張
 	private void verticalScrollBarUpdate()
 	{
+		if (Program.HeadlessMode)
+			return;
 		int max = displayLineList.Count;
 		int move = max - window.ScrollBar.Maximum;
 		if (move == 0)

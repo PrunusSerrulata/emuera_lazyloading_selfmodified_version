@@ -356,7 +356,11 @@ internal sealed partial class Process(EmueraConsole view)
 				methodStack = 0;
 				systemProcRunning = true;
 				while (state.ScriptEnd && console.IsRunning)
+				{
+					if (HeadlessFinishFunctionRun())
+						return;
 					runSystemProc();
+				}
 				if (!console.IsRunning)
 					break;
 				systemProcRunning = false;
@@ -364,6 +368,13 @@ internal sealed partial class Process(EmueraConsole view)
 			}
 			catch (Exception ec)
 			{
+				// A test budget is a host boundary, not a script exception. In particular,
+				// BEFORE_ERROR must not be able to continue past the exhausted budget.
+				if (Program.HeadlessMode && HeadlessLimitReason != null)
+				{
+					console.ThrowError(false);
+					return;
+				}
 				debugLogFirstWrite = true;
 				DebugLogEnabled = true;
 				LogicalLine currentLine = state.ErrorLine;
