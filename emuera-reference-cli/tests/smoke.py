@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import queue
@@ -18,14 +19,79 @@ TESTS = Path(__file__).resolve().parent
 BASELINE = "fc4fb21416768c17256d0e82f997e5f99c9bba91"
 
 
+class SmokeWatchdog:
+    """Independent observer; never sends a second request to the busy oracle."""
+
+    def __init__(self, deadline):
+        self.deadline = deadline
+        self.lock = threading.Lock()
+        self.closed = threading.Event()
+        self.oracle = None
+        self.state = {"case": None, "phase": "starting", "pending": None, "lastFullResponse": None}
+        self.thread = threading.Thread(target=self._watch, daemon=True)
+        self.thread.start()
+
+    def publish(self, **values):
+        with self.lock:
+            self.state.update(values)
+
+    def attach(self, oracle):
+        with self.lock:
+            self.oracle = oracle
+
+    def _watch(self):
+        previous, next_sample = None, time.monotonic() + 5
+        while not self.closed.wait(0.05):
+            now = time.monotonic()
+            if now < next_sample and now < self.deadline:
+                continue
+            with self.lock:
+                oracle = self.oracle
+                process = None if oracle is None else {"pid": oracle.process.pid, "returncode": oracle.process.poll()}
+                snapshot = {**self.state, "process": process}
+            print(json.dumps({"smokeWatchdog": snapshot}, ensure_ascii=False), file=sys.stderr, flush=True)
+            failure = "wall-clock budget exhausted" if now >= self.deadline else (
+                "unchanged complete observations at consecutive 5s samples" if same_observation(previous, snapshot) else None)
+            if failure:
+                print(f"FAIL watchdog: {failure}", file=sys.stderr, flush=True)
+                try:
+                    if oracle is not None:
+                        oracle.kill()
+                finally:
+                    # Terminate even if the main thread is blocked in pipe/file work.
+                    os._exit(2)
+            previous = snapshot
+            next_sample += 5
+
+    def close(self):
+        self.closed.set()
+        self.thread.join(timeout=1)
+
+
+def same_observation(previous, current):
+    return previous is not None and comparison_state(previous) == comparison_state(current)
+
+
+def comparison_state(snapshot):
+    """Strip only known envelope metadata, never recurse into script result/watches."""
+    state = dict(snapshot)
+    state.pop("reportMetadata", None)
+    for key in ("pending", "lastFullResponse"):
+        envelope = state.get(key)
+        if isinstance(envelope, dict):
+            state[key] = {name: value for name, value in envelope.items() if name != "id"}
+    return state
+
+
 def equal(actual, expected):
     if actual != expected:
         raise AssertionError(f"expected {expected!r}, got {actual!r}")
 
 
 class Oracle:
-    def __init__(self, args, directory, deadline):
+    def __init__(self, args, directory, deadline, watchdog):
         self.args, self.directory, self.deadline = args, directory, deadline
+        self.watchdog = watchdog
         self.responses = queue.Queue()
         self.sequence = 0
         self.last_response = None
@@ -37,6 +103,7 @@ class Oracle:
             stderr=self.stderr, text=True, encoding="utf-8", errors="strict",
             start_new_session=os.name != "nt",
         )
+        watchdog.attach(self)
         threading.Thread(target=self._read, daemon=True).start()
 
     def _read(self):
@@ -51,6 +118,7 @@ class Oracle:
     def windows_path(self, path):
         if not self.args.wine:
             return str(path)
+        self.watchdog.publish(phase="winepath", pending={"path": str(path)})
         return subprocess.check_output(
             [self.args.winepath, "-w", str(path)], text=True,
             timeout=min(10, self.remaining()),
@@ -70,6 +138,7 @@ class Oracle:
             request = {"id": self.sequence, **request}
             request_id = request["id"]
             wire = json.dumps(request, ensure_ascii=False)
+        self.watchdog.publish(phase="request", pending=request)
         self.process.stdin.write(wire + "\n")
         self.process.stdin.flush()
         try:
@@ -82,6 +151,7 @@ class Oracle:
             raise line
         response = json.loads(line)
         self.last_response = response
+        self.watchdog.publish(phase="response", pending=None, lastFullResponse=response)
         equal(response["id"], request_id)
         equal(response["ok"], ok)
         equal(response["schemaVersion"], 2)
@@ -95,8 +165,10 @@ class Oracle:
 
     def fixture(self, name="fixture", overlays=()):
         destination = self.directory / name
+        self.watchdog.publish(phase="copy_fixture", pending={"source": str(TESTS / "fixture"), "destination": str(destination)})
         shutil.copytree(TESTS / "fixture", destination)
         for overlay in overlays:
+            self.watchdog.publish(phase="copy_fixture", pending={"source": str(TESTS / overlay), "destination": str(destination)})
             shutil.copytree(TESTS / overlay, destination, dirs_exist_ok=True)
         return destination
 
@@ -114,15 +186,27 @@ class Oracle:
         equal(result["termination"], "completed")
         return result
 
+    def kill(self):
+        if os.name == "nt":
+            try:
+                subprocess.run(["taskkill", "/PID", str(self.process.pid), "/T", "/F"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               timeout=3, check=False)
+            finally:
+                self.process.kill()
+        else:
+            try:
+                os.killpg(self.process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+
     def close(self):
+        self.watchdog.publish(phase="closing", pending="oracle_process_exit")
         self.process.stdin.close()
         try:
             self.process.wait(timeout=3)
         except subprocess.TimeoutExpired:
-            if os.name == "nt":
-                self.process.kill()
-            else:
-                os.killpg(self.process.pid, signal.SIGKILL)
+            self.kill()
             self.process.wait(timeout=3)
         self.process.stdout.close()
         self.stderr.close()
@@ -135,7 +219,9 @@ def protocol(oracle):
     oracle.request({"id": {"nested": [1, "中文"]}, "op": "unknown"}, ok=False)
     capability = oracle.call("capabilities")
     equal(capability["implementation"], "emuera_lazyloading_selfmodified_version")
-    equal(len(capability["operations"]), 12)
+    equal(len(capability["operations"]), 14)
+    if not {"observe", "injectInput"}.issubset(capability["operations"]):
+        raise AssertionError("headless observation/input operations are missing")
     equal(oracle.call("lex", source="1 + 2")["tokens"][0]["value"], 1)
     equal(oracle.call("lex", source="1.25")["tokens"][0]["value"], 1.25)
     for source, operand in [("1 + 2 * 3", "System.Int64"), ("1.25 + 2.5", "System.Double")]:
@@ -274,17 +360,19 @@ def main():
     parser.add_argument("--budget-seconds", type=float, default=300, help="total smoke wall-clock budget")
     args = parser.parse_args()
     args.exe = args.exe.resolve(strict=True)
-    if args.timeout <= 0 or args.budget_seconds <= 0:
+    if not math.isfinite(args.timeout) or not math.isfinite(args.budget_seconds) or args.timeout <= 0 or args.budget_seconds <= 0:
         parser.error("timeouts must be positive")
     deadline = time.monotonic() + args.budget_seconds
+    watchdog = SmokeWatchdog(deadline)
     failures = []
     for case in args.case or CASES:
+        watchdog.publish(case=case, phase="case_setup", pending=None, lastFullResponse=None)
         if time.monotonic() >= deadline:
             failures.append(case)
             print(f"FAIL {case}: total budget exhausted; remaining cases not started", file=sys.stderr)
             break
         with tempfile.TemporaryDirectory(prefix="emuera-selfmodified-smoke-") as temporary:
-            oracle = Oracle(args, Path(temporary), deadline)
+            oracle = Oracle(args, Path(temporary), deadline, watchdog)
             try:
                 CASES[case](oracle)
                 print(f"PASS {case} ({oracle.sequence} requests)", flush=True)
@@ -299,6 +387,8 @@ def main():
                 diagnostics = oracle.stderr_path.read_text(encoding="utf-8", errors="replace")
                 if diagnostics.strip():
                     print(diagnostics, file=sys.stderr)
+                watchdog.attach(None)
+    watchdog.close()
     return 1 if failures else 0
 
 
