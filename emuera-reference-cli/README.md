@@ -97,3 +97,54 @@ WINEPREFIX=/absolute/path/to/prefix WINEDEBUG=-all python3 emuera-reference-cli/
 默认独立 Wine prefix 为工作区 `.wine-prefix/emuera-selfmodified-cli`；也可显式提供
 `WINEPREFIX`。任何测试成功只说明该版本 oracle 的相应用例可用，不能替代 Rust/C#
 同输入差分，更不代表 Skia/WinForms 实际画面或原生窗口交互通过验证。
+
+## Batch-0 observation extensions (schema 2)
+
+The optional `observationVersions` capability advertises `presentationSnapshot: 1`
+and `headlessInputTrace: 1`. Existing requests, `output` and semantic
+`referenceCommit` retain their meaning. The wrapper revision must be recorded
+separately; adding these hooks does not advance the semantic baseline.
+
+`load` accepts optional `presentationFont: {family, file, sha256}`. The wrapper
+verifies the file bytes and rejects a measured text family that does not match.
+`observePresentation: true` on load/run/execute requests returns the existing
+line/button/node layout, including pixel-space nodes, font and provider metadata.
+It never flushes or measures; use an explicit script `PRINTL` before observing
+complete lines. `observe` is read-only, ignores watch expressions, does not drain
+warnings and does not consume keys/latches. It accepts `observePresentation`
+(default true). This is measured layout, not a raster/GPU/GUI compatibility claim.
+
+`run`, `execute`, and the new `injectInput` operation accept:
+
+```json
+{"inputTrace":{"active":true,"beforeRun":[{"keyCode":65,"down":true,"toggle":false}],"awaitPumps":[[{"keyCode":65,"down":false,"toggle":false}]]}}
+```
+
+The complete trace is validated before any input mutation (key codes 0..255,
+at most 4096 events and 256 queued pumps per request). `beforeRun` is applied
+before the requested entry or pending input is resumed. Each original AWAIT event
+pump consumes one `awaitPumps` batch, preserving event order; `[down, up]` in one
+batch represents a click entirely inside that pump. Omitting `awaitPumps` leaves
+the queue intact; supplying it replaces the queue. Active defaults to its current
+injected value, initially false. Use AWAIT 0 for deterministic tests.
+
+Original Emuera reads the explicit held/toggle sample through a gated Win32
+primitive adapter. Snake calls its real SetKeyPressed/SetKeyReleased functions;
+toggle is an original-device sampling field and does not invent a snake toggle
+or latch. Its original ClearLatches-before-pump ordering remains intact. Tests
+therefore exercise the real evaluators and snake latch, not Windows event delivery.
+Without inputTrace the old inactive headless behavior is unchanged. Reset/load
+clears held state, latches, evaluator toggles, active state, queues and pump hooks.
+
+Responses after enabling input trace include non-consuming `primitiveInput`
+state for every key plus event/pump counters and remaining queue length. A normal
+watch expression can still have its ordinary script side effects; do not use
+GETKEYTRIGGERED/RAND watches as passive observers.
+
+Font evidence distinguishes `suppliedFontFileSha256` (the provided file bytes) from
+observed font families. `fontByteSource=unverified-installed-source` means the
+projection does not prove which installed file supplied those bytes. The snake
+projection reports each node's cached measurement provider and aggregate
+`providerVersions`; TEXTRENDERER may still select Skia for non-raster fonts.
+Malformed execute/run/injectInput parameters are rejected before applying their
+input trace. Valid requests retain normal script side effects, including errors.

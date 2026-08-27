@@ -70,3 +70,64 @@ smoke。全量仅一次，修复后按 `--case` 定向复验；具体本次结�
 不以无窗口测试宣称 WinForms/Skia 实际画面、GPU、剪贴板、真实鼠标键盘、原生定时器
 超时或音频通过。固定 fixture 不访问用户游戏。没有修改 RustyEra 组件，因此本次
 不运行 Rust/C# 兼容性差分，也不把自改版结果解释为 Rust 实现能力。
+
+### 2026-08-27：批次 0 显式授权的布局观察与输入 trace
+
+用户明确授权扩展两个 oracle 的 headless 观察/输入入口；正常游戏语义保持不变。语义基准 SHA 不变，wrapper revision 另记。
+
+| 文件 | 目的与隔离 |
+| --- | --- |
+| `Emuera/Runtime/Utils/HeadlessInput.cs` | 新增 opt-in headless active、设备原语及事件泵接入；所有操作检查 HeadlessMode，正常游戏不调用。 |
+| `Emuera/Runtime/Utils/WinInput.cs` | 新增 gated 非消费 latch 观察；按键和 latch 算法不变。 |
+| `Emuera/Runtime/Script/Statements/Function/Creator.Headless.cs` | 仅 headless 清理/只读复制静态 keytoggle，防止多个 fixture 相互污染；未改 GETKEY evaluator。 |
+| `Emuera/UI/Game/EmueraConsole.cs` | IsActive 只在显式 headless 输入模式读注入 active；AWAIT 原事件泵位置接 headless 队列，正常路径保持原调用。 ClearLatches 顺序不变。 |
+| `Emuera/UI/Game/EmueraConsole.Headless.cs` | 增加 pending display 的只读观察，不隐式 flush。 |
+| `Emuera/UI/Game/ConsoleStyledString.cs` | 仅 headless 返回已有字体 fallback runs 的只读副本，不进行字体选择或测量。 |
+| `emuera-reference-cli/HeadlessInputTrace.cs` | 完整校验后投递设备事件；beforeRun 与每次 AWAIT 泵分离，非消费观察和 reset。 |
+| `emuera-reference-cli/PresentationProjection.cs` | 投影已有布局对象；验证字体 hash/family，不重测量、重排版或创建窗口。 |
+| `emuera-reference-cli/ReferenceHost.cs` | 接入可选布局观察、输入 trace、纯 observe 和 reset；保留旧 output。 |
+| `emuera-reference-cli/OracleService.cs` | schema 2 上 additive capability 版本和操作；observe 不清空诊断队列。 |
+| `emuera-reference-cli/README.md` | 记录 schema、注入时点、字体门禁和正常路径隔离边界。 |
+
+固定自有 fixture 和 Python driver 位于蛇版专用 core worktree 的 `tools/runtime-tester/fixture-snake-compatibility/` 与 `tools/snake-compatibility-oracle/`；本参考仓库不在运行时修改游戏。
+
+验证状态：代码已编写，尚未运行 build/check/test；等待批次 0 统一唯一重构审查与静态门禁。不得将本条记录视为正常工程编译、oracle smoke、布局/按键差分或 Rust 兼容通过。首次全量、修复后定向复验及最终 wrapper commit 由批次实施记录另行登记。
+# Batch 0 follow-up: isolated smoke build inputs (2026-08-27)
+
+| File | Headless-only change | Normal behavior |
+|---|---|---|
+| `emuera-reference-cli/tests/test-macos-wine.sh` | Optional `EMUERA_SNAKE_PUBLISH_DIR` and `EMUERA_SNAKE_ARTIFACTS_PATH` isolate publish/intermediate output; `EMUERA_SNAKE_SKIP_BUILD=1` requires an existing CLI from the completed static build gate. Caller still supplies its isolated `WINEPREFIX`. | Unset variables preserve the prior restore/publish/default paths; no engine semantics change. |
+
+The edit has not been executed, checked, or built. It joins the single batch review and subsequent test budget.
+
+### 批次 0 唯一审查落实（尚待验证）
+
+- `HeadlessInputTrace.cs`：把完整 JSON 解析与输入状态应用拆开；`ReferenceHost.cs` 在
+  execute/run/injectInput 的参数、watch、uiInputs、observePresentation 全部有效后才应用
+  trace。有效请求执行后的脚本错误仍保留真实状态；不回滚正常引擎行为。
+- `PresentationProjection.cs`：明确 suppliedFontFileSha256 仅验证传入文件，不证明系统实际
+  选择了该字节来源；family/fallback 是另列的实际观察，fontByteSource 保持未验证。
+- `README.md`：补充上述证据边界。唯一独立审查已完成；尚无批次 0 build/test 通过结果。
+- `Emuera/UI/Game/ConsoleStyledString.cs`：只读报告 SetWidth 实际缓存分支所用 provider、
+  version、family、size；TEXTRENDERER 只有 GDI/raster 缓存存在时报告 GDI，否则报告 Skia。
+  不调用测量、字体选择或重排版；入口检查 HeadlessMode。
+- `Emuera/Runtime/Utils/HeadlessInput.cs`：删除未消费的 states 数组；保留实际 WinInput
+  press/release/latch 行为，不实现新的 toggle 语义。
+- `tests/smoke.py`：独立 5 秒完整状态看门狗覆盖跨 case 请求，并按新增 observe/injectInput
+  操作将 capability 数量更新为 14；原 12 项断言保持。
+- `tests/test_supervision.py`：补充相同状态、持续变化和阻塞进程监督回归。
+
+### 批次 0 当前验收更新（2026-08-27）
+
+本节更新以上“尚待验证”的历史状态：唯一独立审查及全部要求已在首条测试前落实。
+正常 Emuera 工程和独立 reference CLI 构建/发布通过，正常工程 917 个既有警告、0 错误。
+本批首次完整 macOS/Wine smoke 通过；未再次执行完整 smoke。实际 primitive input 的
+活动状态、AWAIT 事件泵、无消费观察、无效请求原子拒绝与 reset 隔离已完成定向观察。
+PRINTC 记录现有布局/实际 provider、family/fallback；传入字体 hash 不证明已安装字节来源，
+仍报告 `unverified-installed-source`，不宣称 GUI/GPU 或跨客户端像素等价。
+
+用户取消本次测试总时限；仍保持静态先行、单次全量和五秒完整状态监督。使用专用
+worktree 组内 Wine prefix、已有工具和隔离游戏副本，不下载 Chromium。
+具体命令、首次结果与定向修复、Rust/各 oracle 的逐例比较及最终 wrapper SHA 统一记录于
+专用 core 的 `docs/snake-compatibility/SNAKE_EMUERA_IMPLEMENTATION_LOG.md`。
+语义基准未更新；分项 wrapper 提交仅整理已验证的集成源码，未改正常引擎算法。

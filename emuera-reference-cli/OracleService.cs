@@ -15,6 +15,12 @@ internal sealed class OracleService : IDisposable
     internal async Task<JsonObject> Handle(JsonObject request)
     {
         var id = request["id"];
+        // A read-only observer must not drain the diagnostic queue either.
+        if (request["op"] is JsonValue operation && operation.TryGetValue<string>(out var operationName) && operationName == "observe")
+        {
+            try { return Response.Success(id, host.Observe(request), new JsonArray()); }
+            catch (Exception exception) { return Response.Error(id, exception, new JsonArray()); }
+        }
         // Prevent a previous failed request from leaking warnings into this one.
         ParserMediator.HeadlessDrainWarnings();
         try
@@ -35,6 +41,8 @@ internal sealed class OracleService : IDisposable
                 "eval" => ParseExpression(request, true),
                 "execute" => host.Execute(request),
                 "run" => host.Run(request),
+                "observe" => host.Observe(request),
+                "injectInput" => host.InjectInput(request),
                 _ => throw new ArgumentException($"unknown operation '{op}'"),
             };
             return Response.Success(id, result, JsonProjection.Diagnostics(ParserMediator.HeadlessDrainWarnings()));
@@ -49,12 +57,13 @@ internal sealed class OracleService : IDisposable
     {
         ["protocol"] = "ndjson",
         ["platform"] = "windows",
-        ["operations"] = new JsonArray("capabilities", "reset", "lex", "parseExpression", "parseLine", "analyzeLine", "analyzeProject", "load", "loadSave", "eval", "execute", "run"),
+        ["observationVersions"] = new JsonObject { ["presentationSnapshot"] = 1, ["headlessInputTrace"] = 1 },
+        ["operations"] = new JsonArray("capabilities", "reset", "lex", "parseExpression", "parseLine", "analyzeLine", "analyzeProject", "load", "loadSave", "eval", "execute", "run", "observe", "injectInput"),
         ["emueraVersion"] = AssemblyData.EmueraVersionText,
         ["implementation"] = "emuera_lazyloading_selfmodified_version",
         ["features"] = new JsonArray("floatValues", "noFocusInput", "isolatedProjectConfig"),
         ["nonFiniteFloatEncoding"] = "string",
-        ["requiresLoad"] = new JsonArray("parseLine", "analyzeLine", "analyzeProject", "eval", "execute", "run", "loadSave"),
+        ["requiresLoad"] = new JsonArray("parseLine", "analyzeLine", "analyzeProject", "eval", "execute", "run", "loadSave", "observe", "injectInput"),
     };
 
     JsonNode Reset()

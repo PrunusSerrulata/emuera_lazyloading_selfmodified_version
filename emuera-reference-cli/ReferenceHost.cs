@@ -16,6 +16,8 @@ internal sealed class ReferenceHost : IDisposable
     EmueraConsole? console;
     string? gameDirectory;
     long? randomSeed;
+    readonly HeadlessInputTrace inputTrace = new();
+    PresentationFont? presentationFont;
 
     internal EmueraConsole? ConsoleOrNull => console;
     internal bool IsLoaded => console?.HeadlessProcess is not null;
@@ -23,7 +25,9 @@ internal sealed class ReferenceHost : IDisposable
     internal async Task<JsonNode> Load(JsonObject request)
     {
         var limits = ReadLimits(request);
+        var requestedFont = PresentationFont.Read(request);
         Reset();
+        presentationFont = requestedFont;
         var directory = Path.GetFullPath(OracleService.RequiredString(request, "gameDir"));
         if (!Directory.Exists(Path.Combine(directory, "csv")) || !Directory.Exists(Path.Combine(directory, "erb")))
             throw new DirectoryNotFoundException("gameDir must contain csv and erb directories");
@@ -46,7 +50,7 @@ internal sealed class ReferenceHost : IDisposable
         console.noOutputLog = true;
         await console.Initialize();
         gameDirectory = directory;
-        return Snapshot(ReadWatches(request));
+        return Snapshot(ReadWatches(request), request["observePresentation"]?.GetValue<bool>() == true);
     }
 
     internal JsonNode LoadSave(JsonObject request)
@@ -59,15 +63,20 @@ internal sealed class ReferenceHost : IDisposable
         console.HeadlessClearDisplay();
         // Restored system state must run directly, not feed the previous title's input request.
         console.HeadlessResume(null!);
-        return Snapshot(ReadWatches(request));
+        return Snapshot(ReadWatches(request), request["observePresentation"]?.GetValue<bool>() == true);
     }
 
     internal JsonNode Execute(JsonObject request)
     {
         RequireLoaded();
+        var statement = OracleService.RequiredString(request, "statement");
+        var watches = ReadWatches(request).ToArray();
+        var observePresentation = request["observePresentation"]?.GetValue<bool>() == true;
+        var trace = HeadlessInputTrace.Read(request);
         ConfigureLimits(request);
-        console!.HeadlessProcess.HeadlessExecuteLine(OracleService.RequiredString(request, "statement"));
-        return Snapshot(ReadWatches(request));
+        inputTrace.Apply(trace);
+        console!.HeadlessProcess.HeadlessExecuteLine(statement);
+        return Snapshot(watches, observePresentation);
     }
 
     internal JsonNode AnalyzeProject()
@@ -79,30 +88,35 @@ internal sealed class ReferenceHost : IDisposable
     internal JsonNode Run(JsonObject request)
     {
         RequireLoaded();
+        var entry = request["entry"]?.GetValue<string>();
+        var arguments = request["arguments"]?.GetValue<string>() ?? string.Empty;
+        var inputs = request["inputs"]?.AsArray().Select(input => input?.ToString() ?? string.Empty).ToArray() ?? [];
+        var uiInputs = ReadUiInputs(request);
+        var watches = ReadWatches(request).ToArray();
+        var observePresentation = request["observePresentation"]?.GetValue<bool>() == true;
+        var trace = HeadlessInputTrace.Read(request);
         ConfigureLimits(request);
-        if (request["entry"] is JsonValue entryNode)
+        inputTrace.Apply(trace);
+        if (entry is not null)
         {
-            var entry = entryNode.GetValue<string>();
-            var arguments = request["arguments"]?.GetValue<string>();
-            console!.HeadlessProcess.HeadlessPrepareCall(entry, arguments ?? string.Empty);
+            console!.HeadlessProcess.HeadlessPrepareCall(entry, arguments);
             console!.HeadlessResume(null!);
         }
-        if (request["inputs"] is JsonArray inputs)
+        if (inputs.Length > 0)
         {
             foreach (var input in inputs)
             {
                 if (!console!.IsWaitInputState || console.HeadlessProcess.HeadlessRunCompleted) break;
-                console.HeadlessResume(input?.ToString() ?? string.Empty);
+                console.HeadlessResume(input);
             }
         }
-        if (request["uiInputs"] is JsonArray uiInputs)
+        if (uiInputs.Length > 0)
         {
             foreach (var input in uiInputs)
             {
                 if (!console!.IsWaitInputState || console.HeadlessProcess.HeadlessRunCompleted) break;
-                var item = input!.AsObject();
-                var text = OracleService.RequiredString(item, "text");
-                var changedByMouse = item["changedByMouse"]?.GetValue<bool>() ?? false;
+                var text = input.Text;
+                var changedByMouse = input.ChangedByMouse;
                 // PressEnterKey also touches WinForms-only macro and refresh state. Reproduce
                 // its authoritative OneInput normalization here, then enter the unchanged
                 // backend path used by other headless inputs.
@@ -112,7 +126,35 @@ internal sealed class ReferenceHost : IDisposable
                 console.HeadlessResume(text);
             }
         }
-        return Snapshot(ReadWatches(request));
+        return Snapshot(watches, observePresentation);
+    }
+
+    static (string Text, bool ChangedByMouse)[] ReadUiInputs(JsonObject request)
+    {
+        if (request["uiInputs"] is null) return [];
+        return request["uiInputs"]!.AsArray().Select(value =>
+        {
+            var item = value?.AsObject() ?? throw new ArgumentException("ui input must be an object");
+            return (OracleService.RequiredString(item, "text"),
+                item["changedByMouse"]?.GetValue<bool>() ?? false);
+        }).ToArray();
+    }
+
+    internal JsonNode Observe(JsonObject request)
+    {
+        RequireLoaded();
+        // Observers must not evaluate watches: GETKEYTRIGGERED and RAND have side effects.
+        return Snapshot([], request["observePresentation"]?.GetValue<bool>() ?? true);
+    }
+
+    internal JsonNode InjectInput(JsonObject request)
+    {
+        RequireLoaded();
+        if (request["inputTrace"] is null) throw new ArgumentException("inputTrace is required");
+        var observePresentation = request["observePresentation"]?.GetValue<bool>() == true;
+        var trace = HeadlessInputTrace.Read(request);
+        inputTrace.Apply(trace);
+        return Snapshot([], observePresentation);
     }
 
     internal void RequireLoaded()
@@ -137,7 +179,7 @@ internal sealed class ReferenceHost : IDisposable
         return (instructions, TimeSpan.FromMilliseconds(timeoutMs));
     }
 
-    JsonNode Snapshot(IEnumerable<string> watches)
+    JsonNode Snapshot(IEnumerable<string> watches, bool observePresentation = false)
     {
         var output = new JsonArray();
         if (console is not null)
@@ -162,6 +204,8 @@ internal sealed class ReferenceHost : IDisposable
             catch (Exception error) { watchValues[expression] = new JsonObject { ["error"] = error.Message }; }
         }
         result["watches"] = watchValues;
+        if (observePresentation) result["presentation"] = PresentationProjection.Observe(console!, presentationFont);
+        if (HeadlessInput.Enabled) result["primitiveInput"] = inputTrace.Observe();
         return result;
     }
 
@@ -189,10 +233,12 @@ internal sealed class ReferenceHost : IDisposable
     }
 
     static IEnumerable<string> ReadWatches(JsonObject request) =>
-        request["watch"] is JsonArray array ? array.Select(item => item!.GetValue<string>()) : [];
+        request["watch"] is null ? [] : request["watch"]!.AsArray().Select(item => item!.GetValue<string>());
 
     internal void Reset()
     {
+        inputTrace.Reset();
+        presentationFont = null;
         console?.Dispose();
         console = null;
         gameDirectory = null;
