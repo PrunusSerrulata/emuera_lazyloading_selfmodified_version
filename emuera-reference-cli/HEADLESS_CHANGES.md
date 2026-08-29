@@ -142,3 +142,13 @@ worktree 组内 Wine prefix、已有工具和隔离游戏副本，不下载 Chro
 
 该接线只修复 reference CLI 先前跳过设置且随后解引用未创建 Timer 的问题，不改变 parser、
 指令/方法执行或正常游戏计时器语义。代码尚未进入批次 2E 的唯一重构审查及静态/动态门禁。
+
+### 子批次 3.0：headless 项目工作目录
+
+| 文件 | 目的与隔离 |
+| --- | --- |
+| `Emuera/Program.Headless.cs` | `SetDirPaths` 规范化 CLI 明确选择的项目目录后，仅在 `ConfigureHeadless` 中令 `WorkingDir = ExeDir`，使 `SqlManager.ImportMapXml` 等真实文件型引擎入口按所载项目解析相对路径。普通 `Program.Main` 仍从 `AssemblyData.WorkingDir` 取得正常工作目录，不调用本 hook；SQL parser、provider、事务及类型转换语义均未改动。 |
+
+该修复源于蛇版 SQL oracle 对真实 `SQL_IMPORT_MAP_XML` 的首次完整捕获：此前 headless
+路径从未初始化 `WorkingDir`，导致 `Path.Combine` 在进入文件存在性判断前抛出空参数错误。
+修复不为 fixture 注入专用 SQL 结果，也不改变 GUI/backend 的正常启动链路。

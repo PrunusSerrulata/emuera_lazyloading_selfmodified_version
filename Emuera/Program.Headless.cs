@@ -19,5 +19,9 @@ static partial class Program
 		AnalysisMode = false;
 		AnalysisFiles = [];
 		SetDirPaths(baseDirectory);
+		// Program.Main normally receives this from AssemblyData.  The headless
+		// oracle has no AssemblyData instance, so its selected project root is
+		// also the working directory used by real file-backed engine features.
+		WorkingDir = ExeDir;
 	}
 }
