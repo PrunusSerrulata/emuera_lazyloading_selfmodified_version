@@ -131,3 +131,14 @@ worktree 组内 Wine prefix、已有工具和隔离游戏副本，不下载 Chro
 具体命令、首次结果与定向修复、Rust/各 oracle 的逐例比较及最终 wrapper SHA 统一记录于
 专用 core 的 `docs/snake-compatibility/SNAKE_EMUERA_IMPLEMENTATION_LOG.md`。
 语义基准未更新；分项 wrapper 提交仅整理已验证的集成源码，未改正常引擎算法。
+
+### 批次 2E：无窗口动画计时器状态（尚待验证）
+
+| 文件 | 目的与隔离 |
+| --- | --- |
+| `Emuera/UI/Game/EmueraConsole.Headless.cs` | 增加仅由显式 headless 实例持有的逻辑动画计时器值；不创建 WinForms Timer。 |
+| `Emuera/UI/Game/EmueraConsole.cs` | headless 的设置与查询复用正常路径的停用和最小 10ms 规范化规则；非 headless 继续读写原 `redrawTimer`。 |
+| `emuera-reference-cli/PresentationProjection.cs` | 只读投影逻辑动画计时器、全局文本背景和已有行的 styled-text 资格，供逐例 oracle 比较；不绘制或改写展示状态。 |
+
+该接线只修复 reference CLI 先前跳过设置且随后解引用未创建 Timer 的问题，不改变 parser、
+指令/方法执行或正常游戏计时器语义。代码尚未进入批次 2E 的唯一重构审查及静态/动态门禁。

@@ -31,6 +31,7 @@ internal static class PresentationProjection
         foreach (var line in console.DisplayLineList)
         {
             var buttons = new JsonArray();
+            var textBackgroundEligible = false;
             foreach (var button in line.Buttons)
             {
                 var nodes = new JsonArray();
@@ -45,6 +46,7 @@ internal static class PresentationProjection
                     };
                     if (node is ConsoleStyledString text)
                     {
+                        textBackgroundEligible |= !string.IsNullOrWhiteSpace(text.Text);
                         var measured = text.HeadlessReadFontProvider();
                         providers[measured.Provider] = measured.Version;
                         item["font"] = Font(text, expected);
@@ -64,13 +66,22 @@ internal static class PresentationProjection
                 ["lineNo"] = line.LineNo, ["logical"] = line.IsLogicalLine,
                 ["temporary"] = line.IsTemporary, ["lineEnd"] = line.IsLineEnd,
                 ["alignment"] = line.Align.ToString(), ["buttons"] = buttons,
+                ["textBackgroundEligible"] = textBackgroundEligible,
             });
         }
         var providerVersions = new JsonObject();
         foreach (var provider in providers) providerVersions[provider.Key] = provider.Value;
+        var textBackground = console.TextBackgroundColor is { } color
+            ? new JsonObject
+            {
+                ["red"] = color.R, ["green"] = color.G,
+                ["blue"] = color.B, ["alpha"] = color.A,
+            }
+            : null;
         return new JsonObject
         {
             ["version"] = 1, ["pending"] = console.HeadlessHasPendingDisplay,
+            ["animationTimer"] = console.AnimeTimer, ["textBackground"] = textBackground,
             ["provider"] = providers.Count == 1 ? providers.Keys.First() : providers.Count == 0 ? "none-observed" : "mixed",
             ["providerVersions"] = providerVersions,
             ["dotnetVersion"] = Environment.Version.ToString(),

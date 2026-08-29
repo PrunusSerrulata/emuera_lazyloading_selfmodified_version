@@ -10,6 +10,7 @@ namespace MinorShift.Emuera.GameView;
 internal sealed partial class EmueraConsole
 {
 	string headlessWindowTitle = string.Empty;
+	int headlessAnimeTimer;
 
 	/// <summary>
 	/// Creates the normal script/runtime console without constructing WinForms

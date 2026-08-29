@@ -945,7 +945,9 @@ internal sealed partial class EmueraConsole : IDisposable
 	/// </summary>
 	Timer redrawTimer;
 
-	public int AnimeTimer => redrawTimer.Enabled ? (int)redrawTimer.Interval : 0;
+	public int AnimeTimer => Program.HeadlessMode
+		? headlessAnimeTimer
+		: redrawTimer.Enabled ? (int)redrawTimer.Interval : 0;
 
 	private void tickRedrawTimer(object sender, EventArgs e)
 	{
@@ -965,7 +967,10 @@ internal sealed partial class EmueraConsole : IDisposable
 	public void setRedrawTimer(int tickcount)
 	{
 		if (Program.HeadlessMode)
+		{
+			headlessAnimeTimer = tickcount <= 0 ? 0 : Math.Max(tickcount, 10);
 			return;
+		}
 		if (tickcount <= 0)
 		{
 			redrawTimer.Enabled = false;
