@@ -152,3 +152,13 @@ worktree 组内 Wine prefix、已有工具和隔离游戏副本，不下载 Chro
 该修复源于蛇版 SQL oracle 对真实 `SQL_IMPORT_MAP_XML` 的首次完整捕获：此前 headless
 路径从未初始化 `WorkingDir`，导致 `Path.Combine` 在进入文件存在性判断前抛出空参数错误。
 修复不为 fixture 注入专用 SQL 结果，也不改变 GUI/backend 的正常启动链路。
+
+### macOS 冒烟脚本执行权限（2026-09-02）
+
+| 文件 | 目的与隔离 |
+| --- | --- |
+| `emuera-reference-cli/tests/test-macos-wine.sh` | 恢复 Git 可执行位（`100644 → 100755`），使既有 macOS/Wine 冒烟脚本可直接启动；脚本内容、reference CLI、引擎语义和正常游戏链路均未修改。 |
+
+验证：`bash -n emuera-reference-cli/tests/test-macos-wine.sh`、
+`test -x emuera-reference-cli/tests/test-macos-wine.sh` 与 `git diff --check` 通过。由于仅文件模式
+变化且脚本内容未改，未重复运行 oracle smoke。
