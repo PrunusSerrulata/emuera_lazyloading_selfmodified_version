@@ -24,17 +24,22 @@ export MVK_CONFIG_LOG_LEVEL=0
 
 if [[ "$SKIP_BUILD" == 0 ]]; then
     command -v dotnet >/dev/null || { echo "missing command: dotnet" >&2; exit 127; }
-    artifacts_arguments=()
+    restore_arguments=(
+        restore "$PROJECT" -p:Configuration=Debug-NAudio -p:Platform=x64
+        -p:RuntimeIdentifiers=win-x64 -r win-x64 -p:SelfContained=true -p:NuGetAudit=false
+    )
+    publish_arguments=(
+        publish "$PROJECT" -c Debug-NAudio -p:Platform=x64 -p:RuntimeIdentifiers=win-x64
+        -r win-x64 --self-contained true -p:PublishSingleFile=false --no-restore
+        -o "$PUBLISH_DIR" --nologo
+    )
     if [[ -n "$ARTIFACTS_PATH" ]]; then
-        artifacts_arguments=(--artifacts-path "$ARTIFACTS_PATH")
+        restore_arguments+=(--artifacts-path "$ARTIFACTS_PATH")
+        publish_arguments+=(--artifacts-path "$ARTIFACTS_PATH")
     fi
     # Restore separately so a network failure never starts the dynamic smoke suite.
-    dotnet restore "$PROJECT" -p:Configuration=Debug-NAudio -p:Platform=x64 \
-        -p:RuntimeIdentifiers=win-x64 -r win-x64 -p:SelfContained=true -p:NuGetAudit=false \
-        "${artifacts_arguments[@]}"
-    dotnet publish "$PROJECT" -c Debug-NAudio -p:Platform=x64 -p:RuntimeIdentifiers=win-x64 \
-        -r win-x64 --self-contained true -p:PublishSingleFile=false --no-restore \
-        -o "$PUBLISH_DIR" --nologo "${artifacts_arguments[@]}"
+    dotnet "${restore_arguments[@]}"
+    dotnet "${publish_arguments[@]}"
 fi
 if [[ ! -f "$PUBLISH_DIR/Emuera.ReferenceCli.exe" ]]; then
     echo "missing prebuilt CLI: $PUBLISH_DIR/Emuera.ReferenceCli.exe" >&2

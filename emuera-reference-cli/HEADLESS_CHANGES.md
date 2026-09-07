@@ -162,3 +162,31 @@ worktree 组内 Wine prefix、已有工具和隔离游戏副本，不下载 Chro
 验证：`bash -n emuera-reference-cli/tests/test-macos-wine.sh`、
 `test -x emuera-reference-cli/tests/test-macos-wine.sh` 与 `git diff --check` 通过。由于仅文件模式
 变化且脚本内容未改，未重复运行 oracle smoke。
+
+### macOS Bash 空构建参数修复（2026-09-07）
+
+问题与最小复现：在 macOS 自带 Bash 3.2 中，以默认空
+`EMUERA_SNAKE_ARTIFACTS_PATH` 运行 `emuera-reference-cli/tests/test-macos-wine.sh`，
+`set -u` 会在 restore 阶段展开空 `artifacts_arguments` 数组时报告
+`unbound variable`，reference CLI 尚未构建或启动。
+
+参考仓库修改：
+
+- `emuera-reference-cli/tests/test-macos-wine.sh`：restore 与 publish 分别使用始终包含命令和
+  固定参数的非空数组；只在 artifacts path 非空时追加 `--artifacts-path`。restore 先行、
+  publish 的 `--no-restore`、输出目录、错误边界及后续 smoke 参数均保持不变。
+- `emuera-reference-cli/tests/test_supervision.py`：加入隔离的入口回归，以 stubbed
+  dotnet/Python/Git/Wine 工具、预建占位 EXE 和独立 prefix 强制执行 `SKIP_BUILD=0` 的空
+  artifacts 分支；不会启动真实 Wine、.NET 或游戏，也不读取当前工作树状态。
+
+两项修改都只作用于测试入口，不修改 `Emuera/`、reference CLI 协议或正常游戏链路。
+
+验证：`bash -n`、Python py_compile、`test_supervision.py` 3/3 和 diff check 均通过；正常
+`Emuera/Emuera.csproj` 的 Windows x64 `Debug-NAudio` 构建通过（922 warnings，0 errors），
+reference CLI 构建通过（16 warnings，0 errors）。本批唯一完整 macOS/Wine smoke exit 0：
+protocol 10、csv 10、runtime 7、inputs 7、reload 11、save 5、limits 9、presentation 7。
+另以五秒 supervisor 保存同输入 `capabilities` 与 `parseExpression("1 + 2 * 3")` 响应，
+均为 `schemaVersion=2`、
+`referenceCommit=fc4fb21416768c17256d0e82f997e5f99c9bba91`；表达式为
+`System.Int64`，AST 为 `PlusIntInt(1, MultIntInt(2, 3))`，与 Rust 和原版结果一致。
+未在 Windows 执行 PowerShell smoke。

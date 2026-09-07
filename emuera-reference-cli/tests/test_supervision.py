@@ -1,7 +1,20 @@
 """Pure supervision comparisons; no CLI, Wine, or game is launched."""
 
+import os
+from pathlib import Path
+import subprocess
+import tempfile
 import unittest
 from smoke import same_observation
+
+
+TESTS = Path(__file__).resolve().parent
+
+
+def write_stub(directory, name):
+    executable = directory / name
+    executable.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+    executable.chmod(0o755)
 
 
 class SmokeObservationTests(unittest.TestCase):
@@ -19,6 +32,39 @@ class SmokeObservationTests(unittest.TestCase):
         self.assertTrue(same_observation(state, dict(state)))
         changed = {**state, "lastFullResponse": {"result": {"output": ["b"]}}}
         self.assertFalse(same_observation(state, changed))
+
+    def test_macos_entrypoint_accepts_an_empty_artifacts_path(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            binaries = root / "bin"
+            binaries.mkdir()
+            for name in ("dotnet", "git", "python3", "wine", "wineboot", "winepath"):
+                write_stub(binaries, name)
+
+            publish = root / "publish"
+            publish.mkdir()
+            (publish / "Emuera.ReferenceCli.exe").touch()
+            prefix = root / "prefix"
+            prefix.mkdir()
+            (prefix / "system.reg").touch()
+
+            environment = os.environ.copy()
+            environment.update(
+                PATH=f"{binaries}{os.pathsep}{environment['PATH']}",
+                EMUERA_SNAKE_ARTIFACTS_PATH="",
+                EMUERA_SNAKE_PUBLISH_DIR=str(publish),
+                EMUERA_SNAKE_SKIP_BUILD="0",
+                WINEPREFIX=str(prefix),
+            )
+            result = subprocess.run(
+                ["/bin/bash", str(TESTS / "test-macos-wine.sh"), "--case", "protocol"],
+                cwd=TESTS.parent.parent,
+                env=environment,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":
