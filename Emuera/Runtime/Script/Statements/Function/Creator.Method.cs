@@ -173,6 +173,63 @@ internal static partial class FunctionMethodCreator
 			return (GlobalStatic.IdentifierDictionary.GetMacro(arguments[0].GetStrValue(exm)) != null) ? 1 : 0;
 		}
 	}
+	#region 尊尼获加_ERD_PRESET
+	/// <summary>
+	/// 抽象基类:EXIST_IN_CSV / EXIST_IN_ERD 共用逻辑,只差调用 ConstantData 的不同方法。
+	/// 用法(第一个参数是预设变量,不加引号):
+	///   EXIST_IN_CSV(ITEM, 6)        → 1 if names[item][6] 来自 CSV, else 0
+	///   EXIST_IN_CSV(ITEM, "万能药")  → 名字形式,自动解析名字→索引(名字需加引号)
+	/// </summary>
+	private abstract class PresetNameSourceMethod : FunctionMethod
+	{
+		public PresetNameSourceMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArrayEx = [
+					// 形式1:EXIST_IN_CSV(ITEM, 6) 数字索引
+					new ArgTypeList{ ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.Int } },
+					// 形式2:EXIST_IN_CSV(ITEM, "万能药") 名字(需加引号)
+					new ArgTypeList{ ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.String } },
+				];
+			CanRestructure = true;
+		}
+
+		protected abstract bool Check(ConstantData constant, VariableCode code, int index);
+
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			VariableTerm vToken = (VariableTerm)arguments[0];
+			VariableCode varCode = vToken.Identifier.Code;
+			int idx;
+			if (arguments[1].IsString)
+			{
+				// 名字形式:先按名字查字典,找不到再尝试当作数字索引(如 "6")
+				string name = arguments[1].GetStrValue(exm);
+				idx = exm.VEvaluator.Constant.GetPresetIndexByName(varCode, name);
+				if (idx < 0 && int.TryParse(name, out int numeric))
+					idx = numeric;
+				if (idx < 0)
+					return 0; // 该名字不在任何 CSV/ERD 中
+			}
+			else
+			{
+				// 数字索引形式
+				idx = (int)arguments[1].GetIntValue(exm);
+			}
+			return Check(exm.VEvaluator.Constant, varCode, idx) ? 1 : 0;
+		}
+	}
+	private sealed class ExistInCsvMethod : PresetNameSourceMethod
+	{
+		protected override bool Check(ConstantData constant, VariableCode code, int index)
+			=> constant.ExistInCsv(code, index);
+	}
+	private sealed class ExistInErdMethod : PresetNameSourceMethod
+	{
+		protected override bool Check(ConstantData constant, VariableCode code, int index)
+			=> constant.ExistInErd(code, index);
+	}
+	#endregion
 	private sealed class EnumNameMethod : FunctionMethod
 	{
 		public enum EType

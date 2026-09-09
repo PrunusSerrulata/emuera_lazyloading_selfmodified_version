@@ -438,6 +438,8 @@ internal sealed partial class Lang
 		[Managed] public static TranslatableString TooManyCdflagElements { get; } = new TranslatableString("CDFLAGの要素数が多すぎます（CDFLAGNAME1とCDFLAGNAME2の要素数の積が100万を超えています）");
 		[Managed] public static TranslatableString DuplicateErdKey { get; } = new TranslatableString("変数\"{0}\"の置き換え名前\"{1}\"の定義が重複しています。（ファイル1 - {2}）（ファイル2 - {3}）");
 		[Managed] public static TranslatableString DuplicateVariableDefine { get; } = new TranslatableString("変数{0}の定義が重複しています。");
+		[Managed] public static TranslatableString PresetErdConflictWithCsv { get; } = new TranslatableString("ERDで拡張された预设变量\"{0}\"の第{1}个元素的名称与CSV中已有的名称不同(CSV=\"{2}\", ERD=\"{3}\", 文件={4});以CSV为准");
+		[Managed] public static TranslatableString PresetErdPriceConflictWithCsv { get; } = new TranslatableString("ERDで拡張された预设变量\"{0}\"の第{1}个元素的价格与CSV中已有的价格不同(CSV={2}, ERD={3}, 文件={4});以CSV为准");
 		[Managed] public static TranslatableString NotDefinedErdKey { get; } = new TranslatableString("変数\"{0}\"には\"{1}\"の定義がありません");
 		[Managed] public static TranslatableString KeywordsCannotBeEmpty { get; } = new TranslatableString("キーワードを空には出来ません");
 		[Managed] public static TranslatableString InvalidProhibitedVar { get; } = new TranslatableString("CanForbidでない変数\"{0}\"にIsForbidがついている");

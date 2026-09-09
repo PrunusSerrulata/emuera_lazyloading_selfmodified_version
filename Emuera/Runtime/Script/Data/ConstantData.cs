@@ -130,12 +130,184 @@ internal sealed class ConstantData
 	private readonly Dictionary<string, int>[] aliases = new Dictionary<string, int>[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__ + 1];
 	private readonly Dictionary<string, Dictionary<string, int>> erdNameToIntDics = [];
 	#endregion
+	#region 尊尼获加_ERD_PRESET
+	/// <summary>
+	/// 预设变量每个索引的数据来源标记。-1: 空; 0: 来自 CSV; 1: 来自 ERD。
+	/// ERD 合并 CSV 时使用:同一索引下 CSV 优先(标记为 0),CSV 为空时 ERD 填入(标记为 1)。
+	/// </summary>
+	private readonly sbyte[][] nameSource = new sbyte[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__ + 1][];
+	/// <summary>
+	/// ItemPrice 数组每个索引的数据来源标记(-1: 未设; 0: CSV; 1: ERD)。
+	/// long 默认 0 没法区分"未设置"与"显式为 0",所以额外追踪。
+	/// </summary>
+	public sbyte[] PriceSource;
+	#endregion
 	private readonly Dictionary<string, int>[] nameToIntDics = new Dictionary<string, int>[(int)VariableCode.__COUNT_CSV_STRING_ARRAY_1D__];
 	private readonly Dictionary<string, int> relationDic = [];
 	public string[] GetCsvNameList(VariableCode code)
 	{
 		return names[(int)(code & VariableCode.__LOWERCASE__)];
 	}
+
+	#region 尊尼获加_ERD_PRESET
+	/// <summary>
+	/// 把传入的 VariableCode 映射到对应的 nameSource[] 下标。
+	/// 原因:ITEM(0x02,整数,带 __INTEGER__)和 ITEMNAME(0x06,字符串,带 __STRING__)是不同 VariableCode,
+	/// 但 & __LOWERCASE__ 屏蔽了高位,导致整数变量映射到自己(例如 ABL & __LOWERCASE__ = 0x02 与 ITEMNAME 冲突)。
+	/// 所以:字符串变量用 __STRING__ 标志判断,整数变量用完整 code switch。
+	/// </summary>
+	private int ResolveNameArrayIndex(VariableCode code)
+	{
+		// 字符串变量(ITEMNAME/TALENTNAME/ABLNAME/...)直接用低 16 位
+		if ((code & VariableCode.__STRING__) != 0)
+			return (int)(code & VariableCode.__LOWERCASE__);
+		// 整数变量(ITEM/TALENT/ABL/...)按完整 code 映射到对应名字槽
+		if (code == VariableCode.ITEM) return itemIndex;
+		if (code == VariableCode.TALENT) return talentIndex;
+		if (code == VariableCode.ABL) return ablIndex;
+		if (code == VariableCode.EXP) return expIndex;
+		if (code == VariableCode.PALAM) return paramIndex;
+		if (code == VariableCode.MARK) return markIndex;
+		if (code == VariableCode.BASE) return baseIndex;
+		if (code == VariableCode.SOURCE) return sourceIndex;
+		if (code == VariableCode.EX) return exIndex;
+		if (code == VariableCode.EQUIP) return equipIndex;
+		if (code == VariableCode.TEQUIP) return tequipIndex;
+		if (code == VariableCode.FLAG) return flagIndex;
+		if (code == VariableCode.TFLAG) return tflagIndex;
+		if (code == VariableCode.CFLAG) return cflagIndex;
+		if (code == VariableCode.TCVAR) return tcvarIndex;
+		if (code == VariableCode.STAIN) return stainIndex;
+		if (code == VariableCode.GLOBAL) return globalIndex;
+		if (code == VariableCode.GLOBALS) return globalsIndex;
+		if (code == VariableCode.DAY) return dayIndex;
+		if (code == VariableCode.TIME) return timeIndex;
+		if (code == VariableCode.MONEY) return moneyIndex;
+		// STR/ITEMPRICE/SELECTCOM/LOSEBASE 等没有对应 names 槽,返回 -1 让上层判断越界
+		return -1;
+	}
+
+	/// <summary>
+	/// 返回指定预设变量在指定索引的数据来源:-1 空 / 0 CSV / 1 ERD。
+	/// 自动处理 ITEM/ITEMNAME 这类"整数 + 字符串"配对,无论用户传哪个都会映射到同一 nameSource 槽。
+	/// </summary>
+	public sbyte GetNameSource(VariableCode code, int index)
+	{
+		int targetIndex = ResolveNameArrayIndex(code);
+		if (targetIndex < 0 || targetIndex >= nameSource.Length)
+			return -1;
+		sbyte[] arr = nameSource[targetIndex];
+		if (arr == null || index < 0 || index >= arr.Length)
+			return -1;
+		return arr[index];
+	}
+
+	/// <summary>
+	/// 该索引处是否有 CSV 来源的名字(用于 EXIST_IN_CSV)。
+	/// </summary>
+	public bool ExistInCsv(VariableCode code, int index)
+	{
+		return GetNameSource(code, index) == 0;
+	}
+
+	/// <summary>
+	/// 该索引处是否有 ERD 来源的名字(用于 EXIST_IN_ERD)。
+	/// </summary>
+	public bool ExistInErd(VariableCode code, int index)
+	{
+		return GetNameSource(code, index) == 1;
+	}
+
+	/// <summary>
+	/// 把预设变量的"名字"解析成它在对应 names 槽中的索引。
+	/// 供 EXIST_IN_CSV/EXIST_IN_ERD 的名字形式使用,如 EXIST_IN_CSV(ITEM, "万能药")。
+	/// 名字来自 nameToIntDics(CSV 名字 + 别名 + ERD 补入的空位名字)。
+	/// 找不到返回 -1。
+	/// </summary>
+	public int GetPresetIndexByName(VariableCode code, string name)
+	{
+		if (string.IsNullOrEmpty(name))
+			return -1;
+		int slot = ResolveNameArrayIndex(code);
+		if (slot < 0 || slot >= nameToIntDics.Length)
+			return -1;
+		Dictionary<string, int> dic = nameToIntDics[slot];
+		if (dic == null || !dic.TryGetValue(name, out int index))
+			return -1;
+		return index;
+	}
+
+	/// <summary>
+	/// ItemPrice 在指定索引的数据来源:-1 未设 / 0 CSV / 1 ERD。
+	/// </summary>
+	public sbyte GetPriceSource(int index)
+	{
+		if (PriceSource == null || index < 0 || index >= PriceSource.Length)
+			return -1;
+		return PriceSource[index];
+	}
+
+	/// <summary>
+	/// 初始化 nameSource/PriceSource 为 -1(空)。在所有 CSV 加载之前调用一次。
+	/// 与原 loadDataTo 内嵌追踪分离:此处显式分配数组,后续通过后处理批量标记。
+	/// </summary>
+	private void InitializeErdPresetSources()
+	{
+		// countNameCsv = __COUNT_CSV_STRING_ARRAY_1D__,对应 MaxDataList 实际大小
+		for (int i = 0; i < countNameCsv; i++)
+		{
+			nameSource[i] = new sbyte[MaxDataList[i]];
+			Array.Fill(nameSource[i], (sbyte)-1);
+		}
+		PriceSource = new sbyte[MaxDataList[itemIndex]];
+		Array.Fill(PriceSource, (sbyte)-1);
+	}
+
+	/// <summary>
+	/// 后处理:扫描已加载的 names[]/ItemPrice[],把非空位置标记为 0(CSV 来源)。
+	/// 不触碰原 loadDataTo:通过结果数组内容反推来源。
+	/// 注意 (ItemPrice 的边界):long[] 默认值 0 无法区分"CSV 没设"与"CSV 显式 0",
+	/// 所以这里用"ItemPrice[j] != 0 即认为 CSV 设了价格"。免费物品(显式 0)会被 ERD 覆盖。
+	/// </summary>
+	private void MarkAllCsvPresetSourcesAsZero()
+	{
+		// 名称:names[i][j] != null 即为 CSV 已设
+		for (int i = 0; i < countNameCsv; i++)
+		{
+			sbyte[] src = nameSource[i];
+			string[] arr = names[i];
+			if (src == null || arr == null) continue;
+			int len = Math.Min(src.Length, arr.Length);
+			for (int j = 0; j < len; j++)
+			{
+				if (arr[j] != null)
+					src[j] = 0;
+			}
+		}
+		// 价格:ItemPrice[j] != 0 即为 CSV 已设
+		if (PriceSource != null && ItemPrice != null)
+		{
+			int len = Math.Min(PriceSource.Length, ItemPrice.Length);
+			for (int j = 0; j < len; j++)
+			{
+				if (ItemPrice[j] != 0)
+					PriceSource[j] = 0;
+			}
+		}
+	}
+
+	/// <summary>
+	/// LoadData 末尾统一入口:初始化源追踪 → 标记 CSV 来源 → 合并 ERD。
+	/// 把 3 步封装成一个调用,LoadData 内部只保留 1 行方法调用,完全分离原逻辑。
+	/// </summary>
+	private void FinalizeErdPresetSources(bool disp)
+	{
+		InitializeErdPresetSources();
+		MarkAllCsvPresetSourcesAsZero();
+		if (Config.Config.UseERD)
+			MergePresetErdFromErbDir(Program.ErbDir, disp);
+	}
+	#endregion
 
 	public long[] ItemPrice;
 
@@ -708,6 +880,10 @@ internal sealed class ConstantData
 		loadDataTo(Path.Combine(csvDir, "DAY.CSV"), dayIndex, null, disp);
 		loadDataTo(Path.Combine(csvDir, "TIME.CSV"), timeIndex, null, disp);
 		loadDataTo(Path.Combine(csvDir, "MONEY.CSV"), moneyIndex, null, disp);
+		#endregion
+		#region 尊尼获加_ERD_PRESET
+		//所有 CSV 预设加载完毕后,初始化来源追踪 + 标记 CSV 来源 + 合并 ERD
+		FinalizeErdPresetSources(disp);
 		#endregion
 		//逆引き辞書を作成
 		for (int i = 0; i < names.Length; i++)
@@ -1885,6 +2061,222 @@ internal sealed class ConstantData
 			loadAliases(aliasPath, targetIndex);
 		}
 	}
+
+	#region 尊尼获加_ERD_PRESET
+	/// <summary>
+	/// 给定预设变量名(不区分大小写),返回对应的 targetIndex;不在预设列表中返回 -1。
+	/// 与 ErhLoader.PrepareERDFileNames 中按大写文件名收集的 key 对应。
+	/// </summary>
+	private static int GetPresetTargetIndex(string varName)
+	{
+		if (string.IsNullOrEmpty(varName))
+			return -1;
+		return varName.ToUpper(CultureInfo.InvariantCulture) switch
+		{
+			"ABL" => ablIndex,
+			"EXP" => expIndex,
+			"TALENT" => talentIndex,
+			"PALAM" => paramIndex,
+			"TRAIN" => trainIndex,
+			"MARK" => markIndex,
+			"ITEM" => itemIndex,
+			"BASE" => baseIndex,
+			"SOURCE" => sourceIndex,
+			"EX" => exIndex,
+			"STR" => strIndex,
+			"EQUIP" => equipIndex,
+			"TEQUIP" => tequipIndex,
+			"FLAG" => flagIndex,
+			"TFLAG" => tflagIndex,
+			"CFLAG" => cflagIndex,
+			"TCVAR" => tcvarIndex,
+			"CSTR" => cstrIndex,
+			"STAIN" => stainIndex,
+			"CDFLAG1" => cdflag1Index,
+			"CDFLAG2" => cdflag2Index,
+			"STRNAME" => strnameIndex,
+			"TSTR" => tstrnameIndex,
+			"SAVESTR" => savestrnameIndex,
+			"GLOBAL" => globalIndex,
+			"GLOBALS" => globalsIndex,
+			"DAY" => dayIndex,
+			"TIME" => timeIndex,
+			"MONEY" => moneyIndex,
+			_ => -1,
+		};
+	}
+
+	/// <summary>
+	/// 从 ERB 目录中扫描所有预设变量同名 .ERD/.erd 文件,与已加载的 CSV 合并。
+	/// 合并规则:
+	///   - CSV 与 ERD 在同一索引且名字一致:静默通过,源 = CSV
+	///   - CSV 与 ERD 在同一索引但名字不同:报告警告,CSV 优先
+	///   - CSV 在该索引为空,ERD 有值:写入 ERD 的名字,源 = ERD
+	///   - ERD 索引越界:警告跳过
+	/// </summary>
+	private void MergePresetErdFromErbDir(string erbDir, bool disp)
+	{
+		if (string.IsNullOrEmpty(erbDir) || !Directory.Exists(erbDir))
+			return;
+		// 收集所有 .ERD/.erd 文件
+		string[] files;
+		try
+		{
+			files = Directory.GetFiles(erbDir, "*.ERD", SearchOption.AllDirectories);
+		}
+		catch
+		{
+			return;
+		}
+		// 追加小写后缀(仅当 Windows/macOS 大小写不敏感时;这里用 ToUpper 匹配即可)
+		foreach (var path in files)
+		{
+			TryMergePresetErdFile(path, disp);
+		}
+	}
+
+	private void TryMergePresetErdFile(string erdPath, bool disp)
+	{
+		string fileName = Path.GetFileNameWithoutExtension(erdPath);
+		if (string.IsNullOrEmpty(fileName))
+			return;
+		int targetIndex = GetPresetTargetIndex(fileName);
+		if (targetIndex < 0)
+			return; // 不是预设变量名,留给 #DIM 用户定义变量流程处理
+		// 只对 ITEM 关联 targetI(ItemPrice);其他预设没有第三列
+		long[] targetI = (targetIndex == itemIndex) ? ItemPrice : null;
+		MergePresetErdFile(erdPath, targetIndex, targetI, fileName, disp);
+	}
+
+	/// <summary>
+	/// 把单个 ERD 文件合并到对应预设变量。失败仅警告,不抛出异常。
+	/// targetI 可选:指向 ITEM.CSV 的 ItemPrice 数组(只对 itemIndex 有意义)。
+	/// 合并规则:
+	///   - CSV 与 ERD 在同一索引且名字一致:静默通过,源 = CSV
+	///   - CSV 与 ERD 在同一索引但名字不同:报告警告,CSV 优先
+	///   - CSV 在该索引为空,ERD 有值:写入 ERD 的名字,源 = ERD
+	///   - 第三列(price):当 targetI 不为 null 且 CSV 未设价格时填入,源 = ERD;CSV 已设时 CSV 优先(警告)
+	///   - ERD 索引越界:警告跳过
+	/// </summary>
+	private void MergePresetErdFile(string erdPath, int targetIndex, long[] targetI, string varName, bool disp)
+	{
+		if (!File.Exists(erdPath))
+			return;
+		string[] target = names[targetIndex];
+		sbyte[] source = nameSource[targetIndex];
+		Dictionary<string, int> nameToInt = nameToIntDics[targetIndex];
+		if (target == null || source == null)
+			return;
+		using var eReader = new EraStreamReader(false);
+		if (!eReader.Open(erdPath) && output != null)
+		{
+			output.PrintError(string.Format(trerror.FailedOpenFile.Text, eReader.Filename));
+			return;
+		}
+		ScriptPosition? position = null;
+		if ((disp || Program.AnalysisMode) && output != null)
+			output.PrintSystemLine(string.Format(trsl.LoadingFile.Text, eReader.Filename));
+		try
+		{
+			CharStream st = null;
+			Span<Range> dest = stackalloc Range[5];
+			while ((st = eReader.ReadEnabledLine()) != null)
+			{
+				position = new ScriptPosition(eReader.Filename, eReader.LineNo);
+				var ros = st.SubstringROS();
+				var length = ros.Split(dest, [',']);
+				if (length < 2)
+				{
+					ParserMediator.Warn(trerror.MissingComma.Text, position, 1);
+					continue;
+				}
+				if (!int.TryParse(ros[dest[0]], out int index))
+				{
+					ParserMediator.Warn(trerror.FirstValueCanNotConvertToInt.Text, position, 1);
+					continue;
+				}
+				if (target.Length == 0)
+				{
+					ParserMediator.Warn(trerror.ProhibitedArrayName.Text, position, 2);
+					break;
+				}
+				if (index < 0 || target.Length <= index)
+				{
+					ParserMediator.Warn(string.Format(trerror.OoRArray.Text, index.ToString()), position, 1);
+					continue;
+				}
+				string erdName = ros[dest[1]].ToString();
+				string csvName = target[index];
+				if (string.IsNullOrEmpty(csvName))
+				{
+					// CSV 该位置为空,ERD 填入,源 = ERD
+					target[index] = erdName;
+					source[index] = 1;
+					if (!nameToInt.ContainsKey(erdName))
+						nameToInt.Add(erdName, index);
+				}
+				else
+				{
+					// CSV 已有值,无论名字是否一致,CSV 优先;名字不同时报告警告
+					if (!string.Equals(csvName, erdName, StringComparison.Ordinal))
+					{
+						ParserMediator.Warn(
+							string.Format(trerror.PresetErdConflictWithCsv.Text, varName, index, csvName, erdName, eReader.Filename),
+							position, 1);
+					}
+					// 源 = CSV,不动
+				}
+
+				// 第三列:价格(仅当 targetI 不为 null,即 ITEM 系列)
+				if (targetI != null && length >= 3)
+				{
+					if (index >= targetI.Length)
+					{
+						ParserMediator.Warn(string.Format(trerror.OoRArray.Text, index.ToString()), position, 1);
+					}
+					else if (!long.TryParse(ros[dest[2]].TrimEnd(), out long erdPrice))
+					{
+						ParserMediator.Warn(trerror.CanNotReadAmountOfMoney.Text, position, 1);
+					}
+					else
+					{
+						// psrc == -1: ItemPrice[index] == 0(CSV 未设或显式 0),ERD 填入
+						// psrc == 0: ItemPrice[index] != 0(CSV 设了非零价格),CSV 优先
+						sbyte psrc = (PriceSource != null && index < PriceSource.Length) ? PriceSource[index] : (sbyte)-1;
+						if (psrc == -1)
+						{
+							// ERD 填入,源 = ERD
+							targetI[index] = erdPrice;
+							if (PriceSource != null && index < PriceSource.Length)
+								PriceSource[index] = 1;
+						}
+						else if (psrc == 0 && targetI[index] != erdPrice)
+						{
+							// CSV 已设价格但与 ERD 不一致,警告,CSV 优先
+							ParserMediator.Warn(
+								string.Format(trerror.PresetErdPriceConflictWithCsv.Text, varName, index, targetI[index], erdPrice, eReader.Filename),
+								position, 1);
+						}
+						// psrc == 1: ERD 已设过价格(多个 ERD 同一索引),后者覆盖前者
+					}
+				}
+			}
+		}
+		catch
+		{
+			System.Media.SystemSounds.Hand.Play();
+			if (position != null)
+				ParserMediator.Warn(trerror.UnexpectedError.Text, position, 3);
+			else
+				output.PrintError(trerror.UnexpectedError.Text);
+			return;
+		}
+		finally
+		{
+			eReader.Close();
+		}
+	}
+	#endregion
 
 	private void loadAliases(string aliasPath, int targetIndex)
 	{

@@ -253,6 +253,10 @@ internal static partial class FunctionMethodCreator
 			["EXISTFILE"] = new ExistFileMethod(),
 			["EXISTVAR"] = new ExistVarMethod(),
 			["ISDEFINED"] = new IsDefinedMethod(),
+			#region 尊尼获加_ERD_PRESET
+			["EXIST_IN_CSV"] = new ExistInCsvMethod(),
+			["EXIST_IN_ERD"] = new ExistInErdMethod(),
+			#endregion
 
 			["ENUMFUNCBEGINSWITH"] = new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.BeginsWith),
 			["ENUMFUNCENDSWITH"] = new EnumNameMethod(EnumNameMethod.EType.Function, EnumNameMethod.EAction.EndsWith),
