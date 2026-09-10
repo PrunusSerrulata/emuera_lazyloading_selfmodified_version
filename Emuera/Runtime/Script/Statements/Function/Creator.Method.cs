@@ -173,63 +173,6 @@ internal static partial class FunctionMethodCreator
 			return (GlobalStatic.IdentifierDictionary.GetMacro(arguments[0].GetStrValue(exm)) != null) ? 1 : 0;
 		}
 	}
-	#region 尊尼获加_ERD_PRESET
-	/// <summary>
-	/// 抽象基类:EXIST_IN_CSV / EXIST_IN_ERD 共用逻辑,只差调用 ConstantData 的不同方法。
-	/// 用法(第一个参数是预设变量,不加引号):
-	///   EXIST_IN_CSV(ITEM, 6)        → 1 if names[item][6] 来自 CSV, else 0
-	///   EXIST_IN_CSV(ITEM, "万能药")  → 名字形式,自动解析名字→索引(名字需加引号)
-	/// </summary>
-	private abstract class PresetNameSourceMethod : FunctionMethod
-	{
-		public PresetNameSourceMethod()
-		{
-			ReturnType = EraType.Integer;
-			argumentTypeArrayEx = [
-					// 形式1:EXIST_IN_CSV(ITEM, 6) 数字索引
-					new ArgTypeList{ ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.Int } },
-					// 形式2:EXIST_IN_CSV(ITEM, "万能药") 名字(需加引号)
-					new ArgTypeList{ ArgTypes = { ArgType.RefAny | ArgType.AllowConstRef, ArgType.String } },
-				];
-			CanRestructure = true;
-		}
-
-		protected abstract bool Check(ConstantData constant, VariableCode code, int index);
-
-		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
-		{
-			VariableTerm vToken = (VariableTerm)arguments[0];
-			VariableCode varCode = vToken.Identifier.Code;
-			int idx;
-			if (arguments[1].IsString)
-			{
-				// 名字形式:先按名字查字典,找不到再尝试当作数字索引(如 "6")
-				string name = arguments[1].GetStrValue(exm);
-				idx = exm.VEvaluator.Constant.GetPresetIndexByName(varCode, name);
-				if (idx < 0 && int.TryParse(name, out int numeric))
-					idx = numeric;
-				if (idx < 0)
-					return 0; // 该名字不在任何 CSV/ERD 中
-			}
-			else
-			{
-				// 数字索引形式
-				idx = (int)arguments[1].GetIntValue(exm);
-			}
-			return Check(exm.VEvaluator.Constant, varCode, idx) ? 1 : 0;
-		}
-	}
-	private sealed class ExistInCsvMethod : PresetNameSourceMethod
-	{
-		protected override bool Check(ConstantData constant, VariableCode code, int index)
-			=> constant.ExistInCsv(code, index);
-	}
-	private sealed class ExistInErdMethod : PresetNameSourceMethod
-	{
-		protected override bool Check(ConstantData constant, VariableCode code, int index)
-			=> constant.ExistInErd(code, index);
-	}
-	#endregion
 	private sealed class EnumNameMethod : FunctionMethod
 	{
 		public enum EType
@@ -5398,6 +5341,42 @@ internal static partial class FunctionMethodCreator
 				return -1;
 		}
 	}
+
+	#region 尊尼获加_ERD_PRESET
+	/// <summary>
+	/// 探针:指定预设变量在指定索引的名字来源(合并后有效来源,非"谁申请过")。
+	/// 首参为字符串变量名(GETNUMB 风格,可反射拼接);第二参数只收整数索引,不做名字重载。
+	/// 不支持的变量名/越界索引返回 0(探针语义:答不出即"不是")。别名透明:查的是槽正名的来源。
+	/// </summary>
+	private abstract class PresetNameSourceMethod : FunctionMethod
+	{
+		protected PresetNameSourceMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer];
+			CanRestructure = true;
+		}
+		protected abstract bool Check(ConstantData constant, string varName, int index);
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string varName = arguments[0].GetStrValue(exm);
+			long rawIndex = arguments[1].GetIntValue(exm);
+			if (rawIndex < 0 || rawIndex > int.MaxValue)
+				return 0;
+			return Check(exm.VEvaluator.Constant, varName, (int)rawIndex) ? 1 : 0;
+		}
+	}
+	private sealed class ExistInCsvMethod : PresetNameSourceMethod
+	{
+		protected override bool Check(ConstantData constant, string varName, int index)
+			=> constant.ExistPresetNameInCsv(varName, index);
+	}
+	private sealed class ExistInErdMethod : PresetNameSourceMethod
+	{
+		protected override bool Check(ConstantData constant, string varName, int index)
+			=> constant.ExistPresetNameInErd(varName, index);
+	}
+	#endregion
 
 	private sealed class GetPalamLVMethod : FunctionMethod
 	{
