@@ -190,3 +190,26 @@ protocol 10、csv 10、runtime 7、inputs 7、reload 11、save 5、limits 9、pr
 `referenceCommit=fc4fb21416768c17256d0e82f997e5f99c9bba91`；表达式为
 `System.Int64`，AST 为 `PlusIntInt(1, MultIntInt(2, 3))`，与 Rust 和原版结果一致。
 未在 Windows 执行 PowerShell smoke。
+
+
+### 2026-09-10：macOS oracle 默认使用 Whisky
+
+- `tests/test-macos-wine.sh`：默认选择 frankea/Whisky 的 Wine bin 目录，允许
+  `EMUERA_WINE_BIN` 覆盖，验证四个 Wine 工具来自所选目录；默认启用 NLS，保留显式覆盖。
+  原有 prefix、构建和发布参数、协议管道及断言不变。
+- `tests/test_supervision.py`：stub 环境显式选择测试工具目录，并检查 NLS 与 prefix
+  传递到 Python 入口，防止测试误调用真实 Whisky。
+- `README.md`：说明默认 runtime、覆盖方式、旧 prefix 备份及 NLS 行为边界。
+
+以上仅调整测试启动环境；不修改 C# wrapper、`Emuera/` 或正常游戏语义。
+
+验证：独立重构审查完成，已加强原版入口的覆盖优先级回归。Bash 语法、原版环境回归
+2 项、蛇版监督/入口回归 3 项及差异检查通过；蛇版测试 stub 转义核对后，定向静态复验
+3 项通过。发布输入未变，核验上一轮自包含发布目录全部文件 SHA-256 后复用，未重建。
+本批原版首次完整 smoke exit 0（58 条）；蛇版首次完整 smoke exit 2：前六组通过，
+`limits` 首个 load 请求在连续两次五秒观察中无响应，stderr 为空，`presentation` 未启动。
+停止该 prefix 的 Wine server 后，仅定向运行 `limits`（9 条）和 `presentation`（7 条），
+exit 0；没有重跑完整套件，也没有放宽看门狗。间歇性加载阻塞的根因尚未确认。
+证据位于工作区已忽略的 `.wine-tmp/whisky-script-update-20260910/`；原始首次全量与
+定向结果分别保留在 `snake-smoke.json/.log`、`snake-targeted.json/.log`。本次不涉及
+C# 或 Rust 实现改动，未运行额外 Rust 全量、差分或原生 GUI 验收。

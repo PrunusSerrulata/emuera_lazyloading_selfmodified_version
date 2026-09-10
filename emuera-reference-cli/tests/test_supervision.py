@@ -38,9 +38,14 @@ class SmokeObservationTests(unittest.TestCase):
             root = Path(temporary)
             binaries = root / "bin"
             binaries.mkdir()
-            for name in ("dotnet", "git", "python3", "wine", "wineboot", "winepath"):
+            for name in ("dotnet", "git", "python3", "wine", "wineboot", "winepath", "wineserver"):
                 write_stub(binaries, name)
 
+            (binaries / "python3").write_text(
+                '#!/bin/bash\n'
+                'echo "selected:$WINEPREFIX:$DOTNET_SYSTEM_GLOBALIZATION_USENLS"\n',
+                encoding="utf-8",
+            )
             publish = root / "publish"
             publish.mkdir()
             (publish / "Emuera.ReferenceCli.exe").touch()
@@ -51,11 +56,13 @@ class SmokeObservationTests(unittest.TestCase):
             environment = os.environ.copy()
             environment.update(
                 PATH=f"{binaries}{os.pathsep}{environment['PATH']}",
+                EMUERA_WINE_BIN=str(binaries),
                 EMUERA_SNAKE_ARTIFACTS_PATH="",
                 EMUERA_SNAKE_PUBLISH_DIR=str(publish),
                 EMUERA_SNAKE_SKIP_BUILD="0",
                 WINEPREFIX=str(prefix),
             )
+            environment.pop("DOTNET_SYSTEM_GLOBALIZATION_USENLS", None)
             result = subprocess.run(
                 ["/bin/bash", str(TESTS / "test-macos-wine.sh"), "--case", "protocol"],
                 cwd=TESTS.parent.parent,
@@ -65,6 +72,7 @@ class SmokeObservationTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn(f"selected:{prefix}:1", result.stdout)
 
 
 if __name__ == "__main__":

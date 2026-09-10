@@ -94,6 +94,17 @@ bash emuera-reference-cli/tests/test-macos-wine.sh
 WINEPREFIX=/absolute/path/to/prefix WINEDEBUG=-all python3 emuera-reference-cli/tests/smoke.py --wine wine --exe emuera-reference-cli/bin/smoke-win-x64/Emuera.ReferenceCli.exe --case inputs --budget-seconds 120
 ```
 
+macOS 脚本默认使用 frankea/Whisky 的
+`$HOME/Library/Application Support/com.franke.Whisky/Libraries/Wine/bin`，
+可用 `EMUERA_WINE_BIN` 指定其他 Wine bin 目录。启动前检查同目录下的 `wine`、
+`winepath`、`wineboot` 和 `wineserver`，缺少工具时立即失败，不回退到 PATH 中的其他 Wine。
+直接运行底层 Wine 保留 NDJSON 管道，不使用 `whisky run`。
+
+默认设置 `DOTNET_SYSTEM_GLOBALIZATION_USENLS=1`，避开旧 prefix 遗留 ICU DLL 的
+初始化失败；经独立验证的 ICU 环境可显式设置为 `0`。NLS/ICU 全局化行为不保证完全等价。
+换 Wine 前应备份 prefix，不得让不同 runtime 同时使用同一 prefix；并行任务仍使用各自副本。
+直接调用下面的 Python 驱动时，需要调用者自行提供对应 PATH 和 NLS 环境。
+
 默认独立 Wine prefix 为工作区 `.wine-prefix/emuera-selfmodified-cli`；也可显式提供
 `WINEPREFIX`。任何测试成功只说明该版本 oracle 的相应用例可用，不能替代 Rust/C#
 同输入差分，更不代表 Skia/WinForms 实际画面或原生窗口交互通过验证。

@@ -9,6 +9,19 @@ PUBLISH_DIR="${EMUERA_SNAKE_PUBLISH_DIR:-$CLI_DIR/bin/smoke-win-x64}"
 ARTIFACTS_PATH="${EMUERA_SNAKE_ARTIFACTS_PATH:-}"
 SKIP_BUILD="${EMUERA_SNAKE_SKIP_BUILD:-0}"
 
+# Keep Wine helpers on the same runtime; never fall back to another installation.
+WINE_BIN="${EMUERA_WINE_BIN:-$HOME/Library/Application Support/com.franke.Whisky/Libraries/Wine/bin}"
+for wine_tool in wine winepath wineboot wineserver; do
+    if [[ ! -x "$WINE_BIN/$wine_tool" ]]; then
+        echo "required Wine tool not found: $WINE_BIN/$wine_tool (set EMUERA_WINE_BIN to override)" >&2
+        exit 127
+    fi
+done
+WINE_BIN="$(cd "$WINE_BIN" && pwd)"
+export PATH="$WINE_BIN:$PATH"
+# Legacy prefixes can retain ICU DLLs incompatible with Whisky's Wine runtime.
+export DOTNET_SYSTEM_GLOBALIZATION_USENLS="${DOTNET_SYSTEM_GLOBALIZATION_USENLS:-1}"
+
 for command_name in wine winepath python3; do
     command -v "$command_name" >/dev/null || { echo "missing command: $command_name" >&2; exit 127; }
 done
