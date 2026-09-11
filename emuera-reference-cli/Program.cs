@@ -49,7 +49,7 @@ internal static class JsonOptions
 internal static class Response
 {
     internal const int SchemaVersion = 2;
-    internal const string ReferenceCommit = "fc4fb21416768c17256d0e82f997e5f99c9bba91";
+    internal const string ReferenceCommit = "57170459b3d5ca175a1c57933058b569088bee0e";
 
     internal static JsonObject Success(JsonNode? id, JsonNode? result, JsonArray diagnostics) => new()
     {

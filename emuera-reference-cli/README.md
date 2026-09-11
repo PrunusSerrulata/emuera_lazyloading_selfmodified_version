@@ -1,6 +1,6 @@
 # 自改版 Emuera 测试 CLI
 
-以本仓库 `fc4fb21416768c17256d0e82f997e5f99c9bba91` 为语义基准，直接调用真实
+以本仓库 `57170459b3d5ca175a1c57933058b569088bee0e` 为语义基准，直接调用真实
 lexer、parser、项目加载器和 VM。接口沿用兄弟 `emuera.em/emuera-reference-cli` 的
 schema 2 持久 NDJSON 协议，但响应明确标识本自改版，不冒充固定参考实现。
 

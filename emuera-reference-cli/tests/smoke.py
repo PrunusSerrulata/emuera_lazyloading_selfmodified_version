@@ -16,7 +16,7 @@ import threading
 import time
 
 TESTS = Path(__file__).resolve().parent
-BASELINE = "fc4fb21416768c17256d0e82f997e5f99c9bba91"
+BASELINE = "57170459b3d5ca175a1c57933058b569088bee0e"
 
 
 class SmokeWatchdog:

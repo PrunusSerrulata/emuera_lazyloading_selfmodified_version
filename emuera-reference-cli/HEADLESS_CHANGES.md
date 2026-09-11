@@ -213,3 +213,15 @@ exit 0；没有重跑完整套件，也没有放宽看门狗。间歇性加载�
 证据位于工作区已忽略的 `.wine-tmp/whisky-script-update-20260910/`；原始首次全量与
 定向结果分别保留在 `snake-smoke.json/.log`、`snake-targeted.json/.log`。本次不涉及
 C# 或 Rust 实现改动，未运行额外 Rust 全量、差分或原生 GUI 验收。
+
+## 2026-09-11：同步 Skiav13 参考身份
+
+上游语义基准由 `fc4fb21416768c17256d0e82f997e5f99c9bba91` 更新为 `57170459b3d5ca175a1c57933058b569088bee0e`；
+合并提交为 `659892b`，保留既有 headless 接入。
+
+- `Program.cs`：仅更新 NDJSON `referenceCommit` 常量，避免新引擎标记为旧基准；不更改正常游戏执行逻辑。
+- `tests/smoke.py`：同步身份断言，不改写历史捕获或行为期望。
+- `README.md`：同步当前语义基准说明。
+
+本次仅核对合并完整性、差异格式和身份一致性；未重新构建或运行 oracle smoke，
+未证明旧 smoke 行为期望适用于新基准。上游正常游戏语义变化见根目录 CHANGELOG.md。
