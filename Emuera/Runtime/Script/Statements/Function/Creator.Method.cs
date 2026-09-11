@@ -3269,6 +3269,7 @@ internal static partial class FunctionMethodCreator
 				throw new CodeEE(string.Format(trerror.ArgIsTooLarge.Text, Name, 1, target));
 			EraDataResult result = exm.VEvaluator.CheckData((int)target, type);
 			exm.VEvaluator.RESULTS = result.DataMes;
+			exm.VEvaluator.RESULT_ARRAY[1] = result.Version;
 			return (long)result.State;
 		}
 	}
@@ -3791,6 +3792,9 @@ internal static partial class FunctionMethodCreator
 	#region 数学関数
 	private sealed class RandMethod : FunctionMethod
 	{
+		// RAND(min,max) 入口安全保护（Skiav12.2）：max <= min 时不再抛 CodeEE 弹窗中断，
+		// 钳制为返回下界 min（空区间 → 下界），并仅警告一次避免刷屏
+		private static bool clampedWarned;
 		public RandMethod()
 		{
 			ReturnType = EraType.Integer;
@@ -3814,10 +3818,12 @@ internal static partial class FunctionMethodCreator
 			}
 			if (max <= min)
 			{
-				if (min == 0)
-					throw new CodeEE(string.Format(trerror.NegativeMaximum.Text, Name, max));
-				else
-					throw new CodeEE(string.Format(trerror.MaximumLowerThanMinimum.Text, Name, max));
+				if (!clampedWarned)
+				{
+					clampedWarned = true;
+					exm.Console.PrintError(string.Format(trerror.MaximumLowerThanMinimum.Text, Name, max) + "（已钳制为下界，不再中断运行）");
+				}
+				return min;
 			}
 			return exm.VEvaluator.GetNextRand(max - min) + min;
 		}
@@ -3836,10 +3842,12 @@ internal static partial class FunctionMethodCreator
 			}
 			if (max <= min)
 			{
-				if (min == 0.0)
-					throw new CodeEE(string.Format(trerror.NegativeMaximum.Text, Name, max));
-				else
-					throw new CodeEE(string.Format(trerror.MaximumLowerThanMinimum.Text, Name, max));
+				if (!clampedWarned)
+				{
+					clampedWarned = true;
+					exm.Console.PrintError(string.Format(trerror.MaximumLowerThanMinimum.Text, Name, max) + "（已钳制为下界，不再中断运行）");
+				}
+				return min;
 			}
 			return exm.VEvaluator.GetNextRandDouble() * (max - min) + min;
 		}
@@ -5333,6 +5341,42 @@ internal static partial class FunctionMethodCreator
 				return -1;
 		}
 	}
+
+	#region 尊尼获加_ERD_PRESET
+	/// <summary>
+	/// 探针:指定预设变量在指定索引的名字来源(合并后有效来源,非"谁申请过")。
+	/// 首参为字符串变量名(GETNUMB 风格,可反射拼接);第二参数只收整数索引,不做名字重载。
+	/// 不支持的变量名/越界索引返回 0(探针语义:答不出即"不是")。别名透明:查的是槽正名的来源。
+	/// </summary>
+	private abstract class PresetNameSourceMethod : FunctionMethod
+	{
+		protected PresetNameSourceMethod()
+		{
+			ReturnType = EraType.Integer;
+			argumentTypeArray = [EraType.String, EraType.Integer];
+			CanRestructure = true;
+		}
+		protected abstract bool Check(ConstantData constant, string varName, int index);
+		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+		{
+			string varName = arguments[0].GetStrValue(exm);
+			long rawIndex = arguments[1].GetIntValue(exm);
+			if (rawIndex < 0 || rawIndex > int.MaxValue)
+				return 0;
+			return Check(exm.VEvaluator.Constant, varName, (int)rawIndex) ? 1 : 0;
+		}
+	}
+	private sealed class ExistInCsvMethod : PresetNameSourceMethod
+	{
+		protected override bool Check(ConstantData constant, string varName, int index)
+			=> constant.ExistPresetNameInCsv(varName, index);
+	}
+	private sealed class ExistInErdMethod : PresetNameSourceMethod
+	{
+		protected override bool Check(ConstantData constant, string varName, int index)
+			=> constant.ExistPresetNameInErd(varName, index);
+	}
+	#endregion
 
 	private sealed class GetPalamLVMethod : FunctionMethod
 	{

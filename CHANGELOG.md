@@ -4,6 +4,44 @@ All notable changes to Emuera-SKIA will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [13.0.0] — 预设变量 ERD 扩展
+
+### Added
+
+- **预设变量同名 ERD 合并**：ERB 目录下与预设变量同名的 `.erd` 文件（如 `ITEM.erd`）可扩展对应预设变量的名表。ERD 只填 CSV 为空的槽（CSV 优先）；ITEM 额外支持第三列价格（CSV 出现过价格列即视为已设，含显式 0，ERD 不得覆盖）。合并发生在全部 CSV 加载后、逆引字典建立前，ERD 补入的名字同样可被 `GETNUM` / `ITEMNAME:n` 使用。涉及 `ConstantData.cs`（尊尼获加_ERD_PRESET）
+- **`EXIST_IN_CSV` / `EXIST_IN_ERD` 表达式函数**：`EXIST_IN_CSV("ITEM", 6)` 查询指定槽位名字的有效来源（合并后来源，非"谁申请过"），CSV 则为 1；ERD 版同理。首参为字符串变量名（GETNUMB 风格，可反射拼接枚举）；第二参数只收整数索引，不支持的变量名/越界索引返回 0。被 CSV 顶掉的 ERD 名在运行时不可见（仅加载期警告），跨槽重名 ERD 行警告跳过。涉及 `Creator.Method.cs` / `Creator.cs`
+
+### Changed
+
+- **版本签名**：`Skiav12.2` → `Skiav13`（`1824+v24+EMv18+EEv56+Skiav13`）
+
+***
+
+## [12.2.0] — RAND 随机数入口安全保护
+
+### Changed
+
+- **RAND 参数非法不再弹窗中断**：`RAND:n` 参数 ≤ 0 时钳制为返回 `0`；`RAND(min,max)` / `RAND(max)`（含浮点重载）参数 `max ≤ min` 时钳制为返回下界 `min`。原行为为抛 CodeEE 弹窗并终止脚本，对玩家无操作价值且中断存档会话；现与兼容模式 RAND（CompatiRandToken）的归一化策略对齐。首次触发时向控制台输出一次错误色警告（调试模式下同时进入调试窗口），后续触发静默钳制，避免循环刷屏。涉及 `VariableToken.cs`（RandToken）/ `Creator.Method.cs`（RandMethod 整数/浮点两分支）
+- **版本签名**：`Skiav12.1` → `Skiav12.2`（`1824+v24+EMv18+EEv56+Skiav12.2`）
+
+***
+
+## [12.1.0] — 多语言编码兼容 + CHKDATA 存档版本信息
+
+### Added
+
+- **CHKDATA 返回存档版本信息**：`EraDataResult` 新增 `Version` 字段；`CHKDATA` 的 `RESULT:1` 返回存档内版本号（文件不存在等其他错误时 `0`，版本不匹配或正常时返回实际版本）。涉及 `EraDataStream.cs` / `VariableEvaluator.cs` / `Creator.Method.cs`
+
+### Fixed
+
+- **多语言编码兼容性**：`LangManager` 的字节长度计算改为逐字符往返回退（当前语言编码无法往返的字符改用日文 932 编码计数），修复非日文编码（如 GBK）下 CJK 文本在 `GetStrlenLang`/`GetUFTIndex`/`GetSubStringLang` 中的长度与子串错乱
+
+### Changed
+
+- **版本签名**：`Skiav12` → `Skiav12.1`（`1824+v24+EMv18+EEv56+Skiav12.1`）
+
+***
+
 ## [12.0.0] — 调试窗口：变量监视「锁定」与直接赋值
 
 ### Added
